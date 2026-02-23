@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectStats } from "@/hooks/useProjects";
 import { useProviderStats } from "@/hooks/useProviderStats";
@@ -136,14 +137,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-sm mt-1">مرحباً بك في منصة الخدمات المشتركة</p>
         </div>
         {role ? <DashboardStats role={role} /> : null}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">النشاط الأخير</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm">لا يوجد نشاط حتى الآن</p>
-          </CardContent>
-        </Card>
+        <RecentActivity />
       </div>
     </DashboardLayout>
   );

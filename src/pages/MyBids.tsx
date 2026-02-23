@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, FileText } from "lucide-react";
+import { Check, FileText, FolderKanban } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "قيد المراجعة", variant: "secondary" },
@@ -76,9 +78,11 @@ export default function MyBids() {
         </Select>
 
         {isLoading ? (
-          <p className="text-muted-foreground">جارٍ التحميل...</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
+          </div>
         ) : !bids?.length ? (
-          <p className="text-muted-foreground">لم تقدم أي عروض بعد</p>
+          <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح المشاريع المتاحة وقدم عرضك الأول" actionLabel="تصفح المشاريع" actionHref="/available-projects" />
         ) : (
           <div className="space-y-3">
             {bids.map((bid: any) => {
