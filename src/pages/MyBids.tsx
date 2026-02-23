@@ -9,15 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, FileText, FolderKanban } from "lucide-react";
+import { Check, FileText, FolderKanban, Filter, DollarSign, CalendarDays } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary" },
-  accepted: { label: "مقبول", variant: "default" },
-  rejected: { label: "مرفوض", variant: "destructive" },
-  withdrawn: { label: "تم السحب", variant: "outline" },
+const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
+  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-r-4 border-yellow-500" },
+  accepted: { label: "مقبول", variant: "default", border: "border-r-4 border-emerald-500" },
+  rejected: { label: "مرفوض", variant: "destructive", border: "border-r-4 border-red-500" },
+  withdrawn: { label: "تم السحب", variant: "outline", border: "border-r-4 border-muted-foreground/40" },
 };
 
 export default function MyBids() {
@@ -27,7 +27,6 @@ export default function MyBids() {
   const signContract = useSignContract();
   const { toast } = useToast();
 
-  // Fetch contracts for accepted bids
   const acceptedBidProjectIds = (bids ?? [])
     .filter((b: any) => b.status === "accepted")
     .map((b: any) => b.project_id);
@@ -64,22 +63,38 @@ export default function MyBids() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">عروضي</h1>
+        {/* Page Header */}
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary/10">
+            <FileText className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">عروضي</h1>
+            <p className="text-sm text-muted-foreground">تابع حالة عروضك المقدمة على المشاريع</p>
+          </div>
+        </div>
+        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
 
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">جميع الحالات</SelectItem>
-            <SelectItem value="pending">قيد المراجعة</SelectItem>
-            <SelectItem value="accepted">مقبول</SelectItem>
-            <SelectItem value="rejected">مرفوض</SelectItem>
-            <SelectItem value="withdrawn">تم السحب</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Filter Panel */}
+        <Card className="bg-muted/30 border-dashed">
+          <CardContent className="flex items-center gap-3 p-4">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-48 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الحالات</SelectItem>
+                <SelectItem value="pending">قيد المراجعة</SelectItem>
+                <SelectItem value="accepted">مقبول</SelectItem>
+                <SelectItem value="rejected">مرفوض</SelectItem>
+                <SelectItem value="withdrawn">تم السحب</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : !bids?.length ? (
           <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح المشاريع المتاحة وقدم عرضك الأول" actionLabel="تصفح المشاريع" actionHref="/available-projects" />
@@ -88,8 +103,9 @@ export default function MyBids() {
             {bids.map((bid: any) => {
               const st = statusLabels[bid.status] ?? statusLabels.pending;
               const contract = bid.status === "accepted" ? getContract(bid.project_id) : null;
+              const needsSign = contract && !contract.provider_signed_at;
               return (
-                <Card key={bid.id}>
+                <Card key={bid.id} className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
                       <CardTitle className="text-base">{bid.projects?.title ?? "—"}</CardTitle>
@@ -100,10 +116,14 @@ export default function MyBids() {
                     <Badge variant={st.variant}>{st.label}</Badge>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-4 text-sm">
-                        <span>السعر: {bid.price} ر.س</span>
-                        <span>المدة: {bid.timeline_days} يوم</span>
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex gap-3">
+                        <span className="inline-flex items-center gap-1 text-sm bg-muted px-2.5 py-1 rounded-md">
+                          <DollarSign className="h-3.5 w-3.5 text-primary" />{bid.price} ر.س
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-sm bg-muted px-2.5 py-1 rounded-md">
+                          <CalendarDays className="h-3.5 w-3.5 text-primary" />{bid.timeline_days} يوم
+                        </span>
                       </div>
                       <div className="flex gap-2">
                         {bid.status === "pending" && (
@@ -111,14 +131,14 @@ export default function MyBids() {
                             سحب العرض
                           </Button>
                         )}
-                        {contract && !contract.provider_signed_at && (
-                          <Button size="sm" onClick={() => handleSign(contract.id)} disabled={signContract.isPending}>
+                        {needsSign && (
+                          <Button size="sm" onClick={() => handleSign(contract.id)} disabled={signContract.isPending} className="bg-gradient-to-l from-primary to-primary/90 shadow-md">
                             <Check className="h-4 w-4 ml-1" />
                             توقيع العقد
                           </Button>
                         )}
                         {contract?.provider_signed_at && (
-                          <Badge variant="outline" className="flex items-center gap-1">
+                          <Badge variant="outline" className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
                             <FileText className="h-3 w-3" />
                             تم التوقيع
                           </Badge>
