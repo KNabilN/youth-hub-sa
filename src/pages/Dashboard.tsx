@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectStats } from "@/hooks/useProjects";
 import { useProviderStats } from "@/hooks/useProviderStats";
+import { useDonorStats } from "@/hooks/useDonorStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FolderKanban,
@@ -72,13 +73,32 @@ function ProviderDashboard() {
   );
 }
 
-const staticStatsByRole: Record<string, { title: string; value: string; icon: any; color: string }[]> = {
-  donor: [
-    { title: "الجمعيات المدعومة", value: "0", icon: Users, color: "text-primary" },
-    { title: "إجمالي التبرعات", value: "0 ر.س", icon: HandCoins, color: "text-accent" },
-    { title: "المشاريع الممولة", value: "0", icon: FolderKanban, color: "text-info" },
+function DonorDashboard() {
+  const { data: stats, isLoading } = useDonorStats();
+  const items = [
+    { title: "الجمعيات المدعومة", value: stats?.associationsSupported ?? 0, icon: Users, color: "text-primary" },
+    { title: "إجمالي التبرعات", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "text-accent" },
+    { title: "المشاريع الممولة", value: stats?.projectsFunded ?? 0, icon: FolderKanban, color: "text-info" },
     { title: "تقارير الأثر", value: "0", icon: BarChart3, color: "text-success" },
-  ],
+  ];
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {items.map((stat) => (
+        <Card key={stat.title}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+            <stat.icon className={`h-5 w-5 ${stat.color}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+const staticStatsByRole: Record<string, { title: string; value: string; icon: any; color: string }[]> = {
   super_admin: [
     { title: "إجمالي المستخدمين", value: "0", icon: Users, color: "text-primary" },
     { title: "المشاريع", value: "0", icon: FolderKanban, color: "text-info" },
@@ -109,6 +129,7 @@ function StaticStats({ role }: { role: string }) {
 function DashboardStats({ role }: { role: string }) {
   if (role === "youth_association") return <AssociationDashboard />;
   if (role === "service_provider") return <ProviderDashboard />;
+  if (role === "donor") return <DonorDashboard />;
   return <StaticStats role={role} />;
 }
 
