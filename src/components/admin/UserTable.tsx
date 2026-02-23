@@ -19,19 +19,23 @@ const roleLabels: Record<string, string> = {
   donor: "مانح",
 };
 
+interface PaginationProps {
+  page: number;
+  pageSize: number;
+  from: number;
+  to: number;
+  nextPage: () => void;
+  prevPage: () => void;
+}
+
 interface UserTableProps {
-  pagination: {
-    page: number;
-    pageSize: number;
-    from: number;
-    to: number;
-    nextPage: () => void;
-    prevPage: () => void;
-  };
+  pagination?: PaginationProps;
 }
 
 export function UserTable({ pagination }: UserTableProps) {
-  const { data: users, isLoading } = useAdminUsers(pagination.from, pagination.to);
+  const from = pagination?.from ?? 0;
+  const to = pagination?.to ?? 19;
+  const { data: users, isLoading } = useAdminUsers(from, to);
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
   const changeRole = useChangeUserRole();
@@ -180,13 +184,15 @@ export function UserTable({ pagination }: UserTableProps) {
         </Table>
       </div>
 
-      <PaginationControls
-        page={pagination.page}
-        pageSize={pagination.pageSize}
-        totalFetched={users?.length ?? 0}
-        onPrev={pagination.prevPage}
-        onNext={pagination.nextPage}
-      />
+      {pagination && (
+        <PaginationControls
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalFetched={users?.length ?? 0}
+          onPrev={pagination.prevPage}
+          onNext={pagination.nextPage}
+        />
+      )}
     </div>
   );
 }
