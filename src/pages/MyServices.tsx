@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Layers } from "lucide-react";
+import { Plus, Layers, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -79,6 +80,10 @@ export default function MyServices() {
         <Dialog open={!!editingId} onOpenChange={(open) => !open && setEditingId(null)}>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>تعديل الخدمة</DialogTitle></DialogHeader>
+            <Alert variant="default" className="border-warning bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-xs">تعديل الخدمة سيعيدها إلى حالة "قيد المراجعة" حتى يوافق عليها المدير مجدداً.</AlertDescription>
+            </Alert>
             {editingService && (
               <ServiceForm
                 defaultValues={{

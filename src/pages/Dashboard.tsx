@@ -5,9 +5,12 @@ import { useProjectStats } from "@/hooks/useProjects";
 import { useProviderStats } from "@/hooks/useProviderStats";
 import { useDonorStats } from "@/hooks/useDonorStats";
 import { useAdminStats } from "@/hooks/useAdminStats";
+import { usePendingRatings } from "@/hooks/usePendingRatings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
 import {
-  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers,
+  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star,
 } from "lucide-react";
 
 const roleTitles: Record<string, string> = {
@@ -127,6 +130,7 @@ function DashboardStats({ role }: { role: string }) {
 
 export default function Dashboard() {
   const { role } = useAuth();
+  const { data: pendingRatings } = usePendingRatings();
   const title = role ? roleTitles[role] : "لوحة التحكم";
 
   return (
@@ -136,6 +140,15 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold">{title}</h1>
           <p className="text-muted-foreground text-sm mt-1">مرحباً بك في منصة الخدمات المشتركة</p>
         </div>
+        {pendingRatings && pendingRatings.length > 0 && (
+          <Alert className="border-warning bg-warning/10">
+            <Star className="h-4 w-4 text-warning" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>لديك {pendingRatings.length} عقود بحاجة إلى تقييم</span>
+              <Link to="/ratings" className="text-sm font-medium text-primary underline">تقييم الآن</Link>
+            </AlertDescription>
+          </Alert>
+        )}
         {role ? <DashboardStats role={role} /> : null}
         <RecentActivity />
       </div>
