@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
+import { useSignContract } from "@/hooks/useContracts";
 import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { BidList } from "@/components/bids/BidList";
 import { Button } from "@/components/ui/button";
@@ -21,12 +22,13 @@ import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine } from "lucide-react";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
+  const signContract = useSignContract();
   const updateTimeLog = useUpdateTimeLogApproval();
   const createDispute = useCreateDispute();
   const releaseEscrow = useReleaseEscrow();
@@ -260,8 +262,22 @@ export default function ProjectDetails() {
                     <span className="flex items-center gap-1">
                       {contract.provider_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
                     </span>
-                  </div>
-                </CardContent>
+                   </div>
+                   {isAssociation && !contract.association_signed_at && (
+                     <Button
+                       size="sm"
+                       className="mt-3"
+                       onClick={() => signContract.mutate(contract.id, {
+                         onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
+                         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                       })}
+                       disabled={signContract.isPending}
+                     >
+                       <PenLine className="h-4 w-4 ml-1" />
+                       توقيع العقد
+                     </Button>
+                   )}
+                 </CardContent>
               </Card>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">لا يوجد عقد مرتبط بهذا المشروع</p>

@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus } from "lucide-react";
+import { Plus, Layers } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyServices() {
   const { data: services, isLoading } = useMyServices();
@@ -54,9 +56,11 @@ export default function MyServices() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground">جارٍ التحميل...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-48" />)}
+          </div>
         ) : !services?.length ? (
-          <p className="text-muted-foreground">لم تقم بإضافة أي خدمات بعد</p>
+          <EmptyState icon={Layers} title="لا توجد خدمات" description="أضف خدمتك الأولى لتبدأ في تلقي الطلبات" actionLabel="إضافة خدمة" actionHref="#" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map(s => (
