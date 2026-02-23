@@ -16,6 +16,7 @@ import {
   Layers,
   MessageSquare,
   UserCog,
+  UserCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -136,6 +137,14 @@ export function AppSidebar() {
                   <NavLink to="/tickets" className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                     <MessageSquare className="ml-2 h-4 w-4" />
                     <span>الدعم الفني</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/profile" className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                    <UserCircle className="ml-2 h-4 w-4" />
+                    <span>الملف الشخصي</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
