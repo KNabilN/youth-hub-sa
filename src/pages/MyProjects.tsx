@@ -18,18 +18,35 @@ export default function MyProjects() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold">مشاريعي</h1>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع المشاريع</SelectItem>
-              <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-              <SelectItem value="completed">مكتملة</SelectItem>
-              <SelectItem value="disputed">متنازع عليها</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Styled Page Header */}
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <FolderKanban className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">مشاريعي</h1>
+            <p className="text-sm text-muted-foreground">المشاريع المسندة إليك وحالتها الحالية</p>
+          </div>
         </div>
+
+        {/* Gradient Divider */}
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+
+        {/* Filter Card */}
+        <Card className="border-dashed">
+          <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع المشاريع</SelectItem>
+                <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                <SelectItem value="completed">مكتملة</SelectItem>
+                <SelectItem value="disputed">متنازع عليها</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full" />)}</div>
