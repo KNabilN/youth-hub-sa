@@ -45,9 +45,11 @@ import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ErrorBoundary>
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -100,6 +102,7 @@ const App = () => (
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>
+  </ErrorBoundary>
 );
 
 export default App;

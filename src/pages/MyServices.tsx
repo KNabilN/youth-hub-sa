@@ -25,14 +25,14 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: ServiceFormValues) => {
-    createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price }, {
+  const handleCreate = (values: ServiceFormValues & { image_url?: string | null }) => {
+    createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url }, {
       onSuccess: () => { toast({ title: "تم إنشاء الخدمة بنجاح" }); setFormOpen(false); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
-  const handleEdit = (values: ServiceFormValues) => {
+  const handleEdit = (values: ServiceFormValues & { image_url?: string | null }) => {
     if (!editingId) return;
     updateService.mutate({ id: editingId, ...values }, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
