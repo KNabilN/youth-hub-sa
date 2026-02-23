@@ -2,9 +2,12 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useContracts, useSignContract } from "@/hooks/useContracts";
 import { ContractCard } from "@/components/contracts/ContractCard";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { FileText } from "lucide-react";
 
 export default function Contracts() {
   const [filter, setFilter] = useState("all");
@@ -42,9 +45,9 @@ export default function Contracts() {
         </Select>
 
         {isLoading ? (
-          <p className="text-muted-foreground">جارٍ التحميل...</p>
+          <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
         ) : !contracts?.length ? (
-          <p className="text-muted-foreground">لا توجد عقود</p>
+          <EmptyState icon={FileText} title="لا توجد عقود" description="ستظهر العقود هنا بمجرد قبول العروض" />
         ) : (
           <div className="space-y-3">
             {contracts.map((contract: any) => (

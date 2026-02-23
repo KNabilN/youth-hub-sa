@@ -1,11 +1,14 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution } from "@/hooks/useDonorContributions";
 import { DonationForm } from "@/components/donor/DonationForm";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { HandCoins } from "lucide-react";
 
 export default function Donations() {
   const { data: contributions, isLoading } = useDonorContributions();
@@ -39,9 +42,9 @@ export default function Donations() {
           <CardHeader><CardTitle className="text-lg">سجل التبرعات</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : !contributions?.length ? (
-              <p className="text-muted-foreground text-sm">لا توجد تبرعات سابقة</p>
+              <EmptyState icon={HandCoins} title="لا توجد تبرعات سابقة" description="قدّم تبرعك الأول من النموذج أعلاه" />
             ) : (
               <Table>
                 <TableHeader>

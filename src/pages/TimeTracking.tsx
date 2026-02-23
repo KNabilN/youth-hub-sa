@@ -3,7 +3,10 @@ import { useProviderTimeLogs, useAssignedProjects, useCreateTimeLog } from "@/ho
 import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/hooks/use-toast";
+import { ClipboardList } from "lucide-react";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
   pending: { label: "قيد المراجعة", variant: "secondary" },
@@ -44,9 +47,9 @@ export default function TimeTracking() {
           <CardHeader><CardTitle className="text-lg">سجل الساعات</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">جارٍ التحميل...</p>
+              <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
             ) : !timeLogs?.length ? (
-              <p className="text-sm text-muted-foreground">لا توجد ساعات مسجلة</p>
+              <EmptyState icon={ClipboardList} title="لا توجد ساعات مسجلة" description="سجل ساعات عملك على المشاريع المسندة إليك" />
             ) : (
               <div className="space-y-3">
                 {timeLogs.map(log => {

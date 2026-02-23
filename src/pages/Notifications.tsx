@@ -1,8 +1,10 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from "@/hooks/useNotifications";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, Bell } from "lucide-react";
 
 export default function Notifications() {
   const { data: notifications, isLoading } = useNotifications();
@@ -28,9 +30,9 @@ export default function Notifications() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+          <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
         ) : !notifications?.length ? (
-          <p className="text-muted-foreground text-sm">لا توجد إشعارات</p>
+          <EmptyState icon={Bell} title="لا توجد إشعارات" description="ستظهر الإشعارات هنا عند حدوث تحديثات" />
         ) : (
           <div className="space-y-2">
             {notifications.map((n) => (

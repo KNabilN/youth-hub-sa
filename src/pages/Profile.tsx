@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { User, Shield, CheckCircle } from "lucide-react";
 
@@ -49,7 +50,7 @@ export default function Profile() {
         <h1 className="text-2xl font-bold">الملف الشخصي</h1>
 
         {isLoading ? (
-          <p className="text-muted-foreground">جارٍ التحميل...</p>
+          <Skeleton className="h-64 w-full" />
         ) : (
           <>
             <Card>
