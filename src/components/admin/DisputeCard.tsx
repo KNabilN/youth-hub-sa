@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateDispute } from "@/hooks/useAdminDisputes";
+import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -73,6 +74,7 @@ export function DisputeCard({ dispute }: { dispute: any }) {
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>تعديل الحالة</Button>
           </div>
         )}
+        <DisputeResponseThread disputeId={dispute.id} disputeStatus={dispute.status} />
       </CardContent>
     </Card>
   );

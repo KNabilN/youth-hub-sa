@@ -54,12 +54,27 @@ export function useReleaseEscrow() {
       if (fetchErr) throw fetchErr;
       if (!escrow) throw new Error("No held escrow found");
 
+      // Get active commission rate to calculate net amount
+      const { data: config } = await supabase
+        .from("commission_config")
+        .select("rate")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const rate = config?.rate ?? 0.05;
+      const commissionAmount = Number(escrow.amount) * Number(rate);
+      const netAmount = Number(escrow.amount) - commissionAmount;
+
       const { error } = await supabase
         .from("escrow_transactions")
-        .update({ status: "released" } as any)
+        .update({ status: "released", amount: netAmount } as any)
         .eq("id", escrow.id);
       if (error) throw error;
-      return escrow;
+
+      // Return original amount info for invoice generation
+      return { ...escrow, net_amount: netAmount, commission_amount: commissionAmount };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["escrow"] }),
   });

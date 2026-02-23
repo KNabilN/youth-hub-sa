@@ -23,6 +23,7 @@ import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
+import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine } from "lucide-react";
 
 export default function ProjectDetails() {
@@ -68,12 +69,26 @@ export default function ProjectDetails() {
     },
   });
 
+  const { data: disputes } = useQuery({
+    queryKey: ["project-disputes", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("*, profiles:raised_by(full_name)")
+        .eq("project_id", id!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handlePublish = () => {
     if (!id) return;
     updateProject.mutate(
-      { id, status: "open" },
+      { id, status: "pending_approval" as any },
       {
-        onSuccess: () => toast({ title: "تم نشر المشروع بنجاح" }),
+        onSuccess: () => toast({ title: "تم إرسال المشروع للمراجعة والموافقة" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
     );
@@ -166,7 +181,7 @@ export default function ProjectDetails() {
             {project.status === "draft" && isAssociation && (
               <Button onClick={handlePublish} disabled={updateProject.isPending}>
                 <Send className="h-4 w-4 ml-1" />
-                نشر المشروع
+                إرسال للموافقة
               </Button>
             )}
             {project.status === "in_progress" && isAssociation && (
@@ -272,6 +287,7 @@ export default function ProjectDetails() {
             <TabsTrigger value="bids">العروض</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
+            <TabsTrigger value="disputes">النزاعات</TabsTrigger>
           </TabsList>
 
           <TabsContent value="bids" className="mt-4">
@@ -324,6 +340,30 @@ export default function ProjectDetails() {
               onReject={(logId) => updateTimeLog.mutate({ id: logId, approval: "rejected" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) })}
               isLoading={updateTimeLog.isPending}
             />
+          </TabsContent>
+
+          <TabsContent value="disputes" className="mt-4">
+            {disputes && disputes.length > 0 ? (
+              <div className="space-y-4">
+                {disputes.map((d: any) => (
+                  <Card key={d.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">نزاع بواسطة: {d.profiles?.full_name ?? "—"}</CardTitle>
+                        <Badge variant="outline">{d.status === "open" ? "مفتوح" : d.status === "under_review" ? "قيد المراجعة" : d.status === "resolved" ? "تم الحل" : "مغلق"}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-sm">{d.description}</p>
+                      {d.resolution_notes && <p className="text-xs text-muted-foreground border-t pt-2">ملاحظات الحل: {d.resolution_notes}</p>}
+                      <DisputeResponseThread disputeId={d.id} disputeStatus={d.status} />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">لا توجد نزاعات</p>
+            )}
           </TabsContent>
         </Tabs>
       </div>

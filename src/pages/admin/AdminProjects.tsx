@@ -15,14 +15,15 @@ import type { Database } from "@/integrations/supabase/types";
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
 const statusLabels: Record<string, string> = {
-  draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
+  draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
 };
 
 const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground", open: "bg-primary/10 text-primary",
-  in_progress: "bg-yellow-500/10 text-yellow-600", completed: "bg-emerald-500/10 text-emerald-600",
-  disputed: "bg-destructive/10 text-destructive", cancelled: "bg-muted text-muted-foreground",
+  draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
+  open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
+  completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 export default function AdminProjects() {
