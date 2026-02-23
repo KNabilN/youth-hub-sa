@@ -1,160 +1,83 @@
 
-# منصة الخدمات المشتركة — Shared Services Platform
 
-## Overview
-A Saudi governmental-grade digital marketplace connecting youth associations with service providers and donors. Arabic-only, RTL-first, built on Supabase with full RBAC, escrow logic, and audit trails.
+# Stage 2: Core Database & Domain Models
 
----
-
-## Stage 1: Foundation & Design System
-
-### RTL Arabic Design System
-- Configure Tailwind for full RTL support with `dir="rtl"` on the root element
-- Set up Arabic typography using IBM Plex Sans Arabic
-- Define the Saudi governmental color palette: Deep Green (primary/trust), Royal Gold/Sand (accents/heritage), Slate Gray (modern elements)
-- Build reusable Arabic UI components (buttons, inputs, cards, badges) with RTL-aware spacing and alignment
-
-### Authentication & RBAC
-- Supabase Auth with email/password signup
-- Four roles: Super Admin, Youth Association, Service Provider, Donor
-- `user_roles` table with RLS policies using `has_role()` security definer function
-- `profiles` table with organization details, verification status, and role-specific fields
-- Role-based route protection and navigation
-
-### App Shell & Navigation
-- RTL sidebar navigation with role-specific menu items
-- Role-based dashboard routing (each role sees their own landing page)
-- Accessibility widget (text scaling, high-contrast mode)
-- Global notification bell and user profile menu
+This stage creates all the database tables needed for the platform's business logic -- projects, services, bidding, contracts, finances, and more.
 
 ---
 
-## Stage 2: Core Database & Domain Models
+## What Will Be Built
 
-### Database Tables
-- **projects**: Title, description, required skills, estimated hours, status, association_id, assigned_provider_id
-- **micro_services**: Provider-created fixed-price or hourly services with descriptions, pricing, categories
-- **bids**: Provider proposals on projects with price, timeline, cover letter
-- **contracts**: System-generated digital agreements linking project, association, and provider
-- **time_logs**: Hourly work entries by providers, with approval status by associations
-- **categories** and **regions**: Admin-managed lookup tables
-- **disputes**: Multi-party dispute records with status and resolution
-- **ratings**: Three-tier evaluation (quality, timing, communication)
-- **audit_log**: Immutable record of all system changes
+### 1. Lookup Tables (Admin-managed)
+- **categories** -- Service/project categories (e.g., تقنية, تسويق, تصميم)
+- **regions** -- Saudi regions (e.g., الرياض, جدة, الدمام)
 
-### Financial Tables
-- **escrow_transactions**: Funds held, released, or frozen
-- **invoices**: ZATCA-style electronic invoice records for platform commissions
-- **commission_config**: Admin-configurable platform fee rates
-- **donor_contributions**: Donations linked to specific projects or services
+### 2. Project & Service Tables
+- **projects** -- Association-created project requests with title, description, required skills, estimated hours, budget, status (draft/open/in_progress/completed/disputed), privacy toggle, and links to association and assigned provider
+- **micro_services** -- Provider-created fixed-price or hourly services with description, pricing, category, region, and approval status
+- **bids** -- Provider proposals on projects with price, timeline, cover letter, and status (pending/accepted/rejected)
+- **contracts** -- System-generated digital agreements linking a project to an association and provider, with signing timestamps
 
----
+### 3. Work Tracking
+- **time_logs** -- Hourly work entries by providers, linked to projects, with hours logged, description, date, and approval status (pending/approved/rejected)
 
-## Stage 3: Youth Association Features
+### 4. Quality & Governance
+- **ratings** -- Three-dimensional evaluation (quality, timing, communication) with scores 1-5, linked to contracts
+- **disputes** -- Dispute records with status (open/under_review/resolved), description, resolution notes
+- **audit_log** -- Immutable record of all system changes (table name, record ID, action, old/new values, actor)
 
-### Project Lifecycle
-- Multi-step project creation form (description, skills, hours, budget, privacy toggle)
-- Project listing with status filters (draft, open, in-progress, completed, disputed)
-- Provider selection from received bids with rating comparisons
-- Digital contract signing flow
+### 5. Financial Tables
+- **escrow_transactions** -- Funds held/released/frozen, linked to projects or services, with status tracking
+- **invoices** -- ZATCA-style electronic invoice records for platform commissions
+- **commission_config** -- Admin-configurable platform fee rates (percentage-based)
+- **donor_contributions** -- Donations linked to specific projects or services, with donor ID and amount
 
-### Work Verification
-- Review submitted time logs from providers
-- Approve/reject individual hour entries
-- View project health dashboard with active milestones and pending approvals
-
-### Micro-Service Procurement
-- Browse and filter marketplace catalog
-- Direct purchase flow for fixed-price services
-- Request donor funding for specific services
+### 6. Notifications & Ticketing
+- **notifications** -- In-app notification records per user with type, message, read status
+- **support_tickets** -- Internal ticketing system with subject, description, status, priority
 
 ---
 
-## Stage 4: Service Provider Features
+## Security (RLS Policies)
 
-### Professional Portfolio
-- Profile builder with CV, hourly rate, skills, and service offerings
-- Verification badge display for completed documentation
-- Service listing creation (fixed-price or hourly, with descriptions and pricing)
-
-### Project Bidding
-- Browse open projects matching skills
-- Submit proposals with price, timeline, and cover message
-- Track bid status (pending, accepted, rejected)
-
-### Work & Earnings
-- Time tracking interface for logging hours on active projects
-- Earnings dashboard: pending payments, completed payments, total profits
-- Work calendar view showing active engagements
-
----
-
-## Stage 5: Donor Features
-
-### Strategic Philanthropy
-- Browse associations and their project/service needs
-- Allocate funding to specific projects or buy services on behalf of associations
-- View association profiles with historical ratings
-
-### Impact Reporting
-- Real-time dashboard showing contribution allocations
-- Visual charts (recharts) showing fund distribution and project outcomes
-- Detailed reports on supported projects and their completion status
+Each table will have Row-Level Security policies:
+- **projects**: Associations manage their own; providers see open projects; admins see all
+- **micro_services**: Providers manage their own; all authenticated users can browse approved ones; admins see all
+- **bids**: Providers manage their own bids; associations see bids on their projects; admins see all
+- **contracts**: Parties to the contract can view; admins see all
+- **time_logs**: Providers create on their projects; associations approve on their projects; admins see all
+- **ratings**: Creator can insert; public read on completed contracts
+- **disputes**: Involved parties can view/create; admins manage all
+- **escrow/invoices/contributions**: Role-appropriate access with admin full access
+- **notifications**: Users see only their own
+- **support_tickets**: Creator sees own; admins see all
+- **categories/regions**: Public read; admin write
+- **audit_log**: Admin read-only; system insert via trigger
+- **commission_config**: Admin read/write
 
 ---
 
-## Stage 6: Super Admin Features
+## Technical Details
 
-### User Management
-- User listing with search, filters, and bulk actions
-- Account approval, suspension, and modification
-- Role assignment interface
+### Migration SQL
+A single migration will create all tables, enums (for statuses), RLS policies, and indexes. Key design decisions:
+- All user-referencing columns use `uuid` type referencing `profiles(id)` (not `auth.users`)
+- Status fields use PostgreSQL enums for type safety
+- `audit_log` will use a trigger function to auto-capture changes
+- Timestamps default to `now()` with timezone
+- Financial amounts stored as `numeric(12,2)` for precision
+- Realtime enabled on `notifications` table for live updates
 
-### Platform Oversight
-- Review and approve micro-services and projects before they go live
-- Commission rate configuration panel
-- Financial reports with export to Excel
+### New Enums
+- `project_status`: draft, open, in_progress, completed, disputed, cancelled
+- `bid_status`: pending, accepted, rejected, withdrawn
+- `service_type`: fixed_price, hourly
+- `approval_status`: pending, approved, rejected
+- `dispute_status`: open, under_review, resolved, closed
+- `escrow_status`: held, released, frozen, refunded
+- `ticket_status`: open, in_progress, resolved, closed
+- `ticket_priority`: low, medium, high, urgent
 
-### Dispute Resolution
-- Dispute queue with case details
-- Payment freeze/release controls
-- Mediation and final ruling interface
+### No UI Changes in This Stage
+This is a pure database/schema stage. The frontend will be updated in Stages 3-6 to consume these tables.
 
-### Content & System
-- Homepage content editor (images, text)
-- Category and region management
-- Full audit trail viewer with filters
-- System performance reports
-
----
-
-## Stage 7: System-Wide Features
-
-### Notifications
-- Real-time in-app notification system
-- Email alerts for key events (contract signed, payment released, dispute opened)
-
-### Internal Ticketing
-- Support ticket creation and tracking for all users
-- Admin ticket management queue
-
-### Escrow & Payment Logic
-- Fund collection simulation (payment gateway integration placeholder)
-- Escrow hold/release workflow tied to project milestones and hour approvals
-- Automated commission deduction engine
-- Invoice generation for platform fees
-
-### Accessibility
-- Text enlargement controls
-- High-contrast mode toggle
-- Keyboard navigation support
-- Simple, clear Arabic labels throughout
-
----
-
-## Design Principles
-- **Arabic-First**: All layouts designed natively for RTL, not mirrored from LTR
-- **Professional Saudi Identity**: Deep green, gold, and gray palette with clean typography
-- **Task-Oriented Dashboards**: Each role sees actionable items first, not generic listings
-- **Mobile-First**: Thumb-friendly interactions, responsive from 360px up
-- **Trust Indicators**: Verified badges, secure connection indicators, clear privacy links
