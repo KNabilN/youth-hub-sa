@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -27,6 +28,13 @@ import TicketCreate from "./pages/TicketCreate";
 import Associations from "./pages/Associations";
 import Donations from "./pages/Donations";
 import ImpactReports from "./pages/ImpactReports";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminProjects from "./pages/admin/AdminProjects";
+import AdminServices from "./pages/admin/AdminServices";
+import AdminDisputes from "./pages/admin/AdminDisputes";
+import AdminFinance from "./pages/admin/AdminFinance";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +69,13 @@ const App = () => (
             <Route path="/associations" element={<ProtectedRoute><Associations /></ProtectedRoute>} />
             <Route path="/donations" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
             <Route path="/impact" element={<ProtectedRoute><ImpactReports /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/projects" element={<AdminRoute><AdminProjects /></AdminRoute>} />
+            <Route path="/admin/services" element={<AdminRoute><AdminServices /></AdminRoute>} />
+            <Route path="/admin/disputes" element={<AdminRoute><AdminDisputes /></AdminRoute>} />
+            <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
+            <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+            <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
