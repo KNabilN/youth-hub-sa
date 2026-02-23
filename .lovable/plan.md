@@ -1,95 +1,88 @@
 
 
-# Stage 9: Polish, UX Refinements, and Dashboard Activity Feed
+# Stage 10: Final Polish -- Consistent Loading and Empty States Across All Pages
 
-With all core features and business logic complete (Stages 1-8), this final stage focuses on polishing the user experience, filling small UI gaps, and making the dashboard more useful with real activity data.
+Stages 1-9 built all features and core business logic. The `EmptyState` component and `Skeleton` loaders were introduced in Stage 9 but only applied to a few pages. Many pages still use plain text for loading and empty states. This stage standardizes every remaining page.
 
 ---
 
-## What Will Be Built
+## Current Gaps
 
-### 1. Dashboard "Recent Activity" Feed
-Currently the dashboard shows a static "No activity yet" card for all roles. Replace this with a real activity feed:
-- **Associations**: Show recent bids received, contracts signed, project status changes
-- **Providers**: Show recent bid responses, contract events, escrow updates
-- **Donors**: Show recent donations and funded project updates
-- **Admins**: Show recent disputes, new users, and escrow movements
+The following pages still use plain text `"جاري التحميل..."` or `"لا توجد ..."` instead of proper `Skeleton` loaders and the reusable `EmptyState` component:
 
-Data source: pull from `notifications` table for the current user, showing the latest 5-10 items with timestamps and icons.
+| Page | Loading Issue | Empty State Issue |
+|------|--------------|-------------------|
+| `Notifications.tsx` | Plain text | Plain text |
+| `SupportTickets.tsx` | Plain text | Plain text |
+| `Contracts.tsx` | Plain text | Plain text |
+| `Associations.tsx` | Plain text | Plain text |
+| `AvailableProjects.tsx` | Plain text | Plain text |
+| `TimeTracking.tsx` | Plain text (in cards) | Plain text |
+| `Donations.tsx` | Plain text (in cards) | Plain text |
+| `ImpactReports.tsx` | Plain text | Plain text |
+| `Profile.tsx` | Plain text | N/A |
 
-### 2. Empty State Improvements
-Several pages show plain text when empty. Add structured empty states with icons and call-to-action buttons:
-- Projects page: "Create your first project" button
-- My Services: "Add a service" button
-- My Bids: "Browse available projects" link
-- Earnings: descriptive empty state
+Pages already using Skeleton/EmptyState (no changes needed): `Dashboard`, `Projects`, `MyServices`, `MyBids`, `Earnings`, `Marketplace`, `Ratings`.
 
-### 3. Loading Skeletons Consistency
-Some pages use `Skeleton` components, others show plain text "Loading...". Standardize all pages to use skeleton placeholders for a consistent feel.
+---
 
-### 4. Responsive RTL Fixes
-- Ensure all grid layouts collapse properly on mobile
-- Fix any icon/text spacing issues in RTL mode (margin-left vs margin-right)
-- Ensure sidebar collapses properly on small screens
+## What Will Be Done
 
-### 5. Toast Feedback Consistency
-Some mutations show success toasts, some do not. Ensure all user actions (save profile, create bid, sign contract, etc.) show appropriate Arabic toast messages on success and error.
+### 1. Add Skeleton Loaders
+Replace every `"جاري التحميل..."` text with appropriate `Skeleton` components matching the layout of each page (cards, tables, or lists).
 
-### 6. Project Details Contract Tab -- Association Sign Action
-The contract tab on ProjectDetails shows contract info but the association currently has no way to sign from there. Add a "Sign Contract" button in the contract tab when `association_signed_at` is null and user is the association.
+### 2. Add EmptyState Components
+Replace every plain `"لا توجد ..."` text with the reusable `EmptyState` component, including relevant icons and CTAs where appropriate:
+- **Notifications**: Bell icon, no CTA
+- **Support Tickets**: MessageSquare icon, CTA to create ticket
+- **Contracts**: FileText icon, no CTA
+- **Associations**: Users icon, no CTA
+- **Available Projects**: FolderKanban icon, no CTA
+- **Time Tracking**: ClipboardList icon, no CTA
+- **Donations**: HandCoins icon, no CTA
+- **Impact Reports**: BarChart3 icon, CTA to donations page
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/pages/Dashboard.tsx` | Replace static "recent activity" card with real notification feed |
-| `src/pages/Projects.tsx` | Add empty state with CTA |
-| `src/pages/MyServices.tsx` | Add empty state with CTA |
-| `src/pages/MyBids.tsx` | Add empty state with CTA |
-| `src/pages/Earnings.tsx` | Add empty state with icon |
-| `src/pages/ProjectDetails.tsx` | Add association contract signing in contract tab |
-| `src/pages/Notifications.tsx` | Ensure consistent loading skeleton |
-
-## New Files
-
-| File | Purpose |
+| File | Changes |
 |------|---------|
-| `src/components/EmptyState.tsx` | Reusable empty state component with icon, message, and optional CTA button |
-| `src/components/dashboard/RecentActivity.tsx` | Activity feed component pulling from notifications |
+| `src/pages/Notifications.tsx` | Skeleton loader + EmptyState |
+| `src/pages/SupportTickets.tsx` | Skeleton loader + EmptyState with CTA |
+| `src/pages/Contracts.tsx` | Skeleton loader + EmptyState |
+| `src/pages/Associations.tsx` | Skeleton loader + EmptyState |
+| `src/pages/AvailableProjects.tsx` | Skeleton loader + EmptyState |
+| `src/pages/TimeTracking.tsx` | Skeleton loaders in both cards |
+| `src/pages/Donations.tsx` | Skeleton loader in history card |
+| `src/pages/ImpactReports.tsx` | Skeleton loader + EmptyState |
+| `src/pages/Profile.tsx` | Skeleton loader |
+
+## No New Files or Database Changes
+
+All changes are purely presentational using existing components (`Skeleton`, `EmptyState`).
 
 ---
 
 ## Technical Details
 
-### Recent Activity Feed
+### Pattern for Each Page
+
+Each page follows the same replacement pattern:
+
 ```text
-RecentActivity component:
-  1. Query notifications for current user, ordered by created_at desc, limit 8
-  2. Map notification type to icon (bid_accepted -> FileText, contract_signed -> Check, etc.)
-  3. Display as a timeline-style list with relative timestamps (e.g., "منذ 3 ساعات")
-  4. Link "View all" to /notifications
+Loading state:
+  Before: <p className="text-muted-foreground">جاري التحميل...</p>
+  After:  <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20" />)}</div>
+
+Empty state:
+  Before: <p className="text-muted-foreground">لا توجد ...</p>
+  After:  <EmptyState icon={RelevantIcon} title="..." description="..." actionLabel="..." actionHref="..." />
 ```
 
-### Empty State Component
-```text
-EmptyState({ icon, title, description, actionLabel?, actionHref? })
-  - Centered icon (muted color, 48px)
-  - Title text
-  - Description text
-  - Optional Button linking to actionHref
-```
-
-### Project Details Contract Signing
-```text
-In the contract tab:
-  - If user is association and association_signed_at is null:
-    - Show "Sign Contract" button
-    - On click: call useSignContract with contract.id
-    - Invalidate contract query on success
-```
-
-### No Database Changes
-All data already exists. This stage only improves the frontend presentation layer.
+Skeleton heights will match the expected content:
+- Card-based pages (Contracts, Tickets, Time logs): `h-20`
+- Grid-based pages (Associations, Available Projects): `h-44` in a grid
+- Table-based pages (Donations, Impact): `h-10` rows
+- Profile page: `h-64` single card skeleton
 
