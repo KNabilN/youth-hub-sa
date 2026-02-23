@@ -4,10 +4,11 @@ import { useContracts, useSignContract } from "@/hooks/useContracts";
 import { ContractCard } from "@/components/contracts/ContractCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { FileText } from "lucide-react";
+import { ScrollText } from "lucide-react";
 
 export default function Contracts() {
   const [filter, setFilter] = useState("all");
@@ -32,22 +33,40 @@ export default function Contracts() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">العقود</h1>
+        {/* Styled Page Header */}
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <ScrollText className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">العقود</h1>
+            <p className="text-sm text-muted-foreground">إدارة وتوقيع العقود الخاصة بمشاريعك</p>
+          </div>
+        </div>
 
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">جميع العقود</SelectItem>
-            <SelectItem value="unsigned">غير موقّعة</SelectItem>
-            <SelectItem value="partial">موقّعة جزئياً</SelectItem>
-            <SelectItem value="signed">موقّعة بالكامل</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Gradient Divider */}
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+
+        {/* Filter Card */}
+        <Card className="border-dashed">
+          <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع العقود</SelectItem>
+                <SelectItem value="unsigned">غير موقّعة</SelectItem>
+                <SelectItem value="partial">موقّعة جزئياً</SelectItem>
+                <SelectItem value="signed">موقّعة بالكامل</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
         ) : !contracts?.length ? (
-          <EmptyState icon={FileText} title="لا توجد عقود" description="ستظهر العقود هنا بمجرد قبول العروض" />
+          <EmptyState icon={ScrollText} title="لا توجد عقود" description="ستظهر العقود هنا بمجرد قبول العروض" />
         ) : (
           <div className="space-y-3">
             {contracts.map((contract: any) => (
