@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DollarSign, CalendarDays, FileText } from "lucide-react";
 
 const bidSchema = z.object({
   price: z.coerce.number().positive("يجب أن يكون رقماً موجباً"),
@@ -31,14 +32,14 @@ export function BidForm({ onSubmit, isLoading }: BidFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="price" render={({ field }) => (
             <FormItem>
-              <FormLabel>السعر المقترح (ر.س)</FormLabel>
+              <FormLabel className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-primary" />السعر المقترح (ر.س)</FormLabel>
               <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="timeline_days" render={({ field }) => (
             <FormItem>
-              <FormLabel>المدة (بالأيام)</FormLabel>
+              <FormLabel className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" />المدة (بالأيام)</FormLabel>
               <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -46,12 +47,12 @@ export function BidForm({ onSubmit, isLoading }: BidFormProps) {
         </div>
         <FormField control={form.control} name="cover_letter" render={({ field }) => (
           <FormItem>
-            <FormLabel>خطاب التقديم</FormLabel>
+            <FormLabel className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />خطاب التقديم</FormLabel>
             <FormControl><Textarea placeholder="اكتب خطاب التقديم الخاص بك..." rows={5} {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-sm">
           {isLoading ? "جارٍ الإرسال..." : "تقديم العرض"}
         </Button>
       </form>

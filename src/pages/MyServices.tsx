@@ -52,13 +52,24 @@ export default function MyServices() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">خدماتي</h1>
-          <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 ml-2" />إضافة خدمة</Button>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <Layers className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">خدماتي</h1>
+              <p className="text-sm text-muted-foreground">أدر خدماتك المقدمة وأضف خدمات جديدة</p>
+            </div>
+          </div>
+          <Button onClick={() => setFormOpen(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
+            <Plus className="h-4 w-4 ml-2" />إضافة خدمة
+          </Button>
         </div>
+        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-48" />)}
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
         ) : !services?.length ? (
           <EmptyState icon={Layers} title="لا توجد خدمات" description="أضف خدمتك الأولى لتبدأ في تلقي الطلبات" actionLabel="إضافة خدمة" actionHref="#" />

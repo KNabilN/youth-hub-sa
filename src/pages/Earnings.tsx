@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
 const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض" };
+const statusBorders: Record<string, string> = { pending: "border-r-4 border-yellow-500", approved: "border-r-4 border-emerald-500", rejected: "border-r-4 border-red-500" };
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
   approved: "bg-emerald-500/10 text-emerald-600",
@@ -46,19 +47,29 @@ export default function Earnings() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Page Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">الأرباح</h1>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <Wallet className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">الأرباح</h1>
+              <p className="text-sm text-muted-foreground">تابع أرباحك وطلبات السحب</p>
+            </div>
+          </div>
           {totalEarnings > 0 && (
-            <Button onClick={() => setShowDialog(true)}>
+            <Button onClick={() => setShowDialog(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
               <Wallet className="h-4 w-4 ml-2" /> طلب سحب
             </Button>
           )}
         </div>
+        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
 
         {isLoading ? (
           <div className="space-y-4">
-            <Skeleton className="h-24" />
-            <Skeleton className="h-48" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-48 rounded-xl" />
           </div>
         ) : !transactions?.length ? (
           <EmptyState icon={Receipt} title="لا توجد أرباح بعد" description="ستظهر أرباحك هنا بعد إتمام مشاريعك بنجاح" />
@@ -73,9 +84,9 @@ export default function Earnings() {
               <CardTitle className="text-lg">طلبات السحب</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {withdrawals?.map((w: any) => (
-                  <div key={w.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={w.id} className={`flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors ${statusBorders[w.status] ?? ""}`}>
                     <div>
                       <p className="font-medium">{Number(w.amount).toLocaleString()} ر.س</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</p>
@@ -94,7 +105,10 @@ export default function Earnings() {
               <DialogTitle>طلب سحب أرباح</DialogTitle>
             </DialogHeader>
             <div className="space-y-3 py-4">
-              <p className="text-sm text-muted-foreground">الرصيد المتاح: <span className="font-bold text-foreground">{totalEarnings.toLocaleString()} ر.س</span></p>
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm text-muted-foreground">الرصيد المتاح</p>
+                <p className="text-2xl font-bold text-primary">{totalEarnings.toLocaleString()} ر.س</p>
+              </div>
               <Input type="number" placeholder="المبلغ" value={amount} onChange={(e) => setAmount(e.target.value)} dir="ltr" />
             </div>
             <DialogFooter>
