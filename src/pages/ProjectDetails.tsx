@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -169,16 +170,48 @@ export default function ProjectDetails() {
               </Button>
             )}
             {project.status === "in_progress" && isAssociation && (
-              <Button onClick={handleComplete} disabled={completing} variant="default">
-                <CheckCircle className="h-4 w-4 ml-1" />
-                إتمام المشروع
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={completing} variant="default">
+                    <CheckCircle className="h-4 w-4 ml-1" />
+                    إتمام المشروع
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>إتمام المشروع</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      هل أنت متأكد من إتمام هذا المشروع؟ سيتم تحرير المستحقات المالية لمقدم الخدمة وإصدار فاتورة.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleComplete}>تأكيد الإتمام</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             {(project.status === "draft" || project.status === "open") && isAssociation && (
-              <Button onClick={handleCancel} disabled={cancelling} variant="outline">
-                <XCircle className="h-4 w-4 ml-1" />
-                إلغاء المشروع
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={cancelling} variant="outline">
+                    <XCircle className="h-4 w-4 ml-1" />
+                    إلغاء المشروع
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>إلغاء المشروع</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      هل أنت متأكد من إلغاء هذا المشروع؟ سيتم استرداد أي مبالغ محجوزة في الضمان المالي.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>تراجع</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancel}>تأكيد الإلغاء</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             {(project.status === "in_progress" || project.status === "completed") &&
               (role === "youth_association" || role === "service_provider") && (

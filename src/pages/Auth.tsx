@@ -179,7 +179,15 @@ export default function Auth() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center text-sm">
+              {isLogin && (
+                <div className="mt-4 text-center">
+                  <a href="/forgot-password" className="text-sm text-primary hover:underline">
+                    نسيت كلمة المرور؟
+                  </a>
+                </div>
+              )}
+
+              <div className="mt-4 text-center text-sm">
                 <span className="text-muted-foreground">
                   {isLogin ? "ليس لديك حساب؟" : "لديك حساب بالفعل؟"}
                 </span>{" "}

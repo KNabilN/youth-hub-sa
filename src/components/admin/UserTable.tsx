@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -115,9 +116,31 @@ export function UserTable() {
                     <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
                     </Button>
-                    <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"} onClick={() => handleSuspend(u.id, u.is_suspended)}>
-                      {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"}>
+                          {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {u.is_suspended ? "إلغاء تعليق الحساب" : "تعليق الحساب"}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {u.is_suspended
+                              ? `هل أنت متأكد من إلغاء تعليق حساب "${u.full_name}"؟`
+                              : `هل أنت متأكد من تعليق حساب "${u.full_name}"؟ لن يتمكن المستخدم من الوصول إلى النظام.`}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleSuspend(u.id, u.is_suspended)}>
+                            تأكيد
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>
