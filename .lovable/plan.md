@@ -1,123 +1,132 @@
 
 
-# Stage 7: Contracts Page and Missing Feature Polish
+# Stage 8: Business Logic Automation and Escrow Workflow
 
-With Stages 1-6 complete, the platform has all four role dashboards, admin panel, notifications, support tickets, and donor features working. However, there is a broken sidebar link (`/contracts`) with no corresponding page, and several integration gaps that need closing. This stage fills those gaps.
+Stages 1-7 built all the UI pages and CRUD operations. However, the platform's core business logic -- the financial workflow that ties contracts, escrow, invoices, and project completion together -- is not yet wired up. This stage closes those critical gaps.
 
 ---
+
+## Current State
+
+- Accepting a bid creates a contract and moves the project to `in_progress`
+- Both parties can sign contracts, but nothing happens after full signing
+- No escrow transactions are ever created
+- No invoices are ever generated
+- Projects cannot be marked as `completed` by the association
+- No automatic notifications are sent on key events (bid accepted, contract signed, etc.)
+- The `audit_log` table exists but is never populated
 
 ## What Will Be Built
 
-### 1. Contracts Page (`/contracts`) -- Youth Association
-The sidebar for `youth_association` links to `/contracts` but no page or route exists. This stage creates:
-- List of all contracts belonging to the association with status indicators (unsigned, partially signed, fully signed)
-- Contract details: project title, provider name, terms, signature timestamps
-- Association sign action: set `association_signed_at` for unsigned contracts
-- Filter by signature status
-- Link to the associated project
+### 1. Escrow Creation on Full Contract Signing
+When both `association_signed_at` and `provider_signed_at` are set on a contract, automatically create an `escrow_transaction` with:
+- `payer_id` = association, `payee_id` = provider
+- `amount` = bid price (from the accepted bid)
+- `status` = `held`
+- `project_id` = contract's project
 
-### 2. Provider Contract Signing
-Currently providers have no way to sign contracts from their side. Add a contract signing section to the provider's "My Bids" page or a dedicated contracts view:
-- When a bid is accepted and a contract exists, show "Sign Contract" button
-- Sets `provider_signed_at` on the contract
-- Visual indicators for signature status
+This will be done client-side: after either party signs, check if both signatures exist, then create escrow if none exists yet.
 
-### 3. User Profile Page (`/profile`)
-No profile management page exists for any role. Add:
-- View and edit `full_name` and `bio` fields from `profiles` table
-- Display current role (read-only)
-- Display verification status (read-only)
-- Accessible from sidebar for all roles
+### 2. Project Completion Flow
+Add a "Mark as Completed" button on `ProjectDetails.tsx` for the association when project status is `in_progress`:
+- Updates project status to `completed`
+- Releases the escrow (updates `escrow_transactions.status` to `released`)
+- Generates an invoice with a unique invoice number, the bid amount, and commission calculated from the active `commission_config` rate
 
-### 4. Dispute Creation
-The `disputes` table exists and admin can manage disputes, but there is no way for users to create disputes. Add:
-- "Raise Dispute" button on completed/in-progress projects
-- Simple form: description text
-- Creates a record in `disputes` with `raised_by = user.id` and `status = 'open'`
-- Available to both `youth_association` and `service_provider` roles
+### 3. Automatic Notifications
+Insert notifications at key workflow moments (client-side, after successful mutations):
+- **Bid accepted**: notify the provider
+- **Contract signed**: notify the other party
+- **Escrow created**: notify both parties
+- **Project completed**: notify the provider
+- **Dispute raised**: notify the other party
 
-### 5. Sidebar Profile Link
-Add a profile/settings link to the shared sidebar section (below notifications and support tickets) for all roles.
+### 4. Project Cancellation
+Add a "Cancel Project" action for the association on `draft` or `open` projects:
+- Updates status to `cancelled`
+- If escrow exists and is `held`, updates it to `refunded`
+
+### 5. Audit Log Entries
+Add audit log entries for critical actions:
+- Project status changes
+- Contract signing
+- Escrow status changes
+- Dispute creation/resolution
 
 ---
-
-## New Files to Create
-
-```text
-src/pages/
-  Contracts.tsx            -- Association's contract list
-  Profile.tsx              -- User profile management
-
-src/components/contracts/
-  ContractCard.tsx         -- Contract display with sign action
-
-src/hooks/
-  useContracts.ts          -- Contract queries and mutations
-  useProfile.ts            -- Profile read/update hook
-  useDisputes.ts           -- Dispute creation hook
-```
-
-## Routes to Add
-
-| Path | Component | Access |
-|------|-----------|--------|
-| `/contracts` | Contracts | youth_association |
-| `/profile` | Profile | all authenticated |
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Add `/contracts` and `/profile` routes |
-| `src/components/AppSidebar.tsx` | Add profile link to shared section |
-| `src/pages/ProjectDetails.tsx` | Add "Raise Dispute" button |
-| `src/pages/MyBids.tsx` | Add contract signing for accepted bids |
+| `src/hooks/useContracts.ts` | After signing, check for full signing and create escrow + notifications |
+| `src/hooks/useBids.ts` | Add notification to provider on bid acceptance |
+| `src/hooks/useDisputes.ts` | Add notification to other party on dispute creation |
+| `src/pages/ProjectDetails.tsx` | Add "Mark as Completed" and "Cancel Project" buttons with escrow release and invoice generation |
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| `src/hooks/useEscrow.ts` | Escrow creation, release, and refund mutations |
+| `src/hooks/useInvoices.ts` | Invoice generation with commission calculation |
+| `src/lib/notifications.ts` | Helper to insert notification records for target users |
+| `src/lib/audit.ts` | Helper to insert audit log entries |
 
 ---
 
 ## Technical Details
 
-### Contracts Hook
+### Escrow Creation (after full contract signing)
 ```text
-useContracts() -> supabase.from('contracts')
-  .select('*, projects(title, status), profiles:provider_id(full_name)')
-  .eq('association_id', user.id)
-  .order('created_at', { ascending: false })
-
-signContract(contractId, role) ->
-  if role === 'youth_association':
-    .update({ association_signed_at: new Date().toISOString() }).eq('id', contractId)
-  if role === 'service_provider':
-    .update({ provider_signed_at: new Date().toISOString() }).eq('id', contractId)
+In useContracts.signContract():
+  1. Update the contract with the signature timestamp
+  2. Re-fetch the contract to check both signatures
+  3. If both signed and no escrow exists for this project:
+     - Fetch the accepted bid for the project to get the price
+     - Insert escrow_transaction(payer_id=association, payee_id=provider, amount=bid.price, status='held', project_id)
+     - Insert notification for both parties: "تم إنشاء الضمان المالي للمشروع"
 ```
 
-### Contract Status Logic
-- **Unsigned**: neither party has signed
-- **Partially signed**: one party has signed (`association_signed_at` or `provider_signed_at` is set)
-- **Fully signed**: both timestamps are set
-
-### Profile Hook
+### Project Completion (in ProjectDetails)
 ```text
-useProfile() -> supabase.from('profiles').select('*').eq('id', user.id).single()
-updateProfile({ full_name, bio }) -> supabase.from('profiles').update({ full_name, bio }).eq('id', user.id)
+completeProject(projectId):
+  1. Update project status to 'completed'
+  2. Fetch escrow where project_id = projectId and status = 'held'
+  3. Update escrow status to 'released'
+  4. Fetch active commission_config rate
+  5. Calculate commission = escrow.amount * rate
+  6. Insert invoice(amount=escrow.amount, commission_amount=commission, invoice_number=generated, issued_to=provider, escrow_id)
+  7. Insert notification for provider: "تم إتمام المشروع وتحرير المستحقات"
 ```
 
-### Dispute Creation
+### Invoice Number Generation
 ```text
-createDispute({ project_id, description }) -> supabase.from('disputes').insert({
-  project_id,
-  description,
-  raised_by: user.id,
-  status: 'open'
-})
+Format: INV-{YYYYMMDD}-{random 4 digits}
+Example: INV-20260223-4827
 ```
-- Also updates the project status to `disputed` via a second call
 
-### Provider Contract Signing in MyBids
-- When a bid has `status = 'accepted'`, fetch the associated contract
-- If `provider_signed_at` is null, show a "Sign Contract" button
-- On click, update the contract with `provider_signed_at = now()`
+### Notification Helper
+```text
+sendNotification(userId, message, type) ->
+  supabase.from('notifications').insert({ user_id: userId, message, type })
+```
+Types: `bid_accepted`, `contract_signed`, `escrow_created`, `project_completed`, `dispute_raised`
+
+### Audit Log Helper
+```text
+logAudit(tableName, recordId, action, oldValues?, newValues?) ->
+  supabase.from('audit_log').insert({ table_name: tableName, record_id: recordId, action, actor_id: user.id, old_values, new_values })
+```
+
+### Project Cancellation
+```text
+cancelProject(projectId):
+  1. Update project status to 'cancelled'
+  2. If escrow exists with status 'held', update to 'refunded'
+  3. Insert notification for provider if assigned
+```
 
 ### No Database Changes
-All tables (`contracts`, `profiles`, `disputes`) and their RLS policies already exist from Stage 2. The existing policies allow users to manage their own records.
+All tables (`escrow_transactions`, `invoices`, `audit_log`, `notifications`) and their columns already exist. No schema modifications needed.
 
