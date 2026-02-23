@@ -10,7 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, MapPin, Pencil, Check, X, Globe } from "lucide-react";
+import { Trash2, Plus, MapPin, Pencil, Check, X, Globe, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function RegionManager() {
@@ -78,7 +78,10 @@ export function RegionManager() {
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input placeholder="اسم المنطقة" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={handleKeyDown} />
-          <Button size="icon" onClick={() => addMut.mutate()} disabled={addMut.isPending}><Plus className="h-4 w-4" /></Button>
+          <Button onClick={() => addMut.mutate()} disabled={addMut.isPending} className="min-w-[100px]">
+            {addMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            اضافة
+          </Button>
         </div>
 
         {(regions ?? []).length === 0 ? (
