@@ -86,9 +86,9 @@ function AssociationDashboard() {
 function ProviderDashboard() {
   const { data: stats, isLoading } = useProviderStats();
   const items: StatItem[] = [
-    { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "primary" },
-    { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: FolderKanban, color: "info" },
-    { title: "الساعات المسجلة", value: stats?.hoursThisMonth ?? 0, icon: ClipboardList, color: "warning" },
+    { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
+    { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "info" },
+    { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: ClipboardList, color: "warning" },
     { title: "إجمالي الأرباح", value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
   ];
   return <StatsGrid items={items} isLoading={isLoading} />;

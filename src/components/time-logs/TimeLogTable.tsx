@@ -40,7 +40,7 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
             <TableHead>الساعات</TableHead>
             <TableHead>الوصف</TableHead>
             <TableHead>الحالة</TableHead>
-            <TableHead>إجراءات</TableHead>
+            {(onApprove || onReject) && <TableHead>إجراءات</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -54,18 +54,20 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
                 <TableCell>{log.hours}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{log.description}</TableCell>
                 <TableCell><Badge variant="outline" className={status.className}>{status.label}</Badge></TableCell>
-                <TableCell>
-                  {log.approval === "pending" && (
-                    <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onApprove?.(log.id)} disabled={isLoading}>
-                        <Check className="h-3.5 w-3.5 text-success" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onReject?.(log.id)} disabled={isLoading}>
-                        <X className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
+                {(onApprove || onReject) && (
+                  <TableCell>
+                    {log.approval === "pending" && (
+                      <div className="flex gap-1">
+                        {onApprove && <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onApprove(log.id)} disabled={isLoading}>
+                          <Check className="h-3.5 w-3.5 text-success" />
+                        </Button>}
+                        {onReject && <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onReject(log.id)} disabled={isLoading}>
+                          <X className="h-3.5 w-3.5 text-destructive" />
+                        </Button>}
+                      </div>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}

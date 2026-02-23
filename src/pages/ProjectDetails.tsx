@@ -162,6 +162,7 @@ export default function ProjectDetails() {
   };
 
   const isAssociation = role === "youth_association" && user?.id === project?.association_id;
+  const isProvider = role === "service_provider" && user?.id === project?.assigned_provider_id;
 
   if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
   if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">المشروع غير موجود</p></DashboardLayout>;
@@ -326,6 +327,20 @@ export default function ProjectDetails() {
                        توقيع العقد
                      </Button>
                    )}
+                   {isProvider && !contract.provider_signed_at && (
+                     <Button
+                       size="sm"
+                       className="mt-3"
+                       onClick={() => signContract.mutate(contract.id, {
+                         onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
+                         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                       })}
+                       disabled={signContract.isPending}
+                     >
+                       <PenLine className="h-4 w-4 ml-1" />
+                       توقيع العقد
+                     </Button>
+                   )}
                  </CardContent>
               </Card>
             ) : (
@@ -336,8 +351,8 @@ export default function ProjectDetails() {
           <TabsContent value="timelogs" className="mt-4">
             <TimeLogTable
               logs={(timeLogs as any) ?? []}
-              onApprove={(logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) }); }}
-              onReject={(logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) }); }}
+              onApprove={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) }); } : undefined}
+              onReject={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) }); } : undefined}
               isLoading={updateTimeLog.isPending}
             />
           </TabsContent>
