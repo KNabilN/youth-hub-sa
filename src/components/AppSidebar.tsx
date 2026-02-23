@@ -55,6 +55,7 @@ const menuByRole = {
   ],
   donor: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "التبرعات", url: "/donations", icon: HandCoins },
     { title: "تقارير الأثر", url: "/impact", icon: BarChart3 },

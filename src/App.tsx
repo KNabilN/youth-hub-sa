@@ -40,7 +40,7 @@ import Contracts from "./pages/Contracts";
 import Profile from "./pages/Profile";
 import ProviderProfile from "./pages/ProviderProfile";
 import NotFound from "./pages/NotFound";
-
+import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -86,6 +86,7 @@ const App = () => (
             <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AccessibilityWidget />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

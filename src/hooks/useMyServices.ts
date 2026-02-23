@@ -43,7 +43,7 @@ export function useUpdateService() {
     mutationFn: async ({ id, ...values }: TablesUpdate<"micro_services"> & { id: string }) => {
       const { data, error } = await supabase
         .from("micro_services")
-        .update(values)
+        .update({ ...values, approval: "pending" as const })
         .eq("id", id)
         .select()
         .single();
