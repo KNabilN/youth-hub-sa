@@ -1,83 +1,164 @@
 
 
-# Stage 2: Core Database & Domain Models
+# Stage 3: Youth Association Features
 
-This stage creates all the database tables needed for the platform's business logic -- projects, services, bidding, contracts, finances, and more.
+This stage builds the complete UI experience for the **Youth Association** role -- the primary project creators on the platform. It connects the database tables from Stage 2 to interactive pages for managing projects, reviewing bids, signing contracts, verifying work hours, and browsing the service marketplace.
 
 ---
 
 ## What Will Be Built
 
-### 1. Lookup Tables (Admin-managed)
-- **categories** -- Service/project categories (e.g., تقنية, تسويق, تصميم)
-- **regions** -- Saudi regions (e.g., الرياض, جدة, الدمام)
+### 1. Projects Management (4 pages)
 
-### 2. Project & Service Tables
-- **projects** -- Association-created project requests with title, description, required skills, estimated hours, budget, status (draft/open/in_progress/completed/disputed), privacy toggle, and links to association and assigned provider
-- **micro_services** -- Provider-created fixed-price or hourly services with description, pricing, category, region, and approval status
-- **bids** -- Provider proposals on projects with price, timeline, cover letter, and status (pending/accepted/rejected)
-- **contracts** -- System-generated digital agreements linking a project to an association and provider, with signing timestamps
+**Projects List Page** (`/projects`)
+- Table/card view of all association projects with status badges (draft, open, in_progress, completed, disputed)
+- Filter bar by status, category, and date range
+- "Create New Project" button leading to the creation form
+- Quick actions: edit draft, view details, cancel
 
-### 3. Work Tracking
-- **time_logs** -- Hourly work entries by providers, linked to projects, with hours logged, description, date, and approval status (pending/approved/rejected)
+**Project Creation Form** (`/projects/new`)
+- Multi-step form with validation (using react-hook-form + zod):
+  - Step 1: Title, description, category (from `categories` table), region (from `regions` table)
+  - Step 2: Required skills (tag input), estimated hours, budget (numeric with SAR currency)
+  - Step 3: Privacy toggle, review summary
+- Saves as "draft" initially, with option to publish (set status to "open")
 
-### 4. Quality & Governance
-- **ratings** -- Three-dimensional evaluation (quality, timing, communication) with scores 1-5, linked to contracts
-- **disputes** -- Dispute records with status (open/under_review/resolved), description, resolution notes
-- **audit_log** -- Immutable record of all system changes (table name, record ID, action, old/new values, actor)
+**Project Details Page** (`/projects/:id`)
+- Full project information display
+- Tabs: Overview | Bids | Contract | Time Logs
+- **Bids tab**: List of received bids with provider name, price, timeline, cover letter, and provider rating. Accept/reject buttons for each bid
+- **Contract tab**: Shows contract details and signing status once a bid is accepted
+- **Time Logs tab**: Provider-submitted hours with approve/reject controls
 
-### 5. Financial Tables
-- **escrow_transactions** -- Funds held/released/frozen, linked to projects or services, with status tracking
-- **invoices** -- ZATCA-style electronic invoice records for platform commissions
-- **commission_config** -- Admin-configurable platform fee rates (percentage-based)
-- **donor_contributions** -- Donations linked to specific projects or services, with donor ID and amount
+**Project Edit Page** (`/projects/:id/edit`)
+- Same form as creation, pre-filled with existing data
+- Only editable when project is in "draft" status
 
-### 6. Notifications & Ticketing
-- **notifications** -- In-app notification records per user with type, message, read status
-- **support_tickets** -- Internal ticketing system with subject, description, status, priority
+### 2. Bid Review & Contract Signing
+
+**Bid Acceptance Flow**
+- When association accepts a bid:
+  1. All other bids on the project are automatically rejected
+  2. A contract record is created linking the project, association, and provider
+  3. Project status changes to "in_progress"
+  4. Association signs the contract (sets `association_signed_at`)
+
+**Contract View**
+- Displays contract terms, signing timestamps for both parties
+- Visual indicators showing which party has signed
+
+### 3. Time Log Verification (`/time-logs`)
+
+- List of all pending time logs across association's projects
+- Each entry shows: provider name, project title, date, hours, description
+- Approve/reject buttons with confirmation dialog
+- Filter by project and approval status
+- Summary statistics: total pending hours, approved this month
+
+### 4. Service Marketplace (`/marketplace`)
+
+- Grid/card layout of approved micro-services
+- Filter by category, region, service type (fixed-price/hourly), price range
+- Service detail modal/page with provider info, ratings, and price
+- "Request Service" action (placeholder for future procurement flow)
+
+### 5. Ratings Page (`/ratings`)
+
+- List of completed contracts eligible for rating
+- Rating form with three sliders (quality, timing, communication) each 1-5
+- Optional comment field
+- View previously submitted ratings
+
+### 6. Dashboard Enhancements
+
+- Connect the static "0" values to real Supabase queries:
+  - Active projects count (status = in_progress)
+  - Pending time log hours
+  - Active contracts count
+  - Average rating received
 
 ---
 
-## Security (RLS Policies)
+## New Files to Create
 
-Each table will have Row-Level Security policies:
-- **projects**: Associations manage their own; providers see open projects; admins see all
-- **micro_services**: Providers manage their own; all authenticated users can browse approved ones; admins see all
-- **bids**: Providers manage their own bids; associations see bids on their projects; admins see all
-- **contracts**: Parties to the contract can view; admins see all
-- **time_logs**: Providers create on their projects; associations approve on their projects; admins see all
-- **ratings**: Creator can insert; public read on completed contracts
-- **disputes**: Involved parties can view/create; admins manage all
-- **escrow/invoices/contributions**: Role-appropriate access with admin full access
-- **notifications**: Users see only their own
-- **support_tickets**: Creator sees own; admins see all
-- **categories/regions**: Public read; admin write
-- **audit_log**: Admin read-only; system insert via trigger
-- **commission_config**: Admin read/write
+```text
+src/pages/
+  Projects.tsx            -- Project listing page
+  ProjectCreate.tsx       -- Multi-step project creation form
+  ProjectDetails.tsx      -- Project detail with tabs (bids, contract, time logs)
+  ProjectEdit.tsx         -- Edit draft project
+  TimeLogs.tsx            -- Time log review page
+  Marketplace.tsx         -- Service marketplace browser
+  Ratings.tsx             -- Ratings management page
+
+src/components/projects/
+  ProjectCard.tsx         -- Reusable project card component
+  ProjectForm.tsx         -- Shared form for create/edit
+  ProjectStatusBadge.tsx  -- Color-coded status badge
+
+src/components/bids/
+  BidCard.tsx             -- Individual bid display with actions
+  BidList.tsx             -- List of bids for a project
+
+src/components/time-logs/
+  TimeLogTable.tsx        -- Table of time log entries with actions
+
+src/components/marketplace/
+  ServiceCard.tsx         -- Micro-service card for grid display
+  ServiceFilters.tsx      -- Filter controls for marketplace
+
+src/hooks/
+  useProjects.ts          -- React Query hooks for project CRUD
+  useBids.ts              -- React Query hooks for bid operations
+  useTimeLogs.ts          -- React Query hooks for time log queries
+  useCategories.ts        -- Hook to fetch categories
+  useRegions.ts           -- Hook to fetch regions
+```
+
+## Routes to Add
+
+| Path | Component | Access |
+|------|-----------|--------|
+| `/projects` | Projects | youth_association |
+| `/projects/new` | ProjectCreate | youth_association |
+| `/projects/:id` | ProjectDetails | youth_association |
+| `/projects/:id/edit` | ProjectEdit | youth_association |
+| `/time-logs` | TimeLogs | youth_association |
+| `/marketplace` | Marketplace | youth_association |
+| `/ratings` | Ratings | youth_association |
 
 ---
 
 ## Technical Details
 
-### Migration SQL
-A single migration will create all tables, enums (for statuses), RLS policies, and indexes. Key design decisions:
-- All user-referencing columns use `uuid` type referencing `profiles(id)` (not `auth.users`)
-- Status fields use PostgreSQL enums for type safety
-- `audit_log` will use a trigger function to auto-capture changes
-- Timestamps default to `now()` with timezone
-- Financial amounts stored as `numeric(12,2)` for precision
-- Realtime enabled on `notifications` table for live updates
+### Data Fetching Pattern
+All data fetching will use `@tanstack/react-query` with custom hooks wrapping Supabase client calls. Example pattern:
 
-### New Enums
-- `project_status`: draft, open, in_progress, completed, disputed, cancelled
-- `bid_status`: pending, accepted, rejected, withdrawn
-- `service_type`: fixed_price, hourly
-- `approval_status`: pending, approved, rejected
-- `dispute_status`: open, under_review, resolved, closed
-- `escrow_status`: held, released, frozen, refunded
-- `ticket_status`: open, in_progress, resolved, closed
-- `ticket_priority`: low, medium, high, urgent
+```text
+useProjects() -> supabase.from('projects').select('*, categories(*), regions(*)').eq('association_id', user.id)
+useBids(projectId) -> supabase.from('bids').select('*, profiles(full_name, avatar_url)').eq('project_id', projectId)
+```
 
-### No UI Changes in This Stage
-This is a pure database/schema stage. The frontend will be updated in Stages 3-6 to consume these tables.
+### Bid Acceptance Logic
+When a bid is accepted, the hook will execute a sequence:
+1. Update accepted bid status to "accepted"
+2. Update all other bids on the project to "rejected"
+3. Insert a new contract record
+4. Update project status to "in_progress" and set `assigned_provider_id`
 
+### Form Validation (Zod Schemas)
+- Project title: required, min 5 chars
+- Description: required, min 20 chars
+- Budget: positive number
+- Estimated hours: positive number
+- Timeline days (bids): positive integer
+- Rating scores: integer 1-5
+
+### RTL Considerations
+- All form layouts use RTL-aware flex and grid
+- Table columns ordered right-to-left
+- Currency displays as "500 ر.س" (number first, then symbol)
+- Date formatting using date-fns with Arabic locale
+
+### Dashboard Live Data
+The Dashboard page will be updated to use React Query hooks that count real records from the database instead of showing static "0" values.
