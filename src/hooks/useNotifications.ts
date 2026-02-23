@@ -3,25 +3,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
-export function useNotifications() {
+export function useNotifications(from = 0, to = 19) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey: ["notifications", user?.id, from, to],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
       return data;
     },
     enabled: !!user,
   });
 
-  // Realtime subscription
   useEffect(() => {
     if (!user) return;
     const channel = supabase

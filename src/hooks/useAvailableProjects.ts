@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export function useAvailableProjects(filters?: { category_id?: string; region_id?: string }) {
+export function useAvailableProjects(filters?: { category_id?: string; region_id?: string }, from = 0, to = 19) {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["available-projects", user?.id, filters],
+    queryKey: ["available-projects", user?.id, filters, from, to],
     enabled: !!user,
     queryFn: async () => {
       let query = supabase
@@ -13,7 +13,8 @@ export function useAvailableProjects(filters?: { category_id?: string; region_id
         .select("*, categories(*), regions(*)")
         .eq("status", "open")
         .eq("is_private", false)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (filters?.category_id) query = query.eq("category_id", filters.category_id);
       if (filters?.region_id) query = query.eq("region_id", filters.region_id);
       const { data, error } = await query;

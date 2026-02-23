@@ -6,21 +6,25 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 export default function Marketplace() {
   const [category, setCategory] = useState("all");
   const [region, setRegion] = useState("all");
   const [serviceType, setServiceType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const pagination = usePagination();
 
   const { data: services, isLoading } = useQuery({
-    queryKey: ["marketplace", category, region, serviceType],
+    queryKey: ["marketplace", category, region, serviceType, pagination.from, pagination.to],
     queryFn: async () => {
       let query = supabase
         .from("micro_services")
         .select("*, categories(*), regions(*), profiles:provider_id(full_name)")
         .eq("approval", "approved")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(pagination.from, pagination.to);
       if (category !== "all") query = query.eq("category_id", category);
       if (region !== "all") query = query.eq("region_id", region);
       if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
@@ -30,7 +34,6 @@ export default function Marketplace() {
     },
   });
 
-  // Fetch provider average ratings for sorting
   const { data: ratingsMap } = useQuery({
     queryKey: ["provider-ratings-map"],
     queryFn: async () => {
@@ -67,6 +70,11 @@ export default function Marketplace() {
     return list;
   }, [services, sortBy, ratingsMap]);
 
+  // Reset page when filters change
+  const handleCategoryChange = (v: string) => { setCategory(v); pagination.resetPage(); };
+  const handleRegionChange = (v: string) => { setRegion(v); pagination.resetPage(); };
+  const handleServiceTypeChange = (v: string) => { setServiceType(v); pagination.resetPage(); };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -90,7 +98,7 @@ export default function Marketplace() {
 
         <ServiceFilters
           category={category} region={region} serviceType={serviceType}
-          onCategoryChange={setCategory} onRegionChange={setRegion} onServiceTypeChange={setServiceType}
+          onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange} onServiceTypeChange={handleServiceTypeChange}
         />
 
         {isLoading ? (
@@ -104,6 +112,14 @@ export default function Marketplace() {
             {sortedServices.map(s => <ServiceCard key={s.id} service={s as any} />)}
           </div>
         )}
+
+        <PaginationControls
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalFetched={services?.length ?? 0}
+          onPrev={pagination.prevPage}
+          onNext={pagination.nextPage}
+        />
       </div>
     </DashboardLayout>
   );

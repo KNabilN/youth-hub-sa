@@ -1,15 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useAdminUsers() {
+export function useAdminUsers(from = 0, to = 19) {
   return useQuery({
-    queryKey: ["admin-users"],
+    queryKey: ["admin-users", from, to],
     queryFn: async () => {
-      // Fetch profiles and roles separately since there's no direct FK between them
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (profilesError) throw profilesError;
 
       const { data: roles, error: rolesError } = await supabase
@@ -17,7 +17,6 @@ export function useAdminUsers() {
         .select("user_id, role");
       if (rolesError) throw rolesError;
 
-      // Merge roles into profiles
       const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) ?? []);
       return (profiles ?? []).map((p) => ({
         ...p,
@@ -43,6 +42,18 @@ export function useToggleSuspension() {
   return useMutation({
     mutationFn: async ({ id, is_suspended }: { id: string; is_suspended: boolean }) => {
       const { error } = await supabase.from("profiles").update({ is_suspended }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+}
+
+export function useChangeUserRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      await supabase.from("user_roles").delete().eq("user_id", userId);
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),

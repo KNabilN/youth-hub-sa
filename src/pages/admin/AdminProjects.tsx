@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
@@ -24,7 +26,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminProjects() {
-  const { data: projects, isLoading } = useAdminProjects();
+  const pagination = usePagination();
+  const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
   const updateStatus = useUpdateProjectStatus();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -57,40 +60,49 @@ export default function AdminProjects() {
           </Select>
         </div>
         {isLoading ? <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p> : (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>العنوان</TableHead>
-                  <TableHead>الجمعية</TableHead>
-                  <TableHead>التصنيف</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>التاريخ</TableHead>
-                  <TableHead>تغيير الحالة</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((p: any) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.title}</TableCell>
-                    <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
-                    <TableCell>{p.categories?.name ?? "—"}</TableCell>
-                    <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                    <TableCell>
-                      <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
-                        <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
+          <>
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>العنوان</TableHead>
+                    <TableHead>الجمعية</TableHead>
+                    <TableHead>التصنيف</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>التاريخ</TableHead>
+                    <TableHead>تغيير الحالة</TableHead>
                   </TableRow>
-                ))}
-                {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد مشاريع</TableCell></TableRow>}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((p: any) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.title}</TableCell>
+                      <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>{p.categories?.name ?? "—"}</TableCell>
+                      <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                      <TableCell>
+                        <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
+                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد مشاريع</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </div>
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalFetched={projects?.length ?? 0}
+              onPrev={pagination.prevPage}
+              onNext={pagination.nextPage}
+            />
+          </>
         )}
       </div>
     </DashboardLayout>

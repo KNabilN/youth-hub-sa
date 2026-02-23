@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAdminUsers, useToggleVerification, useToggleSuspension } from "@/hooks/useAdminUsers";
+import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole } from "@/hooks/useAdminUsers";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -18,10 +19,22 @@ const roleLabels: Record<string, string> = {
   donor: "مانح",
 };
 
-export function UserTable() {
-  const { data: users, isLoading } = useAdminUsers();
+interface UserTableProps {
+  pagination: {
+    page: number;
+    pageSize: number;
+    from: number;
+    to: number;
+    nextPage: () => void;
+    prevPage: () => void;
+  };
+}
+
+export function UserTable({ pagination }: UserTableProps) {
+  const { data: users, isLoading } = useAdminUsers(pagination.from, pagination.to);
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
+  const changeRole = useChangeUserRole();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
@@ -92,7 +105,22 @@ export function UserTable() {
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{roleLabels[u.user_roles?.[0]?.role] ?? "—"}</Badge>
+                  <Select
+                    value={u.user_roles?.[0]?.role ?? ""}
+                    onValueChange={(v) => {
+                      changeRole.mutate({ userId: u.id, role: v }, {
+                        onSuccess: () => toast.success("تم تغيير الدور"),
+                        onError: () => toast.error("حدث خطأ في تغيير الدور"),
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="w-36 h-8"><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(roleLabels).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   {u.is_verified ? (
@@ -151,6 +179,14 @@ export function UserTable() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControls
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        totalFetched={users?.length ?? 0}
+        onPrev={pagination.prevPage}
+        onNext={pagination.nextPage}
+      />
     </div>
   );
 }

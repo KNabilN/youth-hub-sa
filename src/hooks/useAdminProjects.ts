@@ -4,14 +4,15 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
-export function useAdminProjects() {
+export function useAdminProjects(from = 0, to = 19) {
   return useQuery({
-    queryKey: ["admin-projects"],
+    queryKey: ["admin-projects", from, to],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
         .select("*, categories(name), regions(name), profiles!projects_association_id_fkey(full_name)")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
       return data;
     },

@@ -46,6 +46,7 @@ const menuByRole = {
     { title: "النزاعات", url: "/admin/disputes", icon: Gavel },
     { title: "المالية", url: "/admin/finance", icon: Receipt },
     { title: "التقارير", url: "/admin/reports", icon: BarChart3 },
+    { title: "تذاكر الدعم", url: "/admin/tickets", icon: MessageSquare },
     { title: "سجل التدقيق", url: "/admin/audit-log", icon: ScrollText },
     { title: "الإعدادات", url: "/admin/settings", icon: Settings },
   ],
