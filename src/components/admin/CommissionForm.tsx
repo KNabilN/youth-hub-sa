@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useCommissionConfig, useUpdateCommission } from "@/hooks/useAdminFinance";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Percent, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function CommissionForm() {
@@ -36,7 +38,20 @@ export function CommissionForm() {
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-lg">نسبة العمولة</CardTitle></CardHeader>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Percent className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">نسبة العمولة</CardTitle>
+          </div>
+          {config && (
+            <Badge variant="secondary" className="text-sm">
+              {(Number(config.rate) * 100).toFixed(1)}%
+            </Badge>
+          )}
+        </div>
+        <CardDescription>تحديد نسبة العمولة المقتطعة من كل معاملة مالية على المنصة</CardDescription>
+      </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>النسبة (%)</Label>
@@ -46,7 +61,10 @@ export function CommissionForm() {
           <Label>الوصف</Label>
           <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
         </div>
-        <Button onClick={handleSave} disabled={update.isPending}>حفظ</Button>
+        <Button onClick={handleSave} disabled={update.isPending}>
+          {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          حفظ
+        </Button>
       </CardContent>
     </Card>
   );
