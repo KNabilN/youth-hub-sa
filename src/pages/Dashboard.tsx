@@ -3,17 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjectStats } from "@/hooks/useProjects";
 import { useProviderStats } from "@/hooks/useProviderStats";
 import { useDonorStats } from "@/hooks/useDonorStats";
+import { useAdminStats } from "@/hooks/useAdminStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  FolderKanban,
-  Users,
-  Receipt,
-  BarChart3,
-  Store,
-  HandCoins,
-  ClipboardList,
-  Gavel,
-  Layers,
+  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers,
 } from "lucide-react";
 
 const roleTitles: Record<string, string> = {
@@ -98,27 +91,24 @@ function DonorDashboard() {
   );
 }
 
-const staticStatsByRole: Record<string, { title: string; value: string; icon: any; color: string }[]> = {
-  super_admin: [
-    { title: "إجمالي المستخدمين", value: "0", icon: Users, color: "text-primary" },
-    { title: "المشاريع", value: "0", icon: FolderKanban, color: "text-info" },
-    { title: "النزاعات المفتوحة", value: "0", icon: Gavel, color: "text-destructive" },
-    { title: "الإيرادات", value: "0 ر.س", icon: Receipt, color: "text-success" },
-  ],
-};
-
-function StaticStats({ role }: { role: string }) {
-  const stats = staticStatsByRole[role] ?? [];
+function AdminDashboard() {
+  const { data: stats, isLoading } = useAdminStats();
+  const items = [
+    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "text-primary" },
+    { title: "المشاريع", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "text-info" },
+    { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "text-destructive" },
+    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "text-success" },
+  ];
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => (
+      {items.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
             <stat.icon className={`h-5 w-5 ${stat.color}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
           </CardContent>
         </Card>
       ))}
@@ -130,7 +120,8 @@ function DashboardStats({ role }: { role: string }) {
   if (role === "youth_association") return <AssociationDashboard />;
   if (role === "service_provider") return <ProviderDashboard />;
   if (role === "donor") return <DonorDashboard />;
-  return <StaticStats role={role} />;
+  if (role === "super_admin") return <AdminDashboard />;
+  return null;
 }
 
 export default function Dashboard() {
@@ -144,9 +135,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold">{title}</h1>
           <p className="text-muted-foreground text-sm mt-1">مرحباً بك في منصة الخدمات المشتركة</p>
         </div>
-
         {role ? <DashboardStats role={role} /> : null}
-
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">النشاط الأخير</CardTitle>
