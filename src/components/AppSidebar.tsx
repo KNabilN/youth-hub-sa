@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import {
   Sidebar,
   SidebarContent,
@@ -125,7 +126,8 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <NavLink to="/notifications" className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                     <Bell className="ml-2 h-4 w-4" />
-                    <span>الإشعارات</span>
+                    <span className="flex-1">الإشعارات</span>
+                    <NotificationBadge />
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

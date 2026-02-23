@@ -21,6 +21,12 @@ import ProjectBidView from "./pages/ProjectBidView";
 import MyBids from "./pages/MyBids";
 import TimeTracking from "./pages/TimeTracking";
 import Earnings from "./pages/Earnings";
+import Notifications from "./pages/Notifications";
+import SupportTickets from "./pages/SupportTickets";
+import TicketCreate from "./pages/TicketCreate";
+import Associations from "./pages/Associations";
+import Donations from "./pages/Donations";
+import ImpactReports from "./pages/ImpactReports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +55,12 @@ const App = () => (
             <Route path="/my-bids" element={<ProtectedRoute><MyBids /></ProtectedRoute>} />
             <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
             <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/tickets" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
+            <Route path="/tickets/new" element={<ProtectedRoute><TicketCreate /></ProtectedRoute>} />
+            <Route path="/associations" element={<ProtectedRoute><Associations /></ProtectedRoute>} />
+            <Route path="/donations" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
+            <Route path="/impact" element={<ProtectedRoute><ImpactReports /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
