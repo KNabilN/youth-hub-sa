@@ -1,50 +1,47 @@
 
 
-# Stage 4: Service Provider Features
+# Stage 5: Shared Features and Cross-Role Pages
 
-This stage builds the complete UI for the **Service Provider** role -- users who offer services, bid on projects, log work hours, and track earnings.
+With Stages 1-4 complete (Foundation, Database, Youth Association, Service Provider), this stage builds the **shared features** used across all roles -- Notifications, Support Tickets, and the Donor role pages -- plus prepares the groundwork for the Super Admin stage.
 
 ---
 
 ## What Will Be Built
 
-### 1. My Services Page (`/my-services`)
-- List of provider's own micro-services with approval status badges (pending, approved, rejected)
-- "Add New Service" button opening a creation form
-- Edit/delete actions for own services
-- Creation/edit form fields: title, description, category, region, service type (fixed-price/hourly), price
-- Services require admin approval before appearing in the marketplace
+### 1. Notifications Page (`/notifications`)
+- Real-time notification list using the `notifications` table (already realtime-enabled)
+- Mark individual notifications as read
+- Mark all as read
+- Unread count badge in the sidebar
+- Notification types displayed with appropriate icons
 
-### 2. Available Projects Page (`/available-projects`)
-- Browse open (non-private) projects that providers can bid on
-- Filter by category, region, and budget range
-- Each project card shows: title, description snippet, budget, estimated hours, required skills, category, region
-- Click to view full details and submit a bid
+### 2. Support Tickets Page (`/tickets`)
+- List of user's own support tickets with status/priority badges
+- "New Ticket" form: subject, description, priority selection
+- Ticket detail view with status updates
+- Available to all authenticated roles
 
-### 3. My Bids Page (`/my-bids`)
-- List of all bids submitted by the provider with status indicators (pending, accepted, rejected, withdrawn)
-- Filter by bid status
-- Link to the associated project
-- Withdraw action for pending bids
+### 3. Donor Pages
 
-### 4. Time Tracking Page (`/time-tracking`)
-- Log new work hours against assigned projects (projects where provider is `assigned_provider_id`)
-- Form: select project, date, hours, description
-- View history of submitted time logs with approval status
-- Filter by project and date range
+**Associations Browser (`/associations`)**
+- Browse verified youth associations (profiles where role = youth_association and is_verified = true)
+- View association details: name, bio, project count
 
-### 5. Earnings Page (`/earnings`)
-- Summary of completed contracts and associated payments
-- View escrow transaction history (held, released, refunded)
-- Total earnings calculation
-- Contract-level breakdown with project name and amount
+**Donations Page (`/donations`)**
+- Make a contribution to a project or service (creates `donor_contributions` record)
+- View donation history with amounts and dates
+- Filter by date range
 
-### 6. Provider Dashboard
-- Connect live data for the service_provider role:
-  - My services count
-  - Active bids count
-  - Hours logged this month
-  - Total earnings from released escrow
+**Impact Reports (`/impact`)**
+- Summary dashboard showing: total donated, number of projects funded, associations supported
+- Breakdown by project with status indicators
+
+### 4. Donor Dashboard
+- Connect live data:
+  - Associations supported count
+  - Total donations amount
+  - Projects funded count
+  - Impact reports (placeholder metric)
 
 ---
 
@@ -52,83 +49,83 @@ This stage builds the complete UI for the **Service Provider** role -- users who
 
 ```text
 src/pages/
-  MyServices.tsx           -- Provider's service management
-  AvailableProjects.tsx    -- Browse open projects
-  MyBids.tsx               -- Provider's bid history
-  TimeTracking.tsx         -- Log and view work hours
-  Earnings.tsx             -- Earnings and payment tracking
+  Notifications.tsx        -- Notification center
+  SupportTickets.tsx       -- Support ticket management
+  TicketCreate.tsx         -- New ticket form
+  Associations.tsx         -- Browse associations (donor)
+  Donations.tsx            -- Donation history and new contribution
+  ImpactReports.tsx        -- Donor impact dashboard
 
-src/components/services/
-  ServiceForm.tsx          -- Create/edit micro-service form
-  MyServiceCard.tsx        -- Service card with edit/delete actions
+src/components/notifications/
+  NotificationItem.tsx     -- Single notification row
+  NotificationBadge.tsx    -- Unread count badge for sidebar
 
-src/components/provider/
-  BidForm.tsx              -- Submit bid on a project
-  ProviderProjectCard.tsx  -- Project card for provider view
-  TimeEntryForm.tsx        -- Form to log hours
-  EarningsSummary.tsx      -- Earnings overview component
+src/components/tickets/
+  TicketCard.tsx           -- Support ticket card
+  TicketForm.tsx           -- Create ticket form
+
+src/components/donor/
+  AssociationCard.tsx      -- Association profile card
+  DonationForm.tsx         -- Contribution form
+  ImpactSummary.tsx        -- Impact statistics component
 
 src/hooks/
-  useMyServices.ts         -- CRUD hooks for provider's micro-services
-  useProviderBids.ts       -- Hooks for provider's own bids
-  useProviderTimeLogs.ts   -- Hooks for logging and viewing hours
-  useEarnings.ts           -- Hook for earnings/escrow data
-  useAvailableProjects.ts  -- Hook to fetch open projects
-  useProviderStats.ts      -- Dashboard statistics hook
+  useNotifications.ts      -- Realtime notifications hook
+  useSupportTickets.ts     -- CRUD for support tickets
+  useDonorContributions.ts -- Donation data hook
+  useDonorStats.ts         -- Donor dashboard statistics
 ```
 
 ## Routes to Add
 
 | Path | Component | Access |
 |------|-----------|--------|
-| `/my-services` | MyServices | service_provider |
-| `/available-projects` | AvailableProjects | service_provider |
-| `/available-projects/:id` | ProjectBidView | service_provider |
-| `/my-bids` | MyBids | service_provider |
-| `/time-tracking` | TimeTracking | service_provider |
-| `/earnings` | Earnings | service_provider |
+| `/notifications` | Notifications | all authenticated |
+| `/tickets` | SupportTickets | all authenticated |
+| `/tickets/new` | TicketCreate | all authenticated |
+| `/associations` | Associations | donor |
+| `/donations` | Donations | donor |
+| `/impact` | ImpactReports | donor |
 
 ---
 
 ## Technical Details
 
-### Data Fetching Patterns
+### Notifications (Realtime)
 ```text
-useMyServices()          -> supabase.from('micro_services').select('*, categories(*), regions(*)').eq('provider_id', user.id)
-useAvailableProjects()   -> supabase.from('projects').select('*, categories(*), regions(*)').eq('status', 'open').eq('is_private', false)
-useProviderBids()        -> supabase.from('bids').select('*, projects(title, budget)').eq('provider_id', user.id)
-useProviderTimeLogs()    -> supabase.from('time_logs').select('*, projects(title)').eq('provider_id', user.id)
-useEarnings()            -> supabase.from('escrow_transactions').select('*, projects(title)').eq('payee_id', user.id)
+useNotifications() -> supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+```
+- Subscribe to `postgres_changes` on the `notifications` table filtered by `user_id`
+- New notifications appear instantly without page refresh
+- Unread count: `notifications` where `is_read = false`
+
+### Support Tickets
+```text
+useSupportTickets() -> supabase.from('support_tickets').select('*').eq('user_id', user.id)
+createTicket()      -> supabase.from('support_tickets').insert({ subject, description, priority, user_id })
+```
+- Zod validation: subject (min 5 chars), description (min 10 chars), priority enum
+
+### Donor Contributions
+```text
+useDonorContributions() -> supabase.from('donor_contributions').select('*, projects(title), micro_services(title)').eq('donor_id', user.id)
+createContribution()    -> supabase.from('donor_contributions').insert({ donor_id, project_id?, service_id?, amount })
+```
+- Amount must be positive
+- Either project_id or service_id must be provided (not both)
+
+### Donor Dashboard Stats
+```text
+useDonorStats():
+  - Total donations: sum of donor_contributions.amount
+  - Projects funded: distinct project_id count from donor_contributions
+  - Associations supported: distinct association_id from projects joined through donor_contributions
 ```
 
-### Bid Submission Logic
-- Provider submits a bid with price, timeline_days, and cover_letter
-- Validation: price > 0, timeline_days > 0, cover_letter min 10 chars
-- Provider can withdraw a pending bid (updates status to "withdrawn")
-- Provider cannot bid on the same project twice
-
-### Time Log Entry
-- Provider selects from projects where they are `assigned_provider_id`
-- Enters date, hours (positive number, max 24), and description
-- New entries default to `approval: 'pending'`
-
-### Service Form Validation (Zod)
-- Title: required, min 5 chars
-- Description: required, min 20 chars
-- Price: positive number
-- Category and region: required selections
-- Service type: fixed_price or hourly
-
-### Contract Signing
-- When provider views an accepted bid, they can sign the contract (sets `provider_signed_at`)
-- This completes the dual-signature flow started by the association
-
-### Dashboard Live Data (Provider)
-- Services count: `micro_services` where `provider_id = user.id`
-- Active bids: `bids` where `provider_id = user.id` and `status = 'pending'`
-- Hours this month: sum of `time_logs.hours` for current month
-- Total earnings: sum of `escrow_transactions.amount` where `status = 'released'` and `payee_id = user.id`
+### Sidebar Updates
+- Add `NotificationBadge` component showing unread count next to the notifications link
+- All sidebar notification/ticket links already exist in `AppSidebar.tsx`
 
 ### No Database Changes
-All required tables and RLS policies already exist from Stage 2. The provider RLS policies (`provider_id = auth.uid()`) will govern data access.
+All required tables (`notifications`, `support_tickets`, `donor_contributions`) and their RLS policies already exist from Stage 2.
 
