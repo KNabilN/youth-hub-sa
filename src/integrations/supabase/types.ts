@@ -462,6 +462,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          image_url: string | null
           price: number
           provider_id: string
           region_id: string | null
@@ -475,6 +476,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          image_url?: string | null
           price: number
           provider_id: string
           region_id?: string | null
@@ -488,6 +490,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          image_url?: string | null
           price?: number
           provider_id?: string
           region_id?: string | null

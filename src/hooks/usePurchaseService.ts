@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sendNotification } from "@/lib/notifications";
 
 export function usePurchaseService() {
   const qc = useQueryClient();
@@ -29,18 +30,24 @@ export function usePurchaseService() {
         .single();
       if (escrowErr) throw escrowErr;
 
-      // Notify provider
-      await supabase.from("notifications").insert({
-        user_id: providerId,
-        message: `تم شراء خدمتك بمبلغ ${amount} ر.س`,
-        type: "purchase",
+      // Also create donor_contributions record
+      await supabase.from("donor_contributions").insert({
+        donor_id: buyerId,
+        service_id: serviceId,
+        amount,
       });
+
+      // Notify provider
+      await sendNotification(providerId, `تم شراء خدمتك بمبلغ ${amount} ر.س`, "purchase");
+      // Notify buyer
+      await sendNotification(buyerId, `تم تأكيد شرائك للخدمة بمبلغ ${amount} ر.س`, "purchase_confirmation");
 
       return escrow;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["escrow"] });
       qc.invalidateQueries({ queryKey: ["marketplace"] });
+      qc.invalidateQueries({ queryKey: ["donor-contributions"] });
     },
   });
 }

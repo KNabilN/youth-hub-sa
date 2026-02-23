@@ -48,8 +48,8 @@ export default function TimeLogs() {
         {isLoading ? <Skeleton className="h-64" /> : (
           <TimeLogTable
             logs={(logs as any) ?? []}
-            onApprove={(id) => updateApproval.mutate({ id, approval: "approved" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) })}
-            onReject={(id) => updateApproval.mutate({ id, approval: "rejected" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) })}
+            onApprove={(id) => { const log = ((logs as any) ?? []).find((l: any) => l.id === id); updateApproval.mutate({ id, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) }); }}
+            onReject={(id) => { const log = ((logs as any) ?? []).find((l: any) => l.id === id); updateApproval.mutate({ id, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) }); }}
             isLoading={updateApproval.isPending}
           />
         )}

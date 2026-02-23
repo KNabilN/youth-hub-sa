@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { ImagePlus, X } from "lucide-react";
 
 const serviceSchema = z.object({
   title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
@@ -22,14 +26,18 @@ export type ServiceFormValues = z.infer<typeof serviceSchema>;
 
 interface ServiceFormProps {
   defaultValues?: Partial<ServiceFormValues>;
-  onSubmit: (values: ServiceFormValues) => void;
+  defaultImageUrl?: string | null;
+  onSubmit: (values: ServiceFormValues & { image_url?: string | null }) => void;
   isLoading?: boolean;
   submitLabel?: string;
 }
 
-export function ServiceForm({ defaultValues, onSubmit, isLoading, submitLabel = "حفظ" }: ServiceFormProps) {
+export function ServiceForm({ defaultValues, defaultImageUrl, onSubmit, isLoading, submitLabel = "حفظ" }: ServiceFormProps) {
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
+  const { user } = useAuth();
+  const [imageUrl, setImageUrl] = useState<string | null>(defaultImageUrl ?? null);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
@@ -44,9 +52,48 @@ export function ServiceForm({ defaultValues, onSubmit, isLoading, submitLabel = 
     },
   });
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("service-images").upload(path, file);
+    if (error) {
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
+    setImageUrl(urlData.publicUrl);
+    setUploading(false);
+  };
+
+  const handleSubmit = (values: ServiceFormValues) => {
+    onSubmit({ ...values, image_url: imageUrl });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {/* Image upload */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">صورة الخدمة</label>
+          {imageUrl ? (
+            <div className="relative w-full h-40 rounded-lg overflow-hidden border">
+              <img src={imageUrl} alt="صورة الخدمة" className="w-full h-full object-cover" />
+              <Button type="button" variant="destructive" size="icon" className="absolute top-2 left-2 h-7 w-7" onClick={() => setImageUrl(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+              <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
+              <span className="text-sm text-muted-foreground">{uploading ? "جارٍ الرفع..." : "اضغط لرفع صورة"}</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+            </label>
+          )}
+        </div>
+
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
             <FormLabel>عنوان الخدمة</FormLabel>
@@ -109,7 +156,7 @@ export function ServiceForm({ defaultValues, onSubmit, isLoading, submitLabel = 
             </FormItem>
           )} />
         </div>
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading || uploading} className="w-full">
           {isLoading ? "جارٍ الحفظ..." : submitLabel}
         </Button>
       </form>

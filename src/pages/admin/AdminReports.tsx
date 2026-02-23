@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, parseISO, startOfMonth } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Download } from "lucide-react";
+import { Download, ChevronDown } from "lucide-react";
 
 const STATUS_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#ef4444", "#6b7280"];
 const ROLE_COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
@@ -20,6 +21,15 @@ const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام", youth_association: "جمعية شبابية",
   service_provider: "مقدم خدمة", donor: "مانح",
 };
+
+function downloadCSV(filename: string, headers: string[], rows: string[][]) {
+  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminReports() {
   const { data: stats } = useAdminStats();
@@ -57,7 +67,6 @@ export default function AdminReports() {
     },
   });
 
-  // New: Services by category
   const { data: servicesByCategory } = useQuery({
     queryKey: ["admin-report-services-category"],
     queryFn: async () => {
@@ -71,7 +80,6 @@ export default function AdminReports() {
     },
   });
 
-  // New: Projects by region
   const { data: projectsByRegion } = useQuery({
     queryKey: ["admin-report-projects-region"],
     queryFn: async () => {
@@ -85,7 +93,6 @@ export default function AdminReports() {
     },
   });
 
-  // New: Service approval stats
   const { data: serviceApprovalStats } = useQuery({
     queryKey: ["admin-report-service-approval"],
     queryFn: async () => {
@@ -97,16 +104,84 @@ export default function AdminReports() {
     },
   });
 
-  const exportCSV = async () => {
-    const { data: users } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at");
-    const headers = ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"];
-    const rows = (users ?? []).map((u: any) => [u.full_name, u.phone ?? "", u.organization_name ?? "", u.is_verified ? "نعم" : "لا", u.created_at?.slice(0, 10)]);
-    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "report.csv"; a.click();
-    URL.revokeObjectURL(url);
+  // Batch 9: Monthly escrow/commission
+  const { data: monthlyEscrow } = useQuery({
+    queryKey: ["admin-report-monthly-escrow"],
+    queryFn: async () => {
+      const { data } = await supabase.from("escrow_transactions").select("amount, status, created_at");
+      const months: Record<string, { total: number; released: number }> = {};
+      (data ?? []).forEach((e: any) => {
+        const key = format(startOfMonth(parseISO(e.created_at)), "yyyy-MM");
+        if (!months[key]) months[key] = { total: 0, released: 0 };
+        months[key].total += Number(e.amount);
+        if (e.status === "released") months[key].released += Number(e.amount);
+      });
+      return Object.entries(months).sort().slice(-12).map(([month, v]) => ({ month, total: v.total, released: v.released }));
+    },
+  });
+
+  // Batch 9: Average hourly rate
+  const { data: hourlyRateData } = useQuery({
+    queryKey: ["admin-report-hourly-rates"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("hourly_rate").not("hourly_rate", "is", null);
+      const rates = (data ?? []).map((p: any) => Number(p.hourly_rate)).filter(r => r > 0);
+      if (!rates.length) return { avg: 0, distribution: [] };
+      const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+      const buckets: Record<string, number> = {};
+      rates.forEach(r => {
+        const bucket = `${Math.floor(r / 50) * 50}-${Math.floor(r / 50) * 50 + 49}`;
+        buckets[bucket] = (buckets[bucket] || 0) + 1;
+      });
+      return { avg, distribution: Object.entries(buckets).map(([range, count]) => ({ range, count })) };
+    },
+  });
+
+  // Batch 9: Donor analytics
+  const { data: donorAnalytics } = useQuery({
+    queryKey: ["admin-report-donor-analytics"],
+    queryFn: async () => {
+      const { data } = await supabase.from("donor_contributions").select("donor_id, amount, project_id, projects(title)");
+      const donors = new Set((data ?? []).map((d: any) => d.donor_id));
+      const totalGrants = (data ?? []).reduce((s, d: any) => s + Number(d.amount), 0);
+      const byProject: Record<string, number> = {};
+      (data ?? []).forEach((d: any) => {
+        const name = (d.projects as any)?.title || "خدمة";
+        byProject[name] = (byProject[name] || 0) + Number(d.amount);
+      });
+      return {
+        totalDonors: donors.size,
+        totalGrants,
+        byProject: Object.entries(byProject).map(([name, amount]) => ({ name, amount })),
+      };
+    },
+  });
+
+  // Export functions
+  const exportUsers = async () => {
+    const { data } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at");
+    downloadCSV("users.csv", ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"],
+      (data ?? []).map((u: any) => [u.full_name, u.phone ?? "", u.organization_name ?? "", u.is_verified ? "نعم" : "لا", u.created_at?.slice(0, 10)]));
+  };
+  const exportProjects = async () => {
+    const { data } = await supabase.from("projects").select("id, title, status, budget, created_at, regions(name), categories(name)");
+    downloadCSV("projects.csv", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
+      (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
+  };
+  const exportServices = async () => {
+    const { data } = await supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
+    downloadCSV("services.csv", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
+      (data ?? []).map((s: any) => [s.title, (s.profiles as any)?.full_name ?? "", s.price, (s.categories as any)?.name ?? "", s.approval, s.created_at?.slice(0, 10)]));
+  };
+  const exportFinancial = async () => {
+    const { data } = await supabase.from("escrow_transactions").select("amount, status, created_at");
+    downloadCSV("financial.csv", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
+      (data ?? []).map((e: any) => [e.amount, e.status, e.created_at?.slice(0, 10)]));
+  };
+  const exportInvoices = async () => {
+    const { data } = await supabase.from("invoices").select("invoice_number, amount, commission_amount, created_at");
+    downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
+      (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
   };
 
   return (
@@ -114,10 +189,20 @@ export default function AdminReports() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">التقارير</h1>
-          <Button variant="outline" onClick={exportCSV}>
-            <Download className="h-4 w-4 ml-2" />
-            تصدير Excel
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 ml-2" />تصدير<ChevronDown className="h-4 w-4 mr-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportUsers}>تصدير المستخدمين</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportProjects}>تصدير المشاريع</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportServices}>تصدير الخدمات</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportFinancial}>تصدير المالية</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportInvoices}>تصدير الفواتير</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -211,6 +296,67 @@ export default function AdminReports() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Batch 9: Monthly Escrow/Commission */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader><CardTitle className="text-lg">المعاملات المالية الشهرية</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={monthlyEscrow ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="hsl(var(--primary))" name="إجمالي" />
+                  <Bar dataKey="released" fill="#10b981" name="محرّر" />
+                  <Legend />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-lg">توزيع أسعار الساعة</CardTitle></CardHeader>
+            <CardContent>
+              {hourlyRateData?.avg ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-3">المتوسط: <span className="font-bold text-foreground">{hourlyRateData.avg.toFixed(0)} ر.س/ساعة</span></p>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={hourlyRateData.distribution}>
+                      <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="range" /><YAxis />
+                      <Tooltip /><Bar dataKey="count" fill="#6366f1" name="عدد" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">لا توجد بيانات</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Batch 9: Donor Analytics */}
+        <Card>
+          <CardHeader><CardTitle className="text-lg">تحليلات المانحين</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="text-sm text-muted-foreground">عدد المانحين</p>
+                <p className="text-2xl font-bold">{donorAnalytics?.totalDonors ?? 0}</p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="text-sm text-muted-foreground">إجمالي التبرعات</p>
+                <p className="text-2xl font-bold">{(donorAnalytics?.totalGrants ?? 0).toLocaleString()} ر.س</p>
+              </div>
+            </div>
+            {donorAnalytics?.byProject?.length ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={donorAnalytics.byProject}>
+                  <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis />
+                  <Tooltip /><Bar dataKey="amount" fill="hsl(var(--accent))" name="المبلغ" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

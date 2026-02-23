@@ -15,7 +15,7 @@ export function useDonorContributions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("*, projects(title), micro_services(title)")
+        .select("*, projects(title, status), micro_services(title)")
         .eq("donor_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
