@@ -1,81 +1,50 @@
 
 
-# Stage 3: Youth Association Features
+# Stage 4: Service Provider Features
 
-This stage builds the complete UI experience for the **Youth Association** role -- the primary project creators on the platform. It connects the database tables from Stage 2 to interactive pages for managing projects, reviewing bids, signing contracts, verifying work hours, and browsing the service marketplace.
+This stage builds the complete UI for the **Service Provider** role -- users who offer services, bid on projects, log work hours, and track earnings.
 
 ---
 
 ## What Will Be Built
 
-### 1. Projects Management (4 pages)
+### 1. My Services Page (`/my-services`)
+- List of provider's own micro-services with approval status badges (pending, approved, rejected)
+- "Add New Service" button opening a creation form
+- Edit/delete actions for own services
+- Creation/edit form fields: title, description, category, region, service type (fixed-price/hourly), price
+- Services require admin approval before appearing in the marketplace
 
-**Projects List Page** (`/projects`)
-- Table/card view of all association projects with status badges (draft, open, in_progress, completed, disputed)
-- Filter bar by status, category, and date range
-- "Create New Project" button leading to the creation form
-- Quick actions: edit draft, view details, cancel
+### 2. Available Projects Page (`/available-projects`)
+- Browse open (non-private) projects that providers can bid on
+- Filter by category, region, and budget range
+- Each project card shows: title, description snippet, budget, estimated hours, required skills, category, region
+- Click to view full details and submit a bid
 
-**Project Creation Form** (`/projects/new`)
-- Multi-step form with validation (using react-hook-form + zod):
-  - Step 1: Title, description, category (from `categories` table), region (from `regions` table)
-  - Step 2: Required skills (tag input), estimated hours, budget (numeric with SAR currency)
-  - Step 3: Privacy toggle, review summary
-- Saves as "draft" initially, with option to publish (set status to "open")
+### 3. My Bids Page (`/my-bids`)
+- List of all bids submitted by the provider with status indicators (pending, accepted, rejected, withdrawn)
+- Filter by bid status
+- Link to the associated project
+- Withdraw action for pending bids
 
-**Project Details Page** (`/projects/:id`)
-- Full project information display
-- Tabs: Overview | Bids | Contract | Time Logs
-- **Bids tab**: List of received bids with provider name, price, timeline, cover letter, and provider rating. Accept/reject buttons for each bid
-- **Contract tab**: Shows contract details and signing status once a bid is accepted
-- **Time Logs tab**: Provider-submitted hours with approve/reject controls
+### 4. Time Tracking Page (`/time-tracking`)
+- Log new work hours against assigned projects (projects where provider is `assigned_provider_id`)
+- Form: select project, date, hours, description
+- View history of submitted time logs with approval status
+- Filter by project and date range
 
-**Project Edit Page** (`/projects/:id/edit`)
-- Same form as creation, pre-filled with existing data
-- Only editable when project is in "draft" status
+### 5. Earnings Page (`/earnings`)
+- Summary of completed contracts and associated payments
+- View escrow transaction history (held, released, refunded)
+- Total earnings calculation
+- Contract-level breakdown with project name and amount
 
-### 2. Bid Review & Contract Signing
-
-**Bid Acceptance Flow**
-- When association accepts a bid:
-  1. All other bids on the project are automatically rejected
-  2. A contract record is created linking the project, association, and provider
-  3. Project status changes to "in_progress"
-  4. Association signs the contract (sets `association_signed_at`)
-
-**Contract View**
-- Displays contract terms, signing timestamps for both parties
-- Visual indicators showing which party has signed
-
-### 3. Time Log Verification (`/time-logs`)
-
-- List of all pending time logs across association's projects
-- Each entry shows: provider name, project title, date, hours, description
-- Approve/reject buttons with confirmation dialog
-- Filter by project and approval status
-- Summary statistics: total pending hours, approved this month
-
-### 4. Service Marketplace (`/marketplace`)
-
-- Grid/card layout of approved micro-services
-- Filter by category, region, service type (fixed-price/hourly), price range
-- Service detail modal/page with provider info, ratings, and price
-- "Request Service" action (placeholder for future procurement flow)
-
-### 5. Ratings Page (`/ratings`)
-
-- List of completed contracts eligible for rating
-- Rating form with three sliders (quality, timing, communication) each 1-5
-- Optional comment field
-- View previously submitted ratings
-
-### 6. Dashboard Enhancements
-
-- Connect the static "0" values to real Supabase queries:
-  - Active projects count (status = in_progress)
-  - Pending time log hours
-  - Active contracts count
-  - Average rating received
+### 6. Provider Dashboard
+- Connect live data for the service_provider role:
+  - My services count
+  - Active bids count
+  - Hours logged this month
+  - Total earnings from released escrow
 
 ---
 
@@ -83,82 +52,83 @@ This stage builds the complete UI experience for the **Youth Association** role 
 
 ```text
 src/pages/
-  Projects.tsx            -- Project listing page
-  ProjectCreate.tsx       -- Multi-step project creation form
-  ProjectDetails.tsx      -- Project detail with tabs (bids, contract, time logs)
-  ProjectEdit.tsx         -- Edit draft project
-  TimeLogs.tsx            -- Time log review page
-  Marketplace.tsx         -- Service marketplace browser
-  Ratings.tsx             -- Ratings management page
+  MyServices.tsx           -- Provider's service management
+  AvailableProjects.tsx    -- Browse open projects
+  MyBids.tsx               -- Provider's bid history
+  TimeTracking.tsx         -- Log and view work hours
+  Earnings.tsx             -- Earnings and payment tracking
 
-src/components/projects/
-  ProjectCard.tsx         -- Reusable project card component
-  ProjectForm.tsx         -- Shared form for create/edit
-  ProjectStatusBadge.tsx  -- Color-coded status badge
+src/components/services/
+  ServiceForm.tsx          -- Create/edit micro-service form
+  MyServiceCard.tsx        -- Service card with edit/delete actions
 
-src/components/bids/
-  BidCard.tsx             -- Individual bid display with actions
-  BidList.tsx             -- List of bids for a project
-
-src/components/time-logs/
-  TimeLogTable.tsx        -- Table of time log entries with actions
-
-src/components/marketplace/
-  ServiceCard.tsx         -- Micro-service card for grid display
-  ServiceFilters.tsx      -- Filter controls for marketplace
+src/components/provider/
+  BidForm.tsx              -- Submit bid on a project
+  ProviderProjectCard.tsx  -- Project card for provider view
+  TimeEntryForm.tsx        -- Form to log hours
+  EarningsSummary.tsx      -- Earnings overview component
 
 src/hooks/
-  useProjects.ts          -- React Query hooks for project CRUD
-  useBids.ts              -- React Query hooks for bid operations
-  useTimeLogs.ts          -- React Query hooks for time log queries
-  useCategories.ts        -- Hook to fetch categories
-  useRegions.ts           -- Hook to fetch regions
+  useMyServices.ts         -- CRUD hooks for provider's micro-services
+  useProviderBids.ts       -- Hooks for provider's own bids
+  useProviderTimeLogs.ts   -- Hooks for logging and viewing hours
+  useEarnings.ts           -- Hook for earnings/escrow data
+  useAvailableProjects.ts  -- Hook to fetch open projects
+  useProviderStats.ts      -- Dashboard statistics hook
 ```
 
 ## Routes to Add
 
 | Path | Component | Access |
 |------|-----------|--------|
-| `/projects` | Projects | youth_association |
-| `/projects/new` | ProjectCreate | youth_association |
-| `/projects/:id` | ProjectDetails | youth_association |
-| `/projects/:id/edit` | ProjectEdit | youth_association |
-| `/time-logs` | TimeLogs | youth_association |
-| `/marketplace` | Marketplace | youth_association |
-| `/ratings` | Ratings | youth_association |
+| `/my-services` | MyServices | service_provider |
+| `/available-projects` | AvailableProjects | service_provider |
+| `/available-projects/:id` | ProjectBidView | service_provider |
+| `/my-bids` | MyBids | service_provider |
+| `/time-tracking` | TimeTracking | service_provider |
+| `/earnings` | Earnings | service_provider |
 
 ---
 
 ## Technical Details
 
-### Data Fetching Pattern
-All data fetching will use `@tanstack/react-query` with custom hooks wrapping Supabase client calls. Example pattern:
-
+### Data Fetching Patterns
 ```text
-useProjects() -> supabase.from('projects').select('*, categories(*), regions(*)').eq('association_id', user.id)
-useBids(projectId) -> supabase.from('bids').select('*, profiles(full_name, avatar_url)').eq('project_id', projectId)
+useMyServices()          -> supabase.from('micro_services').select('*, categories(*), regions(*)').eq('provider_id', user.id)
+useAvailableProjects()   -> supabase.from('projects').select('*, categories(*), regions(*)').eq('status', 'open').eq('is_private', false)
+useProviderBids()        -> supabase.from('bids').select('*, projects(title, budget)').eq('provider_id', user.id)
+useProviderTimeLogs()    -> supabase.from('time_logs').select('*, projects(title)').eq('provider_id', user.id)
+useEarnings()            -> supabase.from('escrow_transactions').select('*, projects(title)').eq('payee_id', user.id)
 ```
 
-### Bid Acceptance Logic
-When a bid is accepted, the hook will execute a sequence:
-1. Update accepted bid status to "accepted"
-2. Update all other bids on the project to "rejected"
-3. Insert a new contract record
-4. Update project status to "in_progress" and set `assigned_provider_id`
+### Bid Submission Logic
+- Provider submits a bid with price, timeline_days, and cover_letter
+- Validation: price > 0, timeline_days > 0, cover_letter min 10 chars
+- Provider can withdraw a pending bid (updates status to "withdrawn")
+- Provider cannot bid on the same project twice
 
-### Form Validation (Zod Schemas)
-- Project title: required, min 5 chars
+### Time Log Entry
+- Provider selects from projects where they are `assigned_provider_id`
+- Enters date, hours (positive number, max 24), and description
+- New entries default to `approval: 'pending'`
+
+### Service Form Validation (Zod)
+- Title: required, min 5 chars
 - Description: required, min 20 chars
-- Budget: positive number
-- Estimated hours: positive number
-- Timeline days (bids): positive integer
-- Rating scores: integer 1-5
+- Price: positive number
+- Category and region: required selections
+- Service type: fixed_price or hourly
 
-### RTL Considerations
-- All form layouts use RTL-aware flex and grid
-- Table columns ordered right-to-left
-- Currency displays as "500 ر.س" (number first, then symbol)
-- Date formatting using date-fns with Arabic locale
+### Contract Signing
+- When provider views an accepted bid, they can sign the contract (sets `provider_signed_at`)
+- This completes the dual-signature flow started by the association
 
-### Dashboard Live Data
-The Dashboard page will be updated to use React Query hooks that count real records from the database instead of showing static "0" values.
+### Dashboard Live Data (Provider)
+- Services count: `micro_services` where `provider_id = user.id`
+- Active bids: `bids` where `provider_id = user.id` and `status = 'pending'`
+- Hours this month: sum of `time_logs.hours` for current month
+- Total earnings: sum of `escrow_transactions.amount` where `status = 'released'` and `payee_id = user.id`
+
+### No Database Changes
+All required tables and RLS policies already exist from Stage 2. The provider RLS policies (`provider_id = auth.uid()`) will govern data access.
+
