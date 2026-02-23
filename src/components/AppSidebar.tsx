@@ -118,10 +118,10 @@ export function AppSidebar() {
           <div className="h-px bg-sidebar-border/60" />
         </div>
 
-        {/* General Section */}
+        {/* General */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest px-3 mb-1">
-            الإشعارات
+            عام
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
@@ -140,22 +140,6 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Separator */}
-        <div className="mx-4 my-1">
-          <div className="h-px bg-sidebar-border/60" />
-        </div>
-
-        {/* Support & Profile */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest px-3 mb-1">
-            الدعم الفني
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
