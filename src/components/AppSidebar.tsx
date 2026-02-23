@@ -135,7 +135,8 @@ export function AppSidebar() {
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                       <Bell className="h-[17px] w-[17px]" />
                     </div>
-                    <span className="flex-1 text-sm">الإشعارات</span>
+                    <span className="text-sm">الإشعارات</span>
+                    <span className="mr-auto"><NotificationBadge /></span>
                     <NotificationBadge />
                   </NavLink>
                 </SidebarMenuButton>
