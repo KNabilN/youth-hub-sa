@@ -1,7 +1,10 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { AssociationCard } from "@/components/donor/AssociationCard";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Users } from "lucide-react";
 
 export default function Associations() {
   const { data: associations, isLoading } = useQuery({
@@ -36,9 +39,9 @@ export default function Associations() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1,2,3].map(i => <Skeleton key={i} className="h-44 w-full" />)}</div>
         ) : !associations?.length ? (
-          <p className="text-muted-foreground text-sm">لا توجد جمعيات موثقة حالياً</p>
+          <EmptyState icon={Users} title="لا توجد جمعيات موثقة حالياً" description="ستظهر الجمعيات الموثقة هنا قريباً" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {associations.map((a) => (

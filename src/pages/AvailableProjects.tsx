@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAvailableProjects } from "@/hooks/useAvailableProjects";
 import { ProviderProjectCard } from "@/components/provider/ProviderProjectCard";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FolderKanban } from "lucide-react";
 
 export default function AvailableProjects() {
   const navigate = useNavigate();
@@ -43,9 +46,9 @@ export default function AvailableProjects() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground">جارٍ التحميل...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1,2,3].map(i => <Skeleton key={i} className="h-44 w-full" />)}</div>
         ) : !projects?.length ? (
-          <p className="text-muted-foreground">لا توجد مشاريع متاحة حالياً</p>
+          <EmptyState icon={FolderKanban} title="لا توجد مشاريع متاحة حالياً" description="ستظهر المشاريع المفتوحة هنا عند نشرها من الجمعيات" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (

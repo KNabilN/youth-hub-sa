@@ -1,8 +1,10 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 import { TicketCard } from "@/components/tickets/TicketCard";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function SupportTickets() {
@@ -24,9 +26,9 @@ export default function SupportTickets() {
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+          <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
         ) : !tickets?.length ? (
-          <p className="text-muted-foreground text-sm">لا توجد تذاكر دعم</p>
+          <EmptyState icon={MessageSquare} title="لا توجد تذاكر دعم" description="يمكنك إنشاء تذكرة جديدة للتواصل مع فريق الدعم" actionLabel="تذكرة جديدة" actionHref="/tickets/new" />
         ) : (
           <div className="space-y-3">
             {tickets.map((t) => (

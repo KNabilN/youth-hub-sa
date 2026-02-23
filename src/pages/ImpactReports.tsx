@@ -2,9 +2,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorStats } from "@/hooks/useDonorStats";
 import { useDonorContributions } from "@/hooks/useDonorContributions";
 import { ImpactSummary } from "@/components/donor/ImpactSummary";
+import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { BarChart3 } from "lucide-react";
 
 export default function ImpactReports() {
   const { data: stats, isLoading: statsLoading } = useDonorStats();
@@ -29,9 +32,9 @@ export default function ImpactReports() {
           <CardHeader><CardTitle className="text-lg">تفاصيل التبرعات</CardTitle></CardHeader>
           <CardContent>
             {contribLoading ? (
-              <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : !contributions?.length ? (
-              <p className="text-muted-foreground text-sm">لا توجد تبرعات لعرض تأثيرها</p>
+              <EmptyState icon={BarChart3} title="لا توجد تبرعات لعرض تأثيرها" description="قدّم تبرعاً لتتبع أثره على المجتمع" actionLabel="صفحة التبرعات" actionHref="/donations" />
             ) : (
               <Table>
                 <TableHeader>
