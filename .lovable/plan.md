@@ -1,183 +1,122 @@
 
-# Stage 14: Comprehensive UI Enhancement -- Professional Polish
 
-A system-wide UI upgrade to transform the current functional interface into a polished, governmental-grade design with improved visual hierarchy, animations, spacing, and modern component styling.
+# Stage 15: Service Provider Pages UI Enhancement
 
----
-
-## Current State
-
-The UI is functional but plain -- flat cards with minimal visual distinction, basic stat cards with no background color, a simple header bar, and sparse empty states. The screenshot confirms the need for:
-
-- Richer stat cards with colored icon backgrounds and subtle gradients
-- Better visual hierarchy with section dividers and spacing
-- Enhanced sidebar with user avatar display
-- Polished header with breadcrumbs and quick actions
-- Smooth transitions and micro-animations
-- Improved cards with hover effects and visual depth
-- Better empty states with illustrations
-- Consistent page layouts with decorative headers
+Upgrade all service provider ("مزودي الخدمة") pages from their current plain/functional state to a polished, professional design matching the governmental design system established in Stage 14.
 
 ---
 
-## Enhancement Plan
+## Pages to Enhance
 
-### 1. Enhanced Dashboard Stat Cards
-Transform the flat stat cards into visually rich cards with colored icon backgrounds, subtle gradients, and better typography.
+| Page | Current Issue |
+|------|--------------|
+| خدماتي (MyServices) | Plain cards, no visual accents, flat layout |
+| المشاريع المتاحة (AvailableProjects) | Basic filter bar, plain project cards |
+| عروضي (MyBids) | Simple list with no visual hierarchy |
+| تسجيل الساعات (TimeTracking) | Flat cards, bare time log list, no page header decoration |
+| الأرباح (Earnings) | Basic summary, flat withdrawal list |
 
-**Changes:**
-- `src/pages/Dashboard.tsx` -- Redesign all 4 role-specific dashboards with:
-  - Colored circular icon backgrounds (matching the stat theme color)
-  - Larger, bolder stat values
-  - Subtle bottom border accent color per card
-  - Welcome section with user's name and date
-  - Quick action buttons below stats
+---
 
-### 2. Polished Sidebar
-Upgrade the sidebar with user avatar integration, active state improvements, and visual polish.
+## Enhancement Details
 
-**Changes:**
-- `src/components/AppSidebar.tsx` -- Add:
-  - User avatar from profile in sidebar header
-  - Smooth active link indicator (accent bar on the right for RTL)
-  - Icon size improvements and spacing refinements
-  - Section separator styling
+### 1. Page Headers -- All Provider Pages
+Replace simple `<h1>` headings with decorated page headers featuring:
+- Icon with colored circular background beside the title
+- Subtitle/description text
+- Gradient accent line beneath
 
-### 3. Enhanced Header Bar
-Transform the minimal header into a professional top bar.
+### 2. TimeTracking Page
+- Decorated page header with Clock icon in colored circle
+- "تسجيل ساعات جديدة" card: add `border-r-4 border-primary` accent, subtle gradient header background
+- Time log entries: replace plain border-b dividers with individual mini-cards with colored approval status indicator (left border color matches status)
+- Add summary stats bar at top: total hours this month, pending hours, approved hours
 
-**Changes:**
-- `src/components/DashboardLayout.tsx` -- Redesign header with:
-  - Breadcrumb-style page indicator
-  - User avatar + name display (not just email)
-  - Notification bell with badge in header
-  - Subtle background gradient
+### 3. MyServices Page
+- Page header with Layers icon + gradient accent
+- Service cards: add `card-hover` class, colored top border based on approval status (green=approved, yellow=pending, red=rejected)
+- Price displayed as a styled tag/chip
+- Category and region as subtle pill badges
+- Action buttons with better spacing and icon-only hover tooltips
 
-### 4. Landing Page Polish
-Upgrade the Index/landing page with better visual impact.
+### 4. AvailableProjects Page
+- Page header with FolderKanban icon
+- Filter bar: styled in a subtle card/panel with rounded corners and soft background
+- Project cards: add `card-hover`, budget displayed as accent-colored chip, skills as colored outline badges
+- CTA button with gradient styling
 
-**Changes:**
-- `src/pages/Index.tsx` -- Enhance with:
-  - Gradient hero background with decorative pattern
-  - Animated feature cards with hover lift effects
-  - Stats counter section (e.g., "100+ جمعية", "500+ مقدم خدمة")
-  - Better CTA button styling with gradient
-  - Footer with more content and links
+### 5. MyBids Page
+- Page header with FileText icon
+- Filter dropdown in a styled toolbar panel
+- Bid cards: status-colored right border (RTL), price and timeline in styled chips
+- Contract signing section: highlighted with primary background when action needed
+- Better visual separation between bid details and actions
 
-### 5. Auth Page Enhancement
-Polish the login/signup flow.
+### 6. Earnings Page
+- Page header with Wallet icon
+- Total earnings card: gradient background with large bold number
+- Transaction list items: status-colored right border, amount in accent color
+- Withdrawal requests: styled cards with status indicator dots
+- Withdrawal dialog: polished with available balance highlight
 
-**Changes:**
-- `src/pages/Auth.tsx` -- Add:
-  - Split layout with decorative side panel on desktop
-  - Gradient background pattern
-  - Role selection as visual cards instead of dropdown
-
-### 6. Card Component Styling Upgrade
-Improve all cards across the system for visual consistency.
-
-**Changes:**
-- `src/index.css` -- Add global utility classes:
-  - `.card-hover` with transform scale + shadow transition
-  - Gradient accent borders for primary cards
-  - Better focus-visible states
-- `src/components/projects/ProjectCard.tsx` -- Enhanced with status-colored top border, hover animation
-- `src/components/marketplace/ServiceCard.tsx` -- Price tag styling, provider avatar, hover effects
-
-### 7. Empty States Enhancement
-Make empty states more engaging with larger icons and softer styling.
-
-**Changes:**
-- `src/components/EmptyState.tsx` -- Redesign with:
-  - Soft circular background behind icon
-  - Subtle dotted border container
-  - Animated icon (gentle bounce)
-
-### 8. Global CSS Enhancements
-System-wide visual improvements via Tailwind and CSS.
-
-**Changes:**
-- `src/index.css` -- Add:
-  - Smooth page transitions
-  - Better scrollbar styling
-  - Subtle background patterns for main content area
-  - Animation keyframes (fadeIn, slideUp, pulse)
-  - Card hover utilities
-  - Gradient text utility classes
-
-### 9. Accessibility Widget Styling
-Polish the floating widget to match the new design system.
-
-**Changes:**
-- `src/components/AccessibilityWidget.tsx` -- Better styling with primary color scheme and smoother popover
-
-### 10. Profile Page Polish
-Upgrade the profile page layout.
-
-**Changes:**
-- `src/pages/Profile.tsx` -- Add:
-  - Hero banner area with avatar centered
-  - Two-column layout for larger screens
-  - Visual role badge with icon
+### 7. Provider Components Enhancement
+- `ProviderProjectCard`: add `card-hover`, gradient CTA button, better skill badge colors
+- `MyServiceCard`: status-colored top border, hover lift effect, styled price tag
+- `TimeEntryForm`: better form field styling with icons in labels
+- `EarningsSummary`: gradient total card, timeline-style transaction list
+- `BidForm`: polished form with section headers
 
 ---
 
 ## Technical Details
 
-### Animation Keyframes (index.css)
+### Page Header Pattern (reused across all pages)
 
 ```text
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
-.animate-scale-in { animation: scaleIn 0.3s ease-out; }
+<div className="flex items-center gap-4 mb-6">
+  <div className="p-3 rounded-xl bg-primary/10">
+    <Icon className="h-7 w-7 text-primary" />
+  </div>
+  <div>
+    <h1 className="text-2xl font-bold">Page Title</h1>
+    <p className="text-sm text-muted-foreground">Subtitle</p>
+  </div>
+</div>
 ```
 
-### Stat Card Pattern (Dashboard)
+### Status Border Colors
 
 ```text
-Each stat card will have:
-- Rounded icon container with role-specific color (bg-primary/10, bg-info/10, etc.)
-- Card with subtle left border accent (border-r-4 for RTL)
-- Hover: translateY(-2px) + increased shadow
-- Staggered animation on load
+Approval/Status mapping:
+  pending  -> border-yellow-500
+  approved -> border-emerald-500
+  rejected -> border-red-500
+  accepted -> border-emerald-500
+  withdrawn -> border-gray-400
+  held     -> border-yellow-500
+  released -> border-emerald-500
+  frozen   -> border-blue-500
+  refunded -> border-red-500
 ```
 
-### Sidebar Active State
+### Earnings Gradient Card
 
 ```text
-Active menu item:
-- Right border accent bar (4px, primary color) for RTL
-- Background: sidebar-accent with higher opacity
-- Icon: sidebar-primary color
-- Text: font-semibold
+Total earnings card:
+  background: gradient from primary/5 to primary/10
+  border-r-4 border-primary
+  Large text: text-3xl font-bold text-primary
+  Subtitle: "اجمالي الارباح المصروفة"
 ```
 
-### Landing Page Hero
+### Time Log Summary Stats Bar
 
 ```text
-Hero section:
-- Background: radial gradient from primary/5 to transparent
-- Decorative SVG pattern overlay (dots or geometric)
-- Title with gradient text effect (primary to accent)
-- CTA button with gradient background + hover glow
-```
-
-### Global Scrollbar Styling
-
-```text
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+Three mini stat cards in a row:
+  1. Total hours this month (all statuses)
+  2. Approved hours (green accent)
+  3. Pending hours (yellow accent)
+Each: icon + value + label, with colored icon background
 ```
 
 ---
@@ -186,17 +125,16 @@ Hero section:
 
 | Action | File |
 |--------|------|
-| Modify | `src/index.css` -- animations, scrollbar, utilities, patterns |
-| Modify | `src/pages/Dashboard.tsx` -- rich stat cards, welcome section |
-| Modify | `src/components/AppSidebar.tsx` -- avatar, active states |
-| Modify | `src/components/DashboardLayout.tsx` -- enhanced header |
-| Modify | `src/pages/Index.tsx` -- hero gradient, animations, stats section |
-| Modify | `src/pages/Auth.tsx` -- split layout, visual role cards |
-| Modify | `src/components/EmptyState.tsx` -- soft circular icon, animation |
-| Modify | `src/components/projects/ProjectCard.tsx` -- status border, hover |
-| Modify | `src/components/marketplace/ServiceCard.tsx` -- enhanced styling |
-| Modify | `src/components/dashboard/RecentActivity.tsx` -- better timeline styling |
-| Modify | `src/components/AccessibilityWidget.tsx` -- polished styling |
-| Modify | `src/pages/Profile.tsx` -- hero banner, two-column layout |
+| Modify | `src/pages/TimeTracking.tsx` -- decorated header, summary stats, styled log entries |
+| Modify | `src/pages/MyServices.tsx` -- decorated header, enhanced layout |
+| Modify | `src/pages/AvailableProjects.tsx` -- decorated header, styled filter panel |
+| Modify | `src/pages/MyBids.tsx` -- decorated header, styled bid cards with status borders |
+| Modify | `src/pages/Earnings.tsx` -- decorated header, gradient total card, styled withdrawals |
+| Modify | `src/components/services/MyServiceCard.tsx` -- status top border, hover effects, styled price |
+| Modify | `src/components/provider/ProviderProjectCard.tsx` -- card-hover, gradient CTA, better badges |
+| Modify | `src/components/provider/EarningsSummary.tsx` -- gradient total, timeline transactions |
+| Modify | `src/components/provider/TimeEntryForm.tsx` -- polished form with icons |
+| Modify | `src/components/provider/BidForm.tsx` -- polished form styling |
 
 No database migrations required.
+
