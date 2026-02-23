@@ -1,105 +1,97 @@
 
 
-# Stage 11: Missing Features Gap Analysis and Implementation
+# Stage 12: Remaining Gap Analysis and Enhancement Plan
 
-After comparing the uploaded specification document (منصة الجمعيات الشبابية) with the current codebase, several features are either missing or partially implemented. Below is the full analysis and implementation plan.
+After a thorough comparison of the uploaded specification (منصة الجمعيات الشبابية) against the full codebase, here is the complete gap analysis and enhancement plan.
 
 ---
 
-## Gap Analysis Summary
+## Status of Previously Identified Gaps (Stage 11)
 
-### Already Implemented (No Changes Needed)
-- 4 user roles with role-based routing and sidebar
-- Project creation, bidding, contract signing, escrow, and completion workflows
-- Micro-services marketplace (fixed price and hourly)
-- Time logging and approval by associations
-- Donor contributions to projects/services
-- Rating system (quality, timing, communication)
-- Dispute creation and admin resolution
-- Notifications system
-- Commission configuration
-- Category and region management
-- Admin reports with charts (projects by status, users by role, monthly donations)
-- Audit log table (exists in DB)
-- Profile editing (name, bio)
+These items from Stage 11 are now **fully implemented**:
+- Profile fields (phone, organization_name) -- Done
+- Admin suspend/activate accounts -- Done (is_suspended + UI)
+- Admin audit log viewer -- Done (/admin/audit-log)
+- Excel/CSV export on reports -- Done
+- Service purchase flow (escrow) -- Done
+- Withdrawal requests -- Done (provider + admin approval)
+- Donor marketplace purchase -- Done (ServiceCard enables donors)
 
-### Missing or Incomplete Features
+---
 
-| # | Feature (from PDF) | Status | Priority |
+## Remaining Gaps (New Findings)
+
+| # | PDF Requirement | Current Status | Priority |
 |---|---|---|---|
-| 1 | **Profile: phone, organization_name, avatar fields** | DB columns exist but Profile page only edits name and bio | High |
-| 2 | **Admin: suspend/activate user accounts** | Admin can only toggle verification, no suspend functionality | High |
-| 3 | **Admin: edit landing page images/content** | Not implemented (static landing page) | Low |
-| 4 | **Admin: export reports as Excel** | Not implemented | Medium |
-| 5 | **Admin: audit log viewer** | Table exists but no UI page to view it | Medium |
-| 6 | **Marketplace: "Purchase Service" action** | Button exists but does nothing (no purchase flow) | High |
-| 7 | **Provider: hourly rate on profile** | No hourly rate field on provider profile | Medium |
-| 8 | **Service edit request workflow** | Providers can edit freely; PDF says edits need admin approval with service suspension | Low |
-| 9 | **Donor: purchase services directly** | Donors can contribute to projects but cannot buy services directly from marketplace | Medium |
-| 10 | **Accessibility features** | No accessibility icon/widget (text zoom, contrast) | Low |
-| 11 | **Email notifications** | Only in-app notifications; no email sending | Low |
-| 12 | **Admin: proactive intervention before disputes** | No specific UI or workflow | Low |
-| 13 | **Time log: stop counting hours on dispute** | No automatic logic for this | Low |
-| 14 | **Provider: withdraw earnings** | No withdrawal request feature | Medium |
+| 1 | **Avatar/profile image upload** | Profile has phone/org fields but no avatar upload UI (column exists in DB) | High |
+| 2 | **Provider hourly rate field** | PDF says providers set an hourly rate on their profile; no such field exists in DB or UI | High |
+| 3 | **Service edit requires admin approval** | Providers can freely edit services; PDF says edits should pause the service until admin approves | Medium |
+| 4 | **Provider can rate the association** | Ratings page only allows associations to rate providers; PDF says both parties rate each other | Medium |
+| 5 | **Advanced admin analytics dashboards** | PDF specifies: associations by region, providers by geography, most-requested categories, average hourly rates, sales by period/region, active vs suspended services | Medium |
+| 6 | **Freeze escrow on dispute** | PDF says payments should be frozen when a dispute is opened; currently disputes don't affect escrow status | Medium |
+| 7 | **Stop time log counting on dispute** | PDF says hour tracking stops when a dispute is open; no logic for this | Low |
+| 8 | **Email notifications** | PDF requires email for: service published, service purchased, project created, contract signed, hours approved, dispute opened/resolved | Low |
+| 9 | **Accessibility widget** | PDF specifies an accessibility icon with text zoom and contrast controls | Low |
+| 10 | **Admin: edit landing page content** | PDF says admin should be able to edit landing page images/content; currently static | Low |
+| 11 | **Admin: edit registration form templates** | PDF mentions editing the join forms for different entities | Low |
+| 12 | **Provider profile page (public)** | PDF says ratings should appear on provider profile and affect ranking in marketplace; no public profile view exists | Medium |
+| 13 | **Marketplace sort by rating** | PDF says rating should affect display order; marketplace doesn't sort by provider rating | Low |
+| 14 | **Mandatory rating after project/service** | PDF says rating is mandatory after each project/service; no enforcement mechanism | Low |
 
 ---
 
-## Implementation Plan (High and Medium Priority Items)
+## Implementation Plan (High and Medium Priority)
 
-### 1. Enhanced Profile Page
-**What:** Add phone, organization_name, and avatar_url fields to the Profile page. These columns already exist in the `profiles` table.
-
-**Changes:**
-- `src/pages/Profile.tsx` -- Add Input fields for phone and organization_name, and an avatar upload section
-- `src/hooks/useProfile.ts` -- Include phone, organization_name in the update mutation
-
-### 2. Admin: Suspend/Activate User Accounts
-**What:** Add a "suspend" toggle for user accounts in the admin user table. Add a `is_suspended` column to profiles.
+### 1. Avatar Upload on Profile
+Add a file upload for profile picture using Supabase Storage.
 
 **Changes:**
-- Database migration: Add `is_suspended boolean default false` to `profiles`
-- `src/components/admin/UserTable.tsx` -- Add suspend/unsuspend button
-- `src/hooks/useAdminUsers.ts` -- Add suspend mutation
-- `src/components/ProtectedRoute.tsx` -- Check `is_suspended` and block access
+- Create a storage bucket `avatars` (via migration)
+- `src/pages/Profile.tsx` -- Add avatar upload UI with preview (circular image + upload button)
+- `src/hooks/useProfile.ts` -- Add upload function that stores file to `avatars/{userId}` and updates `avatar_url`
 
-### 3. Admin: Export Reports as Excel
-**What:** Add an "Export to Excel" button on the Admin Reports page that downloads user, project, and financial data as a CSV/Excel file.
-
-**Changes:**
-- `src/pages/admin/AdminReports.tsx` -- Add export button with CSV generation logic (using built-in browser APIs, no extra library needed)
-
-### 4. Admin: Audit Log Viewer
-**What:** Create a new admin page to browse the audit log entries.
+### 2. Provider Hourly Rate
+Add an `hourly_rate` column to `profiles` and expose it on the provider profile page and marketplace.
 
 **Changes:**
-- New file: `src/pages/admin/AdminAuditLog.tsx` -- Table showing audit entries with filters
-- New file: `src/hooks/useAuditLog.ts` -- Query hook for audit_log table
-- `src/components/AppSidebar.tsx` -- Add "سجل التدقيق" link for super_admin
-- `src/App.tsx` -- Add route `/admin/audit-log`
+- Database migration: `ALTER TABLE profiles ADD COLUMN hourly_rate numeric DEFAULT NULL`
+- `src/pages/Profile.tsx` -- Show hourly rate input when role is `service_provider`
+- `src/hooks/useProfile.ts` -- Include `hourly_rate` in update mutation
+- `src/components/marketplace/ServiceCard.tsx` -- Show provider hourly rate for hourly services
 
-### 5. Marketplace: Service Purchase Flow
-**What:** Make the "Purchase Service" button functional. When clicked, create an escrow transaction and notify the provider.
-
-**Changes:**
-- `src/components/marketplace/ServiceCard.tsx` -- Add purchase dialog with confirmation
-- New file: `src/hooks/usePurchaseService.ts` -- Mutation to create escrow + notification for service purchase
-- The association or donor pays, provider receives after delivery
-
-### 6. Provider: Earnings Withdrawal Request
-**What:** Add a "Request Withdrawal" feature on the Earnings page.
+### 3. Bidirectional Ratings (Provider Rates Association)
+Allow providers to also rate associations after completed contracts.
 
 **Changes:**
-- Database migration: Create `withdrawal_requests` table (id, provider_id, amount, status, created_at)
-- `src/pages/Earnings.tsx` -- Add withdrawal request button and list
-- New file: `src/hooks/useWithdrawals.ts` -- CRUD hooks
-- Admin finance page: show pending withdrawals
+- `src/pages/Ratings.tsx` -- For providers: query contracts where user is `provider_id`, allow rating the association
+- The existing `ratings` table and columns work for both directions (rater_id + contract_id)
 
-### 7. Donor: Direct Service Purchase from Marketplace
-**What:** Allow donors to see and purchase services from the marketplace, not just contribute to projects.
+### 4. Freeze Escrow on Dispute
+When a dispute is opened, automatically freeze the related escrow transaction.
 
 **Changes:**
-- The marketplace is already accessible to all roles
-- `src/components/marketplace/ServiceCard.tsx` -- Enable purchase button for donors too, using donor_contributions with service_id
+- `src/hooks/useDisputes.ts` -- In `createDispute` mutation, after inserting dispute, update `escrow_transactions` to set `status = 'frozen'` for the project
+- When dispute is resolved by admin, unfreeze (release or refund based on resolution)
+
+### 5. Enhanced Admin Analytics
+Add more detailed charts and metrics to the Admin Reports page matching the PDF specification.
+
+**Changes:**
+- `src/pages/admin/AdminReports.tsx` -- Add new chart sections:
+  - Associations by region (bar chart)
+  - Service providers by region (bar chart)
+  - Most requested service categories (pie chart)
+  - Average hourly rates (stat card)
+  - Active vs suspended services count
+  - Sales by period with date range filter
+
+### 6. Provider Public Profile View
+Create a page where anyone can view a provider's profile, services, and average rating.
+
+**Changes:**
+- New file: `src/pages/ProviderProfile.tsx` -- Display provider info, rating average, and services list
+- `src/App.tsx` -- Add route `/providers/:id`
+- `src/components/marketplace/ServiceCard.tsx` -- Link provider name to their profile
 
 ---
 
@@ -108,74 +100,86 @@ After comparing the uploaded specification document (منصة الجمعيات �
 ### Database Migrations
 
 ```text
-Migration 1: Add is_suspended to profiles
-  ALTER TABLE public.profiles ADD COLUMN is_suspended boolean NOT NULL DEFAULT false;
+Migration 1: Add hourly_rate to profiles
+  ALTER TABLE public.profiles ADD COLUMN hourly_rate numeric DEFAULT NULL;
 
-Migration 2: Create withdrawal_requests table
-  CREATE TABLE public.withdrawal_requests (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    provider_id uuid NOT NULL,
-    amount numeric NOT NULL,
-    status text NOT NULL DEFAULT 'pending', -- pending, approved, rejected
-    created_at timestamptz NOT NULL DEFAULT now(),
-    processed_at timestamptz
-  );
-  ALTER TABLE public.withdrawal_requests ENABLE ROW LEVEL SECURITY;
-  -- Provider sees own requests
-  CREATE POLICY "Providers manage own withdrawals" ON public.withdrawal_requests
-    FOR ALL USING (provider_id = auth.uid());
-  -- Admin manages all
-  CREATE POLICY "Admin manage withdrawals" ON public.withdrawal_requests
-    FOR ALL USING (has_role(auth.uid(), 'super_admin'::app_role));
+Migration 2: Create avatars storage bucket
+  INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
+  CREATE POLICY "Users upload own avatar" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+  CREATE POLICY "Public read avatars" ON storage.objects
+    FOR SELECT USING (bucket_id = 'avatars');
+  CREATE POLICY "Users update own avatar" ON storage.objects
+    FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
 ```
 
-### Profile Page Enhancement
+### Avatar Upload Logic
 ```text
-Add fields:
-  - phone (Input, dir="ltr")
-  - organization_name (Input, shown for youth_association role)
-  - avatar_url (file upload or URL input)
-All fields already exist in the profiles table schema.
+1. User selects file via <input type="file" accept="image/*">
+2. Upload to storage: supabase.storage.from('avatars').upload(`${userId}/avatar.jpg`, file, { upsert: true })
+3. Get public URL: supabase.storage.from('avatars').getPublicUrl(`${userId}/avatar.jpg`)
+4. Update profiles.avatar_url with the public URL
+5. Display as circular Avatar component on profile page and sidebar
 ```
 
-### Excel Export Logic
+### Escrow Freeze on Dispute
 ```text
-Convert query data to CSV string using:
-  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-  // BOM prefix for Arabic support in Excel
-  download via anchor tag
+In useDisputes.ts createDispute mutation:
+  1. Insert dispute row (existing logic)
+  2. After success: UPDATE escrow_transactions SET status='frozen' WHERE project_id = dispute.project_id AND status='held'
+  3. Send notification to both parties about escrow freeze
+
+In admin dispute resolution:
+  1. If resolved in favor of provider: UPDATE escrow_transactions SET status='released'
+  2. If resolved in favor of association: UPDATE escrow_transactions SET status='refunded'
 ```
 
-### Service Purchase Flow
+### Bidirectional Rating Logic
 ```text
-1. User clicks "Purchase Service" on ServiceCard
-2. Confirmation dialog shows service price and details
-3. On confirm:
-   a. Create escrow_transaction (payer=current user, payee=provider, service_id, amount=service.price, status='held')
-   b. Send notification to provider
-4. Provider delivers service, then admin or association confirms release
+In Ratings.tsx:
+  - If role === 'youth_association': show contracts where user is association_id (existing)
+  - If role === 'service_provider': show contracts where user is provider_id (new query)
+  - Both use the same rating form (quality, timing, communication)
+  - Both write to the same ratings table
 ```
 
-### Files Summary
+### Provider Public Profile
+```text
+ProviderProfile page:
+  1. Get provider profile by ID from profiles table
+  2. Get their approved services from micro_services
+  3. Get average rating from ratings table (join through contracts)
+  4. Display: name, bio, hourly_rate, avatar, rating average, services list
+```
+
+---
+
+## Files Summary
 
 | Action | File |
 |--------|------|
-| Modify | `src/pages/Profile.tsx` |
-| Modify | `src/hooks/useProfile.ts` |
-| Modify | `src/components/admin/UserTable.tsx` |
-| Modify | `src/hooks/useAdminUsers.ts` |
-| Modify | `src/components/ProtectedRoute.tsx` |
-| Modify | `src/pages/admin/AdminReports.tsx` |
-| Modify | `src/components/AppSidebar.tsx` |
-| Modify | `src/App.tsx` |
-| Modify | `src/components/marketplace/ServiceCard.tsx` |
-| Modify | `src/pages/Earnings.tsx` |
-| Modify | `src/pages/admin/AdminFinance.tsx` |
-| Create | `src/pages/admin/AdminAuditLog.tsx` |
-| Create | `src/hooks/useAuditLog.ts` |
-| Create | `src/hooks/usePurchaseService.ts` |
-| Create | `src/hooks/useWithdrawals.ts` |
-| Migration | Add `is_suspended` to profiles |
-| Migration | Create `withdrawal_requests` table |
+| Modify | `src/pages/Profile.tsx` -- avatar upload + hourly rate field |
+| Modify | `src/hooks/useProfile.ts` -- upload avatar + hourly_rate in mutation |
+| Modify | `src/pages/Ratings.tsx` -- support provider rating associations |
+| Modify | `src/hooks/useDisputes.ts` -- freeze escrow on dispute creation |
+| Modify | `src/pages/admin/AdminReports.tsx` -- additional analytics charts |
+| Modify | `src/components/marketplace/ServiceCard.tsx` -- link to provider profile |
+| Modify | `src/App.tsx` -- add /providers/:id route |
+| Create | `src/pages/ProviderProfile.tsx` -- public provider profile page |
+| Migration | Add `hourly_rate` to profiles |
+| Migration | Create `avatars` storage bucket with policies |
+
+---
+
+## Items Intentionally Deferred (Low Priority)
+
+These items from the PDF are deferred as they require significant infrastructure beyond the current scope:
+
+- **Email notifications**: Requires an email sending service (e.g., Resend, SendGrid)
+- **Accessibility widget**: Text zoom and contrast toggle -- nice-to-have, not core functionality
+- **Admin landing page editor**: Would need a CMS-like content management system
+- **Admin registration form editor**: Complex meta-form builder
+- **Marketplace sort by rating**: Minor UX improvement, can be added later
+- **Mandatory rating enforcement**: Requires blocking UI flows, complex UX decision
+- **Stop time logs on dispute**: Edge case automation
 
