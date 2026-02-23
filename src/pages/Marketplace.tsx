@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
+import { Store, PackageSearch, ArrowUpDown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Marketplace() {
   const [category, setCategory] = useState("all");
@@ -70,7 +72,6 @@ export default function Marketplace() {
     return list;
   }, [services, sortBy, ratingsMap]);
 
-  // Reset page when filters change
   const handleCategoryChange = (v: string) => { setCategory(v); pagination.resetPage(); };
   const handleRegionChange = (v: string) => { setRegion(v); pagination.resetPage(); };
   const handleServiceTypeChange = (v: string) => { setServiceType(v); pagination.resetPage(); };
@@ -78,35 +79,71 @@ export default function Marketplace() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-2xl font-bold">سوق الخدمات</h1>
-            <p className="text-sm text-muted-foreground mt-1">تصفح الخدمات المتاحة من مقدمي الخدمات</p>
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2.5 rounded-xl">
+              <Store className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">سوق الخدمات</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">تصفح الخدمات المتاحة من مقدمي الخدمات</p>
+            </div>
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="ترتيب حسب" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">الأحدث</SelectItem>
-              <SelectItem value="price_asc">السعر: الأقل</SelectItem>
-              <SelectItem value="price_desc">السعر: الأعلى</SelectItem>
-              <SelectItem value="rating">التقييم</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
-        <ServiceFilters
-          category={category} region={region} serviceType={serviceType}
-          onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange} onServiceTypeChange={handleServiceTypeChange}
-        />
+        {/* Filters & Sort Bar */}
+        <Card className="border-dashed">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <ServiceFilters
+                category={category} region={region} serviceType={serviceType}
+                onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange} onServiceTypeChange={handleServiceTypeChange}
+              />
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40 h-9">
+                    <SelectValue placeholder="ترتيب حسب" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">الأحدث</SelectItem>
+                    <SelectItem value="price_asc">السعر: الأقل</SelectItem>
+                    <SelectItem value="price_desc">السعر: الأعلى</SelectItem>
+                    <SelectItem value="rating">التقييم</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Content */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-52" />)}
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-40 w-full rounded-none" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </Card>
+            ))}
           </div>
         ) : !sortedServices.length ? (
-          <p className="text-center py-16 text-muted-foreground">لا توجد خدمات متاحة حالياً</p>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="bg-muted p-4 rounded-full mb-4">
+                <PackageSearch className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1">لا توجد خدمات متاحة حالياً</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                لم يتم العثور على خدمات مطابقة لمعايير البحث. جرّب تغيير الفلاتر أو تحقق لاحقاً.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedServices.map(s => <ServiceCard key={s.id} service={s as any} />)}
