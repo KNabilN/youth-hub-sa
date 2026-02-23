@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { toast } from "sonner";
@@ -40,24 +41,33 @@ export function ServiceCard({ service }: { service: Service }) {
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="card-hover group">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-base truncate">{service.title}</CardTitle>
-            <Badge variant="outline">{typeLabel[service.service_type] || service.service_type}</Badge>
+            <Badge variant="outline" className="shrink-0">{typeLabel[service.service_type] || service.service_type}</Badge>
           </div>
-          <Link to={`/providers/${service.provider_id}`} className="text-xs text-muted-foreground hover:underline">{service.profiles?.full_name}</Link>
+          <Link to={`/providers/${service.provider_id}`} className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
+                {service.profiles?.full_name?.[0] || "؟"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground hover:underline">{service.profiles?.full_name}</span>
+          </Link>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-primary">{service.price} ر.س</span>
+            <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
+              {service.price.toLocaleString()} ر.س
+            </div>
             <div className="flex gap-1.5">
               {service.categories?.name && <Badge variant="secondary" className="text-xs">{service.categories.name}</Badge>}
               {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full" onClick={() => canPurchase ? setShowDialog(true) : null} disabled={!canPurchase}>
+          <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={() => canPurchase ? setShowDialog(true) : null} disabled={!canPurchase}>
             {canPurchase ? "طلب الخدمة" : "طلب الخدمة"}
           </Button>
         </CardContent>
@@ -72,7 +82,7 @@ export function ServiceCard({ service }: { service: Service }) {
           <div className="space-y-2 py-4">
             <p className="font-medium">{service.title}</p>
             <p className="text-sm text-muted-foreground">{service.profiles?.full_name}</p>
-            <p className="text-lg font-bold text-primary">{service.price} ر.س</p>
+            <p className="text-lg font-bold text-primary">{service.price.toLocaleString()} ر.س</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>إلغاء</Button>

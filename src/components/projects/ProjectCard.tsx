@@ -10,10 +10,21 @@ type Project = Tables<"projects"> & {
   regions: Tables<"regions"> | null;
 };
 
+const statusBorderColors: Record<string, string> = {
+  draft: "border-t-muted-foreground/30",
+  open: "border-t-info",
+  in_progress: "border-t-warning",
+  completed: "border-t-success",
+  disputed: "border-t-destructive",
+  cancelled: "border-t-muted-foreground/50",
+};
+
 export function ProjectCard({ project }: { project: Project }) {
   const navigate = useNavigate();
+  const borderColor = statusBorderColors[project.status] || "border-t-border";
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`card-hover border-t-4 ${borderColor}`}>
       <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
         <div className="space-y-1 min-w-0">
           <CardTitle className="text-base truncate">{project.title}</CardTitle>
@@ -27,7 +38,9 @@ export function ProjectCard({ project }: { project: Project }) {
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
         <div className="flex items-center justify-between text-sm">
-          {project.budget && <span className="font-medium">{project.budget} ر.س</span>}
+          {project.budget && (
+            <span className="font-semibold text-primary">{project.budget.toLocaleString()} ر.س</span>
+          )}
           {project.estimated_hours && <span className="text-muted-foreground">{project.estimated_hours} ساعة</span>}
         </div>
         <div className="flex gap-2">

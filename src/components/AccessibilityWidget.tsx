@@ -24,31 +24,39 @@ export function AccessibilityWidget() {
     <div className="fixed bottom-4 left-4 z-50">
       <Popover>
         <PopoverTrigger asChild>
-          <Button size="icon" variant="outline" className="rounded-full h-12 w-12 shadow-lg bg-card border-border">
+          <Button
+            size="icon"
+            className="rounded-full h-12 w-12 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 border-0"
+          >
             <Accessibility className="h-5 w-5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent side="top" align="start" className="w-64">
+        <PopoverContent side="top" align="start" className="w-64 rounded-xl shadow-xl">
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm">إمكانية الوصول</h4>
+            <h4 className="font-semibold text-sm flex items-center gap-2">
+              <Accessibility className="h-4 w-4 text-primary" />
+              إمكانية الوصول
+            </h4>
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">حجم النص</Label>
               <div className="flex items-center gap-2">
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => changeFontSize(-2)}>
+                <Button size="icon" variant="outline" className="h-8 w-8 rounded-lg" onClick={() => changeFontSize(-2)}>
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="text-sm font-medium flex-1 text-center">{fontSize}px</span>
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => changeFontSize(2)}>
+                <div className="flex-1 text-center">
+                  <span className="text-sm font-bold">{fontSize}px</span>
+                </div>
+                <Button size="icon" variant="outline" className="h-8 w-8 rounded-lg" onClick={() => changeFontSize(2)}>
                   <Plus className="h-3 w-3" />
                 </Button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
               <div className="flex items-center gap-2">
                 <SunMoon className="h-4 w-4 text-muted-foreground" />
-                <Label className="text-xs">تباين عالي</Label>
+                <Label className="text-xs font-medium">تباين عالي</Label>
               </div>
               <Switch checked={highContrast} onCheckedChange={toggleContrast} />
             </div>
