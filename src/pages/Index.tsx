@@ -170,16 +170,26 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-border py-10 px-4 bg-card">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-4 h-4 text-primary-foreground" />
+        <div className="container mx-auto space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Shield className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="font-bold text-sm">منصة الخدمات المشتركة</span>
             </div>
-            <span className="font-bold text-sm">منصة الخدمات المشتركة</span>
+            <div className="flex gap-6 text-sm text-muted-foreground">
+              <a href="#" className="hover:text-foreground transition-colors">عن المنصة</a>
+              <a href="#" className="hover:text-foreground transition-colors">الشروط والأحكام</a>
+              <a href="#" className="hover:text-foreground transition-colors">سياسة الخصوصية</a>
+              <a href="#" className="hover:text-foreground transition-colors">تواصل معنا</a>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} جميع الحقوق محفوظة — رؤية 2030
-          </p>
+          <div className="border-t border-border pt-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} جميع الحقوق محفوظة — رؤية 2030
+            </p>
+          </div>
         </div>
       </footer>
     </div>

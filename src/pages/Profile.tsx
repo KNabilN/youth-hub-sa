@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays } from "lucide-react";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -21,7 +23,7 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function Profile() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
@@ -105,6 +107,14 @@ export default function Profile() {
                     )}
                   </div>
                   {uploadAvatar.isPending && <p className="text-xs text-muted-foreground">جارٍ رفع الصورة...</p>}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
+                    {user?.email && (
+                      <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{user.email}</span>
+                    )}
+                    {profile?.created_at && (
+                      <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />انضم {format(new Date(profile.created_at), "dd MMMM yyyy", { locale: ar })}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
