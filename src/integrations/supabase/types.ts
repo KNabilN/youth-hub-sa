@@ -521,6 +521,7 @@ export type Database = {
           bio: string | null
           created_at: string
           full_name: string
+          hourly_rate: number | null
           id: string
           is_suspended: boolean
           is_verified: boolean
@@ -533,6 +534,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string
+          hourly_rate?: number | null
           id: string
           is_suspended?: boolean
           is_verified?: boolean
@@ -545,6 +547,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string
+          hourly_rate?: number | null
           id?: string
           is_suspended?: boolean
           is_verified?: boolean

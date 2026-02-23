@@ -12,6 +12,15 @@ import { Download } from "lucide-react";
 const STATUS_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#ef4444", "#6b7280"];
 const ROLE_COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
 
+const statusLabels: Record<string, string> = {
+  draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
+  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
+};
+const roleLabels: Record<string, string> = {
+  super_admin: "مدير النظام", youth_association: "جمعية شبابية",
+  service_provider: "مقدم خدمة", donor: "مانح",
+};
+
 export default function AdminReports() {
   const { data: stats } = useAdminStats();
 
@@ -48,6 +57,46 @@ export default function AdminReports() {
     },
   });
 
+  // New: Services by category
+  const { data: servicesByCategory } = useQuery({
+    queryKey: ["admin-report-services-category"],
+    queryFn: async () => {
+      const { data } = await supabase.from("micro_services").select("category_id, categories(name)");
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((s: any) => {
+        const name = s.categories?.name || "بدون تصنيف";
+        counts[name] = (counts[name] || 0) + 1;
+      });
+      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    },
+  });
+
+  // New: Projects by region
+  const { data: projectsByRegion } = useQuery({
+    queryKey: ["admin-report-projects-region"],
+    queryFn: async () => {
+      const { data } = await supabase.from("projects").select("region_id, regions(name)");
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((p: any) => {
+        const name = p.regions?.name || "بدون منطقة";
+        counts[name] = (counts[name] || 0) + 1;
+      });
+      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    },
+  });
+
+  // New: Service approval stats
+  const { data: serviceApprovalStats } = useQuery({
+    queryKey: ["admin-report-service-approval"],
+    queryFn: async () => {
+      const { data } = await supabase.from("micro_services").select("approval");
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((s: any) => { counts[s.approval] = (counts[s.approval] || 0) + 1; });
+      const labels: Record<string, string> = { pending: "قيد المراجعة", approved: "معتمد", rejected: "مرفوض" };
+      return Object.entries(counts).map(([name, value]) => ({ name: labels[name] || name, value }));
+    },
+  });
+
   const exportCSV = async () => {
     const { data: users } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at");
     const headers = ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"];
@@ -70,6 +119,7 @@ export default function AdminReports() {
             تصدير Excel
           </Button>
         </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المشاريع</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
@@ -107,27 +157,61 @@ export default function AdminReports() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader><CardTitle className="text-lg">التبرعات الشهرية</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={monthlyDonations ?? []}>
-                <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis />
-                <Tooltip /><Bar dataKey="amount" fill="hsl(var(--accent))" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader><CardTitle className="text-lg">الخدمات حسب التصنيف</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={servicesByCategory ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {(servicesByCategory ?? []).map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip /><Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-lg">المشاريع حسب المنطقة</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={projectsByRegion ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#10b981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader><CardTitle className="text-lg">التبرعات الشهرية</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={monthlyDonations ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis />
+                  <Tooltip /><Bar dataKey="amount" fill="hsl(var(--accent))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-lg">حالة الخدمات</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={serviceApprovalStats ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {(serviceApprovalStats ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip /><Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
 }
-
-const statusLabels: Record<string, string> = {
-  draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
-  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
-};
-const roleLabels: Record<string, string> = {
-  super_admin: "مدير النظام", youth_association: "جمعية شبابية",
-  service_provider: "مقدم خدمة", donor: "مانح",
-};

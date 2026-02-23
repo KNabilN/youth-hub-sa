@@ -14,20 +14,31 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 
 export default function Ratings() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const qc = useQueryClient();
 
-  // Contracts eligible for rating (completed projects where user is association)
+  const isProvider = role === "service_provider";
+
+  // Contracts eligible for rating
   const { data: contracts, isLoading } = useQuery({
-    queryKey: ["ratable-contracts", user?.id],
+    queryKey: ["ratable-contracts", user?.id, role],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, projects(title, status), profiles:provider_id(full_name)")
-        .eq("association_id", user!.id);
-      if (error) throw error;
-      return data;
+      if (isProvider) {
+        const { data, error } = await supabase
+          .from("contracts")
+          .select("*, projects(title, status), profiles:association_id(full_name)")
+          .eq("provider_id", user!.id);
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from("contracts")
+          .select("*, projects(title, status), profiles:provider_id(full_name)")
+          .eq("association_id", user!.id);
+        if (error) throw error;
+        return data;
+      }
     },
   });
 
@@ -82,7 +93,9 @@ export default function Ratings() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">التقييمات</h1>
-          <p className="text-sm text-muted-foreground mt-1">قيّم مقدمي الخدمات بعد إتمام العقود</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isProvider ? "قيّم الجمعيات بعد إتمام العقود" : "قيّم مقدمي الخدمات بعد إتمام العقود"}
+          </p>
         </div>
 
         {activeContract && (
@@ -123,7 +136,7 @@ export default function Ratings() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">{(contract as any).projects?.title || "مشروع"}</p>
-                    <p className="text-sm text-muted-foreground">{(contract as any).profiles?.full_name || "مقدم خدمة"}</p>
+                    <p className="text-sm text-muted-foreground">{(contract as any).profiles?.full_name || (isProvider ? "جمعية" : "مقدم خدمة")}</p>
                   </div>
                   {isRated && rating ? (
                     <div className="flex items-center gap-2">

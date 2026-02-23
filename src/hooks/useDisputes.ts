@@ -19,6 +19,13 @@ export function useCreateDispute() {
       // Update project status to disputed
       await supabase.from("projects").update({ status: "disputed" }).eq("id", project_id);
 
+      // Freeze held escrow for this project
+      await supabase
+        .from("escrow_transactions")
+        .update({ status: "frozen" })
+        .eq("project_id", project_id)
+        .eq("status", "held");
+
       // Notify the other party
       const { data: project } = await supabase
         .from("projects")
