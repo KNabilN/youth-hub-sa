@@ -5,12 +5,24 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch profiles and roles separately since there's no direct FK between them
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*, user_roles(role)")
+        .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (profilesError) throw profilesError;
+
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+      if (rolesError) throw rolesError;
+
+      // Merge roles into profiles
+      const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) ?? []);
+      return (profiles ?? []).map((p) => ({
+        ...p,
+        user_roles: roleMap.has(p.id) ? [{ role: roleMap.get(p.id)! }] : [],
+      }));
     },
   });
 }
