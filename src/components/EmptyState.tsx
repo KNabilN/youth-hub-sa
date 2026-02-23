@@ -14,12 +14,14 @@ export function EmptyState({ icon: Icon, title, description, actionLabel, action
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-4">
-      <Icon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+    <div className="flex flex-col items-center justify-center text-center py-20 px-4 animate-fade-in">
+      <div className="w-20 h-20 rounded-full bg-muted/80 flex items-center justify-center mb-5">
+        <Icon className="h-10 w-10 text-muted-foreground/60" />
+      </div>
       <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
+      <p className="text-sm text-muted-foreground mt-1.5 max-w-sm leading-relaxed">{description}</p>
       {actionLabel && actionHref && (
-        <Button className="mt-4" onClick={() => navigate(actionHref)}>
+        <Button className="mt-5 shadow-md" onClick={() => navigate(actionHref)}>
           {actionLabel}
         </Button>
       )}

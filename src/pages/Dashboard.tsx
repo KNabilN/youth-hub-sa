@@ -6,12 +6,15 @@ import { useProviderStats } from "@/hooks/useProviderStats";
 import { useDonorStats } from "@/hooks/useDonorStats";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { usePendingRatings } from "@/hooks/usePendingRatings";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useProfile } from "@/hooks/useProfile";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
-  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star,
+  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
@@ -20,104 +23,97 @@ const roleTitles: Record<string, string> = {
   donor: "لوحة تحكم المانح",
 };
 
-function AssociationDashboard() {
-  const { data: stats, isLoading } = useProjectStats();
-  const items = [
-    { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "text-primary" },
-    { title: "ساعات قيد المراجعة", value: stats?.pendingHours ?? 0, icon: ClipboardList, color: "text-warning" },
-    { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "text-info" },
-    { title: "متوسط التقييم", value: stats?.avgRating ?? "0", icon: BarChart3, color: "text-success" },
-  ];
+interface StatItem {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  color: string; // tailwind color token e.g. "primary", "info"
+}
+
+function StatCard({ stat, index }: { stat: StatItem; index: number }) {
+  const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+    primary: { bg: "bg-primary/10", text: "text-primary", border: "border-r-primary" },
+    warning: { bg: "bg-warning/10", text: "text-warning", border: "border-r-warning" },
+    info: { bg: "bg-info/10", text: "text-info", border: "border-r-info" },
+    success: { bg: "bg-success/10", text: "text-success", border: "border-r-success" },
+    accent: { bg: "bg-accent/10", text: "text-accent-foreground", border: "border-r-accent" },
+    destructive: { bg: "bg-destructive/10", text: "text-destructive", border: "border-r-destructive" },
+  };
+  const c = colorMap[stat.color] || colorMap.primary;
+
+  return (
+    <Card className={cn(
+      "card-hover border-r-4 animate-fade-in",
+      c.border,
+      `stagger-${index + 1}`
+    )} style={{ animationFillMode: 'both' }}>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+            <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+          </div>
+          <div className={cn("p-3 rounded-xl", c.bg)}>
+            <stat.icon className={cn("h-6 w-6", c.text)} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatsGrid({ items, isLoading }: { items: StatItem[]; isLoading: boolean }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((stat) => (
-        <Card key={stat.title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
-          </CardContent>
-        </Card>
+      {items.map((stat, i) => (
+        <StatCard key={stat.title} stat={{ ...stat, value: isLoading ? "..." : stat.value }} index={i} />
       ))}
     </div>
   );
+}
+
+function AssociationDashboard() {
+  const { data: stats, isLoading } = useProjectStats();
+  const items: StatItem[] = [
+    { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
+    { title: "ساعات قيد المراجعة", value: stats?.pendingHours ?? 0, icon: ClipboardList, color: "warning" },
+    { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "info" },
+    { title: "متوسط التقييم", value: stats?.avgRating ?? "0", icon: BarChart3, color: "success" },
+  ];
+  return <StatsGrid items={items} isLoading={isLoading} />;
 }
 
 function ProviderDashboard() {
   const { data: stats, isLoading } = useProviderStats();
-  const items = [
-    { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "text-primary" },
-    { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: FolderKanban, color: "text-info" },
-    { title: "الساعات المسجلة", value: stats?.hoursThisMonth ?? 0, icon: ClipboardList, color: "text-warning" },
-    { title: "إجمالي الأرباح", value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "text-success" },
+  const items: StatItem[] = [
+    { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "primary" },
+    { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: FolderKanban, color: "info" },
+    { title: "الساعات المسجلة", value: stats?.hoursThisMonth ?? 0, icon: ClipboardList, color: "warning" },
+    { title: "إجمالي الأرباح", value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
   ];
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((stat) => (
-        <Card key={stat.title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  return <StatsGrid items={items} isLoading={isLoading} />;
 }
 
 function DonorDashboard() {
   const { data: stats, isLoading } = useDonorStats();
-  const items = [
-    { title: "الجمعيات المدعومة", value: stats?.associationsSupported ?? 0, icon: Users, color: "text-primary" },
-    { title: "إجمالي التبرعات", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "text-accent" },
-    { title: "المشاريع الممولة", value: stats?.projectsFunded ?? 0, icon: FolderKanban, color: "text-info" },
-    { title: "تقارير الأثر", value: "0", icon: BarChart3, color: "text-success" },
+  const items: StatItem[] = [
+    { title: "الجمعيات المدعومة", value: stats?.associationsSupported ?? 0, icon: Users, color: "primary" },
+    { title: "إجمالي التبرعات", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "accent" },
+    { title: "المشاريع الممولة", value: stats?.projectsFunded ?? 0, icon: FolderKanban, color: "info" },
+    { title: "تقارير الأثر", value: "0", icon: BarChart3, color: "success" },
   ];
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((stat) => (
-        <Card key={stat.title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  return <StatsGrid items={items} isLoading={isLoading} />;
 }
 
 function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats();
-  const items = [
-    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "text-primary" },
-    { title: "المشاريع", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "text-info" },
-    { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "text-destructive" },
-    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "text-success" },
+  const items: StatItem[] = [
+    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary" },
+    { title: "المشاريع", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
+    { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
+    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
   ];
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((stat) => (
-        <Card key={stat.title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  return <StatsGrid items={items} isLoading={isLoading} />;
 }
 
 function DashboardStats({ role }: { role: string }) {
@@ -130,18 +126,33 @@ function DashboardStats({ role }: { role: string }) {
 
 export default function Dashboard() {
   const { role } = useAuth();
+  const { data: profile } = useProfile();
   const { data: pendingRatings } = usePendingRatings();
   const title = role ? roleTitles[role] : "لوحة التحكم";
+
+  const today = new Date().toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="text-muted-foreground text-sm mt-1">مرحباً بك في منصة الخدمات المشتركة</p>
+        {/* Welcome section */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">{profile?.full_name ? `مرحباً، ${profile.full_name}` : title}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarDays className="h-4 w-4" />
+              <span>{today}</span>
+            </div>
+          </div>
         </div>
+
         {pendingRatings && pendingRatings.length > 0 && (
-          <Alert className="border-warning bg-warning/10">
+          <Alert className="border-warning bg-warning/10 animate-fade-in">
             <Star className="h-4 w-4 text-warning" />
             <AlertDescription className="flex items-center justify-between">
               <span>لديك {pendingRatings.length} عقود بحاجة إلى تقييم</span>

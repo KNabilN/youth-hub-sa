@@ -6,22 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import {
-  Bell, FileText, Check, AlertTriangle, HandCoins, Gavel, FolderKanban, ShieldCheck,
+  Bell, FileText, Check, ShieldCheck, FolderKanban, HandCoins, Gavel,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
-const typeIcons: Record<string, typeof Bell> = {
-  bid_accepted: FileText,
-  bid_rejected: FileText,
-  contract_signed: Check,
-  escrow_created: ShieldCheck,
-  project_completed: FolderKanban,
-  project_cancelled: FolderKanban,
-  dispute_opened: Gavel,
-  dispute_resolved: Gavel,
-  donation: HandCoins,
-  info: Bell,
+const typeConfig: Record<string, { icon: typeof Bell; color: string }> = {
+  bid_accepted: { icon: FileText, color: "bg-info/15 text-info" },
+  bid_rejected: { icon: FileText, color: "bg-destructive/15 text-destructive" },
+  contract_signed: { icon: Check, color: "bg-success/15 text-success" },
+  escrow_created: { icon: ShieldCheck, color: "bg-primary/15 text-primary" },
+  project_completed: { icon: FolderKanban, color: "bg-success/15 text-success" },
+  project_cancelled: { icon: FolderKanban, color: "bg-muted text-muted-foreground" },
+  dispute_opened: { icon: Gavel, color: "bg-destructive/15 text-destructive" },
+  dispute_resolved: { icon: Gavel, color: "bg-success/15 text-success" },
+  donation: { icon: HandCoins, color: "bg-accent/15 text-accent-foreground" },
+  info: { icon: Bell, color: "bg-muted text-muted-foreground" },
 };
 
 export function RecentActivity() {
@@ -44,8 +45,8 @@ export function RecentActivity() {
   });
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className="animate-fade-in">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-lg">النشاط الأخير</CardTitle>
         <Button variant="ghost" size="sm" onClick={() => navigate("/notifications")}>
           عرض الكل
@@ -54,22 +55,28 @@ export function RecentActivity() {
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
           </div>
         ) : !notifications?.length ? (
-          <p className="text-sm text-muted-foreground text-center py-4">لا يوجد نشاط حتى الآن</p>
+          <div className="text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
+              <Bell className="h-5 w-5 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm text-muted-foreground">لا يوجد نشاط حتى الآن</p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {notifications.map((n) => {
-              const Icon = typeIcons[n.type] ?? Bell;
+              const config = typeConfig[n.type] ?? typeConfig.info;
+              const Icon = config.icon;
               return (
-                <div key={n.id} className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-full bg-muted p-1.5">
-                    <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <div key={n.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                  <div className={cn("mt-0.5 rounded-xl p-2", config.color)}>
+                    <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-snug">{n.message}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ar })}
                     </p>
                   </div>
