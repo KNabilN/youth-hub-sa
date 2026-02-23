@@ -25,3 +25,14 @@ export function useToggleVerification() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 }
+
+export function useToggleSuspension() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_suspended }: { id: string; is_suspended: boolean }) => {
+      const { error } = await supabase.from("profiles").update({ is_suspended }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+}

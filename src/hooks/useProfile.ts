@@ -23,10 +23,20 @@ export function useUpdateProfile() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ full_name, bio }: { full_name: string; bio: string }) => {
+    mutationFn: async ({
+      full_name,
+      bio,
+      phone,
+      organization_name,
+    }: {
+      full_name: string;
+      bio: string;
+      phone?: string;
+      organization_name?: string;
+    }) => {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name, bio })
+        .update({ full_name, bio, phone, organization_name })
         .eq("id", user!.id);
       if (error) throw error;
     },

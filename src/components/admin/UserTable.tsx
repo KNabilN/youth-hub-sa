@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useAdminUsers, useToggleVerification } from "@/hooks/useAdminUsers";
+import { useAdminUsers, useToggleVerification, useToggleSuspension } from "@/hooks/useAdminUsers";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ const roleLabels: Record<string, string> = {
 export function UserTable() {
   const { data: users, isLoading } = useAdminUsers();
   const toggleVerify = useToggleVerification();
+  const toggleSuspend = useToggleSuspension();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
@@ -36,6 +37,13 @@ export function UserTable() {
   const handleToggle = (id: string, current: boolean) => {
     toggleVerify.mutate({ id, is_verified: !current }, {
       onSuccess: () => toast.success(current ? "تم إلغاء التوثيق" : "تم التوثيق"),
+      onError: () => toast.error("حدث خطأ"),
+    });
+  };
+
+  const handleSuspend = (id: string, current: boolean) => {
+    toggleSuspend.mutate({ id, is_suspended: !current }, {
+      onSuccess: () => toast.success(current ? "تم إلغاء التعليق" : "تم تعليق الحساب"),
       onError: () => toast.error("حدث خطأ"),
     });
   };
@@ -73,6 +81,7 @@ export function UserTable() {
               <TableHead>الاسم</TableHead>
               <TableHead>الدور</TableHead>
               <TableHead>التوثيق</TableHead>
+              <TableHead>الحالة</TableHead>
               <TableHead>تاريخ الانضمام</TableHead>
               <TableHead>إجراءات</TableHead>
             </TableRow>
@@ -91,18 +100,30 @@ export function UserTable() {
                     <Badge variant="outline" className="text-muted-foreground"><XCircle className="h-3 w-3 ml-1" />غير موثق</Badge>
                   )}
                 </TableCell>
+                <TableCell>
+                  {u.is_suspended ? (
+                    <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ml-1" />معلّق</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-emerald-600 border-emerald-200 text-xs">نشط</Badge>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {format(new Date(u.created_at), "yyyy/MM/dd", { locale: ar })}
                 </TableCell>
                 <TableCell>
-                  <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
-                    {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
+                      {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
+                    </Button>
+                    <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"} onClick={() => handleSuspend(u.id, u.is_suspended)}>
+                      {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

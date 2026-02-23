@@ -35,6 +35,7 @@ import AdminDisputes from "./pages/admin/AdminDisputes";
 import AdminFinance from "./pages/admin/AdminFinance";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import Contracts from "./pages/Contracts";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -80,6 +81,7 @@ const App = () => (
             <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
             <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+            <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

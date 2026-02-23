@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
+import { usePurchaseService } from "@/hooks/usePurchaseService";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -15,26 +20,67 @@ const typeLabel: Record<string, string> = {
 };
 
 export function ServiceCard({ service }: { service: Service }) {
+  const { user, role } = useAuth();
+  const purchase = usePurchaseService();
+  const [showDialog, setShowDialog] = useState(false);
+
+  const canPurchase = role === "youth_association" || role === "donor";
+
+  const handlePurchase = () => {
+    if (!user) return;
+    purchase.mutate(
+      { serviceId: service.id, providerId: service.provider_id, buyerId: user.id, amount: service.price },
+      {
+        onSuccess: () => { toast.success("تم شراء الخدمة بنجاح"); setShowDialog(false); },
+        onError: () => toast.error("حدث خطأ أثناء الشراء"),
+      }
+    );
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base truncate">{service.title}</CardTitle>
-          <Badge variant="outline">{typeLabel[service.service_type] || service.service_type}</Badge>
-        </div>
-        <p className="text-xs text-muted-foreground">{service.profiles?.full_name}</p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold text-primary">{service.price} ر.س</span>
-          <div className="flex gap-1.5">
-            {service.categories?.name && <Badge variant="secondary" className="text-xs">{service.categories.name}</Badge>}
-            {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
+    <>
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-base truncate">{service.title}</CardTitle>
+            <Badge variant="outline">{typeLabel[service.service_type] || service.service_type}</Badge>
           </div>
-        </div>
-        <Button variant="outline" size="sm" className="w-full">طلب الخدمة</Button>
-      </CardContent>
-    </Card>
+          <p className="text-xs text-muted-foreground">{service.profiles?.full_name}</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-semibold text-primary">{service.price} ر.س</span>
+            <div className="flex gap-1.5">
+              {service.categories?.name && <Badge variant="secondary" className="text-xs">{service.categories.name}</Badge>}
+              {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="w-full" onClick={() => canPurchase ? setShowDialog(true) : null} disabled={!canPurchase}>
+            {canPurchase ? "طلب الخدمة" : "طلب الخدمة"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد شراء الخدمة</DialogTitle>
+            <DialogDescription>سيتم حجز المبلغ حتى إتمام الخدمة</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            <p className="font-medium">{service.title}</p>
+            <p className="text-sm text-muted-foreground">{service.profiles?.full_name}</p>
+            <p className="text-lg font-bold text-primary">{service.price} ر.س</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>إلغاء</Button>
+            <Button onClick={handlePurchase} disabled={purchase.isPending}>
+              {purchase.isPending ? "جارٍ الشراء..." : "تأكيد الشراء"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
