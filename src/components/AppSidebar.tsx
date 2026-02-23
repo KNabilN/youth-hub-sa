@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
-  Layers, MessageSquare, UserCog, UserCircle,
+  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,7 +13,6 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 const menuByRole = {
   youth_association: [
@@ -66,52 +65,46 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 rounded-xl flex items-center justify-center shadow-md">
-            <Shield className="w-5 h-5 text-sidebar-primary-foreground" />
+      {/* User Profile Header */}
+      <SidebarHeader className="p-5 pb-4">
+        <div className="flex flex-col items-center text-center gap-3">
+          <div className="relative">
+            <Avatar className="h-16 w-16 border-[3px] border-sidebar-ring shadow-lg">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="text-lg bg-sidebar-accent text-sidebar-accent-foreground font-bold">
+                {(profile?.full_name?.[0] || "؟")}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-sidebar-background" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-sm text-sidebar-foreground truncate">الخدمات المشتركة</h2>
-            <p className="text-xs text-sidebar-foreground/60">{role ? roleLabel[role] : ""}</p>
+          <div className="space-y-0.5">
+            <p className="text-sm font-bold text-sidebar-foreground">{profile?.full_name || "مستخدم"}</p>
+            <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
           </div>
         </div>
-
-        {profile && (
-          <>
-            <Separator className="my-3 bg-sidebar-border" />
-            <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9 border-2 border-sidebar-border">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-accent-foreground font-semibold">
-                  {(profile.full_name?.[0] || "؟")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{profile.full_name}</p>
-                <p className="text-xs text-sidebar-foreground/50 truncate">{user?.email}</p>
-              </div>
-            </div>
-          </>
-        )}
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-2">
+        {/* Main Menu */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs font-semibold uppercase tracking-wider">القائمة الرئيسية</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest px-3 mb-1">
+            القائمة الرئيسية
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {items.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
                       end={item.url === "/dashboard"}
-                      className="hover:bg-sidebar-accent/60 rounded-lg transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold border-r-4 border-sidebar-primary"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
                     >
-                      <item.icon className="ml-2 h-[18px] w-[18px]" />
-                      <span>{item.title}</span>
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
+                        <item.icon className="h-[17px] w-[17px]" />
+                      </div>
+                      <span className="text-sm">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -120,32 +113,74 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Separator */}
+        <div className="mx-4 my-1">
+          <div className="h-px bg-sidebar-border/60" />
+        </div>
+
+        {/* General Section */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs font-semibold uppercase tracking-wider">عام</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest px-3 mb-1">
+            الإشعارات
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to="/notifications" className="hover:bg-sidebar-accent/60 rounded-lg transition-colors" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold border-r-4 border-sidebar-primary">
-                    <Bell className="ml-2 h-[18px] w-[18px]" />
-                    <span className="flex-1">الإشعارات</span>
+                  <NavLink
+                    to="/notifications"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
+                      <Bell className="h-[17px] w-[17px]" />
+                    </div>
+                    <span className="flex-1 text-sm">الإشعارات</span>
                     <NotificationBadge />
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Separator */}
+        <div className="mx-4 my-1">
+          <div className="h-px bg-sidebar-border/60" />
+        </div>
+
+        {/* Support & Profile */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] font-bold uppercase tracking-widest px-3 mb-1">
+            الدعم الفني
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to="/tickets" className="hover:bg-sidebar-accent/60 rounded-lg transition-colors" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold border-r-4 border-sidebar-primary">
-                    <MessageSquare className="ml-2 h-[18px] w-[18px]" />
-                    <span>الدعم الفني</span>
+                  <NavLink
+                    to="/tickets"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
+                      <MessageSquare className="h-[17px] w-[17px]" />
+                    </div>
+                    <span className="text-sm">الدعم الفني</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to="/profile" className="hover:bg-sidebar-accent/60 rounded-lg transition-colors" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold border-r-4 border-sidebar-primary">
-                    <UserCircle className="ml-2 h-[18px] w-[18px]" />
-                    <span>الملف الشخصي</span>
+                  <NavLink
+                    to="/profile"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
+                      <UserCircle className="h-[17px] w-[17px]" />
+                    </div>
+                    <span className="text-sm">الملف الشخصي</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -154,14 +189,16 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
+      <SidebarFooter className="p-3 border-t border-sidebar-border/60">
         <Button
           variant="ghost"
-          className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 rounded-lg"
+          className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-destructive/20 rounded-lg py-2.5 transition-all duration-200"
           onClick={signOut}
         >
-          <LogOut className="ml-2 h-4 w-4" />
-          تسجيل الخروج
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30">
+            <LogOut className="h-[17px] w-[17px]" />
+          </div>
+          <span className="text-sm">تسجيل الخروج</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
