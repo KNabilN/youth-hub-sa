@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
@@ -8,18 +9,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
-import { Send, FileText, Check } from "lucide-react";
+import { useCreateDispute } from "@/hooks/useDisputes";
+import { useAuth } from "@/hooks/useAuth";
+import { Send, FileText, Check, AlertTriangle } from "lucide-react";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const updateTimeLog = useUpdateTimeLogApproval();
+  const createDispute = useCreateDispute();
+  const { role } = useAuth();
+  const [disputeDesc, setDisputeDesc] = useState("");
+  const [disputeOpen, setDisputeOpen] = useState(false);
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
@@ -79,6 +88,49 @@ export default function ProjectDetails() {
               نشر المشروع
             </Button>
           )}
+          {(project.status === "in_progress" || project.status === "completed") &&
+            (role === "youth_association" || role === "service_provider") && (
+              <Dialog open={disputeOpen} onOpenChange={setDisputeOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <AlertTriangle className="h-4 w-4 ml-1" />
+                    رفع نزاع
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>رفع نزاع على المشروع</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Textarea
+                      placeholder="وصف المشكلة..."
+                      value={disputeDesc}
+                      onChange={(e) => setDisputeDesc(e.target.value)}
+                      rows={4}
+                    />
+                    <Button
+                      onClick={() => {
+                        if (!disputeDesc.trim() || !id) return;
+                        createDispute.mutate(
+                          { project_id: id, description: disputeDesc },
+                          {
+                            onSuccess: () => {
+                              toast({ title: "تم رفع النزاع" });
+                              setDisputeOpen(false);
+                              setDisputeDesc("");
+                            },
+                            onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                          }
+                        );
+                      }}
+                      disabled={createDispute.isPending || !disputeDesc.trim()}
+                    >
+                      إرسال النزاع
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
