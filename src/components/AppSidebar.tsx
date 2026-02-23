@@ -137,7 +137,6 @@ export function AppSidebar() {
                     </div>
                     <span className="text-sm">الإشعارات</span>
                     <span className="mr-auto"><NotificationBadge /></span>
-                    <NotificationBadge />
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

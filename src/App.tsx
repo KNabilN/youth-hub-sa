@@ -40,6 +40,8 @@ import Contracts from "./pages/Contracts";
 import Profile from "./pages/Profile";
 import ProviderProfile from "./pages/ProviderProfile";
 import NotFound from "./pages/NotFound";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 const queryClient = new QueryClient();
 
@@ -53,6 +55,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
             <Route path="/projects/new" element={<ProtectedRoute><ProjectCreate /></ProtectedRoute>} />
