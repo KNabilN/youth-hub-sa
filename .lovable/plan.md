@@ -1,73 +1,142 @@
 
 
-# Next Steps: Bug Fixes and Polish
+# Service Provider (مزودي الخدمة) - Feature Analysis and Completion Plan
 
-All 9 planned feature batches have been implemented. The next step focuses on fixing runtime warnings, improving quality, and adding missing polish.
+## Current Workflow Analysis
 
----
+The service provider has 6 sidebar pages plus shared pages:
 
-## 1. Fix React Ref Warnings
-
-The console shows "Function components cannot be given refs" warnings for `DashboardLayout` and `Badge`. These are caused by components receiving refs without using `React.forwardRef`.
-
-- **`src/components/DashboardLayout.tsx`** -- Wrap with `React.forwardRef` so parent `SidebarTrigger` can pass refs.
-- **`src/components/ui/badge.tsx`** -- Wrap `Badge` with `React.forwardRef` (standard shadcn pattern).
-
----
-
-## 2. Dark Mode: Add `.dark` class support to `<html>` tag
-
-Currently `index.html` has `<html lang="ar" dir="rtl">` but no `class` attribute. The `next-themes` `ThemeProvider` with `attribute="class"` will dynamically add/remove the `dark` class at runtime, so this should work. However, to avoid a flash of unstyled content on dark-mode-preferring systems, we should add `suppressHydrationWarning` considerations (not needed for Vite SPA -- this is fine as-is).
-
-No change needed here -- already working correctly.
+| Page | Status | Notes |
+|------|--------|-------|
+| Dashboard | Done | Shows stats (services, bids, hours, earnings) |
+| My Services (خدماتي) | Done | CRUD with image upload, category/region |
+| Available Projects (المشاريع المتاحة) | Done | Browse open projects, filter by category/region |
+| My Bids (عروضي) | Done | View/filter/withdraw bids, sign contracts |
+| Time Tracking (تسجيل الساعات) | Done | Log hours on assigned projects |
+| Earnings (الأرباح) | Done | View escrow transactions, request withdrawals |
+| Contracts (العقود) | Missing from sidebar | Page exists but not in provider menu |
+| Ratings (التقييمات) | Missing from sidebar | Page exists but not in provider menu |
+| Disputes | No dedicated page | Only accessible from ProjectDetails |
+| Provider Profile | Done | Public profile with services and ratings |
 
 ---
 
-## 3. Improve `useMyServices` to pass `image_url`
+## Gaps Identified
 
-The `useCreateService` and `useUpdateService` mutations accept `TablesInsert`/`TablesUpdate` which now include `image_url` from the schema. The `ServiceForm` already passes `image_url` in `onSubmit`. Verify the calling pages (`MyServices.tsx`) pass it through correctly.
+### 1. Missing Sidebar Links
+The provider menu is missing "العقود" (Contracts) and "التقييمات" (Ratings) links. Both pages already exist and support the provider role, but there's no way to navigate to them from the sidebar.
 
-- **`src/pages/MyServices.tsx`** -- Verify that `onSubmit` handler passes `image_url` to the create/update mutations.
+### 2. No "My Projects" View for Assigned Projects
+Once a bid is accepted and contract signed, the provider has no dedicated view of their **active/assigned projects**. They can only see projects via `available-projects` (open ones) or indirectly via `my-bids` (accepted bids). There should be a page showing projects assigned to the provider with links to project details (time logs, disputes, contract status).
 
----
+### 3. Provider Cannot Access ProjectDetails
+The `ProjectDetails` page (`/projects/:id`) is designed for associations. The provider can raise disputes and see time logs there, but the RLS on `projects` only allows the `assigned_provider_id` to SELECT. The provider has no route to view their assigned project's details page -- the sidebar links to `/available-projects/:id` which is the bid submission view, not the full project details.
 
-## 4. Landing Page Enhancements
+### 4. No Invoices Page for Provider
+When a project is completed, an invoice is generated for the provider. But the provider has no page to view their invoices. The `useInvoices` hook only creates invoices; there is no query hook for fetching them.
 
-The landing page (`Index.tsx`) is functional but could benefit from:
+### 5. Marketplace Not in Provider Sidebar
+The provider cannot browse the services marketplace (to see competitor services or general marketplace). This is optional but could be useful.
 
-- **Footer** with links (About, Terms, Privacy, Contact)
-- **Testimonials** section with placeholder data
-- **Partner logos** section
-
----
-
-## 5. Loading States and Error Boundaries
-
-Add a global error boundary to catch React rendering errors gracefully:
-
-- **Create `src/components/ErrorBoundary.tsx`** -- A class component that catches errors and shows a friendly Arabic error message with a "Retry" button.
-- **`src/App.tsx`** -- Wrap routes with the error boundary.
+### 6. Dashboard Stats Missing "Active Projects" Count
+The provider dashboard shows services, bids, hours, and earnings but not the count of actively assigned projects.
 
 ---
 
-## 6. Profile Page Improvements
+## Implementation Plan
 
-The user is currently on `/profile`. Minor improvements:
+### Step 1: Add Missing Sidebar Links
+**File: `src/components/AppSidebar.tsx`**
+- Add "العقود" (`/contracts`) and "التقييمات" (`/ratings`) to the `service_provider` menu array.
+- Optionally add "سوق الخدمات" (`/marketplace`) for marketplace browsing.
 
-- **Email display** -- Show the user's email (read-only) in the profile card for reference.
-- **Account creation date** -- Show when the account was created.
+### Step 2: Create "My Assigned Projects" Page
+**New file: `src/pages/MyProjects.tsx`**
+- Query `projects` where `assigned_provider_id = user.id` and status in `['in_progress', 'completed', 'disputed']`.
+- Display cards with project title, status, budget, and link to project details.
+- Include status filter (all, in_progress, completed, disputed).
+
+**New file: `src/hooks/useMyAssignedProjects.ts`**
+- Query hook for provider's assigned projects with status filter.
+
+**File: `src/App.tsx`**
+- Add route `/my-projects` pointing to the new page.
+
+**File: `src/components/AppSidebar.tsx`**
+- Add "مشاريعي" (`/my-projects`) to the provider sidebar menu.
+
+### Step 3: Provider Project Details Access
+**File: `src/pages/ProjectDetails.tsx`**
+- Add logic so that when the provider is the `assigned_provider_id`, they can view project details (time logs tab, disputes tab, contract tab) but cannot modify project status or manage bids.
+- The provider should see their own time logs and be able to raise disputes.
+- Hide association-only actions (publish, complete, cancel, approve/reject time logs).
+
+### Step 4: Create Invoices Page for Provider
+**New file: `src/pages/Invoices.tsx`**
+- Display all invoices where `issued_to = user.id`.
+- Show invoice number, amount, commission, date.
+- Allow downloading/printing invoice as PDF-like view.
+
+**New file: `src/hooks/useMyInvoices.ts`**
+- Query hook for `invoices` where `issued_to = user.id`.
+
+**File: `src/App.tsx`**
+- Add route `/invoices`.
+
+**File: `src/components/AppSidebar.tsx`**
+- Add "الفواتير" (`/invoices`) under the provider menu.
+
+### Step 5: Enhance Provider Dashboard Stats
+**File: `src/hooks/useProviderStats.ts`**
+- Add `activeProjects` count: query `projects` where `assigned_provider_id = user.id` and `status = 'in_progress'`.
+- Add `pendingWithdrawals` count.
+
+**File: `src/pages/Dashboard.tsx`**
+- Update `ProviderDashboard` to show active projects count and pending withdrawal amount.
+
+### Step 6: Provider Disputes Page
+**New file: `src/pages/MyDisputes.tsx`**
+- Show all disputes the provider is involved in (via projects where `assigned_provider_id = user.id`).
+- Each dispute shows status, description, and links to the project.
+- Include the `DisputeResponseThread` for responding to disputes.
+
+**New file: `src/hooks/useMyDisputes.ts`**
+- Query disputes joined with projects where `assigned_provider_id = user.id` or `raised_by = user.id`.
+
+**File: `src/App.tsx`**
+- Add route `/my-disputes`.
+
+**File: `src/components/AppSidebar.tsx`**
+- Add "النزاعات" (`/my-disputes`) to provider sidebar.
 
 ---
+
+## Updated Provider Sidebar (After Changes)
+
+```
+- لوحة التحكم       /dashboard
+- خدماتي            /my-services
+- المشاريع المتاحة  /available-projects
+- مشاريعي           /my-projects        (NEW)
+- عروضي             /my-bids
+- العقود            /contracts           (existing page, new link)
+- تسجيل الساعات     /time-tracking
+- الأرباح           /earnings
+- الفواتير          /invoices            (NEW)
+- التقييمات         /ratings             (existing page, new link)
+- النزاعات          /my-disputes         (NEW)
+```
 
 ## Technical Summary
 
-| Item | Files Modified/Created |
-|------|----------------------|
-| Fix ref warnings | DashboardLayout.tsx, badge.tsx |
-| Verify image_url flow | MyServices.tsx |
-| Landing page footer | Index.tsx |
-| Error boundary | ErrorBoundary.tsx (new), App.tsx |
-| Profile polish | Profile.tsx |
+| Item | New Files | Modified Files |
+|------|-----------|---------------|
+| Sidebar links | -- | AppSidebar.tsx |
+| My Assigned Projects | MyProjects.tsx, useMyAssignedProjects.ts | App.tsx, AppSidebar.tsx |
+| Provider project access | -- | ProjectDetails.tsx |
+| Invoices page | Invoices.tsx, useMyInvoices.ts | App.tsx, AppSidebar.tsx |
+| Dashboard stats | -- | useProviderStats.ts, Dashboard.tsx |
+| Disputes page | MyDisputes.tsx, useMyDisputes.ts | App.tsx, AppSidebar.tsx |
 
-**Estimated: 1 new file, 5 files modified. No database changes.**
+**Total: 6 new files, 5 modified files. No database migrations needed** (all necessary tables and RLS policies already exist).
 
