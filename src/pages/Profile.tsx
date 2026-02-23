@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building } from "lucide-react";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -26,17 +26,21 @@ export default function Profile() {
   const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
+  const [phone, setPhone] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
   const [initialized, setInitialized] = useState(false);
 
   if (profile && !initialized) {
     setFullName(profile.full_name ?? "");
     setBio(profile.bio ?? "");
+    setPhone(profile.phone ?? "");
+    setOrganizationName(profile.organization_name ?? "");
     setInitialized(true);
   }
 
   const handleSave = () => {
     updateProfile.mutate(
-      { full_name: fullName, bio },
+      { full_name: fullName, bio, phone, organization_name: organizationName },
       {
         onSuccess: () => toast({ title: "تم تحديث الملف الشخصي" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
@@ -50,7 +54,9 @@ export default function Profile() {
         <h1 className="text-2xl font-bold">الملف الشخصي</h1>
 
         {isLoading ? (
-          <Skeleton className="h-64 w-full" />
+          <div className="space-y-4">
+            <Skeleton className="h-64 w-full" />
+          </div>
         ) : (
           <>
             <Card>
@@ -79,6 +85,22 @@ export default function Profile() {
                   <Label htmlFor="fullName">الاسم الكامل</Label>
                   <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-1">
+                    <Phone className="h-3.5 w-3.5" /> رقم الهاتف
+                  </Label>
+                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="+966..." />
+                </div>
+
+                {(role === "youth_association") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="orgName" className="flex items-center gap-1">
+                      <Building className="h-3.5 w-3.5" /> اسم المنظمة
+                    </Label>
+                    <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">نبذة تعريفية</Label>

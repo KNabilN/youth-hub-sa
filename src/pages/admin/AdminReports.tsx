@@ -3,9 +3,11 @@ import { useAdminStats } from "@/hooks/useAdminStats";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, parseISO, startOfMonth } from "date-fns";
 import { ar } from "date-fns/locale";
+import { Download } from "lucide-react";
 
 const STATUS_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#ef4444", "#6b7280"];
 const ROLE_COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
@@ -46,10 +48,28 @@ export default function AdminReports() {
     },
   });
 
+  const exportCSV = async () => {
+    const { data: users } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at");
+    const headers = ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"];
+    const rows = (users ?? []).map((u: any) => [u.full_name, u.phone ?? "", u.organization_name ?? "", u.is_verified ? "نعم" : "لا", u.created_at?.slice(0, 10)]);
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "report.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">التقارير</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">التقارير</h1>
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="h-4 w-4 ml-2" />
+            تصدير Excel
+          </Button>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المشاريع</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>

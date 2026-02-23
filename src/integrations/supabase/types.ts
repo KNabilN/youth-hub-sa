@@ -522,6 +522,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          is_suspended: boolean
           is_verified: boolean
           organization_name: string | null
           phone: string | null
@@ -533,6 +534,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id: string
+          is_suspended?: boolean
           is_verified?: boolean
           organization_name?: string | null
           phone?: string | null
@@ -544,6 +546,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_suspended?: boolean
           is_verified?: boolean
           organization_name?: string | null
           phone?: string | null
@@ -804,6 +807,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          processed_at: string | null
+          provider_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          provider_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          provider_id?: string
+          status?: string
         }
         Relationships: []
       }
