@@ -59,3 +59,14 @@ export function useChangeUserRole() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 }
+
+export function useAdminUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...values }: { id: string; full_name?: string; phone?: string; organization_name?: string; bio?: string; hourly_rate?: number | null }) => {
+      const { error } = await supabase.from("profiles").update(values).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+  });
+}

@@ -336,8 +336,8 @@ export default function ProjectDetails() {
           <TabsContent value="timelogs" className="mt-4">
             <TimeLogTable
               logs={(timeLogs as any) ?? []}
-              onApprove={(logId) => updateTimeLog.mutate({ id: logId, approval: "approved" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) })}
-              onReject={(logId) => updateTimeLog.mutate({ id: logId, approval: "rejected" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) })}
+              onApprove={(logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) }); }}
+              onReject={(logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) }); }}
               isLoading={updateTimeLog.isPending}
             />
           </TabsContent>

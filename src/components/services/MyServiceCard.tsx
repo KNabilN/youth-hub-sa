@@ -33,7 +33,12 @@ export function MyServiceCard({ service, onEdit, onDelete }: MyServiceCardProps)
   const status = approvalLabels[service.approval] ?? approvalLabels.pending;
 
   return (
-    <Card className={`card-hover ${status.border}`}>
+    <Card className={`card-hover ${status.border} overflow-hidden`}>
+      {(service as any).image_url && (
+        <div className="w-full h-32 overflow-hidden">
+          <img src={(service as any).image_url} alt={service.title} className="w-full h-full object-cover" />
+        </div>
+      )}
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="flex-1 min-w-0">
           <CardTitle className="text-base truncate">{service.title}</CardTitle>

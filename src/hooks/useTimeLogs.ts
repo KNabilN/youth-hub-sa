@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { sendNotification } from "@/lib/notifications";
 
 export function useAssociationTimeLogs(approvalFilter?: string) {
   const { user } = useAuth();
@@ -28,9 +29,12 @@ export function useAssociationTimeLogs(approvalFilter?: string) {
 export function useUpdateTimeLogApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval }: { id: string; approval: "approved" | "rejected" }) => {
+    mutationFn: async ({ id, approval, providerId }: { id: string; approval: "approved" | "rejected"; providerId: string }) => {
       const { error } = await supabase.from("time_logs").update({ approval }).eq("id", id);
       if (error) throw error;
+      // Notify provider
+      const msg = approval === "approved" ? "تمت الموافقة على ساعاتك المسجّلة" : "تم رفض ساعاتك المسجّلة";
+      await sendNotification(providerId, msg, "time_log_approval");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["time-logs"] }),
   });

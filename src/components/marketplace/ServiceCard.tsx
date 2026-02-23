@@ -41,7 +41,12 @@ export function ServiceCard({ service }: { service: Service }) {
 
   return (
     <>
-      <Card className="card-hover group">
+      <Card className="card-hover group overflow-hidden">
+        {(service as any).image_url && (
+          <div className="w-full h-40 overflow-hidden">
+            <img src={(service as any).image_url} alt={service.title} className="w-full h-full object-cover" />
+          </div>
+        )}
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-base truncate">{service.title}</CardTitle>

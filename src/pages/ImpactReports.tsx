@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useDonorStats } from "@/hooks/useDonorStats";
+import { useDonorStats, useDonorFundConsumption } from "@/hooks/useDonorStats";
 import { useDonorContributions } from "@/hooks/useDonorContributions";
 import { ImpactSummary } from "@/components/donor/ImpactSummary";
 import { EmptyState } from "@/components/EmptyState";
@@ -9,9 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { BarChart3 } from "lucide-react";
 
+const statusLabels: Record<string, string> = {
+  draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
+  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي", pending_approval: "بانتظار الموافقة",
+};
+
 export default function ImpactReports() {
   const { data: stats, isLoading: statsLoading } = useDonorStats();
   const { data: contributions, isLoading: contribLoading } = useDonorContributions();
+  const { data: fundConsumption, isLoading: fundLoading } = useDonorFundConsumption();
 
   return (
     <DashboardLayout>
@@ -28,6 +34,26 @@ export default function ImpactReports() {
           isLoading={statsLoading}
         />
 
+        {/* Fund Consumption */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-sm text-muted-foreground">أموال في مشاريع نشطة</p>
+              <p className="text-2xl font-bold text-primary">
+                {fundLoading ? "..." : (fundConsumption?.activeFunds ?? 0).toLocaleString()} ر.س
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-sm text-muted-foreground">أموال في مشاريع مكتملة</p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {fundLoading ? "..." : (fundConsumption?.completedFunds ?? 0).toLocaleString()} ر.س
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader><CardTitle className="text-lg">تفاصيل التبرعات</CardTitle></CardHeader>
           <CardContent>
@@ -41,6 +67,7 @@ export default function ImpactReports() {
                   <TableRow>
                     <TableHead>المشروع / الخدمة</TableHead>
                     <TableHead>المبلغ</TableHead>
+                    <TableHead>الحالة</TableHead>
                     <TableHead>النوع</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -49,6 +76,11 @@ export default function ImpactReports() {
                     <TableRow key={c.id}>
                       <TableCell>{(c.projects as any)?.title || (c.micro_services as any)?.title || "-"}</TableCell>
                       <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>
+                        {c.project_id && (c.projects as any)?.status ? (
+                          <Badge variant="outline">{statusLabels[(c.projects as any).status] || (c.projects as any).status}</Badge>
+                        ) : "—"}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{c.project_id ? "مشروع" : "خدمة"}</Badge>
                       </TableCell>

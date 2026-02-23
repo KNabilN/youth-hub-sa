@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sendNotification } from "@/lib/notifications";
 import type { Database } from "@/integrations/supabase/types";
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
@@ -21,8 +22,22 @@ export function useAdminServices() {
 export function useUpdateServiceApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval }: { id: string; approval: ApprovalStatus }) => {
+    mutationFn: async ({ id, approval, providerId }: { id: string; approval: ApprovalStatus; providerId: string }) => {
       const { error } = await supabase.from("micro_services").update({ approval }).eq("id", id);
+      if (error) throw error;
+      // Notify provider
+      const msg = approval === "approved" ? "تمت الموافقة على خدمتك" : "تم رفض خدمتك";
+      await sendNotification(providerId, msg, "service_approval");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),
+  });
+}
+
+export function useAdminDeleteService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("micro_services").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),

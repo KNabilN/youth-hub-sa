@@ -30,3 +30,31 @@ export function useDonorStats() {
     enabled: !!user,
   });
 }
+
+export function useDonorFundConsumption() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["donor-fund-consumption", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donor_contributions")
+        .select("amount, project_id, projects(status)")
+        .eq("donor_id", user!.id);
+      if (error) throw error;
+
+      let activeFunds = 0;
+      let completedFunds = 0;
+      (data ?? []).forEach(d => {
+        const status = (d.projects as any)?.status;
+        if (status === "completed") {
+          completedFunds += Number(d.amount);
+        } else if (status && status !== "cancelled") {
+          activeFunds += Number(d.amount);
+        }
+      });
+
+      return { activeFunds, completedFunds };
+    },
+    enabled: !!user,
+  });
+}

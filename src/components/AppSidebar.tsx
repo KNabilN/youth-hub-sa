@@ -1,8 +1,9 @@
 import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
-  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft,
+  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -62,6 +63,7 @@ const roleLabel: Record<string, string> = {
 export function AppSidebar() {
   const { role, signOut, user } = useAuth();
   const { data: profile } = useProfile();
+  const { theme, setTheme } = useTheme();
   const items = role ? menuByRole[role] : [];
 
   return (
@@ -174,7 +176,17 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border/60">
+      <SidebarFooter className="p-3 border-t border-sidebar-border/60 space-y-1">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 rounded-lg py-2.5 transition-all duration-200"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30">
+            {theme === "dark" ? <Sun className="h-[17px] w-[17px]" /> : <Moon className="h-[17px] w-[17px]" />}
+          </div>
+          <span className="text-sm">{theme === "dark" ? "الوضع الفاتح" : "الوضع الداكن"}</span>
+        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-destructive/20 rounded-lg py-2.5 transition-all duration-200"
