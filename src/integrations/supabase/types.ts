@@ -209,6 +209,45 @@ export type Database = {
           },
         ]
       }
+      dispute_responses: {
+        Row: {
+          author_id: string
+          created_at: string
+          dispute_id: string
+          id: string
+          message: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          dispute_id: string
+          id?: string
+          message?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          dispute_id?: string
+          id?: string
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_responses_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_responses_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
@@ -869,6 +908,7 @@ export type Database = {
       escrow_status: "held" | "released" | "frozen" | "refunded"
       project_status:
         | "draft"
+        | "pending_approval"
         | "open"
         | "in_progress"
         | "completed"
@@ -1016,6 +1056,7 @@ export const Constants = {
       escrow_status: ["held", "released", "frozen", "refunded"],
       project_status: [
         "draft",
+        "pending_approval",
         "open",
         "in_progress",
         "completed",
