@@ -10,6 +10,8 @@ import { useRegions } from "@/hooks/useRegions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { FolderKanban, Filter } from "lucide-react";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 export default function AvailableProjects() {
   const navigate = useNavigate();
@@ -17,17 +19,24 @@ export default function AvailableProjects() {
   const [regionId, setRegionId] = useState<string>("");
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
+  const pagination = usePagination();
 
   const filters = {
     ...(categoryId ? { category_id: categoryId } : {}),
     ...(regionId ? { region_id: regionId } : {}),
   };
-  const { data: projects, isLoading } = useAvailableProjects(Object.keys(filters).length ? filters : undefined);
+  const { data: projects, isLoading } = useAvailableProjects(
+    Object.keys(filters).length ? filters : undefined,
+    pagination.from,
+    pagination.to
+  );
+
+  const handleCategoryChange = (v: string) => { setCategoryId(v === "all" ? "" : v); pagination.resetPage(); };
+  const handleRegionChange = (v: string) => { setRegionId(v === "all" ? "" : v); pagination.resetPage(); };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-xl bg-primary/10">
             <FolderKanban className="h-7 w-7 text-primary" />
@@ -39,18 +48,17 @@ export default function AvailableProjects() {
         </div>
         <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
 
-        {/* Filter Panel */}
         <Card className="bg-muted/30 border-dashed">
           <CardContent className="flex flex-wrap items-center gap-3 p-4">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={categoryId} onValueChange={(v) => setCategoryId(v === "all" ? "" : v)}>
+            <Select value={categoryId || "all"} onValueChange={handleCategoryChange}>
               <SelectTrigger className="w-48 bg-background"><SelectValue placeholder="جميع التصنيفات" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع التصنيفات</SelectItem>
                 {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={regionId} onValueChange={(v) => setRegionId(v === "all" ? "" : v)}>
+            <Select value={regionId || "all"} onValueChange={handleRegionChange}>
               <SelectTrigger className="w-48 bg-background"><SelectValue placeholder="جميع المناطق" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع المناطق</SelectItem>
@@ -71,6 +79,14 @@ export default function AvailableProjects() {
             ))}
           </div>
         )}
+
+        <PaginationControls
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalFetched={projects?.length ?? 0}
+          onPrev={pagination.prevPage}
+          onNext={pagination.nextPage}
+        />
       </div>
     </DashboardLayout>
   );

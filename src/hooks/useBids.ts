@@ -60,8 +60,14 @@ export function useRejectBid() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (bidId: string) => {
+      // Get bid details for notification
+      const { data: bid } = await supabase.from("bids").select("provider_id").eq("id", bidId).single();
       const { error } = await supabase.from("bids").update({ status: "rejected" }).eq("id", bidId);
       if (error) throw error;
+      // Notify provider
+      if (bid?.provider_id) {
+        await sendNotification(bid.provider_id, "تم رفض عرضك على المشروع.", "bid_rejected");
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bids"] }),
   });

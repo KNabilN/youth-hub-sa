@@ -5,9 +5,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { CheckCheck, Bell } from "lucide-react";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 export default function Notifications() {
-  const { data: notifications, isLoading } = useNotifications();
+  const pagination = usePagination();
+  const { data: notifications, isLoading } = useNotifications(pagination.from, pagination.to);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
@@ -48,6 +51,14 @@ export default function Notifications() {
             ))}
           </div>
         )}
+
+        <PaginationControls
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalFetched={notifications?.length ?? 0}
+          onPrev={pagination.prevPage}
+          onNext={pagination.nextPage}
+        />
       </div>
     </DashboardLayout>
   );

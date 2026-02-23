@@ -36,6 +36,7 @@ import AdminFinance from "./pages/admin/AdminFinance";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminTickets from "./pages/admin/AdminTickets";
 import Contracts from "./pages/Contracts";
 import Profile from "./pages/Profile";
 import ProviderProfile from "./pages/ProviderProfile";
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
             <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+            <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
             <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
