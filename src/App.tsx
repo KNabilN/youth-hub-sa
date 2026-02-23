@@ -38,6 +38,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import Contracts from "./pages/Contracts";
 import Profile from "./pages/Profile";
+import ProviderProfile from "./pages/ProviderProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/impact" element={<ProtectedRoute><ImpactReports /></ProtectedRoute>} />
             <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/projects" element={<AdminRoute><AdminProjects /></AdminRoute>} />
             <Route path="/admin/services" element={<AdminRoute><AdminServices /></AdminRoute>} />

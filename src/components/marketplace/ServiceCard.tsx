@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useAuth } from "@/hooks/useAuth";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -45,7 +46,7 @@ export function ServiceCard({ service }: { service: Service }) {
             <CardTitle className="text-base truncate">{service.title}</CardTitle>
             <Badge variant="outline">{typeLabel[service.service_type] || service.service_type}</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">{service.profiles?.full_name}</p>
+          <Link to={`/providers/${service.provider_id}`} className="text-xs text-muted-foreground hover:underline">{service.profiles?.full_name}</Link>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
