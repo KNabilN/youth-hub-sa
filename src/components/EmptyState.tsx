@@ -8,9 +8,10 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  onAction?: () => void;
 }
 
-export function EmptyState({ icon: Icon, title, description, actionLabel, actionHref }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, actionLabel, actionHref, onAction }: EmptyStateProps) {
   const navigate = useNavigate();
 
   return (
@@ -20,8 +21,8 @@ export function EmptyState({ icon: Icon, title, description, actionLabel, action
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="text-sm text-muted-foreground mt-1.5 max-w-sm leading-relaxed">{description}</p>
-      {actionLabel && actionHref && (
-        <Button className="mt-5 shadow-md" onClick={() => navigate(actionHref)}>
+      {actionLabel && (onAction || actionHref) && (
+        <Button className="mt-5 shadow-md" onClick={() => onAction ? onAction() : actionHref && navigate(actionHref)}>
           {actionLabel}
         </Button>
       )}

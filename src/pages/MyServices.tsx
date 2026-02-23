@@ -72,7 +72,7 @@ export default function MyServices() {
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
         ) : !services?.length ? (
-          <EmptyState icon={Layers} title="لا توجد خدمات" description="أضف خدمتك الأولى لتبدأ في تلقي الطلبات" actionLabel="إضافة خدمة" actionHref="#" />
+          <EmptyState icon={Layers} title="لا توجد خدمات" description="أضف خدمتك الأولى لتبدأ في تلقي الطلبات" actionLabel="إضافة خدمة" onAction={() => setFormOpen(true)} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map(s => (
