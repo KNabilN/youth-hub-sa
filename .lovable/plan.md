@@ -1,57 +1,42 @@
 
 
-# Stage 8: Business Logic Automation and Escrow Workflow
+# Stage 9: Polish, UX Refinements, and Dashboard Activity Feed
 
-Stages 1-7 built all the UI pages and CRUD operations. However, the platform's core business logic -- the financial workflow that ties contracts, escrow, invoices, and project completion together -- is not yet wired up. This stage closes those critical gaps.
+With all core features and business logic complete (Stages 1-8), this final stage focuses on polishing the user experience, filling small UI gaps, and making the dashboard more useful with real activity data.
 
 ---
 
-## Current State
-
-- Accepting a bid creates a contract and moves the project to `in_progress`
-- Both parties can sign contracts, but nothing happens after full signing
-- No escrow transactions are ever created
-- No invoices are ever generated
-- Projects cannot be marked as `completed` by the association
-- No automatic notifications are sent on key events (bid accepted, contract signed, etc.)
-- The `audit_log` table exists but is never populated
-
 ## What Will Be Built
 
-### 1. Escrow Creation on Full Contract Signing
-When both `association_signed_at` and `provider_signed_at` are set on a contract, automatically create an `escrow_transaction` with:
-- `payer_id` = association, `payee_id` = provider
-- `amount` = bid price (from the accepted bid)
-- `status` = `held`
-- `project_id` = contract's project
+### 1. Dashboard "Recent Activity" Feed
+Currently the dashboard shows a static "No activity yet" card for all roles. Replace this with a real activity feed:
+- **Associations**: Show recent bids received, contracts signed, project status changes
+- **Providers**: Show recent bid responses, contract events, escrow updates
+- **Donors**: Show recent donations and funded project updates
+- **Admins**: Show recent disputes, new users, and escrow movements
 
-This will be done client-side: after either party signs, check if both signatures exist, then create escrow if none exists yet.
+Data source: pull from `notifications` table for the current user, showing the latest 5-10 items with timestamps and icons.
 
-### 2. Project Completion Flow
-Add a "Mark as Completed" button on `ProjectDetails.tsx` for the association when project status is `in_progress`:
-- Updates project status to `completed`
-- Releases the escrow (updates `escrow_transactions.status` to `released`)
-- Generates an invoice with a unique invoice number, the bid amount, and commission calculated from the active `commission_config` rate
+### 2. Empty State Improvements
+Several pages show plain text when empty. Add structured empty states with icons and call-to-action buttons:
+- Projects page: "Create your first project" button
+- My Services: "Add a service" button
+- My Bids: "Browse available projects" link
+- Earnings: descriptive empty state
 
-### 3. Automatic Notifications
-Insert notifications at key workflow moments (client-side, after successful mutations):
-- **Bid accepted**: notify the provider
-- **Contract signed**: notify the other party
-- **Escrow created**: notify both parties
-- **Project completed**: notify the provider
-- **Dispute raised**: notify the other party
+### 3. Loading Skeletons Consistency
+Some pages use `Skeleton` components, others show plain text "Loading...". Standardize all pages to use skeleton placeholders for a consistent feel.
 
-### 4. Project Cancellation
-Add a "Cancel Project" action for the association on `draft` or `open` projects:
-- Updates status to `cancelled`
-- If escrow exists and is `held`, updates it to `refunded`
+### 4. Responsive RTL Fixes
+- Ensure all grid layouts collapse properly on mobile
+- Fix any icon/text spacing issues in RTL mode (margin-left vs margin-right)
+- Ensure sidebar collapses properly on small screens
 
-### 5. Audit Log Entries
-Add audit log entries for critical actions:
-- Project status changes
-- Contract signing
-- Escrow status changes
-- Dispute creation/resolution
+### 5. Toast Feedback Consistency
+Some mutations show success toasts, some do not. Ensure all user actions (save profile, create bid, sign contract, etc.) show appropriate Arabic toast messages on success and error.
+
+### 6. Project Details Contract Tab -- Association Sign Action
+The contract tab on ProjectDetails shows contract info but the association currently has no way to sign from there. Add a "Sign Contract" button in the contract tab when `association_signed_at` is null and user is the association.
 
 ---
 
@@ -59,74 +44,52 @@ Add audit log entries for critical actions:
 
 | File | Change |
 |------|--------|
-| `src/hooks/useContracts.ts` | After signing, check for full signing and create escrow + notifications |
-| `src/hooks/useBids.ts` | Add notification to provider on bid acceptance |
-| `src/hooks/useDisputes.ts` | Add notification to other party on dispute creation |
-| `src/pages/ProjectDetails.tsx` | Add "Mark as Completed" and "Cancel Project" buttons with escrow release and invoice generation |
+| `src/pages/Dashboard.tsx` | Replace static "recent activity" card with real notification feed |
+| `src/pages/Projects.tsx` | Add empty state with CTA |
+| `src/pages/MyServices.tsx` | Add empty state with CTA |
+| `src/pages/MyBids.tsx` | Add empty state with CTA |
+| `src/pages/Earnings.tsx` | Add empty state with icon |
+| `src/pages/ProjectDetails.tsx` | Add association contract signing in contract tab |
+| `src/pages/Notifications.tsx` | Ensure consistent loading skeleton |
 
 ## New Files
 
 | File | Purpose |
 |------|---------|
-| `src/hooks/useEscrow.ts` | Escrow creation, release, and refund mutations |
-| `src/hooks/useInvoices.ts` | Invoice generation with commission calculation |
-| `src/lib/notifications.ts` | Helper to insert notification records for target users |
-| `src/lib/audit.ts` | Helper to insert audit log entries |
+| `src/components/EmptyState.tsx` | Reusable empty state component with icon, message, and optional CTA button |
+| `src/components/dashboard/RecentActivity.tsx` | Activity feed component pulling from notifications |
 
 ---
 
 ## Technical Details
 
-### Escrow Creation (after full contract signing)
+### Recent Activity Feed
 ```text
-In useContracts.signContract():
-  1. Update the contract with the signature timestamp
-  2. Re-fetch the contract to check both signatures
-  3. If both signed and no escrow exists for this project:
-     - Fetch the accepted bid for the project to get the price
-     - Insert escrow_transaction(payer_id=association, payee_id=provider, amount=bid.price, status='held', project_id)
-     - Insert notification for both parties: "تم إنشاء الضمان المالي للمشروع"
+RecentActivity component:
+  1. Query notifications for current user, ordered by created_at desc, limit 8
+  2. Map notification type to icon (bid_accepted -> FileText, contract_signed -> Check, etc.)
+  3. Display as a timeline-style list with relative timestamps (e.g., "منذ 3 ساعات")
+  4. Link "View all" to /notifications
 ```
 
-### Project Completion (in ProjectDetails)
+### Empty State Component
 ```text
-completeProject(projectId):
-  1. Update project status to 'completed'
-  2. Fetch escrow where project_id = projectId and status = 'held'
-  3. Update escrow status to 'released'
-  4. Fetch active commission_config rate
-  5. Calculate commission = escrow.amount * rate
-  6. Insert invoice(amount=escrow.amount, commission_amount=commission, invoice_number=generated, issued_to=provider, escrow_id)
-  7. Insert notification for provider: "تم إتمام المشروع وتحرير المستحقات"
+EmptyState({ icon, title, description, actionLabel?, actionHref? })
+  - Centered icon (muted color, 48px)
+  - Title text
+  - Description text
+  - Optional Button linking to actionHref
 ```
 
-### Invoice Number Generation
+### Project Details Contract Signing
 ```text
-Format: INV-{YYYYMMDD}-{random 4 digits}
-Example: INV-20260223-4827
-```
-
-### Notification Helper
-```text
-sendNotification(userId, message, type) ->
-  supabase.from('notifications').insert({ user_id: userId, message, type })
-```
-Types: `bid_accepted`, `contract_signed`, `escrow_created`, `project_completed`, `dispute_raised`
-
-### Audit Log Helper
-```text
-logAudit(tableName, recordId, action, oldValues?, newValues?) ->
-  supabase.from('audit_log').insert({ table_name: tableName, record_id: recordId, action, actor_id: user.id, old_values, new_values })
-```
-
-### Project Cancellation
-```text
-cancelProject(projectId):
-  1. Update project status to 'cancelled'
-  2. If escrow exists with status 'held', update to 'refunded'
-  3. Insert notification for provider if assigned
+In the contract tab:
+  - If user is association and association_signed_at is null:
+    - Show "Sign Contract" button
+    - On click: call useSignContract with contract.id
+    - Invalidate contract query on success
 ```
 
 ### No Database Changes
-All tables (`escrow_transactions`, `invoices`, `audit_log`, `notifications`) and their columns already exist. No schema modifications needed.
+All data already exists. This stage only improves the frontend presentation layer.
 
