@@ -15,6 +15,12 @@ import ProjectEdit from "./pages/ProjectEdit";
 import TimeLogs from "./pages/TimeLogs";
 import Marketplace from "./pages/Marketplace";
 import Ratings from "./pages/Ratings";
+import MyServices from "./pages/MyServices";
+import AvailableProjects from "./pages/AvailableProjects";
+import ProjectBidView from "./pages/ProjectBidView";
+import MyBids from "./pages/MyBids";
+import TimeTracking from "./pages/TimeTracking";
+import Earnings from "./pages/Earnings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +43,12 @@ const App = () => (
             <Route path="/time-logs" element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} />
             <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
             <Route path="/ratings" element={<ProtectedRoute><Ratings /></ProtectedRoute>} />
+            <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
+            <Route path="/available-projects" element={<ProtectedRoute><AvailableProjects /></ProtectedRoute>} />
+            <Route path="/available-projects/:id" element={<ProtectedRoute><ProjectBidView /></ProtectedRoute>} />
+            <Route path="/my-bids" element={<ProtectedRoute><MyBids /></ProtectedRoute>} />
+            <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
+            <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
