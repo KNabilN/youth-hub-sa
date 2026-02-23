@@ -1,128 +1,183 @@
 
+# Stage 14: Comprehensive UI Enhancement -- Professional Polish
 
-# Stage 13: Remaining Low-Priority Features and Polish
-
-All high and medium priority items from Stages 11 and 12 are now complete. This stage tackles the remaining deferred items to bring the platform closer to full specification compliance.
-
----
-
-## Completed So Far (Stages 11-12)
-
-- Profile fields (phone, organization_name, avatar upload, hourly rate)
-- Admin suspend/activate, audit log, CSV export
-- Service purchase flow with escrow
-- Withdrawal requests (provider + admin)
-- Bidirectional ratings
-- Escrow freeze on dispute
-- Enhanced admin analytics (by category, region, approval status)
-- Public provider profile page
+A system-wide UI upgrade to transform the current functional interface into a polished, governmental-grade design with improved visual hierarchy, animations, spacing, and modern component styling.
 
 ---
 
-## Remaining Items for Stage 13
+## Current State
 
-| # | Feature | Effort |
-|---|---------|--------|
-| 1 | **Service edit resets approval to pending** | Small |
-| 2 | **Marketplace sort by provider rating** | Small |
-| 3 | **Mandatory rating prompt after completed contract** | Medium |
-| 4 | **Stop time log entry when dispute is open** | Small |
-| 5 | **Accessibility widget** (text zoom + contrast toggle) | Medium |
-| 6 | **Donor access to marketplace in sidebar** | Small |
+The UI is functional but plain -- flat cards with minimal visual distinction, basic stat cards with no background color, a simple header bar, and sparse empty states. The screenshot confirms the need for:
+
+- Richer stat cards with colored icon backgrounds and subtle gradients
+- Better visual hierarchy with section dividers and spacing
+- Enhanced sidebar with user avatar display
+- Polished header with breadcrumbs and quick actions
+- Smooth transitions and micro-animations
+- Improved cards with hover effects and visual depth
+- Better empty states with illustrations
+- Consistent page layouts with decorative headers
 
 ---
 
-## Implementation Plan
+## Enhancement Plan
 
-### 1. Service Edit Resets Approval
-When a provider edits a service, automatically set `approval` back to `pending` so admin must re-approve.
-
-**Changes:**
-- `src/hooks/useMyServices.ts` -- In `useUpdateService`, force `approval: 'pending'` in the update payload
-- `src/pages/MyServices.tsx` -- Show a warning message that editing will pause the service until admin re-approves
-
-### 2. Marketplace Sort by Rating
-Add a sort option in the marketplace to order services by provider average rating.
+### 1. Enhanced Dashboard Stat Cards
+Transform the flat stat cards into visually rich cards with colored icon backgrounds, subtle gradients, and better typography.
 
 **Changes:**
-- `src/pages/Marketplace.tsx` -- Add a sort dropdown (newest / price / rating)
-- Query provider ratings alongside services and sort client-side by average rating when selected
+- `src/pages/Dashboard.tsx` -- Redesign all 4 role-specific dashboards with:
+  - Colored circular icon backgrounds (matching the stat theme color)
+  - Larger, bolder stat values
+  - Subtle bottom border accent color per card
+  - Welcome section with user's name and date
+  - Quick action buttons below stats
 
-### 3. Mandatory Rating Prompt
-After a contract is marked `completed`, show a prompt/banner on the dashboard directing the user to rate.
-
-**Changes:**
-- `src/pages/Dashboard.tsx` -- Query contracts with status `completed` where the current user hasn't rated yet; show a banner linking to `/ratings`
-- Create `src/hooks/usePendingRatings.ts` -- Query for unrated completed contracts
-
-### 4. Block Time Logging During Dispute
-Prevent providers from logging hours on disputed projects.
+### 2. Polished Sidebar
+Upgrade the sidebar with user avatar integration, active state improvements, and visual polish.
 
 **Changes:**
-- `src/pages/TimeTracking.tsx` -- Filter out projects with status `disputed` from the project selector
-- `src/components/provider/TimeEntryForm.tsx` -- Disable submission if project is disputed
+- `src/components/AppSidebar.tsx` -- Add:
+  - User avatar from profile in sidebar header
+  - Smooth active link indicator (accent bar on the right for RTL)
+  - Icon size improvements and spacing refinements
+  - Section separator styling
 
-### 5. Accessibility Widget
-Add a floating accessibility button with text zoom and high contrast toggles.
-
-**Changes:**
-- Create `src/components/AccessibilityWidget.tsx` -- Floating button (bottom-left) that opens a popover with:
-  - Text size: increase/decrease (adjusts root `font-size`)
-  - High contrast toggle (adds a CSS class to `<html>`)
-- `src/App.tsx` -- Render the widget globally
-- `src/index.css` -- Add `.high-contrast` CSS class with enhanced contrast colors
-
-### 6. Donor Marketplace Access in Sidebar
-Donors can purchase services but the marketplace link is missing from their sidebar menu.
+### 3. Enhanced Header Bar
+Transform the minimal header into a professional top bar.
 
 **Changes:**
-- `src/components/AppSidebar.tsx` -- Add "سوق الخدمات" to the donor menu items
+- `src/components/DashboardLayout.tsx` -- Redesign header with:
+  - Breadcrumb-style page indicator
+  - User avatar + name display (not just email)
+  - Notification bell with badge in header
+  - Subtle background gradient
+
+### 4. Landing Page Polish
+Upgrade the Index/landing page with better visual impact.
+
+**Changes:**
+- `src/pages/Index.tsx` -- Enhance with:
+  - Gradient hero background with decorative pattern
+  - Animated feature cards with hover lift effects
+  - Stats counter section (e.g., "100+ جمعية", "500+ مقدم خدمة")
+  - Better CTA button styling with gradient
+  - Footer with more content and links
+
+### 5. Auth Page Enhancement
+Polish the login/signup flow.
+
+**Changes:**
+- `src/pages/Auth.tsx` -- Add:
+  - Split layout with decorative side panel on desktop
+  - Gradient background pattern
+  - Role selection as visual cards instead of dropdown
+
+### 6. Card Component Styling Upgrade
+Improve all cards across the system for visual consistency.
+
+**Changes:**
+- `src/index.css` -- Add global utility classes:
+  - `.card-hover` with transform scale + shadow transition
+  - Gradient accent borders for primary cards
+  - Better focus-visible states
+- `src/components/projects/ProjectCard.tsx` -- Enhanced with status-colored top border, hover animation
+- `src/components/marketplace/ServiceCard.tsx` -- Price tag styling, provider avatar, hover effects
+
+### 7. Empty States Enhancement
+Make empty states more engaging with larger icons and softer styling.
+
+**Changes:**
+- `src/components/EmptyState.tsx` -- Redesign with:
+  - Soft circular background behind icon
+  - Subtle dotted border container
+  - Animated icon (gentle bounce)
+
+### 8. Global CSS Enhancements
+System-wide visual improvements via Tailwind and CSS.
+
+**Changes:**
+- `src/index.css` -- Add:
+  - Smooth page transitions
+  - Better scrollbar styling
+  - Subtle background patterns for main content area
+  - Animation keyframes (fadeIn, slideUp, pulse)
+  - Card hover utilities
+  - Gradient text utility classes
+
+### 9. Accessibility Widget Styling
+Polish the floating widget to match the new design system.
+
+**Changes:**
+- `src/components/AccessibilityWidget.tsx` -- Better styling with primary color scheme and smoother popover
+
+### 10. Profile Page Polish
+Upgrade the profile page layout.
+
+**Changes:**
+- `src/pages/Profile.tsx` -- Add:
+  - Hero banner area with avatar centered
+  - Two-column layout for larger screens
+  - Visual role badge with icon
 
 ---
 
 ## Technical Details
 
-### Service Edit Approval Reset
-
-In `useMyServices.ts` `useUpdateService`:
-```text
-// Force approval back to pending on any edit
-const { data, error } = await supabase
-  .from("micro_services")
-  .update({ ...values, approval: "pending" })
-  .eq("id", id)
-```
-
-### Pending Ratings Hook
+### Animation Keyframes (index.css)
 
 ```text
-usePendingRatings():
-  1. Get user's completed contracts (as association or provider)
-  2. Left join with ratings where rater_id = current user
-  3. Filter where no rating exists
-  4. Return count and list of unrated contracts
-```
-
-### Accessibility Widget
-
-```text
-AccessibilityWidget component:
-  - State: fontSize (default 16), highContrast (default false)
-  - On font size change: document.documentElement.style.fontSize = `${fontSize}px`
-  - On contrast toggle: document.documentElement.classList.toggle('high-contrast')
-  - Floating button with Accessibility icon (bottom-left corner)
-  - Popover with slider for text size + switch for contrast
-```
-
-### High Contrast CSS
-
-```text
-.high-contrast {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
-  --primary: 220 90% 40%;
-  --muted-foreground: 0 0% 20%;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
+.animate-scale-in { animation: scaleIn 0.3s ease-out; }
+```
+
+### Stat Card Pattern (Dashboard)
+
+```text
+Each stat card will have:
+- Rounded icon container with role-specific color (bg-primary/10, bg-info/10, etc.)
+- Card with subtle left border accent (border-r-4 for RTL)
+- Hover: translateY(-2px) + increased shadow
+- Staggered animation on load
+```
+
+### Sidebar Active State
+
+```text
+Active menu item:
+- Right border accent bar (4px, primary color) for RTL
+- Background: sidebar-accent with higher opacity
+- Icon: sidebar-primary color
+- Text: font-semibold
+```
+
+### Landing Page Hero
+
+```text
+Hero section:
+- Background: radial gradient from primary/5 to transparent
+- Decorative SVG pattern overlay (dots or geometric)
+- Title with gradient text effect (primary to accent)
+- CTA button with gradient background + hover glow
+```
+
+### Global Scrollbar Styling
+
+```text
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
 ```
 
 ---
@@ -131,14 +186,17 @@ AccessibilityWidget component:
 
 | Action | File |
 |--------|------|
-| Modify | `src/hooks/useMyServices.ts` -- reset approval on edit |
-| Modify | `src/pages/MyServices.tsx` -- warning about re-approval |
-| Modify | `src/pages/Marketplace.tsx` -- add sort by rating option |
-| Modify | `src/pages/Dashboard.tsx` -- pending rating banner |
-| Modify | `src/components/AppSidebar.tsx` -- add marketplace to donor menu |
-| Modify | `src/App.tsx` -- render AccessibilityWidget |
-| Modify | `src/index.css` -- high contrast styles |
-| Create | `src/hooks/usePendingRatings.ts` -- unrated contracts query |
-| Create | `src/components/AccessibilityWidget.tsx` -- floating accessibility controls |
+| Modify | `src/index.css` -- animations, scrollbar, utilities, patterns |
+| Modify | `src/pages/Dashboard.tsx` -- rich stat cards, welcome section |
+| Modify | `src/components/AppSidebar.tsx` -- avatar, active states |
+| Modify | `src/components/DashboardLayout.tsx` -- enhanced header |
+| Modify | `src/pages/Index.tsx` -- hero gradient, animations, stats section |
+| Modify | `src/pages/Auth.tsx` -- split layout, visual role cards |
+| Modify | `src/components/EmptyState.tsx` -- soft circular icon, animation |
+| Modify | `src/components/projects/ProjectCard.tsx` -- status border, hover |
+| Modify | `src/components/marketplace/ServiceCard.tsx` -- enhanced styling |
+| Modify | `src/components/dashboard/RecentActivity.tsx` -- better timeline styling |
+| Modify | `src/components/AccessibilityWidget.tsx` -- polished styling |
+| Modify | `src/pages/Profile.tsx` -- hero banner, two-column layout |
 
-No database migrations required for this stage.
+No database migrations required.
