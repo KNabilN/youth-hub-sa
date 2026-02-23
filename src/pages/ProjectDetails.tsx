@@ -17,8 +17,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
+import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
+import { useGenerateInvoice } from "@/hooks/useInvoices";
+import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, FileText, Check, AlertTriangle } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -26,9 +29,14 @@ export default function ProjectDetails() {
   const updateProject = useUpdateProject();
   const updateTimeLog = useUpdateTimeLogApproval();
   const createDispute = useCreateDispute();
-  const { role } = useAuth();
+  const releaseEscrow = useReleaseEscrow();
+  const refundEscrow = useRefundEscrow();
+  const generateInvoice = useGenerateInvoice();
+  const { role, user } = useAuth();
   const [disputeDesc, setDisputeDesc] = useState("");
   const [disputeOpen, setDisputeOpen] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
@@ -68,13 +76,82 @@ export default function ProjectDetails() {
     );
   };
 
+  const handleComplete = async () => {
+    if (!id || !project) return;
+    setCompleting(true);
+    try {
+      // 1. Update project status
+      await supabase.from("projects").update({ status: "completed" }).eq("id", id);
+
+      // 2. Release escrow and generate invoice
+      const escrow = await releaseEscrow.mutateAsync(id);
+      await generateInvoice.mutateAsync({
+        escrowId: escrow.id,
+        amount: escrow.amount,
+        issuedTo: project.assigned_provider_id!,
+      });
+
+      // 3. Notify provider
+      if (project.assigned_provider_id) {
+        await sendNotification(
+          project.assigned_provider_id,
+          "تم إتمام المشروع وتحرير المستحقات المالية",
+          "project_completed"
+        );
+      }
+
+      toast({ title: "تم إتمام المشروع وتحرير المستحقات" });
+      // Refresh
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "حدث خطأ أثناء إتمام المشروع", variant: "destructive" });
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!id || !project) return;
+    setCancelling(true);
+    try {
+      await supabase.from("projects").update({ status: "cancelled" }).eq("id", id);
+
+      // Refund escrow if held
+      try {
+        await refundEscrow.mutateAsync(id);
+      } catch {
+        // No escrow to refund, that's fine
+      }
+
+      // Notify provider
+      if (project.assigned_provider_id) {
+        await sendNotification(
+          project.assigned_provider_id,
+          "تم إلغاء المشروع",
+          "project_cancelled"
+        );
+      }
+
+      toast({ title: "تم إلغاء المشروع" });
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "حدث خطأ", variant: "destructive" });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const isAssociation = role === "youth_association" && user?.id === project?.association_id;
+
   if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
   if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">المشروع غير موجود</p></DashboardLayout>;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold">{project.title}</h1>
@@ -82,55 +159,69 @@ export default function ProjectDetails() {
             </div>
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
-          {project.status === "draft" && (
-            <Button onClick={handlePublish} disabled={updateProject.isPending}>
-              <Send className="h-4 w-4 ml-1" />
-              نشر المشروع
-            </Button>
-          )}
-          {(project.status === "in_progress" || project.status === "completed") &&
-            (role === "youth_association" || role === "service_provider") && (
-              <Dialog open={disputeOpen} onOpenChange={setDisputeOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <AlertTriangle className="h-4 w-4 ml-1" />
-                    رفع نزاع
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>رفع نزاع على المشروع</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Textarea
-                      placeholder="وصف المشكلة..."
-                      value={disputeDesc}
-                      onChange={(e) => setDisputeDesc(e.target.value)}
-                      rows={4}
-                    />
-                    <Button
-                      onClick={() => {
-                        if (!disputeDesc.trim() || !id) return;
-                        createDispute.mutate(
-                          { project_id: id, description: disputeDesc },
-                          {
-                            onSuccess: () => {
-                              toast({ title: "تم رفع النزاع" });
-                              setDisputeOpen(false);
-                              setDisputeDesc("");
-                            },
-                            onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                          }
-                        );
-                      }}
-                      disabled={createDispute.isPending || !disputeDesc.trim()}
-                    >
-                      إرسال النزاع
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+          <div className="flex items-center gap-2 flex-wrap">
+            {project.status === "draft" && isAssociation && (
+              <Button onClick={handlePublish} disabled={updateProject.isPending}>
+                <Send className="h-4 w-4 ml-1" />
+                نشر المشروع
+              </Button>
             )}
+            {project.status === "in_progress" && isAssociation && (
+              <Button onClick={handleComplete} disabled={completing} variant="default">
+                <CheckCircle className="h-4 w-4 ml-1" />
+                إتمام المشروع
+              </Button>
+            )}
+            {(project.status === "draft" || project.status === "open") && isAssociation && (
+              <Button onClick={handleCancel} disabled={cancelling} variant="outline">
+                <XCircle className="h-4 w-4 ml-1" />
+                إلغاء المشروع
+              </Button>
+            )}
+            {(project.status === "in_progress" || project.status === "completed") &&
+              (role === "youth_association" || role === "service_provider") && (
+                <Dialog open={disputeOpen} onOpenChange={setDisputeOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <AlertTriangle className="h-4 w-4 ml-1" />
+                      رفع نزاع
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>رفع نزاع على المشروع</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Textarea
+                        placeholder="وصف المشكلة..."
+                        value={disputeDesc}
+                        onChange={(e) => setDisputeDesc(e.target.value)}
+                        rows={4}
+                      />
+                      <Button
+                        onClick={() => {
+                          if (!disputeDesc.trim() || !id) return;
+                          createDispute.mutate(
+                            { project_id: id, description: disputeDesc },
+                            {
+                              onSuccess: () => {
+                                toast({ title: "تم رفع النزاع" });
+                                setDisputeOpen(false);
+                                setDisputeDesc("");
+                              },
+                              onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                            }
+                          );
+                        }}
+                        disabled={createDispute.isPending || !disputeDesc.trim()}
+                      >
+                        إرسال النزاع
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">

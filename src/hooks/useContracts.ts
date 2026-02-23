@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { sendNotification, sendNotifications } from "@/lib/notifications";
 
 export function useContracts(filter = "all") {
   const { user, role } = useAuth();
@@ -23,7 +24,6 @@ export function useContracts(filter = "all") {
         query = query.is("association_signed_at", null).is("provider_signed_at", null);
       } else if (filter === "partial") {
         query = query.or("association_signed_at.not.is.null,provider_signed_at.not.is.null");
-        // further filter would be complex; we filter client-side
       } else if (filter === "signed") {
         query = query.not("association_signed_at", "is", null).not("provider_signed_at", "is", null);
       }
@@ -45,7 +45,7 @@ export function useContracts(filter = "all") {
 
 export function useSignContract() {
   const qc = useQueryClient();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   return useMutation({
     mutationFn: async (contractId: string) => {
       const field = role === "youth_association" ? "association_signed_at" : "provider_signed_at";
@@ -54,8 +54,61 @@ export function useSignContract() {
         .update({ [field]: new Date().toISOString() } as any)
         .eq("id", contractId);
       if (error) throw error;
+
+      // Re-fetch contract to check if both signed
+      const { data: contract } = await supabase
+        .from("contracts")
+        .select("*")
+        .eq("id", contractId)
+        .single();
+
+      if (!contract) return;
+
+      // Notify the other party about signing
+      const otherPartyId = role === "youth_association" ? contract.provider_id : contract.association_id;
+      await sendNotification(otherPartyId, "تم توقيع العقد من الطرف الآخر", "contract_signed");
+
+      // If both signed, create escrow
+      if (contract.association_signed_at && contract.provider_signed_at) {
+        // Check if escrow already exists
+        const { data: existingEscrow } = await supabase
+          .from("escrow_transactions")
+          .select("id")
+          .eq("project_id", contract.project_id)
+          .maybeSingle();
+
+        if (!existingEscrow) {
+          // Get accepted bid price
+          const { data: bid } = await supabase
+            .from("bids")
+            .select("price")
+            .eq("project_id", contract.project_id)
+            .eq("status", "accepted")
+            .maybeSingle();
+
+          if (bid) {
+            await supabase.from("escrow_transactions").insert({
+              project_id: contract.project_id,
+              payer_id: contract.association_id,
+              payee_id: contract.provider_id,
+              amount: bid.price,
+              status: "held",
+            });
+
+            // Notify both parties
+            await sendNotifications(
+              [contract.association_id, contract.provider_id],
+              "تم إنشاء الضمان المالي للمشروع",
+              "escrow_created"
+            );
+          }
+        }
+      }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["escrow"] });
+    },
   });
 }
 
@@ -64,7 +117,6 @@ export function useProviderContract(bidId: string | undefined) {
     queryKey: ["provider-contract", bidId],
     enabled: !!bidId,
     queryFn: async () => {
-      // Find contract linked to same project as this bid
       const { data: bid } = await supabase
         .from("bids")
         .select("project_id, provider_id")

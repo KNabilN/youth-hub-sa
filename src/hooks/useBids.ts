@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { sendNotification } from "@/lib/notifications";
 
 export function useBids(projectId: string | undefined) {
   return useQuery({
@@ -43,6 +44,9 @@ export function useAcceptBid() {
         status: "in_progress",
         assigned_provider_id: providerId,
       }).eq("id", projectId);
+
+      // 5. Notify the provider
+      await sendNotification(providerId, "تم قبول عرضك على المشروع! يمكنك الآن توقيع العقد.", "bid_accepted");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });
