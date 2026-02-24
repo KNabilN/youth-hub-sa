@@ -303,52 +303,69 @@ export default function ProjectDetails() {
 
           <TabsContent value="contract" className="mt-4">
             {contract ? (
-              <Card>
-                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" /> تفاصيل العقد</CardTitle></CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <p>{contract.terms}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <span className="text-muted-foreground">مقدم الخدمة:</span>
-                    <span>{(contract as any).profiles?.full_name || "-"}</span>
-                    <span className="text-muted-foreground">توقيع الجمعية:</span>
-                    <span className="flex items-center gap-1">
-                      {contract.association_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.association_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
-                    </span>
-                    <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
-                    <span className="flex items-center gap-1">
-                      {contract.provider_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
-                    </span>
-                   </div>
-                   {isAssociation && !contract.association_signed_at && (
-                     <Button
-                       size="sm"
-                       className="mt-3"
-                       onClick={() => signContract.mutate(contract.id, {
-                         onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
-                         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                       })}
-                       disabled={signContract.isPending}
-                     >
-                       <PenLine className="h-4 w-4 ml-1" />
-                       توقيع العقد
-                     </Button>
-                   )}
-                   {isProvider && !contract.provider_signed_at && (
-                     <Button
-                       size="sm"
-                       className="mt-3"
-                       onClick={() => signContract.mutate(contract.id, {
-                         onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
-                         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                       })}
-                       disabled={signContract.isPending}
-                     >
-                       <PenLine className="h-4 w-4 ml-1" />
-                       توقيع العقد
-                     </Button>
-                   )}
-                 </CardContent>
-              </Card>
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" /> تفاصيل العقد</CardTitle></CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <p>{contract.terms}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <span className="text-muted-foreground">مقدم الخدمة:</span>
+                      <span>{(contract as any).profiles?.full_name || "-"}</span>
+                      <span className="text-muted-foreground">توقيع الجمعية:</span>
+                      <span className="flex items-center gap-1">
+                        {contract.association_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.association_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
+                      </span>
+                      <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
+                      <span className="flex items-center gap-1">
+                        {contract.provider_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
+                      </span>
+                    </div>
+                    {isAssociation && !contract.association_signed_at && (
+                      <Button
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => signContract.mutate(contract.id, {
+                          onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
+                          onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                        })}
+                        disabled={signContract.isPending}
+                      >
+                        <PenLine className="h-4 w-4 ml-1" />
+                        توقيع العقد
+                      </Button>
+                    )}
+                    {isProvider && !contract.provider_signed_at && (
+                      <Button
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => signContract.mutate(contract.id, {
+                          onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
+                          onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                        })}
+                        disabled={signContract.isPending}
+                      >
+                        <PenLine className="h-4 w-4 ml-1" />
+                        توقيع العقد
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Paperclip className="h-5 w-5" />
+                      مرفقات العقد
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(isAssociation || isProvider) && (
+                      <FileUploader entityType="contract" entityId={contract.id} />
+                    )}
+                    <AttachmentList entityType="contract" entityId={contract.id} />
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">لا يوجد عقد مرتبط بهذا المشروع</p>
             )}
