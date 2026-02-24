@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useNotifications, useMarkAsRead, useMarkAllAsRead } from "@/hooks/useNotifications";
+import { useNotifications, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from "@/hooks/useNotifications";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,14 +8,27 @@ import { Button } from "@/components/ui/button";
 import { CheckCheck, Bell } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const typeFilters = [
+  { value: "all", label: "الكل" },
+  { value: "info", label: "عام" },
+  { value: "bid_received", label: "العروض" },
+  { value: "contract_signed", label: "العقود" },
+  { value: "escrow_created", label: "الضمان" },
+  { value: "warning", label: "تنبيهات" },
+];
 
 export default function Notifications() {
   const pagination = usePagination();
   const { data: notifications, isLoading } = useNotifications(pagination.from, pagination.to);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
+  const deleteNotification = useDeleteNotification();
+  const [filter, setFilter] = useState("all");
 
   const hasUnread = notifications?.some((n) => !n.is_read);
+  const filtered = filter === "all" ? notifications : notifications?.filter((n) => n.type === filter);
 
   return (
     <DashboardLayout>
@@ -38,13 +52,21 @@ export default function Notifications() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
+        <Tabs value={filter} onValueChange={setFilter}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            {typeFilters.map((f) => (
+              <TabsTrigger key={f.value} value={f.value} className="text-xs">{f.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
-        ) : !notifications?.length ? (
+        ) : !filtered?.length ? (
           <EmptyState icon={Bell} title="لا توجد إشعارات" description="ستظهر الإشعارات هنا عند حدوث تحديثات" />
         ) : (
           <div className="space-y-2">
-            {notifications.map((n) => (
+            {filtered.map((n) => (
               <NotificationItem
                 key={n.id}
                 id={n.id}
@@ -53,6 +75,7 @@ export default function Notifications() {
                 is_read={n.is_read}
                 created_at={n.created_at}
                 onMarkRead={(id) => markAsRead.mutate(id)}
+                onDelete={(id) => deleteNotification.mutate(id)}
               />
             ))}
           </div>
@@ -61,7 +84,7 @@ export default function Notifications() {
         <PaginationControls
           page={pagination.page}
           pageSize={pagination.pageSize}
-          totalFetched={notifications?.length ?? 0}
+          totalFetched={filtered?.length ?? 0}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />
