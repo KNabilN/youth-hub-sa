@@ -345,6 +345,45 @@ export type Database = {
           },
         ]
       }
+      edit_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          requested_by: string
+          requested_changes: Json
+          status: string
+          target_id: string
+          target_table: string
+          target_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requested_by: string
+          requested_changes?: Json
+          status?: string
+          target_id: string
+          target_table: string
+          target_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requested_by?: string
+          requested_changes?: Json
+          status?: string
+          target_id?: string
+          target_table?: string
+          target_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       escrow_transactions: {
         Row: {
           amount: number
