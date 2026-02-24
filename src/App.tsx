@@ -51,6 +51,7 @@ import EditRequests from "./pages/EditRequests";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminCMS from "./pages/admin/AdminCMS";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 const queryClient = new QueryClient();
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
               <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
               <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
+              <Route path="/admin/cms" element={<AdminRoute><AdminCMS /></AdminRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AccessibilityWidget />
