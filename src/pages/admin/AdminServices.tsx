@@ -26,9 +26,12 @@ export default function AdminServices() {
             <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="draft">مسودة</SelectItem>
               <SelectItem value="pending">قيد المراجعة</SelectItem>
               <SelectItem value="approved">مقبول</SelectItem>
               <SelectItem value="rejected">مرفوض</SelectItem>
+              <SelectItem value="suspended">موقوف</SelectItem>
+              <SelectItem value="archived">مؤرشف</SelectItem>
             </SelectContent>
           </Select>
         </div>

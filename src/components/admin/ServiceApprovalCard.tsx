@@ -5,14 +5,20 @@ import { Button } from "@/components/ui/button";
 import { useUpdateServiceApproval, useAdminDeleteService } from "@/hooks/useAdminServices";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, FileEdit } from "lucide-react";
+import { Trash2, FileEdit, Pause, Play } from "lucide-react";
 import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
 
-const approvalLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "مقبول", rejected: "مرفوض" };
+const approvalLabels: Record<string, string> = {
+  draft: "مسودة", pending: "قيد المراجعة", approved: "مقبول", rejected: "مرفوض",
+  suspended: "موقوف مؤقتاً", archived: "مؤرشف",
+};
 const approvalColors: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
   pending: "bg-yellow-500/10 text-yellow-600",
   approved: "bg-emerald-500/10 text-emerald-600",
   rejected: "bg-destructive/10 text-destructive",
+  suspended: "bg-orange-500/10 text-orange-600",
+  archived: "bg-muted text-muted-foreground",
 };
 
 const serviceFields: FieldConfig[] = [
@@ -62,6 +68,16 @@ export function ServiceApprovalCard({ service }: { service: any }) {
           <div className="flex gap-2 flex-wrap">
             <Button size="sm" onClick={() => handleApproval("approved")} disabled={update.isPending || service.approval === "approved"}>موافقة</Button>
             <Button size="sm" variant="destructive" onClick={() => handleApproval("rejected")} disabled={update.isPending || service.approval === "rejected"}>رفض</Button>
+            {(service.approval === "approved" || service.approval === "pending") && (
+              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleApproval("suspended" as any)} disabled={update.isPending}>
+                <Pause className="h-4 w-4 ml-1" />تعليق
+              </Button>
+            )}
+            {(service.approval === "suspended" || service.approval === "archived") && (
+              <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => handleApproval("approved")} disabled={update.isPending}>
+                <Play className="h-4 w-4 ml-1" />إعادة تفعيل
+              </Button>
+            )}
             <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
               <FileEdit className="h-4 w-4 ml-1" />طلب تعديل
             </Button>

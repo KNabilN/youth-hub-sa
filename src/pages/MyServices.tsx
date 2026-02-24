@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useMyServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useMyServices";
+import { useMyServices, useCreateService, useUpdateService, useDeleteService, useUpdateServiceStatus } from "@/hooks/useMyServices";
 import { MyServiceCard } from "@/components/services/MyServiceCard";
 import { ServiceForm, type ServiceFormValues } from "@/components/services/ServiceForm";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export default function MyServices() {
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
+  const updateStatus = useUpdateServiceStatus();
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -28,6 +29,13 @@ export default function MyServices() {
   const handleCreate = (values: ServiceFormValues & { image_url?: string | null }) => {
     createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url }, {
       onSuccess: () => { toast({ title: "تم إنشاء الخدمة بنجاح" }); setFormOpen(false); },
+      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    });
+  };
+
+  const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null }) => {
+    createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any } as any, {
+      onSuccess: () => { toast({ title: "تم حفظ الخدمة كمسودة" }); setFormOpen(false); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -76,7 +84,24 @@ export default function MyServices() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map(s => (
-              <MyServiceCard key={s.id} service={s} onEdit={setEditingId} onDelete={setDeletingId} />
+              <MyServiceCard
+                key={s.id}
+                service={s}
+                onEdit={setEditingId}
+                onDelete={setDeletingId}
+                onSuspend={(id) => updateStatus.mutate({ id, approval: "suspended" }, {
+                  onSuccess: () => toast({ title: "تم إيقاف الخدمة مؤقتاً" }),
+                  onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                })}
+                onReactivate={(id) => updateStatus.mutate({ id, approval: "pending" }, {
+                  onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة" }),
+                  onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                })}
+                onArchive={(id) => updateStatus.mutate({ id, approval: "archived" }, {
+                  onSuccess: () => toast({ title: "تم أرشفة الخدمة" }),
+                  onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                })}
+              />
             ))}
           </div>
         )}
@@ -84,7 +109,12 @@ export default function MyServices() {
         <Dialog open={formOpen} onOpenChange={setFormOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>إضافة خدمة جديدة</DialogTitle></DialogHeader>
-            <ServiceForm onSubmit={handleCreate} isLoading={createService.isPending} submitLabel="إنشاء الخدمة" />
+            <ServiceForm
+              onSubmit={handleCreate}
+              isLoading={createService.isPending}
+              submitLabel="إنشاء ونشر الخدمة"
+              onSaveDraft={handleCreateDraft}
+            />
           </DialogContent>
         </Dialog>
 

@@ -1,12 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Pause, Play, Archive } from "lucide-react";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
+  draft: { label: "مسودة", variant: "secondary", border: "border-t-4 border-slate-400" },
   pending: { label: "قيد المراجعة", variant: "secondary", border: "border-t-4 border-yellow-500" },
   approved: { label: "معتمدة", variant: "default", border: "border-t-4 border-emerald-500" },
   rejected: { label: "مرفوضة", variant: "destructive", border: "border-t-4 border-red-500" },
+  suspended: { label: "موقوفة مؤقتاً", variant: "destructive", border: "border-t-4 border-orange-500" },
+  archived: { label: "مؤرشفة", variant: "secondary", border: "border-t-4 border-slate-500" },
 };
 
 const serviceTypeLabels: Record<string, string> = {
@@ -27,9 +30,12 @@ interface MyServiceCardProps {
   };
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onSuspend?: (id: string) => void;
+  onReactivate?: (id: string) => void;
+  onArchive?: (id: string) => void;
 }
 
-export function MyServiceCard({ service, onEdit, onDelete }: MyServiceCardProps) {
+export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactivate, onArchive }: MyServiceCardProps) {
   const status = approvalLabels[service.approval] ?? approvalLabels.pending;
 
   return (
@@ -48,6 +54,15 @@ export function MyServiceCard({ service, onEdit, onDelete }: MyServiceCardProps)
           </div>
         </div>
         <div className="flex gap-1">
+          {(service.approval === "approved" || service.approval === "pending") && onSuspend && (
+            <Button variant="ghost" size="icon" className="hover:bg-orange-500/10" title="إيقاف مؤقت" onClick={() => onSuspend(service.id)}><Pause className="h-4 w-4 text-orange-500" /></Button>
+          )}
+          {(service.approval === "suspended" || service.approval === "draft") && onReactivate && (
+            <Button variant="ghost" size="icon" className="hover:bg-emerald-500/10" title="إعادة نشر" onClick={() => onReactivate(service.id)}><Play className="h-4 w-4 text-emerald-500" /></Button>
+          )}
+          {service.approval !== "archived" && onArchive && (
+            <Button variant="ghost" size="icon" className="hover:bg-muted" title="أرشفة" onClick={() => onArchive(service.id)}><Archive className="h-4 w-4 text-muted-foreground" /></Button>
+          )}
           <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => onEdit(service.id)}><Pencil className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="hover:bg-destructive/10" onClick={() => onDelete(service.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
         </div>

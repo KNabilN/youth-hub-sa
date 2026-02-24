@@ -20,6 +20,7 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
+  suspended: "معلق", archived: "مؤرشف",
 };
 
 const statusColors: Record<string, string> = {
@@ -27,6 +28,7 @@ const statusColors: Record<string, string> = {
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
   cancelled: "bg-muted text-muted-foreground",
+  suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
 };
 
 const projectFields: FieldConfig[] = [
