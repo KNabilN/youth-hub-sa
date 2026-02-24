@@ -1,125 +1,72 @@
 
 
-# Admin Edit Requests System
+# User Detail Panel in Admin Users Page
 
 ## Overview
-Build a system where admins can request changes to services, projects, and profiles. Instead of directly editing, the admin creates an "edit request" that gets sent as a notification to the item's owner. The owner can then accept (apply the changes) or reject it. If rejected, the item enters a pending/frozen status until the admin re-approves.
+When the admin clicks on a user's name in the users table, a side panel (Sheet) will slide open showing all of that user's data organized in tabs: profile info, services, projects, contracts, disputes, time logs, and edit requests.
 
-## Database Changes
+## Implementation
 
-### New Table: `edit_requests`
+### 1. New Component: `src/components/admin/UserDetailSheet.tsx`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid | Primary key |
-| target_table | text | 'micro_services', 'projects', or 'profiles' |
-| target_id | uuid | ID of the record to edit |
-| requested_by | uuid | Admin user ID |
-| target_user_id | uuid | Owner of the item (receives the request) |
-| requested_changes | jsonb | Key-value pairs of proposed field changes |
-| message | text | Optional admin message explaining why |
-| status | text | 'pending', 'accepted', 'rejected' (default: 'pending') |
-| created_at | timestamptz | Default now() |
-| updated_at | timestamptz | Default now() |
+A Sheet component that slides in from the left (RTL layout) containing:
 
-### RLS Policies for `edit_requests`
-- Admins can do everything (ALL)
-- Target users can SELECT and UPDATE their own requests (to accept/reject)
+**Header**: Avatar, name, role badge, verification/suspension status
 
-### Realtime
-- Enable realtime on `edit_requests` so users see new requests immediately
+**Tabbed Content** with the following tabs:
 
-## Application Changes
+| Tab | Data Source | What it Shows |
+|-----|------------|---------------|
+| الملف الشخصي (Profile) | `profiles` table | Full name, phone, org name, bio, hourly rate, email (from user_roles join), join date, verification, suspension status |
+| الخدمات (Services) | `micro_services` where `provider_id = userId` | All services with title, price, approval status, category |
+| المشاريع (Projects) | `projects` where `association_id = userId` OR `assigned_provider_id = userId` | Projects with title, status, budget, category |
+| العقود (Contracts) | `contracts` where `provider_id` or `association_id = userId` | Contract list with project info, signing status |
+| النزاعات (Disputes) | `disputes` where `raised_by = userId` | Disputes with status, description |
+| سجل الوقت (Time Logs) | `time_logs` where `provider_id = userId` | Time entries with hours, date, project, approval |
+| طلبات التعديل (Edit Requests) | `edit_requests` where `target_user_id = userId` | Pending/past edit requests |
 
-### 1. Hook: `src/hooks/useEditRequests.ts`
-- `useCreateEditRequest()` - Admin creates a request with target_table, target_id, target_user_id, requested_changes, message
-- `useMyEditRequests()` - User fetches their pending edit requests
-- `useAcceptEditRequest()` - User accepts: applies the changes to the target table, updates status to 'accepted'
-- `useRejectEditRequest()` - User rejects: updates status to 'rejected', sets the target item to pending status (approval='pending' for services, status='pending_approval' for projects)
+Each tab will query via the admin's RLS privileges (admin has ALL on these tables).
 
-### 2. Admin UI - "Request Edit" Button
+### 2. New Hook: `src/hooks/useAdminUserDetails.ts`
 
-**ServiceApprovalCard** (`src/components/admin/ServiceApprovalCard.tsx`):
-- Add a "طلب تعديل" (Request Edit) button
-- Opens a dialog with editable fields (title, description, price) pre-filled with current values
-- Admin modifies the fields they want changed, adds an optional message
-- Submits as an edit request + sends notification to provider
+Contains individual query hooks for each data type, all taking a `userId` parameter:
+- `useAdminUserServices(userId)` - fetches from `micro_services` with category join
+- `useAdminUserProjects(userId)` - fetches from `projects` with category/region joins
+- `useAdminUserContracts(userId)` - fetches from `contracts` with project title join
+- `useAdminUserDisputes(userId)` - fetches from `disputes` with project title join
+- `useAdminUserTimeLogs(userId)` - fetches from `time_logs` with project title join
+- `useAdminUserEditRequests(userId)` - fetches from `edit_requests`
 
-**AdminProjects** (`src/pages/admin/AdminProjects.tsx`):
-- Add a "طلب تعديل" button per project row
-- Dialog with editable fields (title, description, budget)
-- Submits edit request + notification to association
+All queries are enabled only when `userId` is provided.
 
-**UserTable** (`src/components/admin/UserTable.tsx`):
-- Change the existing direct-edit pencil button to create an edit request instead
-- Same dialog fields, but now submits as a request rather than direct update
+### 3. Modify: `src/components/admin/UserTable.tsx`
 
-### 3. New Component: `src/components/admin/EditRequestDialog.tsx`
-- Reusable dialog component for creating edit requests
-- Props: fields config, current values, target info
-- Renders form fields dynamically based on config
-- Submits via `useCreateEditRequest`
+- Add state: `const [viewUser, setViewUser] = useState<any>(null);`
+- Make the user's name in the table a clickable element (styled as a link/button)
+- On click, set `viewUser` to the user object
+- Render `<UserDetailSheet>` at the bottom of the component
 
-### 4. User-Facing: Edit Requests Page (`src/pages/EditRequests.tsx`)
-- New page at `/edit-requests` route
-- Shows pending edit requests for the logged-in user
-- Each request shows: which item, what changes are proposed, admin message
-- Accept/Reject buttons per request
-- On accept: changes are applied to the item automatically
-- On reject: item status set to pending, notification sent to admin
+### No Database Changes Required
+The admin already has ALL policies on every relevant table, so all queries will work with existing RLS.
 
-### 5. New Component: `src/components/edit-requests/EditRequestCard.tsx`
-- Card showing the edit request details
-- Side-by-side comparison of current vs proposed values
-- Accept/Reject action buttons
+## Technical Details
 
-### 6. Navigation
-- Add "طلبات التعديل" link to the sidebar for non-admin users
-- Show badge count of pending edit requests
+### UserDetailSheet Component Structure
+- Uses `Sheet` from `@/components/ui/sheet` with `side="left"` (since the app is RTL, left side acts as the detail panel)
+- Sheet width: `sm:max-w-2xl w-[90%]` for enough room to display data
+- Uses `Tabs` component for organized navigation between data sections
+- Each tab content uses `ScrollArea` for scrollable content within the sheet
+- Loading states with `Skeleton` per tab
+- Empty states with helpful messages per tab
 
-### 7. Notifications
-- When admin creates request: notify user "لديك طلب تعديل من المدير على [نوع العنصر]"
-- When user accepts: notify admin "تم قبول طلب التعديل على [عنصر]"
-- When user rejects: notify admin "تم رفض طلب التعديل على [عنصر] - تم تعليقه"
+### Files to Create
+| File | Purpose |
+|------|---------|
+| `src/hooks/useAdminUserDetails.ts` | Query hooks for user-related data |
+| `src/components/admin/UserDetailSheet.tsx` | Sheet component with tabs |
 
-## Flow Summary
-
-```text
-Admin views service/project/profile
-  |
-  v
-Clicks "Request Edit" button
-  |
-  v
-Dialog opens with current values pre-filled
-Admin modifies desired fields + adds message
-  |
-  v
-Edit request created in DB + notification sent to owner
-  |
-  v
-Owner sees notification + visits Edit Requests page
-  |
-  +---> Accepts: changes applied to item, admin notified
-  |
-  +---> Rejects: item set to pending status, admin notified
-              Admin must re-approve the item
-```
-
-## Files to Create/Modify
-
-| File | Action |
+### Files to Modify
+| File | Change |
 |------|--------|
-| Database migration | Create `edit_requests` table + RLS + realtime |
-| `src/hooks/useEditRequests.ts` | New - CRUD hooks |
-| `src/components/admin/EditRequestDialog.tsx` | New - reusable dialog |
-| `src/components/edit-requests/EditRequestCard.tsx` | New - user-facing card |
-| `src/pages/EditRequests.tsx` | New - user page |
-| `src/components/admin/ServiceApprovalCard.tsx` | Add request edit button |
-| `src/pages/admin/AdminProjects.tsx` | Add request edit button |
-| `src/components/admin/UserTable.tsx` | Change direct edit to request |
-| `src/components/AppSidebar.tsx` | Add edit requests nav link |
-| `src/App.tsx` | Add `/edit-requests` route |
-
-Total: 5 new files, 5 modified files, 1 database migration.
+| `src/components/admin/UserTable.tsx` | Make name clickable, add Sheet state and render |
 
