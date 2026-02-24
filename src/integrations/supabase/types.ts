@@ -142,6 +142,45 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          quantity: number
+          service_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "micro_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -1025,7 +1064,14 @@ export type Database = {
         | "archived"
       bid_status: "pending" | "accepted" | "rejected" | "withdrawn"
       dispute_status: "open" | "under_review" | "resolved" | "closed"
-      escrow_status: "held" | "released" | "frozen" | "refunded"
+      escrow_status:
+        | "held"
+        | "released"
+        | "frozen"
+        | "refunded"
+        | "pending_payment"
+        | "failed"
+        | "under_review"
       project_status:
         | "draft"
         | "pending_approval"
@@ -1182,7 +1228,15 @@ export const Constants = {
       ],
       bid_status: ["pending", "accepted", "rejected", "withdrawn"],
       dispute_status: ["open", "under_review", "resolved", "closed"],
-      escrow_status: ["held", "released", "frozen", "refunded"],
+      escrow_status: [
+        "held",
+        "released",
+        "frozen",
+        "refunded",
+        "pending_payment",
+        "failed",
+        "under_review",
+      ],
       project_status: [
         "draft",
         "pending_approval",
