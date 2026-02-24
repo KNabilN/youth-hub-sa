@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Building2, UserCheck, HandCoins, Shield, CheckCircle2 } from "lucide-react";
+import { Building2, UserCheck, HandCoins, Shield, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 type AppRole = "youth_association" | "service_provider" | "donor";
 
@@ -77,6 +78,11 @@ export default function Auth() {
       {/* Form Side */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md space-y-6 animate-fade-in">
+          {/* Back to landing */}
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowRight className="w-4 h-4" />
+            العودة للصفحة الرئيسية
+          </Link>
           {/* Logo (mobile) */}
           <div className="text-center space-y-2 lg:hidden">
             <div className="mx-auto w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
