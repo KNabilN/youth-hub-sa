@@ -26,7 +26,7 @@ export default function Index() {
               <Link to="/auth">تسجيل الدخول</Link>
             </Button>
             <Button asChild className="shadow-md">
-              <Link to="/auth">إنشاء حساب</Link>
+              <Link to="/auth?mode=register">إنشاء حساب</Link>
             </Button>
           </div>
         </div>
