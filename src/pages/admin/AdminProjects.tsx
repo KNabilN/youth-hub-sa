@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminProjects, useUpdateProjectStatus } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -10,6 +11,8 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
+import { FileEdit } from "lucide-react";
+import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
@@ -26,12 +29,19 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
+const projectFields: FieldConfig[] = [
+  { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف", type: "textarea" },
+  { key: "budget", label: "الميزانية", type: "number" },
+];
+
 export default function AdminProjects() {
   const pagination = usePagination();
   const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
   const updateStatus = useUpdateProjectStatus();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editProject, setEditProject] = useState<any>(null);
 
   const filtered = (projects ?? []).filter((p: any) => {
     if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
@@ -72,6 +82,7 @@ export default function AdminProjects() {
                     <TableHead>الحالة</TableHead>
                     <TableHead>التاريخ</TableHead>
                     <TableHead>تغيير الحالة</TableHead>
+                    <TableHead>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -90,9 +101,14 @@ export default function AdminProjects() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
+                          <FileEdit className="h-4 w-4 ml-1" />طلب تعديل
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد مشاريع</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد مشاريع</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>
@@ -106,6 +122,19 @@ export default function AdminProjects() {
           </>
         )}
       </div>
+
+      {editProject && (
+        <EditRequestDialog
+          open={!!editProject}
+          onOpenChange={(o) => !o && setEditProject(null)}
+          targetTable="projects"
+          targetId={editProject.id}
+          targetUserId={editProject.association_id}
+          currentValues={editProject}
+          fields={projectFields}
+          title="طلب تعديل المشروع"
+        />
+      )}
     </DashboardLayout>
   );
 }

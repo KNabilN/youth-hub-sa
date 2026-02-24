@@ -47,6 +47,7 @@ import ResetPassword from "./pages/ResetPassword";
 import MyProjects from "./pages/MyProjects";
 import Invoices from "./pages/Invoices";
 import MyDisputes from "./pages/MyDisputes";
+import EditRequests from "./pages/EditRequests";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
               <Route path="/my-projects" element={<ProtectedRoute><MyProjects /></ProtectedRoute>} />
               <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
               <Route path="/my-disputes" element={<ProtectedRoute><MyDisputes /></ProtectedRoute>} />
+              <Route path="/edit-requests" element={<ProtectedRoute><EditRequests /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
               <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />

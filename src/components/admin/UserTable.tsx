@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
+import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole } from "@/hooks/useAdminUsers";
+import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { CheckCircle, XCircle, Ban, Pencil } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -35,19 +34,26 @@ interface UserTableProps {
   pagination?: PaginationProps;
 }
 
+const profileFields: FieldConfig[] = [
+  { key: "full_name", label: "الاسم" },
+  { key: "phone", label: "الهاتف" },
+  { key: "organization_name", label: "اسم المنظمة" },
+  { key: "bio", label: "نبذة", type: "textarea" },
+  { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
+];
+
 export function UserTable({ pagination }: UserTableProps) {
   const from = pagination?.from ?? 0;
   const to = pagination?.to ?? 19;
   const { data: users, isLoading } = useAdminUsers(from, to);
+  const { user: authUser } = useAuth();
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
   const changeRole = useChangeUserRole();
-  const updateProfile = useAdminUpdateProfile();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
   const [editUser, setEditUser] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ full_name: "", phone: "", organization_name: "", bio: "", hourly_rate: "" });
 
   const filtered = (users ?? []).filter((u: any) => {
     if (search && !u.full_name?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -74,28 +80,6 @@ export function UserTable({ pagination }: UserTableProps) {
 
   const openEdit = (u: any) => {
     setEditUser(u);
-    setEditForm({
-      full_name: u.full_name || "",
-      phone: u.phone || "",
-      organization_name: u.organization_name || "",
-      bio: u.bio || "",
-      hourly_rate: u.hourly_rate?.toString() || "",
-    });
-  };
-
-  const handleSaveEdit = () => {
-    if (!editUser) return;
-    updateProfile.mutate({
-      id: editUser.id,
-      full_name: editForm.full_name,
-      phone: editForm.phone || undefined,
-      organization_name: editForm.organization_name || undefined,
-      bio: editForm.bio || undefined,
-      hourly_rate: editForm.hourly_rate ? Number(editForm.hourly_rate) : null,
-    }, {
-      onSuccess: () => { toast.success("تم تحديث الملف الشخصي"); setEditUser(null); },
-      onError: () => toast.error("حدث خطأ"),
-    });
   };
 
   if (isLoading) return <div className="text-center py-8 text-muted-foreground">جارٍ التحميل...</div>;
@@ -177,7 +161,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(u)}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(u)}><FileEdit className="h-4 w-4" /></Button>
                     <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
                     </Button>
@@ -227,23 +211,19 @@ export function UserTable({ pagination }: UserTableProps) {
         />
       )}
 
-      {/* Edit User Dialog */}
-      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>تعديل الملف الشخصي</DialogTitle></DialogHeader>
-          <div className="space-y-3 py-2">
-            <div><Label>الاسم</Label><Input value={editForm.full_name} onChange={e => setEditForm(p => ({ ...p, full_name: e.target.value }))} /></div>
-            <div><Label>الهاتف</Label><Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} /></div>
-            <div><Label>اسم المنظمة</Label><Input value={editForm.organization_name} onChange={e => setEditForm(p => ({ ...p, organization_name: e.target.value }))} /></div>
-            <div><Label>نبذة</Label><Textarea value={editForm.bio} onChange={e => setEditForm(p => ({ ...p, bio: e.target.value }))} rows={3} /></div>
-            <div><Label>السعر بالساعة</Label><Input type="number" value={editForm.hourly_rate} onChange={e => setEditForm(p => ({ ...p, hourly_rate: e.target.value }))} /></div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditUser(null)}>إلغاء</Button>
-            <Button onClick={handleSaveEdit} disabled={updateProfile.isPending}>{updateProfile.isPending ? "جارٍ الحفظ..." : "حفظ"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Request Dialog */}
+      {editUser && (
+        <EditRequestDialog
+          open={!!editUser}
+          onOpenChange={(o) => !o && setEditUser(null)}
+          targetTable="profiles"
+          targetId={editUser.id}
+          targetUserId={editUser.id}
+          currentValues={editUser}
+          fields={profileFields}
+          title="طلب تعديل الملف الشخصي"
+        />
+      )}
     </div>
   );
 }
