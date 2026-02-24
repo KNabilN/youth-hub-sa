@@ -24,7 +24,9 @@ import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip } from "lucide-react";
+import { FileUploader } from "@/components/attachments/FileUploader";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -289,6 +291,10 @@ export default function ProjectDetails() {
             <TabsTrigger value="contract">العقد</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
             <TabsTrigger value="disputes">النزاعات</TabsTrigger>
+            <TabsTrigger value="attachments" className="flex items-center gap-1">
+              <Paperclip className="h-3.5 w-3.5" />
+              المرفقات
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="bids" className="mt-4">
@@ -379,6 +385,23 @@ export default function ProjectDetails() {
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">لا توجد نزاعات</p>
             )}
+          </TabsContent>
+
+          <TabsContent value="attachments" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Paperclip className="h-5 w-5" />
+                  مرفقات المشروع
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(isAssociation || isProvider) && (
+                  <FileUploader entityType="project" entityId={project.id} />
+                )}
+                <AttachmentList entityType="project" entityId={project.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
