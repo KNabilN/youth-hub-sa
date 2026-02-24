@@ -1,29 +1,52 @@
 
 
-# Fix Header Overlapping Sidebar and Content Shrinking
+# Seed Data and Form Scrolling Fix
 
-## Problem
-From the screenshot, two issues are visible:
-1. The top header bar renders **on top of** the sidebar when it's open (the header has `z-30` while the sidebar only has `z-10`)
-2. The main content area shrinks when the sidebar opens instead of maintaining its width
+## 1. Seed Saudi Arabia Regions
 
-## Root Cause
-In `sidebar.tsx` line 195, the fixed sidebar panel uses `z-10`. The header in `DashboardLayout.tsx` uses `sticky top-0 z-30`, which is higher, causing the header to paint over the sidebar.
+The regions table is currently empty. Will insert all 13 administrative regions of Saudi Arabia:
 
-For the shrinking issue, the content area needs `min-w-0` to prevent flex items from being squeezed, and the outer container should allow horizontal overflow so content doesn't compress.
+- الرياض
+- مكة المكرمة
+- المدينة المنورة
+- القصيم
+- المنطقة الشرقية
+- عسير
+- تبوك
+- حائل
+- الحدود الشمالية
+- جازان
+- نجران
+- الباحة
+- الجوف
 
-## Changes
+## 2. Seed Categories
 
-### File 1: `src/components/ui/sidebar.tsx`
-- Line 195: Change `z-10` to `z-40` on the fixed sidebar panel so it renders above the header (`z-30`)
+The categories table has one junk entry ("ddd"). Will delete it and insert meaningful service/project categories:
 
-### File 2: `src/components/DashboardLayout.tsx`
-- Add `min-w-0` to the content wrapper div to prevent flex shrinking
-- Add `overflow-x-auto` to allow the content to scroll if needed rather than compress
+- تقنية المعلومات
+- التصميم والجرافيك
+- التسويق الرقمي
+- التعليم والتدريب
+- الاستشارات الإدارية
+- المحاسبة والمالية
+- الترجمة
+- البناء والمقاولات
+- الصحة والرعاية
+- البيئة والاستدامة
 
-| File | Change |
-|------|--------|
-| `src/components/ui/sidebar.tsx` | Sidebar z-index `z-10` to `z-40` |
-| `src/components/DashboardLayout.tsx` | Add `min-w-0` to content div |
+## 3. Dialog Scrolling Fix
 
-2 files, minimal CSS-only changes.
+The `DialogContent` component currently has no max-height or overflow handling, so long forms (like the service form with image upload) get cut off on smaller screens.
+
+### Changes to `src/components/ui/dialog.tsx`
+- Add `max-h-[90vh] overflow-y-auto` to the `DialogContent` base classes so all dialogs become scrollable when content exceeds viewport height
+
+## Summary
+
+| Change | Type |
+|--------|------|
+| Insert 13 Saudi regions | Database migration |
+| Delete junk + insert 10 categories | Database migration |
+| Add scroll to DialogContent | Code change (1 file) |
+
