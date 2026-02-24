@@ -125,7 +125,11 @@ export function UserTable({ pagination }: UserTableProps) {
           <TableBody>
             {filtered.map((u: any) => (
               <TableRow key={u.id}>
-                <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                <TableCell>
+                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => setViewUser(u)}>
+                    {u.full_name || "—"}
+                  </Button>
+                </TableCell>
                 <TableCell>
                   <Select
                     value={u.user_roles?.[0]?.role ?? ""}
