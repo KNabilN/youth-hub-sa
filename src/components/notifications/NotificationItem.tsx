@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -30,34 +32,51 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
 export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {
   const config = typeConfig[type] || { icon: Bell, label: type };
   const Icon = config.icon;
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${is_read ? "bg-card" : "bg-accent/30 border-primary/20"}`}>
-      <div className="shrink-0 mt-0.5">
-        <div className={`rounded-full p-1.5 ${is_read ? "bg-muted" : "bg-primary/10"}`}>
-          <Icon className={`h-4 w-4 ${is_read ? "text-muted-foreground" : "text-primary"}`} />
+    <>
+      <div className={`flex items-start gap-3 p-4 rounded-lg border transition-all duration-200 ${is_read ? "bg-card" : "bg-accent/30 border-primary/20"}`}>
+        <div className="shrink-0 mt-0.5">
+          <div className={`rounded-full p-1.5 ${is_read ? "bg-muted" : "bg-primary/10"}`}>
+            <Icon className={`h-4 w-4 ${is_read ? "text-muted-foreground" : "text-primary"}`} />
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{config.label}</span>
+          </div>
+          <p className={`text-sm ${is_read ? "text-muted-foreground" : "text-foreground font-medium"}`}>{message}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {formatDistanceToNow(new Date(created_at), { addSuffix: true, locale: ar })}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {!is_read && (
+            <Button variant="ghost" size="sm" onClick={() => onMarkRead(id)}>
+              تم القراءة
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteConfirm(true)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{config.label}</span>
-        </div>
-        <p className={`text-sm ${is_read ? "text-muted-foreground" : "text-foreground font-medium"}`}>{message}</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(created_at), { addSuffix: true, locale: ar })}
-        </p>
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        {!is_read && (
-          <Button variant="ghost" size="sm" onClick={() => onMarkRead(id)}>
-            تم القراءة
-          </Button>
-        )}
-        {onDelete && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(id)}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
-    </div>
+
+      <ConfirmDialog
+        open={deleteConfirm}
+        onOpenChange={setDeleteConfirm}
+        title="حذف الإشعار"
+        description="هل أنت متأكد من حذف هذا الإشعار؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
+        variant="destructive"
+        onConfirm={() => {
+          onDelete?.(id);
+          setDeleteConfirm(false);
+        }}
+      />
+    </>
   );
 }
