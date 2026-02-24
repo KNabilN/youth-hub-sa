@@ -42,7 +42,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/profile")}
             >
-              <div className="text-left hidden sm:block">
+              <div className="text-end hidden sm:block">
                 <p className="text-sm font-medium leading-none">{profile?.full_name || user?.email}</p>
                 {profile?.full_name && (
                   <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>

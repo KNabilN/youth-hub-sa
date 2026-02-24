@@ -64,7 +64,7 @@ export default function Earnings() {
             </Button>
           )}
         </div>
-        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
           <div className="space-y-4">

@@ -91,12 +91,18 @@ export default function Ratings() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">التقييمات</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isProvider ? "قيّم الجمعيات بعد إتمام العقود" : "قيّم مقدمي الخدمات بعد إتمام العقود"}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Star className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">التقييمات</h1>
+            <p className="text-sm text-muted-foreground">
+              {isProvider ? "قيّم الجمعيات بعد إتمام العقود" : "قيّم مقدمي الخدمات بعد إتمام العقود"}
+            </p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {activeContract && (
           <Card className="border-primary">

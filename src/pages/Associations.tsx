@@ -33,10 +33,16 @@ export default function Associations() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">الجمعيات</h1>
-          <p className="text-muted-foreground text-sm mt-1">تصفح الجمعيات الشبابية الموثقة</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Users className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">الجمعيات</h1>
+            <p className="text-sm text-muted-foreground">تصفح الجمعيات الشبابية الموثقة</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1,2,3].map(i => <Skeleton key={i} className="h-44 w-full" />)}</div>

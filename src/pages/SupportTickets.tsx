@@ -15,15 +15,21 @@ export default function SupportTickets() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">الدعم الفني</h1>
-            <p className="text-muted-foreground text-sm mt-1">تذاكر الدعم الخاصة بك</p>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <MessageSquare className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">الدعم الفني</h1>
+              <p className="text-sm text-muted-foreground">تذاكر الدعم الخاصة بك</p>
+            </div>
           </div>
           <Button onClick={() => navigate("/tickets/new")}>
             <Plus className="ml-2 h-4 w-4" />
             تذكرة جديدة
           </Button>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>

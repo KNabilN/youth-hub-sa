@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, FolderKanban } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Projects() {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -17,18 +18,27 @@ export default function Projects() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">المشاريع</h1>
-            <p className="text-sm text-muted-foreground mt-1">إدارة مشاريع الجمعية</p>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <FolderKanban className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">المشاريع</h1>
+              <p className="text-sm text-muted-foreground">إدارة مشاريع الجمعية</p>
+            </div>
           </div>
           <Button onClick={() => navigate("/projects/new")}>
             <Plus className="h-4 w-4 ml-1" />
             مشروع جديد
           </Button>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="حالة المشروع" /></SelectTrigger>
+        <Card className="border-dashed bg-muted/30">
+          <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px] bg-background"><SelectValue placeholder="حالة المشروع" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">جميع الحالات</SelectItem>
             <SelectItem value="draft">مسودة</SelectItem>
@@ -37,8 +47,10 @@ export default function Projects() {
             <SelectItem value="completed">مكتمل</SelectItem>
             <SelectItem value="disputed">متنازع</SelectItem>
             <SelectItem value="cancelled">ملغي</SelectItem>
-          </SelectContent>
-        </Select>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

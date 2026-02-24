@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { Clock, CheckCircle } from "lucide-react";
+import { Card as FilterCard, CardContent as FilterCardContent } from "@/components/ui/card";
 
 export default function TimeLogs() {
   const [filter, setFilter] = useState("all");
@@ -19,10 +20,16 @@ export default function TimeLogs() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">سجل الساعات</h1>
-          <p className="text-sm text-muted-foreground mt-1">مراجعة واعتماد ساعات العمل</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Clock className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">سجل الساعات</h1>
+            <p className="text-sm text-muted-foreground">مراجعة واعتماد ساعات العمل</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card><CardContent className="p-4 flex items-center gap-3">
@@ -35,15 +42,20 @@ export default function TimeLogs() {
           </CardContent></Card>
         </div>
 
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="الحالة" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="pending">قيد المراجعة</SelectItem>
-            <SelectItem value="approved">معتمد</SelectItem>
-            <SelectItem value="rejected">مرفوض</SelectItem>
-          </SelectContent>
-        </Select>
+        <FilterCard className="border-dashed bg-muted/30">
+          <FilterCardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-[180px] bg-background"><SelectValue placeholder="الحالة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                <SelectItem value="pending">قيد المراجعة</SelectItem>
+                <SelectItem value="approved">معتمد</SelectItem>
+                <SelectItem value="rejected">مرفوض</SelectItem>
+              </SelectContent>
+            </Select>
+          </FilterCardContent>
+        </FilterCard>
 
         {isLoading ? <Skeleton className="h-64" /> : (
           <TimeLogTable
