@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, DollarSign, CheckCircle, Briefcase, MessageSquare, User } from "lucide-react";
+import { Star, DollarSign, CheckCircle, Briefcase, MessageSquare, User, Images } from "lucide-react";
+import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 
 export default function ProviderProfile() {
   const { id } = useParams<{ id: string }>();
@@ -144,6 +145,14 @@ export default function ProviderProfile() {
               <span className="text-xs text-muted-foreground">متوسط التقييم</span>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Portfolio Section */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Images className="h-5 w-5 text-primary" /> معرض الأعمال
+          </h2>
+          <PortfolioGrid providerId={id!} />
         </div>
 
         {/* Services Section */}

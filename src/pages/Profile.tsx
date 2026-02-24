@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays } from "lucide-react";
+import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -174,6 +175,8 @@ export default function Profile() {
                 </CardContent>
               </Card>
             </div>
+
+            {role === "service_provider" && <PortfolioManager />}
 
             <div className="flex justify-end">
               <Button onClick={handleSave} disabled={updateProfile.isPending} className="px-8 shadow-md">
