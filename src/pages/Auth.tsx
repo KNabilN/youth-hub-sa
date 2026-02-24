@@ -78,11 +78,7 @@ export default function Auth() {
       {/* Form Side */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md space-y-6 animate-fade-in">
-          {/* Back to landing */}
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium bg-muted hover:bg-primary/10 hover:text-primary text-muted-foreground px-4 py-2 rounded-xl border border-border hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group">
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            العودة للصفحة الرئيسية
-          </Link>
+          
           {/* Logo (mobile) */}
           <div className="text-center space-y-2 lg:hidden">
             <div className="mx-auto w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
@@ -208,6 +204,14 @@ export default function Auth() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Back to landing */}
+          <div className="text-center">
+            <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium bg-muted hover:bg-primary/10 hover:text-primary text-muted-foreground px-4 py-2 rounded-xl border border-border hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group">
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              العودة للصفحة الرئيسية
+            </Link>
+          </div>
         </div>
       </div>
     </div>
