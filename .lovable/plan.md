@@ -1,40 +1,29 @@
 
-# Fix Sidebar RTL Positioning and Alignment
+
+# Fix Header Overlapping Sidebar and Content Shrinking
 
 ## Problem
-The sidebar is positioned on the **left** side of the screen, but since this is an Arabic RTL platform, it should appear on the **right** side. Additionally, several internal styling details use physical CSS properties (left/right) instead of logical ones, causing misalignment.
+From the screenshot, two issues are visible:
+1. The top header bar renders **on top of** the sidebar when it's open (the header has `z-30` while the sidebar only has `z-10`)
+2. The main content area shrinks when the sidebar opens instead of maintaining its width
 
-## Root Causes
+## Root Cause
+In `sidebar.tsx` line 195, the fixed sidebar panel uses `z-10`. The header in `DashboardLayout.tsx` uses `sticky top-0 z-30`, which is higher, causing the header to paint over the sidebar.
 
-1. **`<Sidebar>` defaults to `side="left"`** (line 138 of sidebar.tsx) - The component uses `left-0` fixed positioning, placing it on the wrong side for RTL.
-2. **Active link border uses `border-r-[3px]`** - In an RTL layout, this appears on the visual left (wrong side). Should use `border-l-[3px]` (which renders on the visual right in RTL).
-3. **Online status dot uses `-left-1`** - Should use `-right-1` for RTL so the green dot appears correctly relative to the avatar.
-4. **`SidebarMenuButton` has hardcoded `text-left`** in the sidebar.tsx component - Should be `text-start` for RTL compatibility.
-5. **`DashboardLayout` flex order** - With sidebar on the right, the content should come first in the DOM order, then the sidebar.
-6. **Notification badge uses `mr-auto`** - Should use `ms-auto` (margin-inline-start) for logical RTL spacing.
+For the shrinking issue, the content area needs `min-w-0` to prevent flex items from being squeezed, and the outer container should allow horizontal overflow so content doesn't compress.
 
 ## Changes
 
-### File 1: `src/components/AppSidebar.tsx`
-- Change `<Sidebar>` to `<Sidebar side="right">` to position on the right
-- Change all `border-r-[3px]` in activeClassName to `border-l-[3px]` (visual right in RTL)
-- Change online dot from `-left-1` to `-right-1`
-- Change `mr-auto` on NotificationBadge to `ms-auto`
+### File 1: `src/components/ui/sidebar.tsx`
+- Line 195: Change `z-10` to `z-40` on the fixed sidebar panel so it renders above the header (`z-30`)
 
 ### File 2: `src/components/DashboardLayout.tsx`
-- Reorder flex children: content first, then sidebar (so sidebar appears on the right in the DOM flow alongside `side="right"`)
-- Change `flex` to `flex flex-row-reverse` to ensure correct ordering with the fixed sidebar
-
-### File 3: `src/components/ui/sidebar.tsx`
-- Change `text-left` to `text-start` in `sidebarMenuButtonVariants` (line 415) for proper RTL text alignment
-- This is a minimal, safe change that only affects text direction
-
-## Summary
+- Add `min-w-0` to the content wrapper div to prevent flex shrinking
+- Add `overflow-x-auto` to allow the content to scroll if needed rather than compress
 
 | File | Change |
 |------|--------|
-| `src/components/AppSidebar.tsx` | `side="right"`, fix active borders, dot position, badge margin |
-| `src/components/DashboardLayout.tsx` | Adjust flex order for RTL sidebar placement |
-| `src/components/ui/sidebar.tsx` | `text-left` to `text-start` in menu button variants |
+| `src/components/ui/sidebar.tsx` | Sidebar z-index `z-10` to `z-40` |
+| `src/components/DashboardLayout.tsx` | Add `min-w-0` to content div |
 
-3 files modified, no new files. All changes are CSS/prop adjustments with no logic changes.
+2 files, minimal CSS-only changes.
