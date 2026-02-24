@@ -73,7 +73,7 @@ export function AppSidebar() {
   const items = role ? menuByRole[role] : [];
 
   return (
-    <Sidebar>
+    <Sidebar side="right">
       {/* User Profile Header */}
       <SidebarHeader className="p-5 pb-4">
         <div className="flex flex-col items-center text-center gap-3">
@@ -84,7 +84,7 @@ export function AppSidebar() {
                 {(profile?.full_name?.[0] || "؟")}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-sidebar-background" />
+            <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-sidebar-background" />
           </div>
           <div className="space-y-0.5">
             <p className="text-sm font-bold text-sidebar-foreground">{profile?.full_name || "مستخدم"}</p>
@@ -108,7 +108,7 @@ export function AppSidebar() {
                       to={item.url}
                       end={item.url === "/dashboard"}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-[3px] border-sidebar-ring"
                     >
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                         <item.icon className="h-[17px] w-[17px]" />
@@ -139,13 +139,13 @@ export function AppSidebar() {
                   <NavLink
                     to="/notifications"
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-[3px] border-sidebar-ring"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                       <Bell className="h-[17px] w-[17px]" />
                     </div>
                     <span className="text-sm">الإشعارات</span>
-                    <span className="mr-auto"><NotificationBadge /></span>
+                    <span className="ms-auto"><NotificationBadge /></span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -154,7 +154,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/tickets"
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-[3px] border-sidebar-ring"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                       <MessageSquare className="h-[17px] w-[17px]" />
@@ -168,7 +168,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/profile"
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-r-[3px] border-sidebar-ring"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-[3px] border-sidebar-ring"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                       <UserCircle className="h-[17px] w-[17px]" />
