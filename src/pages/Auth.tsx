@@ -79,8 +79,8 @@ export default function Auth() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md space-y-6 animate-fade-in">
           {/* Back to landing */}
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowRight className="w-4 h-4" />
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium bg-muted hover:bg-primary/10 hover:text-primary text-muted-foreground px-4 py-2 rounded-xl border border-border hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group">
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             العودة للصفحة الرئيسية
           </Link>
           {/* Logo (mobile) */}
