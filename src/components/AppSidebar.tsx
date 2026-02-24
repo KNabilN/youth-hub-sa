@@ -2,7 +2,7 @@ import { usePendingEditRequestsCount } from "@/hooks/useEditRequests";
 import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt, FileEdit,
-  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun,
+  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -21,6 +21,7 @@ const menuByRole = {
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "المشاريع", url: "/projects", icon: FolderKanban },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
+    { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
     { title: "العقود", url: "/contracts", icon: FileText },
     { title: "سجل الساعات", url: "/time-logs", icon: ClipboardList },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
@@ -42,6 +43,7 @@ const menuByRole = {
   donor: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
+    { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "التبرعات", url: "/donations", icon: HandCoins },
     { title: "تقارير الأثر", url: "/impact", icon: BarChart3 },

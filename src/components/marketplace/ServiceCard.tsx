@@ -1,13 +1,12 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { usePurchaseService } from "@/hooks/usePurchaseService";
+import { useAddToCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -23,20 +22,16 @@ const typeLabel: Record<string, string> = {
 
 export function ServiceCard({ service }: { service: Service }) {
   const { user, role } = useAuth();
-  const purchase = usePurchaseService();
-  const [showDialog, setShowDialog] = useState(false);
+  const addToCart = useAddToCart();
 
   const canPurchase = role === "youth_association" || role === "donor";
 
-  const handlePurchase = () => {
+  const handleAddToCart = () => {
     if (!user) return;
-    purchase.mutate(
-      { serviceId: service.id, providerId: service.provider_id, buyerId: user.id, amount: service.price },
-      {
-        onSuccess: () => { toast.success("تم شراء الخدمة بنجاح"); setShowDialog(false); },
-        onError: () => toast.error("حدث خطأ أثناء الشراء"),
-      }
-    );
+    addToCart.mutate(service.id, {
+      onSuccess: () => toast.success("تمت إضافة الخدمة إلى السلة"),
+      onError: () => toast.error("حدث خطأ أثناء الإضافة"),
+    });
   };
 
   return (
@@ -72,31 +67,13 @@ export function ServiceCard({ service }: { service: Service }) {
               {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={() => canPurchase ? setShowDialog(true) : null} disabled={!canPurchase}>
-            {canPurchase ? "طلب الخدمة" : "طلب الخدمة"}
+          <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
+            <ShoppingCart className="h-4 w-4 ml-1" />
+            {addToCart.isPending ? "جارٍ الإضافة..." : "أضف إلى السلة"}
           </Button>
         </CardContent>
       </Card>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>تأكيد شراء الخدمة</DialogTitle>
-            <DialogDescription>سيتم حجز المبلغ حتى إتمام الخدمة</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-4">
-            <p className="font-medium">{service.title}</p>
-            <p className="text-sm text-muted-foreground">{service.profiles?.full_name}</p>
-            <p className="text-lg font-bold text-primary">{service.price.toLocaleString()} ر.س</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>إلغاء</Button>
-            <Button onClick={handlePurchase} disabled={purchase.isPending}>
-              {purchase.isPending ? "جارٍ الشراء..." : "تأكيد الشراء"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

@@ -48,6 +48,9 @@ import MyProjects from "./pages/MyProjects";
 import Invoices from "./pages/Invoices";
 import MyDisputes from "./pages/MyDisputes";
 import EditRequests from "./pages/EditRequests";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 const queryClient = new QueryClient();
@@ -91,6 +94,9 @@ const App = () => (
               <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
               <Route path="/my-disputes" element={<ProtectedRoute><MyDisputes /></ProtectedRoute>} />
               <Route path="/edit-requests" element={<ProtectedRoute><EditRequests /></ProtectedRoute>} />
+              <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+              <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
               <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
