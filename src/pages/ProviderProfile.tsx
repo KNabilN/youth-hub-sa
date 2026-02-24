@@ -122,7 +122,7 @@ export default function ProviderProfile() {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-4 pb-4 flex flex-col items-center gap-1">
               <Briefcase className="h-5 w-5 text-primary" />

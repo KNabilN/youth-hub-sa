@@ -73,7 +73,7 @@ export default function MyBids() {
             <p className="text-sm text-muted-foreground">تابع حالة عروضك المقدمة على المشاريع</p>
           </div>
         </div>
-        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {/* Filter Panel */}
         <Card className="bg-muted/30 border-dashed">

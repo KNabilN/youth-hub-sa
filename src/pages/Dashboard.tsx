@@ -32,18 +32,18 @@ interface StatItem {
 
 function StatCard({ stat, index }: { stat: StatItem; index: number }) {
   const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-    primary: { bg: "bg-primary/10", text: "text-primary", border: "border-r-primary" },
-    warning: { bg: "bg-warning/10", text: "text-warning", border: "border-r-warning" },
-    info: { bg: "bg-info/10", text: "text-info", border: "border-r-info" },
-    success: { bg: "bg-success/10", text: "text-success", border: "border-r-success" },
-    accent: { bg: "bg-accent/10", text: "text-accent-foreground", border: "border-r-accent" },
-    destructive: { bg: "bg-destructive/10", text: "text-destructive", border: "border-r-destructive" },
+    primary: { bg: "bg-primary/10", text: "text-primary", border: "border-s-primary" },
+    warning: { bg: "bg-warning/10", text: "text-warning", border: "border-s-warning" },
+    info: { bg: "bg-info/10", text: "text-info", border: "border-s-info" },
+    success: { bg: "bg-success/10", text: "text-success", border: "border-s-success" },
+    accent: { bg: "bg-accent/10", text: "text-accent-foreground", border: "border-s-accent" },
+    destructive: { bg: "bg-destructive/10", text: "text-destructive", border: "border-s-destructive" },
   };
   const c = colorMap[stat.color] || colorMap.primary;
 
   return (
     <Card className={cn(
-      "card-hover border-r-4 animate-fade-in",
+      "card-hover border-s-4 animate-fade-in",
       c.border,
       `stagger-${index + 1}`
     )} style={{ animationFillMode: 'both' }}>

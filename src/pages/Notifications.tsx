@@ -20,9 +20,14 @@ export default function Notifications() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">الإشعارات</h1>
-            <p className="text-muted-foreground text-sm mt-1">جميع الإشعارات والتنبيهات</p>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <Bell className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">الإشعارات</h1>
+              <p className="text-sm text-muted-foreground">جميع الإشعارات والتنبيهات</p>
+            </div>
           </div>
           {hasUnread && (
             <Button variant="outline" size="sm" onClick={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
@@ -31,6 +36,7 @@ export default function Notifications() {
             </Button>
           )}
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>

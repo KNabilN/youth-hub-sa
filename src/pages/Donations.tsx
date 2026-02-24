@@ -26,10 +26,16 @@ export default function Donations() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">التبرعات</h1>
-          <p className="text-muted-foreground text-sm mt-1">قدم تبرعاً وتابع سجل تبرعاتك</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <HandCoins className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">التبرعات</h1>
+            <p className="text-sm text-muted-foreground">قدم تبرعاً وتابع سجل تبرعاتك</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <Card>
           <CardHeader><CardTitle className="text-lg">تبرع جديد</CardTitle></CardHeader>
@@ -46,7 +52,7 @@ export default function Donations() {
             ) : !contributions?.length ? (
               <EmptyState icon={HandCoins} title="لا توجد تبرعات سابقة" description="قدّم تبرعك الأول من النموذج أعلاه" />
             ) : (
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>التاريخ</TableHead>
@@ -63,7 +69,7 @@ export default function Donations() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table></div>
             )}
           </CardContent>
         </Card>

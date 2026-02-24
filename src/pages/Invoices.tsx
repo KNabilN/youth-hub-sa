@@ -33,7 +33,7 @@ export default function Invoices() {
         ) : (
           <Card>
             <CardContent className="p-0">
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>رقم الفاتورة</TableHead>
@@ -60,7 +60,7 @@ export default function Invoices() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table></div>
             </CardContent>
           </Card>
         )}
