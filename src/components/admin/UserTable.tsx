@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Ban, FileEdit } from "lucide-react";
+import { UserDetailSheet } from "@/components/admin/UserDetailSheet";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
   const [editUser, setEditUser] = useState<any>(null);
+  const [viewUser, setViewUser] = useState<any>(null);
 
   const filtered = (users ?? []).filter((u: any) => {
     if (search && !u.full_name?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -224,6 +226,13 @@ export function UserTable({ pagination }: UserTableProps) {
           title="طلب تعديل الملف الشخصي"
         />
       )}
+
+      {/* User Detail Sheet */}
+      <UserDetailSheet
+        user={viewUser}
+        open={!!viewUser}
+        onOpenChange={(o) => !o && setViewUser(null)}
+      />
     </div>
   );
 }
