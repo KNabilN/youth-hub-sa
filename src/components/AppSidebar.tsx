@@ -2,7 +2,7 @@ import { usePendingEditRequestsCount } from "@/hooks/useEditRequests";
 import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt, FileEdit,
-  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart,
+  Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -58,6 +58,7 @@ const menuByRole = {
     { title: "التقارير", url: "/admin/reports", icon: BarChart3 },
     { title: "تذاكر الدعم", url: "/admin/tickets", icon: MessageSquare },
     { title: "سجل التدقيق", url: "/admin/audit-log", icon: ScrollText },
+    { title: "إدارة المحتوى", url: "/admin/cms", icon: LayoutTemplate },
     { title: "الإعدادات", url: "/admin/settings", icon: Settings },
   ],
 };
