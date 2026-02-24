@@ -7,9 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { StepProgress } from "@/components/ui/step-progress";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CreditCard, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
+const checkoutSteps = [
+  { label: "السلة" },
+  { label: "المراجعة" },
+  { label: "الدفع" },
+  { label: "التأكيد" },
+];
 
 export default function Checkout() {
   const { user } = useAuth();
@@ -18,15 +27,16 @@ export default function Checkout() {
   const clearCart = useClearCart();
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
 
   const handleCheckout = async () => {
     if (!user || !items?.length) return;
+    setConfirmOpen(false);
     setProcessing(true);
 
     try {
-      // Process each item as a separate purchase/escrow
       for (const item of items) {
         await purchase.mutateAsync({
           serviceId: item.micro_services.id,
@@ -35,10 +45,7 @@ export default function Checkout() {
           amount: item.micro_services.price,
         });
       }
-
-      // Clear the cart after successful purchase
       await clearCart.mutateAsync();
-
       navigate("/payment-success", { state: { total, count: items.length } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
@@ -65,6 +72,9 @@ export default function Checkout() {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-3xl mx-auto">
+        {/* Step Progress */}
+        <StepProgress steps={checkoutSteps} currentStep={2} className="mb-2" />
+
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")}>
@@ -148,7 +158,7 @@ export default function Checkout() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={handleCheckout}
+                  onClick={() => setConfirmOpen(true)}
                   disabled={processing}
                 >
                   {processing ? (
@@ -171,6 +181,17 @@ export default function Checkout() {
             </Card>
           </div>
         </div>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="تأكيد عملية الدفع"
+          description={`هل تريد تأكيد دفع ${total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`}
+          confirmLabel="تأكيد الدفع"
+          cancelLabel="مراجعة الطلب"
+          loading={processing}
+          onConfirm={handleCheckout}
+        />
       </div>
     </DashboardLayout>
   );

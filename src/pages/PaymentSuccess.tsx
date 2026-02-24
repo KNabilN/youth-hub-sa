@@ -1,8 +1,17 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, ArrowLeft, Receipt } from "lucide-react";
+import { SuccessAnimation } from "@/components/ui/success-animation";
+import { StepProgress } from "@/components/ui/step-progress";
+import { ArrowLeft, Receipt } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+
+const checkoutSteps = [
+  { label: "السلة" },
+  { label: "المراجعة" },
+  { label: "الدفع" },
+  { label: "التأكيد" },
+];
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -11,18 +20,15 @@ export default function PaymentSuccess() {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-md w-full">
-          <CardContent className="flex flex-col items-center text-center py-12 px-8 space-y-6">
-            <div className="bg-primary/10 p-4 rounded-full">
-              <CheckCircle className="h-12 w-12 text-primary" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">تم الدفع بنجاح!</h1>
-              <p className="text-muted-foreground">
-                تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي
-              </p>
-            </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <StepProgress steps={checkoutSteps} currentStep={4} className="mb-4" />
+
+        <Card className="max-w-md w-full animate-fade-in">
+          <CardContent className="flex flex-col items-center text-center py-10 px-8 space-y-6">
+            <SuccessAnimation
+              title="تم الدفع بنجاح!"
+              description="تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي"
+            />
 
             {state && (
               <div className="bg-muted/50 rounded-lg p-4 w-full space-y-2">
