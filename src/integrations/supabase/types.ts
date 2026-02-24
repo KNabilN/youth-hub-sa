@@ -762,6 +762,8 @@ export type Database = {
           is_suspended: boolean
           is_verified: boolean
           organization_name: string | null
+          pdpl_consent_at: string | null
+          pdpl_consent_version: string | null
           phone: string | null
           updated_at: string
         }
@@ -775,6 +777,8 @@ export type Database = {
           is_suspended?: boolean
           is_verified?: boolean
           organization_name?: string | null
+          pdpl_consent_at?: string | null
+          pdpl_consent_version?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -788,6 +792,8 @@ export type Database = {
           is_suspended?: boolean
           is_verified?: boolean
           organization_name?: string | null
+          pdpl_consent_at?: string | null
+          pdpl_consent_version?: string | null
           phone?: string | null
           updated_at?: string
         }

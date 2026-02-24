@@ -5,12 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Building2, UserCheck, HandCoins, Shield, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { z } from "zod";
 
 type AppRole = "youth_association" | "service_provider" | "donor";
+
+const loginSchema = z.object({
+  email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
+});
+
+const registerSchema = loginSchema.extend({
+  fullName: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
+  pdplConsent: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }) }),
+});
 
 const roleOptions: { key: AppRole; label: string; icon: typeof Building2; desc: string }[] = [
   { key: "youth_association", label: "جمعية شبابية", icon: Building2, desc: "إنشاء مشاريع وتعيين مقدمي خدمات" },
@@ -25,23 +37,42 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<AppRole>("youth_association");
+  const [pdplConsent, setPdplConsent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setErrors({});
 
+    // Validate
+    const schema = isLogin ? loginSchema : registerSchema;
+    const parsed = schema.safeParse(
+      isLogin ? { email, password } : { email, password, fullName, pdplConsent }
+    );
+
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      parsed.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setLoading(true);
     if (isLogin) {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email.trim(), password);
       if (error) {
         toast.error(error.message);
       } else {
         navigate("/dashboard");
       }
     } else {
-      const { error } = await signUp(email, password, fullName, role);
+      const { error } = await signUp(email.trim(), password, fullName.trim(), role);
       if (error) {
         toast.error(error.message);
       } else {
@@ -154,8 +185,9 @@ export default function Auth() {
                     placeholder="example@domain.com"
                     required
                     dir="ltr"
-                    className="text-left h-11"
+                    className={cn("text-left h-11", errors.email && "border-destructive")}
                   />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -168,10 +200,34 @@ export default function Auth() {
                     placeholder="••••••••"
                     required
                     dir="ltr"
-                    className="text-left h-11"
+                    className={cn("text-left h-11", errors.password && "border-destructive")}
                     minLength={6}
                   />
+                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                 </div>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="pdpl"
+                        checked={pdplConsent}
+                        onCheckedChange={(checked) => setPdplConsent(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="pdpl" className="text-xs leading-relaxed cursor-pointer">
+                        أوافق على{" "}
+                        <Link to="/privacy" target="_blank" className="text-primary underline">
+                          سياسة الخصوصية وحماية البيانات الشخصية
+                        </Link>{" "}
+                        وفقاً لنظام PDPL السعودي
+                      </Label>
+                    </div>
+                    {errors.pdplConsent && <p className="text-xs text-destructive">{errors.pdplConsent}</p>}
+                  </div>
+                )}
+
+                {errors.fullName && !isLogin && <p className="text-xs text-destructive">{errors.fullName}</p>}
 
                 <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
                   {loading
