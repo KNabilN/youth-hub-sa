@@ -7,8 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Paperclip } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
+import { FileUploader } from "@/components/attachments/FileUploader";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface DisputeResponseThreadProps {
   disputeId: string;
@@ -20,6 +24,7 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
   const createResponse = useCreateDisputeResponse();
   const { user } = useAuth();
   const [message, setMessage] = useState("");
+  const [showUploader, setShowUploader] = useState(false);
 
   const canRespond = disputeStatus === "open" || disputeStatus === "under_review";
 
@@ -46,6 +51,10 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Status Timeline */}
+        <DisputeTimeline disputeId={disputeId} />
+
+        {/* Responses */}
         {isLoading ? (
           <p className="text-sm text-muted-foreground text-center py-4">جارٍ التحميل...</p>
         ) : responses?.length === 0 ? (
@@ -82,6 +91,21 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
           </div>
         )}
 
+        {/* Evidence Attachments */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5">
+              <Paperclip className="h-3.5 w-3.5" />
+              الأدلة والمرفقات
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 space-y-3">
+            <AttachmentList entityType="dispute" entityId={disputeId} />
+            {canRespond && <FileUploader entityType="dispute" entityId={disputeId} />}
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Response Input */}
         {canRespond && (
           <div className="flex gap-2 border-t pt-3">
             <Textarea

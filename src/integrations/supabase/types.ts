@@ -323,6 +323,51 @@ export type Database = {
           },
         ]
       }
+      dispute_status_log: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          dispute_id: string
+          id: string
+          new_status: string
+          note: string | null
+          old_status: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          dispute_id: string
+          id?: string
+          new_status: string
+          note?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          dispute_id?: string
+          id?: string
+          new_status?: string
+          note?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_status_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_status_log_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
