@@ -30,11 +30,12 @@ export type ProjectFormValues = z.infer<typeof projectSchema>;
 interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormValues>;
   onSubmit: (values: ProjectFormValues) => void;
+  onSaveDraft?: (values: ProjectFormValues) => void;
   isLoading?: boolean;
   submitLabel?: string;
 }
 
-export function ProjectForm({ defaultValues, onSubmit, isLoading, submitLabel = "حفظ" }: ProjectFormProps) {
+export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, submitLabel = "حفظ" }: ProjectFormProps) {
   const [step, setStep] = useState(0);
   const [skillInput, setSkillInput] = useState("");
   const { data: categories } = useCategories();
@@ -220,6 +221,11 @@ export function ProjectForm({ defaultValues, onSubmit, isLoading, submitLabel = 
         <div className="flex gap-3 justify-between">
           {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>السابق</Button>}
           <div className="flex gap-2 mr-auto">
+            {onSaveDraft && (
+              <Button type="button" variant="outline" disabled={isLoading} onClick={() => onSaveDraft(form.getValues())}>
+                حفظ كمسودة
+              </Button>
+            )}
             {step < 2 && (
               <Button type="button" onClick={() => setStep(step + 1)} disabled={!canNext()}>التالي</Button>
             )}

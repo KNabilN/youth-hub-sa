@@ -1016,7 +1016,13 @@ export type Database = {
         | "youth_association"
         | "service_provider"
         | "donor"
-      approval_status: "pending" | "approved" | "rejected"
+      approval_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "draft"
+        | "suspended"
+        | "archived"
       bid_status: "pending" | "accepted" | "rejected" | "withdrawn"
       dispute_status: "open" | "under_review" | "resolved" | "closed"
       escrow_status: "held" | "released" | "frozen" | "refunded"
@@ -1028,6 +1034,8 @@ export type Database = {
         | "completed"
         | "disputed"
         | "cancelled"
+        | "suspended"
+        | "archived"
       service_type: "fixed_price" | "hourly"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
@@ -1164,7 +1172,14 @@ export const Constants = {
         "service_provider",
         "donor",
       ],
-      approval_status: ["pending", "approved", "rejected"],
+      approval_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "draft",
+        "suspended",
+        "archived",
+      ],
       bid_status: ["pending", "accepted", "rejected", "withdrawn"],
       dispute_status: ["open", "under_review", "resolved", "closed"],
       escrow_status: ["held", "released", "frozen", "refunded"],
@@ -1176,6 +1191,8 @@ export const Constants = {
         "completed",
         "disputed",
         "cancelled",
+        "suspended",
+        "archived",
       ],
       service_type: ["fixed_price", "hourly"],
       ticket_priority: ["low", "medium", "high", "urgent"],

@@ -64,3 +64,14 @@ export function useDeleteService() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-services"] }),
   });
 }
+
+export function useUpdateServiceStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, approval }: { id: string; approval: "draft" | "pending" | "suspended" | "archived" }) => {
+      const { error } = await supabase.from("micro_services").update({ approval }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-services"] }),
+  });
+}

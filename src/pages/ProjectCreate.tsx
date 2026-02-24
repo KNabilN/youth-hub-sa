@@ -9,12 +9,22 @@ export default function ProjectCreate() {
   const navigate = useNavigate();
 
   const handleSubmit = (values: ProjectFormValues) => {
-    createProject.mutate(values as any, {
+    createProject.mutate({ ...values, status: "pending_approval" } as any, {
       onSuccess: (data) => {
         toast({ title: "تم إنشاء المشروع بنجاح" });
         navigate(`/projects/${data.id}`);
       },
       onError: () => toast({ title: "حدث خطأ أثناء إنشاء المشروع", variant: "destructive" }),
+    });
+  };
+
+  const handleSaveDraft = (values: ProjectFormValues) => {
+    createProject.mutate({ ...values, status: "draft" } as any, {
+      onSuccess: (data) => {
+        toast({ title: "تم حفظ المشروع كمسودة" });
+        navigate(`/projects/${data.id}`);
+      },
+      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
@@ -25,7 +35,7 @@ export default function ProjectCreate() {
           <h1 className="text-2xl font-bold">إنشاء مشروع جديد</h1>
           <p className="text-sm text-muted-foreground mt-1">أضف تفاصيل المشروع وانشره لمقدمي الخدمات</p>
         </div>
-        <ProjectForm onSubmit={handleSubmit} isLoading={createProject.isPending} submitLabel="إنشاء مشروع" />
+        <ProjectForm onSubmit={handleSubmit} onSaveDraft={handleSaveDraft} isLoading={createProject.isPending} submitLabel="إنشاء مشروع" />
       </div>
     </DashboardLayout>
   );

@@ -28,11 +28,12 @@ interface ServiceFormProps {
   defaultValues?: Partial<ServiceFormValues>;
   defaultImageUrl?: string | null;
   onSubmit: (values: ServiceFormValues & { image_url?: string | null }) => void;
+  onSaveDraft?: (values: ServiceFormValues & { image_url?: string | null }) => void;
   isLoading?: boolean;
   submitLabel?: string;
 }
 
-export function ServiceForm({ defaultValues, defaultImageUrl, onSubmit, isLoading, submitLabel = "حفظ" }: ServiceFormProps) {
+export function ServiceForm({ defaultValues, defaultImageUrl, onSubmit, onSaveDraft, isLoading, submitLabel = "حفظ" }: ServiceFormProps) {
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
   const { user } = useAuth();
@@ -156,9 +157,16 @@ export function ServiceForm({ defaultValues, defaultImageUrl, onSubmit, isLoadin
             </FormItem>
           )} />
         </div>
-        <Button type="submit" disabled={isLoading || uploading} className="w-full">
-          {isLoading ? "جارٍ الحفظ..." : submitLabel}
-        </Button>
+        <div className="flex gap-2">
+          {onSaveDraft && (
+            <Button type="button" variant="outline" disabled={isLoading || uploading} onClick={() => onSaveDraft({ ...form.getValues(), image_url: imageUrl })} className="flex-1">
+              حفظ كمسودة
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading || uploading} className="flex-1">
+            {isLoading ? "جارٍ الحفظ..." : submitLabel}
+          </Button>
+        </div>
       </form>
     </Form>
   );
