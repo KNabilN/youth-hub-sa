@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -35,6 +36,7 @@ export default function Profile() {
   const [phone, setPhone] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
+  const [emailNotifications, setEmailNotifications] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
   if (profile && !initialized) {
@@ -43,6 +45,7 @@ export default function Profile() {
     setPhone(profile.phone ?? "");
     setOrganizationName(profile.organization_name ?? "");
     setHourlyRate(profile.hourly_rate?.toString() ?? "");
+    setEmailNotifications((profile as any).email_notifications ?? true);
     setInitialized(true);
   }
 
@@ -54,7 +57,8 @@ export default function Profile() {
         phone,
         organization_name: organizationName,
         hourly_rate: hourlyRate ? Number(hourlyRate) : null,
-      },
+        email_notifications: emailNotifications,
+      } as any,
       {
         onSuccess: () => toast({ title: "تم تحديث الملف الشخصي" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
@@ -177,6 +181,24 @@ export default function Profile() {
             </div>
 
             {role === "service_provider" && <PortfolioManager />}
+
+            {/* Email Preferences */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BellRing className="h-5 w-5 text-primary" /> إعدادات الإشعارات
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">إشعارات البريد الإلكتروني</p>
+                    <p className="text-xs text-muted-foreground">استلام إشعارات عبر البريد عند وجود تحديثات جديدة</p>
+                  </div>
+                  <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="flex justify-end">
               <Button onClick={handleSave} disabled={updateProfile.isPending} className="px-8 shadow-md">
