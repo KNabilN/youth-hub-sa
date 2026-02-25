@@ -1,37 +1,62 @@
 
-# اصلاح مشكلة عدم ظهور العقود
+# Upgrade Admin Reports to Professional PDF with Charts
 
-## المشكلة
-عند قبول العرض، يحاول الكود انشاء عقد جديد في جدول `contracts`، لكن سياسة الامان (RLS) لا تسمح للجمعيات بالادراج. السياسات الحالية:
-- SELECT فقط لاطراف العقد
-- ALL للمشرف فقط
+## Problem
+The PDF export currently generates a basic HTML page with only summary stats and plain tables. The charts visible on the web page (pie charts, bar charts) are completely missing from the exported report.
 
-لذلك يفشل الادراج بصمت ولا يظهر اي عقد.
+## Solution
+Redesign the PDF report generation to include visual charts by capturing the Recharts SVG charts as images and embedding them in the PDF, plus improving the overall layout with professional styling.
 
-## الحل
-اضافة سياسات RLS جديدة تسمح بـ:
+## Implementation Steps
 
-1. **INSERT** - السماح للجمعيات بانشاء عقود (حيث `association_id = auth.uid()`)
-2. **UPDATE** - السماح لاطراف العقد بتحديثه (للتوقيع)
+### 1. Capture Charts as Images for PDF
+- Use `html-to-image` approach: Before generating the PDF, use the canvas API to convert each Recharts SVG chart into a base64 PNG image
+- Create a helper function that queries all chart containers on the page and converts them to data URLs
 
-## التفاصيل التقنية
+### 2. Redesign `src/lib/report-pdf.ts`
+- Accept chart images (base64) as an additional parameter
+- Add professional styling: branded header with gradient, better typography, colored stat cards, proper spacing
+- Embed chart images in a 2-column grid layout matching the web view
+- Add page break handling for print
+- Add footer with page info and generation timestamp
 
-### Migration جديد:
-```sql
--- السماح للجمعيات بانشاء عقود
-CREATE POLICY "Associations can create contracts"
-  ON public.contracts FOR INSERT TO authenticated
-  WITH CHECK (association_id = auth.uid());
+### 3. Update `src/pages/admin/AdminReports.tsx`
+- Add `ref` attributes to each chart Card container for capture
+- Update `exportPDF` function to:
+  1. Capture all chart containers as base64 PNG images using canvas/SVG serialization
+  2. Pass chart images along with table data to the enhanced `generateReportPDF`
+- Add chart titles alongside their images in the PDF
 
--- السماح لاطراف العقد بتحديثه (التوقيع)
-CREATE POLICY "Contract parties can update"
-  ON public.contracts FOR UPDATE TO authenticated
-  USING (association_id = auth.uid() OR provider_id = auth.uid());
+## Technical Approach
+- Use native browser SVG serialization + Canvas API (no new dependencies needed)
+- Each `ResponsiveContainer` wrapping a Recharts chart contains an SVG element
+- Serialize each SVG to a string, draw on a canvas, then export as `toDataURL('image/png')`
+- Pass an array of `{ title: string; imageDataUrl: string }` to the PDF generator
+
+## Updated PDF Layout
+```text
++------------------------------------------+
+|     [Logo/Brand Header with gradient]     |
+|        Platform Analytics Report          |
+|          Date Range | Generated At        |
++------------------------------------------+
+|  [Stat Card] [Stat Card] [Stat Card] ... |
++------------------------------------------+
+| [Chart: Projects by Status]  [Chart: Users by Role] |
+| [Chart: Services by Category] [Chart: Projects by Region] |
+| [Chart: Monthly Donations]   [Chart: Service Approval] |
+| [Chart: Monthly Escrow]      [Chart: Hourly Rates]    |
++------------------------------------------+
+|           Donor Analytics Section         |
++------------------------------------------+
+|        Detailed Data Tables Below         |
+|   Projects by Status | Projects by Region |
+|   Monthly Donations  | Escrow Transactions|
++------------------------------------------+
+|              Footer / Page Info            |
++------------------------------------------+
 ```
 
-### تحسين معالجة الاخطاء في `useBids.ts`:
-اضافة التحقق من نتيجة ادراج العقد ورمي خطأ اذا فشل، حتى لا يفشل بصمت.
-
-## الملفات المتأثرة
-- Migration جديد (سياسات RLS)
-- `src/hooks/useBids.ts` (تحسين معالجة الاخطاء)
+## Files to Modify
+1. **`src/lib/report-pdf.ts`** - Complete redesign with chart image support and professional styling
+2. **`src/pages/admin/AdminReports.tsx`** - Add chart refs, SVG-to-image capture logic, pass images to PDF generator
