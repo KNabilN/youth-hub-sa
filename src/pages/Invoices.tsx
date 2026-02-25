@@ -10,7 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Receipt, Download, Archive, RotateCcw } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Receipt, Download, Archive, RotateCcw, StickyNote } from "lucide-react";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +30,8 @@ export default function Invoices() {
   const { data: templateContent } = useSiteContent("invoice_template");
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
+  const [notesDialog, setNotesDialog] = useState<{ open: boolean; invoice: any | null }>({ open: false, invoice: null });
+  const [notesText, setNotesText] = useState("");
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
@@ -71,6 +75,19 @@ export default function Invoices() {
     await supabase.from("invoices").update({ status: "issued", archived_at: null } as any).eq("id", inv.id);
     queryClient.invalidateQueries({ queryKey: ["my-invoices"] });
     toast.success("تم إلغاء الأرشفة");
+  };
+
+  const openNotesDialog = (inv: any) => {
+    setNotesText((inv as any).notes ?? "");
+    setNotesDialog({ open: true, invoice: inv });
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notesDialog.invoice) return;
+    await supabase.from("invoices").update({ notes: notesText }).eq("id", notesDialog.invoice.id);
+    queryClient.invalidateQueries({ queryKey: ["my-invoices"] });
+    setNotesDialog({ open: false, invoice: null });
+    toast.success("تم حفظ الملاحظات");
   };
 
   return (
@@ -141,6 +158,9 @@ export default function Invoices() {
                             <Button size="icon" variant="ghost" onClick={() => handleDownloadPDF(inv)} title="تحميل PDF">
                               <Download className="h-4 w-4" />
                             </Button>
+                            <Button size="icon" variant="ghost" onClick={() => openNotesDialog(inv)} title="ملاحظات">
+                              <StickyNote className="h-4 w-4" />
+                            </Button>
                             {invStatus !== "archived" ? (
                               <Button size="icon" variant="ghost" onClick={() => handleArchive(inv)} title="أرشفة">
                                 <Archive className="h-4 w-4" />
@@ -160,6 +180,24 @@ export default function Invoices() {
             </CardContent>
           </Card>
         )}
+
+        <Dialog open={notesDialog.open} onOpenChange={(open) => !open && setNotesDialog({ open: false, invoice: null })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>ملاحظات الفاتورة</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              value={notesText}
+              onChange={(e) => setNotesText(e.target.value)}
+              placeholder="أضف ملاحظاتك هنا..."
+              rows={4}
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setNotesDialog({ open: false, invoice: null })}>إلغاء</Button>
+              <Button onClick={handleSaveNotes}>حفظ</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

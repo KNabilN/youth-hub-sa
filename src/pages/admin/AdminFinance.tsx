@@ -11,7 +11,11 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText } from "lucide-react";
+import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
+import { useSiteContent } from "@/hooks/useSiteContent";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -39,7 +43,12 @@ export default function AdminFinance() {
   const { data: withdrawals, isLoading: loadingW } = useAllWithdrawals();
   const updateW = useUpdateWithdrawalStatus();
   const updateEscrow = useUpdateEscrowStatus();
+  const { data: templateContent } = useSiteContent("invoice_template");
+  const queryClient = useQueryClient();
   const [escrowFilter, setEscrowFilter] = useState("all");
+  const [invoiceFilter, setInvoiceFilter] = useState("all");
+
+  const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
   const handleWithdrawal = (id: string, status: string) => {
     updateW.mutate({ id, status }, {
@@ -65,6 +74,37 @@ export default function AdminFinance() {
   const filteredEscrows = (escrows ?? []).filter((e: any) =>
     escrowFilter === "all" ? true : e.status === escrowFilter
   );
+
+  const filteredInvoices = (invoices ?? []).filter((inv: any) =>
+    invoiceFilter === "all" ? true : inv.status === invoiceFilter
+  );
+
+  const handleDownloadInvoice = async (inv: any) => {
+    try {
+      const invoiceData: InvoiceData = {
+        invoiceNumber: inv.invoice_number,
+        amount: Number(inv.amount),
+        commissionAmount: Number(inv.commission_amount),
+        createdAt: inv.created_at,
+        projectTitle: "خدمة",
+        recipientName: inv.profiles?.full_name ?? "—",
+      };
+      await generateInvoicePDF(invoiceData, template);
+      toast.success("تم تحميل الفاتورة");
+    } catch {
+      toast.error("حدث خطأ أثناء التحميل");
+    }
+  };
+
+  const handleArchiveInvoice = async (inv: any) => {
+    const newStatus = inv.status === "archived" ? "issued" : "archived";
+    await supabase.from("invoices").update({
+      status: newStatus,
+      archived_at: newStatus === "archived" ? new Date().toISOString() : null,
+    }).eq("id", inv.id);
+    queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });
+    toast.success(newStatus === "archived" ? "تم أرشفة الفاتورة" : "تم إلغاء الأرشفة");
+  };
 
   return (
     <DashboardLayout>
@@ -175,8 +215,20 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="invoices">
+            <div className="flex items-center gap-3 mb-4">
+              <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
+                <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="issued">صادرة</SelectItem>
+                  <SelectItem value="viewed">تم الاطلاع</SelectItem>
+                  <SelectItem value="archived">مؤرشفة</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">{filteredInvoices.length} فاتورة</span>
+            </div>
             {loadingInvoices ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -184,26 +236,41 @@ export default function AdminFinance() {
                       <TableHead>المستلم</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>العمولة</TableHead>
+                      <TableHead>الصافي</TableHead>
                       <TableHead>الحالة</TableHead>
+                      <TableHead>ملاحظات</TableHead>
                       <TableHead>التاريخ</TableHead>
+                      <TableHead>إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(invoices ?? []).map((inv: any) => (
-                      <TableRow key={inv.id}>
-                        <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
-                        <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
-                        <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>
-                          <Badge variant={inv.status === "issued" ? "default" : inv.status === "paid" ? "secondary" : "outline"}>
-                            {inv.status === "issued" ? "صادرة" : inv.status === "paid" ? "مدفوعة" : inv.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                      </TableRow>
-                    ))}
-                    {(invoices ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
+                    {filteredInvoices.map((inv: any) => {
+                      const statusLabel = inv.status === "issued" ? "صادرة" : inv.status === "viewed" ? "تم الاطلاع" : inv.status === "archived" ? "مؤرشفة" : inv.status;
+                      const statusVariant = inv.status === "issued" ? "default" : inv.status === "viewed" ? "secondary" : "outline";
+                      return (
+                        <TableRow key={inv.id}>
+                          <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
+                          <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-semibold">{(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
+                          <TableCell><Badge variant={statusVariant}>{statusLabel}</Badge></TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{inv.notes || "—"}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" onClick={() => handleDownloadInvoice(inv)} title="تحميل PDF">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => handleArchiveInvoice(inv)} title={inv.status === "archived" ? "إلغاء الأرشفة" : "أرشفة"}>
+                                {inv.status === "archived" ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {filteredInvoices.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
