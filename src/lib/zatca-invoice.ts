@@ -1,7 +1,6 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 
-// ZATCA TLV (Tag-Length-Value) encoding for QR code
 function encodeTLV(tag: number, value: string): Uint8Array {
   const encoder = new TextEncoder();
   const encoded = encoder.encode(value);
@@ -36,13 +35,24 @@ function generateZatcaTLV(
   return btoa(String.fromCharCode(...merged));
 }
 
-// Platform info (can be made configurable via site_content)
-const PLATFORM_INFO = {
-  name: "منصة الشباب",
-  nameEn: "Youth Hub SA",
-  vatNumber: "300000000000003", // Placeholder VAT number
+export interface InvoiceTemplateConfig {
+  company_name: string;
+  company_name_en: string;
+  vat_number: string;
+  cr_number: string;
+  address: string;
+  footer_text: string;
+  logo_url: string;
+}
+
+const DEFAULT_TEMPLATE: InvoiceTemplateConfig = {
+  company_name: "منصة الشباب",
+  company_name_en: "Youth Hub SA",
+  vat_number: "300000000000003",
+  cr_number: "1234567890",
   address: "المملكة العربية السعودية",
-  cr: "1234567890", // Commercial registration placeholder
+  footer_text: "This is a computer-generated invoice. No signature required.",
+  logo_url: "",
 };
 
 export interface InvoiceData {
@@ -54,7 +64,8 @@ export interface InvoiceData {
   recipientName: string;
 }
 
-export async function generateInvoicePDF(invoice: InvoiceData) {
+export async function generateInvoicePDF(invoice: InvoiceData, template?: InvoiceTemplateConfig) {
+  const t = template ?? DEFAULT_TEMPLATE;
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   const netAmount = invoice.amount - invoice.commissionAmount;
@@ -69,10 +80,9 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
   });
   const isoDate = invoiceDate.toISOString();
 
-  // Generate ZATCA QR code
   const tlvBase64 = generateZatcaTLV(
-    PLATFORM_INFO.name,
-    PLATFORM_INFO.vatNumber,
+    t.company_name,
+    t.vat_number,
     isoDate,
     totalWithVat.toFixed(2),
     vatAmount.toFixed(2)
@@ -84,13 +94,11 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
     errorCorrectionLevel: "M",
   });
 
-  // ===== PDF Layout (RTL-friendly, right-aligned) =====
   const pageWidth = 210;
   const margin = 15;
   const rightX = pageWidth - margin;
   let y = 20;
 
-  // Header - Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
   doc.text("Tax Invoice", pageWidth / 2, y, { align: "center" });
@@ -99,28 +107,25 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
   doc.text("فاتورة ضريبية", pageWidth / 2, y, { align: "center" });
   y += 12;
 
-  // Divider
   doc.setDrawColor(0, 128, 128);
   doc.setLineWidth(0.8);
   doc.line(margin, y, rightX, y);
   y += 10;
 
-  // Seller info (left column)
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.text("Seller / البائع", margin, y);
   y += 6;
   doc.setFont("helvetica", "normal");
-  doc.text(`Name: ${PLATFORM_INFO.nameEn}`, margin, y);
+  doc.text(`Name: ${t.company_name_en}`, margin, y);
   y += 5;
-  doc.text(`VAT No: ${PLATFORM_INFO.vatNumber}`, margin, y);
+  doc.text(`VAT No: ${t.vat_number}`, margin, y);
   y += 5;
-  doc.text(`CR: ${PLATFORM_INFO.cr}`, margin, y);
+  doc.text(`CR: ${t.cr_number}`, margin, y);
   y += 5;
-  doc.text(`Address: Saudi Arabia`, margin, y);
+  doc.text(`Address: ${t.address}`, margin, y);
   y += 10;
 
-  // Invoice details
   doc.setFont("helvetica", "bold");
   doc.text("Invoice Details", margin, y);
   y += 6;
@@ -142,7 +147,6 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
   }
   y += 5;
 
-  // Line items table
   doc.setDrawColor(200, 200, 200);
   doc.setFillColor(240, 240, 240);
   doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
@@ -161,7 +165,6 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
   doc.text(netAmount.toLocaleString("en-SA", { minimumFractionDigits: 2 }), margin + 150, y + 4);
   y += 10;
 
-  // Totals
   doc.line(margin, y, rightX, y);
   y += 8;
 
@@ -181,29 +184,21 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
   }
   y += 5;
 
-  // Divider
   doc.setDrawColor(0, 128, 128);
   doc.line(margin, y, rightX, y);
   y += 10;
 
-  // QR Code
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.text("ZATCA QR Code:", margin, y);
   y += 3;
   doc.addImage(qrDataUrl, "PNG", margin, y, 35, 35);
 
-  // Footer
   const footerY = 280;
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(128, 128, 128);
-  doc.text(
-    "This is a computer-generated invoice. No signature required.",
-    pageWidth / 2,
-    footerY,
-    { align: "center" }
-  );
+  doc.text(t.footer_text, pageWidth / 2, footerY, { align: "center" });
   doc.text(
     `Generated on ${new Date().toISOString().slice(0, 10)}`,
     pageWidth / 2,
@@ -211,6 +206,5 @@ export async function generateInvoicePDF(invoice: InvoiceData) {
     { align: "center" }
   );
 
-  // Save
   doc.save(`invoice-${invoice.invoiceNumber}.pdf`);
 }

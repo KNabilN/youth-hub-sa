@@ -585,30 +585,39 @@ export type Database = {
       invoices: {
         Row: {
           amount: number
+          archived_at: string | null
           commission_amount: number
           created_at: string
           escrow_id: string | null
           id: string
           invoice_number: string
           issued_to: string
+          notes: string | null
+          status: string
         }
         Insert: {
           amount: number
+          archived_at?: string | null
           commission_amount: number
           created_at?: string
           escrow_id?: string | null
           id?: string
           invoice_number: string
           issued_to: string
+          notes?: string | null
+          status?: string
         }
         Update: {
           amount?: number
+          archived_at?: string | null
           commission_amount?: number
           created_at?: string
           escrow_id?: string | null
           id?: string
           invoice_number?: string
           issued_to?: string
+          notes?: string | null
+          status?: string
         }
         Relationships: [
           {
