@@ -11,7 +11,7 @@ import { format, parseISO, startOfMonth } from "date-fns";
 import { Download, ChevronDown, FileText, Printer } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { PeriodComparison } from "@/components/admin/PeriodComparison";
-import { generateReportPDF, captureSvgAsImage } from "@/lib/report-pdf";
+import { generateReportPDF, captureChartAsImage } from "@/lib/report-pdf";
 import { toast } from "sonner";
 
 const STATUS_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#ef4444", "#6b7280"];
@@ -205,14 +205,12 @@ export default function AdminReports() {
     try {
       toast.info("جارٍ إعداد التقرير...");
 
-      // Capture all chart SVGs as images
+      // Capture all chart containers as images
       const chartImages: { title: string; imageDataUrl: string }[] = [];
       for (const item of chartRefs.current) {
         if (!item?.ref) continue;
-        const svg = item.ref.querySelector("svg.recharts-surface") as SVGSVGElement | null;
-        if (!svg) continue;
         try {
-          const dataUrl = await captureSvgAsImage(svg, 500, 280);
+          const dataUrl = await captureChartAsImage(item.ref);
           chartImages.push({ title: item.title, imageDataUrl: dataUrl });
         } catch {
           // skip failed charts
@@ -249,7 +247,7 @@ export default function AdminReports() {
         });
       }
 
-      await generateReportPDF(
+      generateReportPDF(
         "تقرير تحليلات المنصة",
         { from: filters.dateFrom, to: filters.dateTo },
         sections,
