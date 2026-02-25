@@ -32,18 +32,20 @@ export function useAcceptBid() {
       // 2. Reject all others
       await supabase.from("bids").update({ status: "rejected" }).eq("project_id", projectId).neq("id", bidId);
       // 3. Create contract
-      await supabase.from("contracts").insert({
+      const { error: contractError } = await supabase.from("contracts").insert({
         project_id: projectId,
         association_id: user!.id,
         provider_id: providerId,
         terms: `عقد تنفيذ مشروع بقيمة ${price} ر.س`,
         association_signed_at: new Date().toISOString(),
       });
+      if (contractError) throw contractError;
       // 4. Update project
-      await supabase.from("projects").update({
+      const { error: projectError } = await supabase.from("projects").update({
         status: "in_progress",
         assigned_provider_id: providerId,
       }).eq("id", projectId);
+      if (projectError) throw projectError;
 
       // 5. Notify the provider
       await sendNotification(providerId, "تم قبول عرضك على المشروع! يمكنك الآن توقيع العقد.", "bid_accepted");
