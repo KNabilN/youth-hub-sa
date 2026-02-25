@@ -3,6 +3,7 @@ import { CommissionForm } from "@/components/admin/CommissionForm";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { RegionManager } from "@/components/admin/RegionManager";
 import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
+import { PendingCategoriesManager } from "@/components/admin/PendingCategoriesManager";
 import { Settings } from "lucide-react";
 
 export default function AdminSettings() {
@@ -26,6 +27,7 @@ export default function AdminSettings() {
           <div className="space-y-6">
             <CategoryManager />
             <RegionManager />
+            <PendingCategoriesManager />
           </div>
         </div>
       </div>

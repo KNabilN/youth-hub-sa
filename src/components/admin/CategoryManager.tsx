@@ -10,8 +10,19 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, Tag, Pencil, Check, X, FolderOpen, Loader2 } from "lucide-react";
+import { Trash2, Plus, Tag, Pencil, Check, X, FolderOpen, Loader2, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
+
+function exportCSV(items: any[], filename: string) {
+  const header = "name,description";
+  const rows = items.map(i => `"${(i.name || "").replace(/"/g, '""')}","${(i.description || "").replace(/"/g, '""')}"`);
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function CategoryManager() {
   const qc = useQueryClient();
@@ -84,6 +95,32 @@ export function CategoryManager() {
           <Button onClick={() => addMut.mutate()} disabled={addMut.isPending} className="min-w-[100px]">
             {addMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             اضافة
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(categories ?? [], "categories.csv")}>
+            <Download className="h-4 w-4 ml-1" /> تصدير CSV
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <label className="cursor-pointer">
+              <Upload className="h-4 w-4 ml-1" /> استيراد CSV
+              <input type="file" accept=".csv" className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const text = await file.text();
+                const lines = text.split("\n").filter(l => l.trim());
+                const rows = lines.slice(1).map(l => {
+                  const match = l.match(/"([^"]*)","?([^"]*)"?/);
+                  return match ? { name: match[1], description: match[2] || null } : null;
+                }).filter(Boolean) as { name: string; description: string | null }[];
+                if (rows.length === 0) { toast.error("الملف فارغ"); return; }
+                const { error } = await supabase.from("categories").insert(rows);
+                if (error) { toast.error("خطأ في الاستيراد"); return; }
+                qc.invalidateQueries({ queryKey: ["admin-categories"] });
+                toast.success(`تم استيراد ${rows.length} تصنيف`);
+                e.target.value = "";
+              }} />
+            </label>
           </Button>
         </div>
 
