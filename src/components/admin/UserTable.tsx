@@ -6,10 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Ban, FileEdit } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus } from "lucide-react";
 import { UserDetailSheet } from "@/components/admin/UserDetailSheet";
+import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -56,6 +60,11 @@ export function UserTable({ pagination }: UserTableProps) {
   const [verifiedFilter, setVerifiedFilter] = useState("all");
   const [editUser, setEditUser] = useState<any>(null);
   const [viewUser, setViewUser] = useState<any>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+
+  // Suspension reason dialog state
+  const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [suspensionReason, setSuspensionReason] = useState("");
 
   const filtered = (users ?? []).filter((u: any) => {
     if (search && !u.full_name?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -73,11 +82,26 @@ export function UserTable({ pagination }: UserTableProps) {
     });
   };
 
-  const handleSuspend = (id: string, current: boolean) => {
-    toggleSuspend.mutate({ id, is_suspended: !current }, {
-      onSuccess: () => toast.success(current ? "تم إلغاء التعليق" : "تم تعليق الحساب"),
-      onError: () => toast.error("حدث خطأ"),
-    });
+  const handleSuspendConfirm = () => {
+    if (!suspendTarget) return;
+    const isSuspended = suspendTarget.is_suspended;
+
+    if (!isSuspended && !suspensionReason.trim()) {
+      toast.error("يرجى إدخال سبب التعليق");
+      return;
+    }
+
+    toggleSuspend.mutate(
+      { id: suspendTarget.id, is_suspended: !isSuspended, suspension_reason: suspensionReason },
+      {
+        onSuccess: () => {
+          toast.success(isSuspended ? "تم إلغاء التعليق" : "تم تعليق الحساب");
+          setSuspendTarget(null);
+          setSuspensionReason("");
+        },
+        onError: () => toast.error("حدث خطأ"),
+      }
+    );
   };
 
   const openEdit = (u: any) => {
@@ -88,7 +112,7 @@ export function UserTable({ pagination }: UserTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 items-center">
         <Input placeholder="بحث بالاسم..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={roleFilter} onValueChange={setRoleFilter}>
           <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
@@ -108,6 +132,11 @@ export function UserTable({ pagination }: UserTableProps) {
             <SelectItem value="unverified">غير موثق</SelectItem>
           </SelectContent>
         </Select>
+        <div className="mr-auto">
+          <Button onClick={() => setCreateOpen(true)} className="gap-1">
+            <UserPlus className="h-4 w-4" />تسجيل مستخدم
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-lg">
@@ -157,7 +186,14 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   {u.is_suspended ? (
-                    <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ml-1" />معلّق</Badge>
+                    <div>
+                      <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ml-1" />معلّق</Badge>
+                      {u.suspension_reason && (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate" title={u.suspension_reason}>
+                          {u.suspension_reason}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <Badge variant="outline" className="text-emerald-600 border-emerald-200 text-xs">نشط</Badge>
                   )}
@@ -171,31 +207,16 @@ export function UserTable({ pagination }: UserTableProps) {
                     <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant={u.is_suspended ? "outline" : "destructive"}>
-                          {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {u.is_suspended ? "إلغاء تعليق الحساب" : "تعليق الحساب"}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {u.is_suspended
-                              ? `هل أنت متأكد من إلغاء تعليق حساب "${u.full_name}"؟`
-                              : `هل أنت متأكد من تعليق حساب "${u.full_name}"؟ لن يتمكن المستخدم من الوصول إلى النظام.`}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleSuspend(u.id, u.is_suspended)}>
-                            تأكيد
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button
+                      size="sm"
+                      variant={u.is_suspended ? "outline" : "destructive"}
+                      onClick={() => {
+                        setSuspendTarget(u);
+                        setSuspensionReason(u.suspension_reason || "");
+                      }}
+                    >
+                      {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -217,6 +238,47 @@ export function UserTable({ pagination }: UserTableProps) {
         />
       )}
 
+      {/* Suspension Reason Dialog */}
+      <Dialog open={!!suspendTarget} onOpenChange={(o) => { if (!o) { setSuspendTarget(null); setSuspensionReason(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {suspendTarget?.is_suspended ? "إلغاء تعليق الحساب" : "تعليق الحساب"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {suspendTarget?.is_suspended
+                ? `هل أنت متأكد من إلغاء تعليق حساب "${suspendTarget?.full_name}"؟`
+                : `سيتم تعليق حساب "${suspendTarget?.full_name}" ولن يتمكن من الوصول إلى النظام.`}
+            </p>
+            {!suspendTarget?.is_suspended && (
+              <div>
+                <Label>سبب التعليق *</Label>
+                <Textarea
+                  value={suspensionReason}
+                  onChange={(e) => setSuspensionReason(e.target.value)}
+                  placeholder="اكتب سبب تعليق الحساب..."
+                  rows={3}
+                />
+              </div>
+            )}
+            {suspendTarget?.is_suspended && suspendTarget?.suspension_reason && (
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">سبب التعليق السابق:</p>
+                <p className="text-sm">{suspendTarget.suspension_reason}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSuspendTarget(null); setSuspensionReason(""); }}>إلغاء</Button>
+            <Button variant={suspendTarget?.is_suspended ? "default" : "destructive"} onClick={handleSuspendConfirm}>
+              تأكيد
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Request Dialog */}
       {editUser && (
         <EditRequestDialog
@@ -237,6 +299,9 @@ export function UserTable({ pagination }: UserTableProps) {
         open={!!viewUser}
         onOpenChange={(o) => !o && setViewUser(null)}
       />
+
+      {/* Create User Dialog */}
+      <AdminCreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

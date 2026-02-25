@@ -128,6 +128,12 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
                 <InfoRow label="نبذة" value={user.bio} />
                 <InfoRow label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
                 <InfoRow label="تاريخ الانضمام" value={format(new Date(user.created_at), "yyyy/MM/dd", { locale: ar })} />
+                {user.is_suspended && user.suspension_reason && (
+                  <div className="bg-destructive/10 rounded-lg p-3 space-y-1">
+                    <span className="text-xs font-medium text-destructive">سبب التعليق</span>
+                    <p className="text-sm">{user.suspension_reason}</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 

@@ -835,6 +835,7 @@ export type Database = {
           pdpl_consent_at: string | null
           pdpl_consent_version: string | null
           phone: string | null
+          suspension_reason: string | null
           updated_at: string
         }
         Insert: {
@@ -850,6 +851,7 @@ export type Database = {
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
           phone?: string | null
+          suspension_reason?: string | null
           updated_at?: string
         }
         Update: {
@@ -865,6 +867,7 @@ export type Database = {
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
           phone?: string | null
+          suspension_reason?: string | null
           updated_at?: string
         }
         Relationships: []
