@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
@@ -43,6 +43,7 @@ export default function ProjectDetails() {
   const createEscrow = useCreateEscrow();
   const generateInvoice = useGenerateInvoice();
   const { role, user } = useAuth();
+  const queryClient = useQueryClient();
   const [disputeDesc, setDisputeDesc] = useState("");
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -377,7 +378,7 @@ export default function ProjectDetails() {
                         توقيع العقد
                       </Button>
                     )}
-                    {/* Escrow creation button - shown after both parties sign and no escrow exists */}
+                    {/* Escrow creation / status section */}
                     {isAssociation && contract.association_signed_at && contract.provider_signed_at && !escrow && (
                       <div className="mt-4 p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5">
                         <div className="flex items-center gap-2 mb-2">
@@ -401,7 +402,10 @@ export default function ProjectDetails() {
                                   amount: project.budget,
                                 },
                                 {
-                                  onSuccess: () => toast({ title: "تم إنشاء الضمان المالي بنجاح" }),
+                                  onSuccess: () => {
+                                    toast({ title: "تم إنشاء الضمان المالي بنجاح" });
+                                    queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
+                                  },
                                   onError: () => toast({ title: "حدث خطأ في إنشاء الضمان", variant: "destructive" }),
                                 }
                               );
@@ -409,8 +413,19 @@ export default function ProjectDetails() {
                             disabled={createEscrow.isPending || !project.budget}
                           >
                             <Shield className="h-4 w-4 ml-1" />
-                            إنشاء الضمان
+                            {createEscrow.isPending ? "جارٍ الإنشاء..." : "إنشاء الضمان"}
                           </Button>
+                        </div>
+                      </div>
+                    )}
+                    {contract.association_signed_at && contract.provider_signed_at && escrow && (
+                      <div className="mt-4 p-4 rounded-lg border border-primary/20 bg-accent/30">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                          <span className="font-medium text-sm">تم إنشاء الضمان المالي</span>
+                          <Badge variant="secondary" className="mr-auto text-xs">
+                            {escrow.amount} ر.س — {escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status}
+                          </Badge>
                         </div>
                       </div>
                     )}
