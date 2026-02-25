@@ -3,6 +3,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt, FileEdit,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
+  Mail,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -20,6 +21,7 @@ const menuByRole = {
   youth_association: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "المشاريع", url: "/projects", icon: FolderKanban },
+    { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
     { title: "العقود", url: "/contracts", icon: FileText },
@@ -31,6 +33,7 @@ const menuByRole = {
     { title: "خدماتي", url: "/my-services", icon: Layers },
     { title: "المشاريع المتاحة", url: "/available-projects", icon: FolderKanban },
     { title: "مشاريعي", url: "/my-projects", icon: FolderKanban },
+    { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "عروضي", url: "/my-bids", icon: FileText },
     { title: "العقود", url: "/contracts", icon: ScrollText },
     { title: "تسجيل الساعات", url: "/time-tracking", icon: ClipboardList },

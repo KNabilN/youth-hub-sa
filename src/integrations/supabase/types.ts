@@ -614,6 +614,54 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          project_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          project_id: string
+          sender_id: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          project_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       micro_services: {
         Row: {
           approval: Database["public"]["Enums"]["approval_status"]

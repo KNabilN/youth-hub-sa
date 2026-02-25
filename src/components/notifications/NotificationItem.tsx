@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins } from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
@@ -44,6 +44,7 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   withdrawal_approved: { icon: Banknote, label: "سحب موافق" },
   withdrawal_rejected: { icon: Banknote, label: "سحب مرفوض" },
   withdrawal_processed: { icon: Banknote, label: "سحب محوّل" },
+  message_received: { icon: Mail, label: "رسالة جديدة" },
 };
 
 export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {

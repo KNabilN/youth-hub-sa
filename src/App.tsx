@@ -50,6 +50,7 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Messages = lazy(() => import("./pages/Messages"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
@@ -130,6 +131,7 @@ const App = () => (
                 <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
