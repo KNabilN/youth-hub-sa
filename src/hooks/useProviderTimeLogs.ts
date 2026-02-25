@@ -40,10 +40,13 @@ export function useCreateTimeLog() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (values: { project_id: string; log_date: string; hours: number; description: string }) => {
+    mutationFn: async (values: { project_id: string; log_date: string; hours: number; description: string; start_time?: string; end_time?: string }) => {
+      const payload: any = { project_id: values.project_id, log_date: values.log_date, hours: values.hours, description: values.description, provider_id: user!.id };
+      if (values.start_time) payload.start_time = values.start_time;
+      if (values.end_time) payload.end_time = values.end_time;
       const { data, error } = await supabase
         .from("time_logs")
-        .insert({ ...values, provider_id: user!.id })
+        .insert(payload)
         .select()
         .single();
       if (error) throw error;
