@@ -2,6 +2,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Users, Store, HandCoins, ArrowLeft, CheckCircle2, Zap, Globe, Lock } from "lucide-react";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useLandingStats } from "@/hooks/useLandingStats";
+import LiveStats from "@/components/landing/LiveStats";
+import FeaturedServices from "@/components/landing/FeaturedServices";
+import FeaturedProjects from "@/components/landing/FeaturedProjects";
 
 const featureIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   users: Users,
@@ -17,16 +21,17 @@ const featureColors = [
 
 export default function Index() {
   const { data: hero } = useSiteContent("hero");
-  const { data: stats } = useSiteContent("stats");
+  const { data: cmsStats } = useSiteContent("stats");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
+  const { stats, statsLoading, services, servicesLoading, projects: featuredProjects, projectsLoading } = useLandingStats();
   const { data: cta } = useSiteContent("cta");
   const { data: header } = useSiteContent("header");
   const { data: footer } = useSiteContent("footer");
 
   // Fallback defaults
   const h = hero || { badge: "", title: "منصة الخدمات المشتركة", subtitle: "للجمعيات الشبابية", description: "", cta_text: "ابدأ الآن" };
-  const st = stats?.items || [];
+  const st = cmsStats?.items || [];
   const feat = features || { title: "", subtitle: "", items: [] };
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
@@ -88,7 +93,10 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Live Stats (DB) */}
+      <LiveStats stats={stats} loading={statsLoading} />
+
+      {/* Stats (CMS) - shown only if CMS stats exist and are different */}
       {st.length > 0 && (
         <section className="py-12 px-4 border-y border-border bg-card/50">
           <div className="container mx-auto max-w-4xl">
@@ -131,6 +139,9 @@ export default function Index() {
         </section>
       )}
 
+      {/* Featured Services (DB) */}
+      <FeaturedServices services={services} loading={servicesLoading} />
+
       {/* Trust */}
       {tr.items?.length > 0 && (
         <section className="py-20 px-4 bg-card/50">
@@ -157,6 +168,9 @@ export default function Index() {
           </div>
         </section>
       )}
+
+      {/* Featured Projects (DB) */}
+      <FeaturedProjects projects={featuredProjects} loading={projectsLoading} />
 
       {/* CTA */}
       <section className="py-20 px-4 relative overflow-hidden">
