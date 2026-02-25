@@ -9,9 +9,11 @@ import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThre
 import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
 import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { Banknote, ArrowDownCircle, Lock, Unlock } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type DisputeStatus = Database["public"]["Enums"]["dispute_status"];
@@ -21,12 +23,33 @@ export function DisputeCard({ dispute }: { dispute: any }) {
   const [newStatus, setNewStatus] = useState<DisputeStatus>(dispute.status);
   const [notes, setNotes] = useState(dispute.resolution_notes || "");
   const [editing, setEditing] = useState(false);
+  const [escrowLoading, setEscrowLoading] = useState(false);
 
   const handleSave = () => {
     updateDispute.mutate({ id: dispute.id, status: newStatus, resolution_notes: notes }, {
       onSuccess: () => { toast.success("تم تحديث النزاع"); setEditing(false); },
       onError: () => toast.error("حدث خطأ"),
     });
+  };
+
+  const handleEscrowAction = async (action: "release" | "refund" | "freeze" | "unfreeze") => {
+    setEscrowLoading(true);
+    try {
+      const targetStatus = (action === "release" ? "released" : action === "refund" ? "refunded" : action === "freeze" ? "frozen" : "held") as Database["public"]["Enums"]["escrow_status"];
+      const fromStatuses = (action === "release" ? ["held", "frozen"] : action === "refund" ? ["held", "frozen"] : action === "freeze" ? ["held"] : ["frozen"]) as Database["public"]["Enums"]["escrow_status"][];
+
+      const { error } = await supabase
+        .from("escrow_transactions")
+        .update({ status: targetStatus })
+        .eq("project_id", dispute.project_id)
+        .in("status", fromStatuses);
+      if (error) throw error;
+      toast.success("تم تحديث حالة الضمان المالي");
+    } catch {
+      toast.error("حدث خطأ أثناء تحديث الضمان");
+    } finally {
+      setEscrowLoading(false);
+    }
   };
 
   return (
@@ -41,8 +64,24 @@ export function DisputeCard({ dispute }: { dispute: any }) {
       <CardContent className="space-y-3">
         <p className="text-sm">{dispute.description}</p>
 
-        {/* Financial Impact */}
         <DisputeFinancialImpact projectId={dispute.project_id} />
+
+        {/* Admin Escrow Actions */}
+        <div className="flex flex-wrap gap-2 border-t pt-2">
+          <p className="w-full text-xs font-medium text-muted-foreground mb-1">إجراءات مالية:</p>
+          <Button size="sm" variant="outline" className="gap-1 text-xs" disabled={escrowLoading} onClick={() => handleEscrowAction("release")}>
+            <Banknote className="h-3 w-3" /> تحرير الضمان
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1 text-xs" disabled={escrowLoading} onClick={() => handleEscrowAction("refund")}>
+            <ArrowDownCircle className="h-3 w-3" /> استرداد
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1 text-xs" disabled={escrowLoading} onClick={() => handleEscrowAction("freeze")}>
+            <Lock className="h-3 w-3" /> تجميد
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1 text-xs" disabled={escrowLoading} onClick={() => handleEscrowAction("unfreeze")}>
+            <Unlock className="h-3 w-3" /> إلغاء التجميد
+          </Button>
+        </div>
 
         {editing ? (
           <div className="space-y-3 border-t pt-3">
