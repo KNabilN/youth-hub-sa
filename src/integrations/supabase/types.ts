@@ -1208,7 +1208,16 @@ export type Database = {
         | "suspended"
         | "archived"
       bid_status: "pending" | "accepted" | "rejected" | "withdrawn"
-      dispute_status: "open" | "under_review" | "resolved" | "closed"
+      dispute_status:
+        | "open"
+        | "under_review"
+        | "resolved"
+        | "closed"
+        | "waiting_response"
+        | "info_requested"
+        | "preliminary_decision"
+        | "final_decision"
+        | "archived"
       escrow_status:
         | "held"
         | "released"
@@ -1372,7 +1381,17 @@ export const Constants = {
         "archived",
       ],
       bid_status: ["pending", "accepted", "rejected", "withdrawn"],
-      dispute_status: ["open", "under_review", "resolved", "closed"],
+      dispute_status: [
+        "open",
+        "under_review",
+        "resolved",
+        "closed",
+        "waiting_response",
+        "info_requested",
+        "preliminary_decision",
+        "final_decision",
+        "archived",
+      ],
       escrow_status: [
         "held",
         "released",

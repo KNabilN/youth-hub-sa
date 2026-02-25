@@ -6,26 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateDispute } from "@/hooks/useAdminDisputes";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
+import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
+import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
+import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type DisputeStatus = Database["public"]["Enums"]["dispute_status"];
-
-const statusColors: Record<string, string> = {
-  open: "bg-destructive/10 text-destructive",
-  under_review: "bg-yellow-500/10 text-yellow-600",
-  resolved: "bg-emerald-500/10 text-emerald-600",
-  closed: "bg-muted text-muted-foreground",
-};
-
-const statusLabels: Record<string, string> = {
-  open: "مفتوح",
-  under_review: "قيد المراجعة",
-  resolved: "تم الحل",
-  closed: "مغلق",
-};
 
 export function DisputeCard({ dispute }: { dispute: any }) {
   const updateDispute = useUpdateDispute();
@@ -47,19 +36,22 @@ export function DisputeCard({ dispute }: { dispute: any }) {
           <CardTitle className="text-base">{dispute.projects?.title ?? "مشروع غير معروف"}</CardTitle>
           <p className="text-xs text-muted-foreground">بواسطة: {dispute.profiles?.full_name ?? "—"} · {format(new Date(dispute.created_at), "yyyy/MM/dd", { locale: ar })}</p>
         </div>
-        <Badge className={statusColors[dispute.status]}>{statusLabels[dispute.status]}</Badge>
+        <Badge className={disputeStatusColors[dispute.status]}>{disputeStatusLabels[dispute.status] ?? dispute.status}</Badge>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm">{dispute.description}</p>
+
+        {/* Financial Impact */}
+        <DisputeFinancialImpact projectId={dispute.project_id} />
+
         {editing ? (
           <div className="space-y-3 border-t pt-3">
             <Select value={newStatus} onValueChange={(v) => setNewStatus(v as DisputeStatus)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="open">مفتوح</SelectItem>
-                <SelectItem value="under_review">قيد المراجعة</SelectItem>
-                <SelectItem value="resolved">تم الحل</SelectItem>
-                <SelectItem value="closed">مغلق</SelectItem>
+                {allDisputeStatuses.map(s => (
+                  <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Textarea placeholder="ملاحظات الحل..." value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -74,6 +66,8 @@ export function DisputeCard({ dispute }: { dispute: any }) {
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>تعديل الحالة</Button>
           </div>
         )}
+
+        <DisputeTimeline disputeId={dispute.id} />
         <DisputeResponseThread disputeId={dispute.id} disputeStatus={dispute.status} />
       </CardContent>
     </Card>
