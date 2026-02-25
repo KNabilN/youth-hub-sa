@@ -47,8 +47,8 @@ export function useAcceptBid() {
       }).eq("id", projectId);
       if (projectError) throw projectError;
 
-      // 5. Notify the provider
-      await sendNotification(providerId, "تم قبول عرضك على المشروع! يمكنك الآن توقيع العقد.", "bid_accepted");
+      // 5. Notify the provider with link to contracts page
+      await sendNotification(providerId, "تم قبول عرضك على المشروع! يمكنك الآن توقيع العقد. [عرض العقود](/contracts)", "bid_accepted");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });

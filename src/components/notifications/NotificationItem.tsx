@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -52,6 +53,24 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   time_log_approval: { icon: Clock, label: "اعتماد وقت" },
 };
 
+function renderMessage(message: string) {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = linkRegex.exec(message)) !== null) {
+    if (match.index > lastIndex) parts.push(message.slice(lastIndex, match.index));
+    parts.push(
+      <Link key={match.index} to={match[2]} className="text-primary underline underline-offset-2 hover:text-primary/80">
+        {match[1]}
+      </Link>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < message.length) parts.push(message.slice(lastIndex));
+  return parts.length > 0 ? parts : message;
+}
+
 export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {
   const config = typeConfig[type] || { icon: Bell, label: type };
   const Icon = config.icon;
@@ -69,7 +88,7 @@ export function NotificationItem({ id, message, type, is_read, created_at, onMar
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{config.label}</span>
           </div>
-          <p className={`text-sm ${is_read ? "text-muted-foreground" : "text-foreground font-medium"}`}>{message}</p>
+          <p className={`text-sm ${is_read ? "text-muted-foreground" : "text-foreground font-medium"}`}>{renderMessage(message)}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {formatDistanceToNow(new Date(created_at), { addSuffix: true, locale: ar })}
           </p>
