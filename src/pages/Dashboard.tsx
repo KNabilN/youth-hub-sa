@@ -1,10 +1,10 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { AdminOverview } from "@/components/admin/AdminOverview";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectStats } from "@/hooks/useProjects";
 import { useProviderStats } from "@/hooks/useProviderStats";
 import { useDonorStats } from "@/hooks/useDonorStats";
-import { useAdminStats } from "@/hooks/useAdminStats";
 import { usePendingRatings } from "@/hooks/usePendingRatings";
 import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,14 +106,7 @@ function DonorDashboard() {
 }
 
 function AdminDashboard() {
-  const { data: stats, isLoading } = useAdminStats();
-  const items: StatItem[] = [
-    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary" },
-    { title: "المشاريع", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
-    { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
-    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
-  ];
-  return <StatsGrid items={items} isLoading={isLoading} />;
+  return <AdminOverview />;
 }
 
 function DashboardStats({ role }: { role: string }) {
