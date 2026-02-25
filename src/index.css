@@ -122,6 +122,19 @@
   --ring: 220 90% 30%;
 }
 
+/* Enhanced focus highlight mode */
+.focus-highlight *:focus-visible {
+  outline: 4px solid hsl(42 100% 50%) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px hsl(42 100% 50% / 0.25) !important;
+}
+
+/* Large pointer mode */
+.large-pointer,
+.large-pointer * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='black' stroke='white' stroke-width='1' d='M5 3l14 8-6 2 4 8-3 1-4-8-5 4z'/%3E%3C/svg%3E") 4 4, auto !important;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -135,6 +148,44 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Skip to main content link for keyboard users */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 0.75rem 1.5rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus {
+    top: 0;
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Enhanced focus styles for keyboard navigation */
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* Custom scrollbar */
