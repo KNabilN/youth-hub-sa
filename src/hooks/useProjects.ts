@@ -77,6 +77,17 @@ export function useUpdateProject() {
   });
 }
 
+export function useUpdateProjectStatusByAssociation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "draft" | "pending_approval" | "suspended" | "archived" | "cancelled" }) => {
+      const { error } = await supabase.from("projects").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
+  });
+}
+
 export function useProjectStats() {
   const { user } = useAuth();
   return useQuery({
