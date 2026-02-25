@@ -4,6 +4,8 @@ import { useMyDisputes } from "@/hooks/useMyDisputes";
 import { useMyAssignedProjects } from "@/hooks/useMyAssignedProjects";
 import { useCreateDispute } from "@/hooks/useDisputes";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
+import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
+import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,13 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-const statusLabels: Record<string, string> = {
-  open: "مفتوح",
-  under_review: "قيد المراجعة",
-  resolved: "تم الحل",
-  closed: "مغلق",
-};
+import { disputeStatusLabels, disputeStatusColors } from "@/lib/dispute-statuses";
 
 export default function MyDisputes() {
   const { data: disputes, isLoading } = useMyDisputes();
@@ -53,7 +49,6 @@ export default function MyDisputes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Styled Page Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 rounded-xl p-3">
@@ -109,7 +104,6 @@ export default function MyDisputes() {
           </Dialog>
         </div>
 
-        {/* Gradient Divider */}
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
@@ -129,7 +123,7 @@ export default function MyDisputes() {
                       <p className="text-xs text-muted-foreground">بواسطة: {d.profiles?.full_name ?? "—"}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{statusLabels[d.status] ?? d.status}</Badge>
+                      <Badge className={disputeStatusColors[d.status] ?? ""}>{disputeStatusLabels[d.status] ?? d.status}</Badge>
                       {d.projects && (
                         <Button asChild size="sm" variant="ghost">
                           <Link to={`/projects/${d.project_id}`}>
@@ -142,9 +136,15 @@ export default function MyDisputes() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm">{d.description}</p>
+
+                  {/* Financial Impact */}
+                  <DisputeFinancialImpact projectId={d.project_id} />
+
                   {d.resolution_notes && (
                     <p className="text-xs text-muted-foreground border-t pt-2">ملاحظات الحل: {d.resolution_notes}</p>
                   )}
+
+                  <DisputeTimeline disputeId={d.id} />
                   <DisputeResponseThread disputeId={d.id} disputeStatus={d.status} />
                 </CardContent>
               </Card>
