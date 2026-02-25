@@ -10,8 +10,19 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, MapPin, Pencil, Check, X, Globe, Loader2 } from "lucide-react";
+import { Trash2, Plus, MapPin, Pencil, Check, X, Globe, Loader2, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
+
+function exportCSV(items: any[], filename: string) {
+  const header = "name";
+  const rows = items.map(i => `"${(i.name || "").replace(/"/g, '""')}"`);
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function RegionManager() {
   const qc = useQueryClient();
@@ -81,6 +92,32 @@ export function RegionManager() {
           <Button onClick={() => addMut.mutate()} disabled={addMut.isPending} className="min-w-[100px]">
             {addMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             اضافة
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(regions ?? [], "regions.csv")}>
+            <Download className="h-4 w-4 ml-1" /> تصدير CSV
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <label className="cursor-pointer">
+              <Upload className="h-4 w-4 ml-1" /> استيراد CSV
+              <input type="file" accept=".csv" className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const text = await file.text();
+                const lines = text.split("\n").filter(l => l.trim());
+                const rows = lines.slice(1).map(l => {
+                  const name = l.replace(/^"/, "").replace(/"$/, "").trim();
+                  return name ? { name } : null;
+                }).filter(Boolean) as { name: string }[];
+                if (rows.length === 0) { toast.error("الملف فارغ"); return; }
+                const { error } = await supabase.from("regions").insert(rows);
+                if (error) { toast.error("خطأ في الاستيراد"); return; }
+                qc.invalidateQueries({ queryKey: ["admin-regions"] });
+                toast.success(`تم استيراد ${rows.length} منطقة`);
+                e.target.value = "";
+              }} />
+            </label>
           </Button>
         </div>
 

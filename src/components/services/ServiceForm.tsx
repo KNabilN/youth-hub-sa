@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ImagePlus, X } from "lucide-react";
@@ -113,12 +114,14 @@ export function ServiceForm({ defaultValues, defaultImageUrl, onSubmit, onSaveDr
           <FormField control={form.control} name="category_id" render={({ field }) => (
             <FormItem>
               <FormLabel>التصنيف</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl><SelectTrigger><SelectValue placeholder="اختر التصنيف" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <CategorySelectWithOther
+                  categories={categories ?? []}
+                  value={field.value}
+                  onChange={field.onChange}
+                  entityType="service"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )} />

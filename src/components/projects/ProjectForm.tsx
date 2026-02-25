@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -120,12 +121,14 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
                 <FormField control={form.control} name="category_id" render={({ field }) => (
                   <FormItem>
                     <FormLabel>التصنيف</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="اختر التصنيف" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <CategorySelectWithOther
+                        categories={categories ?? []}
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        entityType="project"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
