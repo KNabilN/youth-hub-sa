@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ar } from "date-fns/locale";
-import { CalendarIcon, Filter, RotateCcw } from "lucide-react";
+import { CalendarIcon, Filter, RotateCcw, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useRegions } from "@/hooks/useRegions";
+import { toast } from "sonner";
 
 export interface ReportFilterValues {
   dateFrom: Date;
@@ -15,10 +16,17 @@ export interface ReportFilterValues {
   regionId: string | null;
 }
 
+interface SavedFilter {
+  name: string;
+  filters: { dateFrom: string; dateTo: string; regionId: string | null };
+}
+
 interface ReportFiltersProps {
   filters: ReportFilterValues;
   onChange: (filters: ReportFilterValues) => void;
 }
+
+const SAVED_FILTERS_KEY = "report_saved_filters";
 
 const presets = [
   { label: "آخر شهر", value: 1 },
@@ -26,6 +34,16 @@ const presets = [
   { label: "آخر 6 أشهر", value: 6 },
   { label: "آخر سنة", value: 12 },
 ];
+
+function loadSavedFilters(): SavedFilter[] {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_FILTERS_KEY) || "[]");
+  } catch { return []; }
+}
+
+function persistSavedFilters(items: SavedFilter[]) {
+  localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(items));
+}
 
 export function getDefaultFilters(): ReportFilterValues {
   return {
@@ -37,6 +55,41 @@ export function getDefaultFilters(): ReportFilterValues {
 
 export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
   const { data: regions } = useRegions();
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(loadSavedFilters);
+
+  const saveCurrentFilter = () => {
+    const name = prompt("اسم الفلتر المحفوظ:");
+    if (!name?.trim()) return;
+    const entry: SavedFilter = {
+      name: name.trim(),
+      filters: {
+        dateFrom: filters.dateFrom.toISOString(),
+        dateTo: filters.dateTo.toISOString(),
+        regionId: filters.regionId,
+      },
+    };
+    const updated = [...savedFilters.filter((f) => f.name !== entry.name), entry];
+    setSavedFilters(updated);
+    persistSavedFilters(updated);
+    toast.success("تم حفظ الفلتر");
+  };
+
+  const applySavedFilter = (name: string) => {
+    const found = savedFilters.find((f) => f.name === name);
+    if (!found) return;
+    onChange({
+      dateFrom: new Date(found.filters.dateFrom),
+      dateTo: new Date(found.filters.dateTo),
+      regionId: found.filters.regionId,
+    });
+  };
+
+  const deleteSavedFilter = (name: string) => {
+    const updated = savedFilters.filter((f) => f.name !== name);
+    setSavedFilters(updated);
+    persistSavedFilters(updated);
+    toast.success("تم حذف الفلتر");
+  };
 
   const applyPreset = (months: number) => {
     onChange({
@@ -116,6 +169,33 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => onChange(getDefaultFilters())}>
         <RotateCcw className="h-3 w-3 ml-1" />إعادة تعيين
       </Button>
+
+      {/* Save / Load filters */}
+      <Button variant="outline" size="sm" className="text-xs h-7 px-2 gap-1" onClick={saveCurrentFilter}>
+        <Star className="h-3 w-3" />حفظ الفلتر
+      </Button>
+
+      {savedFilters.length > 0 && (
+        <Select onValueChange={applySavedFilter}>
+          <SelectTrigger className="w-[150px] h-7 text-xs">
+            <SelectValue placeholder="فلاتر محفوظة" />
+          </SelectTrigger>
+          <SelectContent>
+            {savedFilters.map((sf) => (
+              <div key={sf.name} className="flex items-center justify-between pr-2">
+                <SelectItem value={sf.name} className="flex-1">{sf.name}</SelectItem>
+                <button
+                  type="button"
+                  className="p-0.5 hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); deleteSavedFilter(sf.name); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }
