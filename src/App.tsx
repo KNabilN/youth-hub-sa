@@ -65,7 +65,7 @@ const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
 const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
 const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
-
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -146,6 +146,7 @@ const App = () => (
                 <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
                 <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
                 <Route path="/admin/cms" element={<AdminRoute><AdminCMS /></AdminRoute>} />
+                <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
