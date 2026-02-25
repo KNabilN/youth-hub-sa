@@ -1,77 +1,162 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAvailableProjects } from "@/hooks/useAvailableProjects";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { ProviderProjectCard } from "@/components/provider/ProviderProjectCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { FolderKanban, Filter } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FolderKanban, Filter, Search, DollarSign, ArrowUpDown } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 
 export default function AvailableProjects() {
   const navigate = useNavigate();
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [regionId, setRegionId] = useState<string>("");
+  const { user } = useAuth();
+  const [categoryId, setCategoryId] = useState("");
+  const [regionId, setRegionId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [budgetMin, setBudgetMin] = useState("");
+  const [budgetMax, setBudgetMax] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
   const pagination = usePagination();
 
-  const filters = {
-    ...(categoryId ? { category_id: categoryId } : {}),
-    ...(regionId ? { region_id: regionId } : {}),
+  const handleSearchChange = (v: string) => {
+    setSearchQuery(v);
+    clearTimeout((window as any).__projSearchTimeout);
+    (window as any).__projSearchTimeout = setTimeout(() => {
+      setDebouncedSearch(v);
+      pagination.resetPage();
+    }, 400);
   };
-  const { data: projects, isLoading } = useAvailableProjects(
-    Object.keys(filters).length ? filters : undefined,
-    pagination.from,
-    pagination.to
-  );
+
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["available-projects", user?.id, categoryId, regionId, debouncedSearch, budgetMin, budgetMax, sortBy, pagination.from, pagination.to],
+    enabled: !!user,
+    queryFn: async () => {
+      let query = supabase
+        .from("projects")
+        .select("*, categories(*), regions(*)")
+        .eq("status", "open")
+        .eq("is_private", false)
+        .range(pagination.from, pagination.to);
+
+      // Sort
+      if (sortBy === "newest") query = query.order("created_at", { ascending: false });
+      else if (sortBy === "oldest") query = query.order("created_at", { ascending: true });
+      else if (sortBy === "budget_asc") query = query.order("budget", { ascending: true, nullsFirst: false });
+      else if (sortBy === "budget_desc") query = query.order("budget", { ascending: false, nullsFirst: true });
+      else query = query.order("created_at", { ascending: false });
+
+      if (categoryId) query = query.eq("category_id", categoryId);
+      if (regionId) query = query.eq("region_id", regionId);
+      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      if (budgetMin) query = query.gte("budget", Number(budgetMin));
+      if (budgetMax) query = query.lte("budget", Number(budgetMax));
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleCategoryChange = (v: string) => { setCategoryId(v === "all" ? "" : v); pagination.resetPage(); };
   const handleRegionChange = (v: string) => { setRegionId(v === "all" ? "" : v); pagination.resetPage(); };
 
+  const activeFiltersCount = [!!categoryId, !!regionId, !!debouncedSearch, !!budgetMin, !!budgetMax].filter(Boolean).length;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-primary/10">
-            <FolderKanban className="h-7 w-7 text-primary" />
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <FolderKanban className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">المشاريع المتاحة</h1>
+              <p className="text-sm text-muted-foreground">تصفح المشاريع المفتوحة وقدّم عروضك</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">المشاريع المتاحة</h1>
-            <p className="text-sm text-muted-foreground">تصفح المشاريع المفتوحة وقدّم عروضك</p>
-          </div>
+          {activeFiltersCount > 0 && (
+            <Badge variant="secondary" className="gap-1">
+              {activeFiltersCount} فلتر نشط
+            </Badge>
+          )}
         </div>
         <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
 
         <Card className="bg-muted/30 border-dashed">
-          <CardContent className="flex flex-wrap items-center gap-3 p-4">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={categoryId || "all"} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-48 bg-background"><SelectValue placeholder="جميع التصنيفات" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع التصنيفات</SelectItem>
-                {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={regionId || "all"} onValueChange={handleRegionChange}>
-              <SelectTrigger className="w-48 bg-background"><SelectValue placeholder="جميع المناطق" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المناطق</SelectItem>
-                {regions?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <CardContent className="p-4 space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={e => handleSearchChange(e.target.value)}
+                placeholder="ابحث عن مشروع بالاسم أو الوصف..."
+                className="pr-9 h-10"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={categoryId || "all"} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-[150px] h-9 bg-background"><SelectValue placeholder="جميع التصنيفات" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع التصنيفات</SelectItem>
+                  {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={regionId || "all"} onValueChange={handleRegionChange}>
+                <SelectTrigger className="w-[150px] h-9 bg-background"><SelectValue placeholder="جميع المناطق" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع المناطق</SelectItem>
+                  {regions?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              {/* Budget range */}
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <Input type="number" value={budgetMin} onChange={e => { setBudgetMin(e.target.value); pagination.resetPage(); }} placeholder="من" className="w-[80px] h-9 bg-background" min={0} />
+                <span className="text-xs text-muted-foreground">-</span>
+                <Input type="number" value={budgetMax} onChange={e => { setBudgetMax(e.target.value); pagination.resetPage(); }} placeholder="إلى" className="w-[80px] h-9 bg-background" min={0} />
+              </div>
+
+              {/* Sort */}
+              <div className="flex items-center gap-1.5 ms-auto">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={(v) => { setSortBy(v); pagination.resetPage(); }}>
+                  <SelectTrigger className="w-[140px] h-9 bg-background"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">الأحدث</SelectItem>
+                    <SelectItem value="oldest">الأقدم</SelectItem>
+                    <SelectItem value="budget_desc">الميزانية: الأعلى</SelectItem>
+                    <SelectItem value="budget_asc">الميزانية: الأقل</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1,2,3].map(i => <Skeleton key={i} className="h-52 w-full rounded-xl" />)}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-52 w-full rounded-xl" />)}
+          </div>
         ) : !projects?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد مشاريع متاحة حالياً" description="ستظهر المشاريع المفتوحة هنا عند نشرها من الجمعيات" />
+          <EmptyState icon={FolderKanban} title="لا توجد مشاريع متاحة حالياً" description="لم يتم العثور على مشاريع مطابقة. جرّب تغيير الفلاتر أو تحقق لاحقاً." />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (

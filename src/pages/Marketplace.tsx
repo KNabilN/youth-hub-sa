@@ -10,16 +10,31 @@ import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Store, PackageSearch, ArrowUpDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Marketplace() {
   const [category, setCategory] = useState("all");
   const [region, setRegion] = useState("all");
   const [serviceType, setServiceType] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const pagination = usePagination();
 
+  // Debounced search for query key
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const handleSearchChange = (v: string) => {
+    setSearchQuery(v);
+    clearTimeout((window as any).__searchTimeout);
+    (window as any).__searchTimeout = setTimeout(() => {
+      setDebouncedSearch(v);
+      pagination.resetPage();
+    }, 400);
+  };
+
   const { data: services, isLoading } = useQuery({
-    queryKey: ["marketplace", category, region, serviceType, pagination.from, pagination.to],
+    queryKey: ["marketplace", category, region, serviceType, debouncedSearch, priceMin, priceMax, pagination.from, pagination.to],
     queryFn: async () => {
       let query = supabase
         .from("micro_services")
@@ -30,6 +45,9 @@ export default function Marketplace() {
       if (category !== "all") query = query.eq("category_id", category);
       if (region !== "all") query = query.eq("region_id", region);
       if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
+      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      if (priceMin) query = query.gte("price", Number(priceMin));
+      if (priceMax) query = query.lte("price", Number(priceMax));
       const { data, error } = await query;
       if (error) throw error;
       return data;
@@ -76,10 +94,11 @@ export default function Marketplace() {
   const handleRegionChange = (v: string) => { setRegion(v); pagination.resetPage(); };
   const handleServiceTypeChange = (v: string) => { setServiceType(v); pagination.resetPage(); };
 
+  const activeFiltersCount = [category !== "all", region !== "all", serviceType !== "all", !!priceMin, !!priceMax, !!debouncedSearch].filter(Boolean).length;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2.5 rounded-xl">
@@ -90,15 +109,23 @@ export default function Marketplace() {
               <p className="text-sm text-muted-foreground mt-0.5">تصفح الخدمات المتاحة من مقدمي الخدمات</p>
             </div>
           </div>
+          {activeFiltersCount > 0 && (
+            <Badge variant="secondary" className="gap-1">
+              {activeFiltersCount} فلتر نشط
+            </Badge>
+          )}
         </div>
 
-        {/* Filters & Sort Bar */}
         <Card className="border-dashed">
           <CardContent className="py-3 px-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-end justify-between flex-wrap gap-3">
               <ServiceFilters
                 category={category} region={region} serviceType={serviceType}
-                onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange} onServiceTypeChange={handleServiceTypeChange}
+                searchQuery={searchQuery} priceMin={priceMin} priceMax={priceMax}
+                onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange}
+                onServiceTypeChange={handleServiceTypeChange} onSearchChange={handleSearchChange}
+                onPriceMinChange={(v) => { setPriceMin(v); pagination.resetPage(); }}
+                onPriceMaxChange={(v) => { setPriceMax(v); pagination.resetPage(); }}
               />
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -118,7 +145,6 @@ export default function Marketplace() {
           </CardContent>
         </Card>
 
-        {/* Content */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
