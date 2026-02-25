@@ -1,18 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEscrowTransactions, useInvoices } from "@/hooks/useAdminFinance";
-import { DollarSign, Lock, Unlock, BarChart3 } from "lucide-react";
+import { DollarSign, Lock, Unlock, BarChart3, Snowflake, RotateCcw } from "lucide-react";
 
 export function FinanceSummary() {
   const { data: escrows } = useEscrowTransactions();
   const { data: invoices } = useInvoices();
 
   const held = (escrows ?? []).filter((e: any) => e.status === "held").reduce((s: number, e: any) => s + Number(e.amount), 0);
+  const frozen = (escrows ?? []).filter((e: any) => e.status === "frozen").reduce((s: number, e: any) => s + Number(e.amount), 0);
   const released = (escrows ?? []).filter((e: any) => e.status === "released").reduce((s: number, e: any) => s + Number(e.amount), 0);
+  const refunded = (escrows ?? []).filter((e: any) => e.status === "refunded").reduce((s: number, e: any) => s + Number(e.amount), 0);
   const commissions = (invoices ?? []).reduce((s: number, i: any) => s + Number(i.commission_amount), 0);
 
   const items = [
     { title: "الضمان المحتجز", value: held, icon: Lock, color: "text-yellow-600" },
+    { title: "المجمد", value: frozen, icon: Snowflake, color: "text-blue-600" },
     { title: "المبالغ المحررة", value: released, icon: Unlock, color: "text-emerald-600" },
+    { title: "المسترد", value: refunded, icon: RotateCcw, color: "text-muted-foreground" },
     { title: "إجمالي العمولات", value: commissions, icon: DollarSign, color: "text-primary" },
     { title: "عدد الفواتير", value: invoices?.length ?? 0, icon: BarChart3, color: "text-info" },
   ];

@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type EscrowStatus = Database["public"]["Enums"]["escrow_status"];
 
 export function useEscrowTransactions() {
   return useQuery({
@@ -12,6 +15,20 @@ export function useEscrowTransactions() {
       if (error) throw error;
       return data;
     },
+  });
+}
+
+export function useUpdateEscrowStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: EscrowStatus }) => {
+      const { error } = await supabase
+        .from("escrow_transactions")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-escrow"] }),
   });
 }
 

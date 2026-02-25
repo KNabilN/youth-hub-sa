@@ -1,19 +1,35 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
-import { useEscrowTransactions, useInvoices } from "@/hooks/useAdminFinance";
+import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
 import { useAllWithdrawals, useUpdateWithdrawalStatus } from "@/hooks/useWithdrawals";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye } from "lucide-react";
 
-const escrowStatusLabels: Record<string, string> = { held: "محتجز", released: "محرر", frozen: "مجمد", refunded: "مسترد" };
+const escrowStatusLabels: Record<string, string> = {
+  held: "محتجز",
+  released: "محرر",
+  frozen: "مجمد",
+  refunded: "مسترد",
+  pending_payment: "قيد الدفع",
+  failed: "فشل",
+  under_review: "قيد المراجعة",
+};
 const escrowStatusColors: Record<string, string> = {
-  held: "bg-yellow-500/10 text-yellow-600", released: "bg-emerald-500/10 text-emerald-600",
-  frozen: "bg-blue-500/10 text-blue-600", refunded: "bg-muted text-muted-foreground",
+  held: "bg-yellow-500/10 text-yellow-600",
+  released: "bg-emerald-500/10 text-emerald-600",
+  frozen: "bg-blue-500/10 text-blue-600",
+  refunded: "bg-muted text-muted-foreground",
+  pending_payment: "bg-orange-500/10 text-orange-600",
+  failed: "bg-destructive/10 text-destructive",
+  under_review: "bg-purple-500/10 text-purple-600",
 };
 const wStatusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض" };
 
@@ -22,6 +38,8 @@ export default function AdminFinance() {
   const { data: invoices, isLoading: loadingInvoices } = useInvoices();
   const { data: withdrawals, isLoading: loadingW } = useAllWithdrawals();
   const updateW = useUpdateWithdrawalStatus();
+  const updateEscrow = useUpdateEscrowStatus();
+  const [escrowFilter, setEscrowFilter] = useState("all");
 
   const handleWithdrawal = (id: string, status: string) => {
     updateW.mutate({ id, status }, {
@@ -29,6 +47,24 @@ export default function AdminFinance() {
       onError: () => toast.error("حدث خطأ"),
     });
   };
+
+  const handleEscrowStatus = (id: string, status: string) => {
+    const labels: Record<string, string> = {
+      frozen: "تم تجميد الضمان",
+      held: "تم إعادة الضمان للاحتجاز",
+      released: "تم تحرير الضمان",
+      refunded: "تم استرداد الضمان",
+      under_review: "تم وضع الضمان قيد المراجعة",
+    };
+    updateEscrow.mutate({ id, status: status as any }, {
+      onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
+      onError: () => toast.error("حدث خطأ"),
+    });
+  };
+
+  const filteredEscrows = (escrows ?? []).filter((e: any) =>
+    escrowFilter === "all" ? true : e.status === escrowFilter
+  );
 
   return (
     <DashboardLayout>
@@ -42,8 +78,20 @@ export default function AdminFinance() {
             <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
           </TabsList>
           <TabsContent value="escrow">
+            <div className="flex items-center gap-3 mb-4">
+              <Select value={escrowFilter} onValueChange={setEscrowFilter}>
+                <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  {Object.entries(escrowStatusLabels).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">{filteredEscrows.length} معاملة</span>
+            </div>
             {loadingEscrow ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -53,20 +101,74 @@ export default function AdminFinance() {
                       <TableHead>المبلغ</TableHead>
                       <TableHead>الحالة</TableHead>
                       <TableHead>التاريخ</TableHead>
+                      <TableHead>إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(escrows ?? []).map((e: any) => (
+                    {filteredEscrows.map((e: any) => (
                       <TableRow key={e.id}>
                         <TableCell>{e.projects?.title ?? "—"}</TableCell>
                         <TableCell>{e.profiles?.full_name ?? "—"}</TableCell>
                         <TableCell>{(e as any)["profiles"]?.full_name ?? "—"}</TableCell>
-                        <TableCell>{Number(e.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status]}</Badge></TableCell>
+                        <TableCell className="font-medium">{Number(e.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status] ?? e.status}</Badge></TableCell>
                         <TableCell className="text-sm text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {e.status === "held" && (
+                              <>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                  <Unlock className="h-3.5 w-3.5 ml-1" />تحرير
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
+                                  <Snowflake className="h-3.5 w-3.5 ml-1" />تجميد
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                  <RotateCcw className="h-3.5 w-3.5 ml-1" />استرداد
+                                </Button>
+                              </>
+                            )}
+                            {e.status === "frozen" && (
+                              <>
+                                <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
+                                  <Lock className="h-3.5 w-3.5 ml-1" />إعادة احتجاز
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                  <Unlock className="h-3.5 w-3.5 ml-1" />تحرير
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                  <RotateCcw className="h-3.5 w-3.5 ml-1" />استرداد
+                                </Button>
+                              </>
+                            )}
+                            {e.status === "under_review" && (
+                              <>
+                                <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
+                                  <Lock className="h-3.5 w-3.5 ml-1" />احتجاز
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-blue-600" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
+                                  <Snowflake className="h-3.5 w-3.5 ml-1" />تجميد
+                                </Button>
+                              </>
+                            )}
+                            {e.status === "pending_payment" && (
+                              <Button size="sm" variant="outline" className="text-purple-600" onClick={() => handleEscrowStatus(e.id, "under_review")} disabled={updateEscrow.isPending}>
+                                <Eye className="h-3.5 w-3.5 ml-1" />مراجعة
+                              </Button>
+                            )}
+                            {e.status === "failed" && (
+                              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleEscrowStatus(e.id, "pending_payment")} disabled={updateEscrow.isPending}>
+                                <AlertTriangle className="h-3.5 w-3.5 ml-1" />إعادة المحاولة
+                              </Button>
+                            )}
+                            {(e.status === "released" || e.status === "refunded") && (
+                              <span className="text-xs text-muted-foreground py-1">مكتمل</span>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
-                    {(escrows ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد معاملات</TableCell></TableRow>}
+                    {filteredEscrows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد معاملات</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
@@ -82,6 +184,7 @@ export default function AdminFinance() {
                       <TableHead>المستلم</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>العمولة</TableHead>
+                      <TableHead>الحالة</TableHead>
                       <TableHead>التاريخ</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -92,10 +195,15 @@ export default function AdminFinance() {
                         <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
                         <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell>{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell>
+                          <Badge variant={inv.status === "issued" ? "default" : inv.status === "paid" ? "secondary" : "outline"}>
+                            {inv.status === "issued" ? "صادرة" : inv.status === "paid" ? "مدفوعة" : inv.status}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       </TableRow>
                     ))}
-                    {(invoices ?? []).length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
+                    {(invoices ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
