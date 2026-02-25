@@ -419,7 +419,9 @@ export type Database = {
       donor_contributions: {
         Row: {
           amount: number
+          association_id: string | null
           created_at: string
+          donation_status: string
           donor_id: string
           id: string
           project_id: string | null
@@ -427,7 +429,9 @@ export type Database = {
         }
         Insert: {
           amount: number
+          association_id?: string | null
           created_at?: string
+          donation_status?: string
           donor_id: string
           id?: string
           project_id?: string | null
@@ -435,13 +439,22 @@ export type Database = {
         }
         Update: {
           amount?: number
+          association_id?: string | null
           created_at?: string
+          donation_status?: string
           donor_id?: string
           id?: string
           project_id?: string | null
           service_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "donor_contributions_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "donor_contributions_donor_id_fkey"
             columns: ["donor_id"]

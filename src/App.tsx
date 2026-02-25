@@ -35,6 +35,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const TicketCreate = lazy(() => import("./pages/TicketCreate"));
 const Associations = lazy(() => import("./pages/Associations"));
+const AssociationProfile = lazy(() => import("./pages/AssociationProfile"));
 const Donations = lazy(() => import("./pages/Donations"));
 const ImpactReports = lazy(() => import("./pages/ImpactReports"));
 const Contracts = lazy(() => import("./pages/Contracts"));
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="/tickets" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
                 <Route path="/tickets/new" element={<ProtectedRoute><TicketCreate /></ProtectedRoute>} />
                 <Route path="/associations" element={<ProtectedRoute><Associations /></ProtectedRoute>} />
+                <Route path="/associations/:id" element={<ProtectedRoute><AssociationProfile /></ProtectedRoute>} />
                 <Route path="/donations" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
                 <Route path="/impact" element={<ProtectedRoute><ImpactReports /></ProtectedRoute>} />
                 <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />

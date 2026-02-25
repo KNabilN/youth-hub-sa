@@ -5,18 +5,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Associations() {
   const { data: associations, isLoading } = useQuery({
     queryKey: ["associations"],
     queryFn: async () => {
-      // Get user_ids with youth_association role
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "youth_association");
       if (roleError) throw roleError;
-
       if (!roleData?.length) return [];
 
       const userIds = roleData.map((r) => r.user_id);
@@ -51,13 +50,14 @@ export default function Associations() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {associations.map((a) => (
-              <AssociationCard
-                key={a.id}
-                full_name={a.full_name}
-                organization_name={a.organization_name}
-                bio={a.bio}
-                is_verified={a.is_verified}
-              />
+              <Link key={a.id} to={`/associations/${a.id}`} className="block hover:scale-[1.01] transition-transform">
+                <AssociationCard
+                  full_name={a.full_name}
+                  organization_name={a.organization_name}
+                  bio={a.bio}
+                  is_verified={a.is_verified}
+                />
+              </Link>
             ))}
           </div>
         )}
