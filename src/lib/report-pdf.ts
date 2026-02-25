@@ -1,4 +1,3 @@
-import jsPDF from "jspdf";
 import { format } from "date-fns";
 
 interface ReportSection {
@@ -8,8 +7,8 @@ interface ReportSection {
 }
 
 /**
- * Generate a PDF report with Arabic text support (RTL).
- * jsPDF doesn't natively support Arabic shaping, so we use a simple table layout.
+ * Generate a printable HTML report with full Arabic/RTL support.
+ * Opens in a new window for the user to print or save as PDF.
  */
 export function generateReportPDF(
   title: string,
@@ -17,82 +16,76 @@ export function generateReportPDF(
   sections: ReportSection[],
   summaryStats?: { label: string; value: string }[]
 ) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-
-  let y = 15;
-
-  // Title
-  doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
-  doc.text(title, doc.internal.pageSize.width / 2, y, { align: "center" });
-  y += 10;
-
-  // Date range
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
   const dateStr = `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`;
-  doc.text(dateStr, doc.internal.pageSize.width / 2, y, { align: "center" });
-  y += 8;
+  const generatedAt = format(new Date(), "yyyy/MM/dd HH:mm");
 
-  // Generation timestamp
-  doc.setFontSize(8);
-  doc.text(`Generated: ${format(new Date(), "yyyy/MM/dd HH:mm")}`, doc.internal.pageSize.width / 2, y, { align: "center" });
-  y += 10;
+  const summaryHTML = summaryStats?.length
+    ? `<div style="display:flex;justify-content:center;gap:40px;margin:20px 0;flex-wrap:wrap;">
+        ${summaryStats.map(s => `<div style="text-align:center;min-width:120px;">
+          <div style="font-weight:bold;font-size:14px;color:#333;">${s.label}</div>
+          <div style="font-size:20px;margin-top:4px;">${s.value}</div>
+        </div>`).join("")}
+      </div>`
+    : "";
 
-  // Summary stats
-  if (summaryStats?.length) {
-    const colWidth = (doc.internal.pageSize.width - 30) / summaryStats.length;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    summaryStats.forEach((stat, i) => {
-      const x = 15 + i * colWidth + colWidth / 2;
-      doc.text(stat.label, x, y, { align: "center" });
-      doc.setFont("helvetica", "normal");
-      doc.text(stat.value, x, y + 5, { align: "center" });
-      doc.setFont("helvetica", "bold");
-    });
-    y += 15;
-  }
+  const sectionsHTML = sections.map(section => `
+    <div style="margin-top:24px;">
+      <h2 style="font-size:16px;margin-bottom:8px;border-bottom:2px solid #e5e7eb;padding-bottom:4px;">${section.title}</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            ${section.headers.map(h => `<th style="padding:6px 10px;text-align:right;border:1px solid #e5e7eb;font-weight:bold;">${h}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+          ${section.rows.map(row => `<tr>
+            ${row.map(cell => `<td style="padding:5px 10px;border:1px solid #e5e7eb;">${cell ?? ""}</td>`).join("")}
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  `).join("");
 
-  // Sections
-  sections.forEach((section) => {
-    if (y > doc.internal.pageSize.height - 30) {
-      doc.addPage();
-      y = 15;
+  const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>${title}</title>
+  <style>
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none !important; }
     }
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      direction: rtl;
+      padding: 30px 40px;
+      color: #1a1a1a;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 4px; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="text-align:center;margin-bottom:16px;">
+    <button onclick="window.print()" style="padding:8px 24px;font-size:14px;cursor:pointer;background:#2563eb;color:#fff;border:none;border-radius:6px;">طباعة / حفظ كـ PDF</button>
+  </div>
+  <h1>${title}</h1>
+  <div class="subtitle">${dateStr}</div>
+  <div class="subtitle" style="font-size:11px;">تم الإنشاء: ${generatedAt}</div>
+  ${summaryHTML}
+  ${sectionsHTML}
+</body>
+</html>`;
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(section.title, 15, y);
-    y += 7;
-
-    // Table header
-    const cols = section.headers.length;
-    const colW = (doc.internal.pageSize.width - 30) / cols;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, y - 4, doc.internal.pageSize.width - 30, 6, "F");
-    section.headers.forEach((h, i) => {
-      doc.text(h, 15 + i * colW + 2, y);
-    });
-    y += 5;
-
-    // Table rows
-    doc.setFont("helvetica", "normal");
-    section.rows.forEach((row) => {
-      if (y > doc.internal.pageSize.height - 15) {
-        doc.addPage();
-        y = 15;
-      }
-      row.forEach((cell, i) => {
-        doc.text(String(cell ?? ""), 15 + i * colW + 2, y);
-      });
-      y += 4.5;
-    });
-
-    y += 8;
-  });
-
-  doc.save(`${title.replace(/\s+/g, "_")}_${format(new Date(), "yyyyMMdd")}.pdf`);
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (win) {
+    win.onload = () => URL.revokeObjectURL(url);
+  }
 }
