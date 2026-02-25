@@ -15,6 +15,7 @@ import {
   FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
@@ -154,6 +155,7 @@ export default function Dashboard() {
           </Alert>
         )}
         {role ? <DashboardStats role={role} /> : null}
+        {role && role !== "super_admin" && <JourneyBoard role={role} />}
         <RecentActivity />
       </div>
     </DashboardLayout>

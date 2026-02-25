@@ -6,6 +6,7 @@ import { useLandingStats } from "@/hooks/useLandingStats";
 import LiveStats from "@/components/landing/LiveStats";
 import FeaturedServices from "@/components/landing/FeaturedServices";
 import FeaturedProjects from "@/components/landing/FeaturedProjects";
+import { ContactForm } from "@/components/landing/ContactForm";
 
 const featureIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   users: Users,
@@ -155,6 +156,13 @@ export default function Index() {
 
       {/* Featured Projects (DB) */}
       <FeaturedProjects projects={featuredProjects} loading={projectsLoading} />
+
+      {/* Contact Form */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <ContactForm />
+        </div>
+      </section>
 
       {/* CTA */}
       <section className="py-20 px-4 relative overflow-hidden">

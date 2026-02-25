@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { PaginationControls } from "@/components/PaginationControls";
+import { logAudit } from "@/lib/audit";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -86,15 +87,19 @@ export function UserTable({ pagination }: UserTableProps) {
     if (!suspendTarget) return;
     const isSuspended = suspendTarget.is_suspended;
 
-    if (!isSuspended && !suspensionReason.trim()) {
-      toast.error("يرجى إدخال سبب التعليق");
+    if (!suspensionReason.trim()) {
+      toast.error(isSuspended ? "يرجى إدخال سبب إلغاء التعليق" : "يرجى إدخال سبب التعليق");
       return;
     }
 
     toggleSuspend.mutate(
-      { id: suspendTarget.id, is_suspended: !isSuspended, suspension_reason: suspensionReason },
+      { id: suspendTarget.id, is_suspended: !isSuspended, suspension_reason: isSuspended ? "" : suspensionReason },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await logAudit("profiles", suspendTarget.id, isSuspended ? "unsuspend" : "suspend",
+            { is_suspended: isSuspended },
+            { is_suspended: !isSuspended, reason: suspensionReason.trim() }
+          );
           toast.success(isSuspended ? "تم إلغاء التعليق" : "تم تعليق الحساب");
           setSuspendTarget(null);
           setSuspensionReason("");
@@ -252,17 +257,15 @@ export function UserTable({ pagination }: UserTableProps) {
                 ? `هل أنت متأكد من إلغاء تعليق حساب "${suspendTarget?.full_name}"؟`
                 : `سيتم تعليق حساب "${suspendTarget?.full_name}" ولن يتمكن من الوصول إلى النظام.`}
             </p>
-            {!suspendTarget?.is_suspended && (
-              <div>
-                <Label>سبب التعليق *</Label>
-                <Textarea
-                  value={suspensionReason}
-                  onChange={(e) => setSuspensionReason(e.target.value)}
-                  placeholder="اكتب سبب تعليق الحساب..."
-                  rows={3}
-                />
-              </div>
-            )}
+            <div>
+              <Label>{suspendTarget?.is_suspended ? "سبب إلغاء التعليق *" : "سبب التعليق *"}</Label>
+              <Textarea
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                placeholder={suspendTarget?.is_suspended ? "اكتب سبب إلغاء التعليق..." : "اكتب سبب تعليق الحساب..."}
+                rows={3}
+              />
+            </div>
             {suspendTarget?.is_suspended && suspendTarget?.suspension_reason && (
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground mb-1">سبب التعليق السابق:</p>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CheckCircle, XCircle, Ban, User } from "lucide-react";
+import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -116,6 +117,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
             <TabsTrigger value="disputes">النزاعات</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>
             <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
+            <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1 px-6 pb-6">
@@ -251,6 +253,10 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
                   ))}
                 </div>
               )}
+            </TabsContent>
+            {/* Activity Log Tab */}
+            <TabsContent value="activity">
+              <EntityActivityLog tableName="profiles" recordId={userId} />
             </TabsContent>
           </ScrollArea>
         </Tabs>
