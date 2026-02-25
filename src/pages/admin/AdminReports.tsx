@@ -249,7 +249,7 @@ export default function AdminReports() {
         });
       }
 
-      generateReportPDF(
+      await generateReportPDF(
         "تقرير تحليلات المنصة",
         { from: filters.dateFrom, to: filters.dateTo },
         sections,
