@@ -6,6 +6,7 @@ interface CreateContributionInput {
   amount: number;
   project_id?: string;
   service_id?: string;
+  association_id?: string;
 }
 
 export function useDonorContributions() {
@@ -15,7 +16,7 @@ export function useDonorContributions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("*, projects(title, status), micro_services(title)")
+        .select("*, projects(title, status), micro_services(title), profiles:association_id(full_name, organization_name)")
         .eq("donor_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -41,6 +42,7 @@ export function useCreateContribution() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["donor-contributions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["donor-stats", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["donor-balances", user?.id] });
     },
   });
 }

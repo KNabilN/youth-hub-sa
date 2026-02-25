@@ -1,23 +1,19 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useDonorStats, useDonorFundConsumption } from "@/hooks/useDonorStats";
+import { useDonorStats, useDonorFundConsumption, useDonorBalances } from "@/hooks/useDonorStats";
 import { useDonorContributions } from "@/hooks/useDonorContributions";
 import { ImpactSummary } from "@/components/donor/ImpactSummary";
+import { DonorBalanceCards } from "@/components/donor/DonorBalanceCards";
+import { DonationTimeline } from "@/components/donor/DonationTimeline";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { BarChart3 } from "lucide-react";
-
-const statusLabels: Record<string, string> = {
-  draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
-  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي", pending_approval: "بانتظار الموافقة",
-};
 
 export default function ImpactReports() {
   const { data: stats, isLoading: statsLoading } = useDonorStats();
   const { data: contributions, isLoading: contribLoading } = useDonorContributions();
   const { data: fundConsumption, isLoading: fundLoading } = useDonorFundConsumption();
+  const { data: balances, isLoading: balancesLoading } = useDonorBalances();
 
   return (
     <DashboardLayout>
@@ -40,6 +36,19 @@ export default function ImpactReports() {
           isLoading={statsLoading}
         />
 
+        {/* Balance Cards */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3">أرصدة الدعم</h2>
+          <DonorBalanceCards
+            available={balances?.available ?? 0}
+            reserved={balances?.reserved ?? 0}
+            consumed={balances?.consumed ?? 0}
+            suspended={balances?.suspended ?? 0}
+            expired={balances?.expired ?? 0}
+            isLoading={balancesLoading}
+          />
+        </div>
+
         {/* Fund Consumption */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
@@ -53,47 +62,23 @@ export default function ImpactReports() {
           <Card>
             <CardContent className="pt-6 text-center">
               <p className="text-sm text-muted-foreground">أموال في مشاريع مكتملة</p>
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-2xl font-bold text-success">
                 {fundLoading ? "..." : (fundConsumption?.completedFunds ?? 0).toLocaleString()} ر.س
               </p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Timeline */}
         <Card>
-          <CardHeader><CardTitle className="text-lg">تفاصيل التبرعات</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">سجل التبرعات الزمني</CardTitle></CardHeader>
           <CardContent>
             {contribLoading ? (
-              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
             ) : !contributions?.length ? (
               <EmptyState icon={BarChart3} title="لا توجد تبرعات لعرض تأثيرها" description="قدّم تبرعاً لتتبع أثره على المجتمع" actionLabel="صفحة التبرعات" actionHref="/donations" />
             ) : (
-              <div className="overflow-x-auto"><Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>المشروع / الخدمة</TableHead>
-                    <TableHead>المبلغ</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>النوع</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contributions.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>{(c.projects as any)?.title || (c.micro_services as any)?.title || "-"}</TableCell>
-                      <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>
-                        {c.project_id && (c.projects as any)?.status ? (
-                          <Badge variant="outline">{statusLabels[(c.projects as any).status] || (c.projects as any).status}</Badge>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{c.project_id ? "مشروع" : "خدمة"}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table></div>
+              <DonationTimeline contributions={contributions as any} />
             )}
           </CardContent>
         </Card>

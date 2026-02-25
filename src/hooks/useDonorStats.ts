@@ -58,3 +58,31 @@ export function useDonorFundConsumption() {
     enabled: !!user,
   });
 }
+
+export function useDonorBalances() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["donor-balances", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donor_contributions")
+        .select("amount, donation_status")
+        .eq("donor_id", user!.id);
+      if (error) throw error;
+
+      const balances = { available: 0, reserved: 0, consumed: 0, suspended: 0, expired: 0 };
+      (data ?? []).forEach(d => {
+        const status = (d as any).donation_status || "available";
+        const amount = Number(d.amount);
+        if (status in balances) {
+          balances[status as keyof typeof balances] += amount;
+        } else {
+          balances.available += amount;
+        }
+      });
+
+      return balances;
+    },
+    enabled: !!user,
+  });
+}
