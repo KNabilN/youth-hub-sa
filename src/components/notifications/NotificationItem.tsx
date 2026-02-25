@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2 } from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
@@ -22,11 +22,28 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   bid_received: { icon: Gavel, label: "عرض سعر" },
   bid_accepted: { icon: CheckCircle, label: "قبول عرض" },
   bid_rejected: { icon: AlertTriangle, label: "رفض عرض" },
+  contract_created: { icon: FileSignature, label: "عقد جديد" },
   contract_signed: { icon: FileSignature, label: "توقيع عقد" },
   escrow_created: { icon: Shield, label: "ضمان مالي" },
+  escrow_released: { icon: Banknote, label: "تحرير ضمان" },
+  escrow_refunded: { icon: RotateCcw, label: "استرداد ضمان" },
+  escrow_frozen: { icon: Snowflake, label: "تجميد ضمان" },
   payment: { icon: CreditCard, label: "دفع" },
-  dispute_opened: { icon: AlertTriangle, label: "نزاع" },
-  dispute_resolved: { icon: CheckCircle, label: "تسوية" },
+  purchase: { icon: HandCoins, label: "شراء" },
+  purchase_confirmation: { icon: CheckCircle, label: "تأكيد شراء" },
+  project_open: { icon: FolderKanban, label: "مشروع مفتوح" },
+  project_in_progress: { icon: FolderKanban, label: "مشروع قيد التنفيذ" },
+  project_completed: { icon: CheckCircle, label: "مشروع مكتمل" },
+  project_cancelled: { icon: AlertTriangle, label: "مشروع ملغي" },
+  project_disputed: { icon: Gavel, label: "مشروع متنازع" },
+  project_suspended: { icon: AlertTriangle, label: "مشروع معلق" },
+  dispute_opened: { icon: Gavel, label: "نزاع مفتوح" },
+  dispute_resolved: { icon: CheckCircle, label: "نزاع محلول" },
+  timelog_approved: { icon: Clock, label: "وقت معتمد" },
+  timelog_rejected: { icon: Clock, label: "وقت مرفوض" },
+  withdrawal_approved: { icon: Banknote, label: "سحب موافق" },
+  withdrawal_rejected: { icon: Banknote, label: "سحب مرفوض" },
+  withdrawal_processed: { icon: Banknote, label: "سحب محوّل" },
 };
 
 export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {

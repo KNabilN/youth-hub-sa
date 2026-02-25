@@ -13,10 +13,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const typeFilters = [
   { value: "all", label: "الكل" },
   { value: "info", label: "عام" },
-  { value: "bid_received", label: "العروض" },
-  { value: "contract_signed", label: "العقود" },
-  { value: "escrow_created", label: "الضمان" },
-  { value: "warning", label: "تنبيهات" },
+  { value: "bid", label: "العروض" },
+  { value: "contract", label: "العقود" },
+  { value: "escrow", label: "الضمان" },
+  { value: "project", label: "المشاريع" },
+  { value: "dispute", label: "المنازعات" },
+  { value: "timelog", label: "سجل الوقت" },
+  { value: "withdrawal", label: "السحب" },
 ];
 
 export default function Notifications() {
@@ -28,7 +31,7 @@ export default function Notifications() {
   const [filter, setFilter] = useState("all");
 
   const hasUnread = notifications?.some((n) => !n.is_read);
-  const filtered = filter === "all" ? notifications : notifications?.filter((n) => n.type === filter);
+  const filtered = filter === "all" ? notifications : notifications?.filter((n) => n.type.startsWith(filter));
 
   return (
     <DashboardLayout>

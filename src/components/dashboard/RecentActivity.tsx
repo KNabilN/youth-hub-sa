@@ -13,15 +13,28 @@ import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const typeConfig: Record<string, { icon: typeof Bell; color: string }> = {
-  bid_accepted: { icon: FileText, color: "bg-info/15 text-info" },
+  bid_received: { icon: FileText, color: "bg-primary/15 text-primary" },
+  bid_accepted: { icon: Check, color: "bg-success/15 text-success" },
   bid_rejected: { icon: FileText, color: "bg-destructive/15 text-destructive" },
+  contract_created: { icon: FileText, color: "bg-primary/15 text-primary" },
   contract_signed: { icon: Check, color: "bg-success/15 text-success" },
   escrow_created: { icon: ShieldCheck, color: "bg-primary/15 text-primary" },
+  escrow_released: { icon: HandCoins, color: "bg-success/15 text-success" },
+  escrow_refunded: { icon: HandCoins, color: "bg-muted text-muted-foreground" },
+  escrow_frozen: { icon: ShieldCheck, color: "bg-destructive/15 text-destructive" },
+  project_open: { icon: FolderKanban, color: "bg-primary/15 text-primary" },
+  project_in_progress: { icon: FolderKanban, color: "bg-info/15 text-info" },
   project_completed: { icon: FolderKanban, color: "bg-success/15 text-success" },
   project_cancelled: { icon: FolderKanban, color: "bg-muted text-muted-foreground" },
+  project_disputed: { icon: Gavel, color: "bg-destructive/15 text-destructive" },
+  project_suspended: { icon: FolderKanban, color: "bg-destructive/15 text-destructive" },
   dispute_opened: { icon: Gavel, color: "bg-destructive/15 text-destructive" },
   dispute_resolved: { icon: Gavel, color: "bg-success/15 text-success" },
-  donation: { icon: HandCoins, color: "bg-accent/15 text-accent-foreground" },
+  timelog_approved: { icon: Check, color: "bg-success/15 text-success" },
+  timelog_rejected: { icon: FileText, color: "bg-destructive/15 text-destructive" },
+  withdrawal_approved: { icon: HandCoins, color: "bg-success/15 text-success" },
+  withdrawal_processed: { icon: HandCoins, color: "bg-success/15 text-success" },
+  purchase: { icon: HandCoins, color: "bg-accent/15 text-accent-foreground" },
   info: { icon: Bell, color: "bg-muted text-muted-foreground" },
 };
 
