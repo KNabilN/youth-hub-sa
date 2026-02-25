@@ -19,14 +19,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
-import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
+import { useCreateEscrow, useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -40,6 +40,7 @@ export default function ProjectDetails() {
   const createDispute = useCreateDispute();
   const releaseEscrow = useReleaseEscrow();
   const refundEscrow = useRefundEscrow();
+  const createEscrow = useCreateEscrow();
   const generateInvoice = useGenerateInvoice();
   const { role, user } = useAuth();
   const [disputeDesc, setDisputeDesc] = useState("");
@@ -375,6 +376,43 @@ export default function ProjectDetails() {
                         <PenLine className="h-4 w-4 ml-1" />
                         توقيع العقد
                       </Button>
+                    )}
+                    {/* Escrow creation button - shown after both parties sign and no escrow exists */}
+                    {isAssociation && contract.association_signed_at && contract.provider_signed_at && !escrow && (
+                      <div className="mt-4 p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield className="h-5 w-5 text-primary" />
+                          <span className="font-medium text-sm">إنشاء ضمان مالي</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          تم توقيع العقد من الطرفين. يمكنك الآن إنشاء ضمان مالي لحماية المشروع.
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium">المبلغ: {project.budget ?? 0} ر.س</span>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (!project.budget || !project.assigned_provider_id || !user) return;
+                              createEscrow.mutate(
+                                {
+                                  projectId: project.id,
+                                  payerId: user.id,
+                                  payeeId: project.assigned_provider_id,
+                                  amount: project.budget,
+                                },
+                                {
+                                  onSuccess: () => toast({ title: "تم إنشاء الضمان المالي بنجاح" }),
+                                  onError: () => toast({ title: "حدث خطأ في إنشاء الضمان", variant: "destructive" }),
+                                }
+                              );
+                            }}
+                            disabled={createEscrow.isPending || !project.budget}
+                          >
+                            <Shield className="h-4 w-4 ml-1" />
+                            إنشاء الضمان
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
