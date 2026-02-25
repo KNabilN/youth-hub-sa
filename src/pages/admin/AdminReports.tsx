@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { format, parseISO, startOfMonth } from "date-fns";
 import { Download, ChevronDown, FileText, Printer } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { PeriodComparison } from "@/components/admin/PeriodComparison";
-import { generateReportPDF } from "@/lib/report-pdf";
+import { generateReportPDF, captureSvgAsImage } from "@/lib/report-pdf";
 import { toast } from "sonner";
 
 const STATUS_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#ef4444", "#6b7280"];
@@ -195,49 +195,71 @@ export default function AdminReports() {
       (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
   };
 
+  // Chart refs for PDF capture
+  const chartRefs = useRef<{ title: string; ref: HTMLDivElement | null }[]>([]);
+  const setChartRef = (index: number, title: string) => (el: HTMLDivElement | null) => {
+    chartRefs.current[index] = { title, ref: el };
+  };
+
   const exportPDF = async () => {
     try {
-      const sections = [];
+      toast.info("جارٍ إعداد التقرير...");
 
+      // Capture all chart SVGs as images
+      const chartImages: { title: string; imageDataUrl: string }[] = [];
+      for (const item of chartRefs.current) {
+        if (!item?.ref) continue;
+        const svg = item.ref.querySelector("svg.recharts-surface") as SVGSVGElement | null;
+        if (!svg) continue;
+        try {
+          const dataUrl = await captureSvgAsImage(svg, 500, 280);
+          chartImages.push({ title: item.title, imageDataUrl: dataUrl });
+        } catch {
+          // skip failed charts
+        }
+      }
+
+      const sections = [];
       if (projectsByStatus?.length) {
         sections.push({
-          title: "Projects by Status",
-          headers: ["Status", "Count"],
+          title: "المشاريع حسب الحالة",
+          headers: ["الحالة", "العدد"],
           rows: projectsByStatus.map((p) => [p.name, String(p.value)]),
         });
       }
       if (projectsByRegion?.length) {
         sections.push({
-          title: "Projects by Region",
-          headers: ["Region", "Count"],
+          title: "المشاريع حسب المنطقة",
+          headers: ["المنطقة", "العدد"],
           rows: projectsByRegion.map((p) => [p.name, String(p.value)]),
         });
       }
       if (monthlyDonations?.length) {
         sections.push({
-          title: "Monthly Donations",
-          headers: ["Month", "Amount (SAR)"],
+          title: "التبرعات الشهرية",
+          headers: ["الشهر", "المبلغ (ر.س)"],
           rows: monthlyDonations.map((d) => [d.month, String(d.amount)]),
         });
       }
       if (monthlyEscrow?.length) {
         sections.push({
-          title: "Monthly Escrow Transactions",
-          headers: ["Month", "Total (SAR)", "Released (SAR)"],
+          title: "المعاملات المالية الشهرية",
+          headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"],
           rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]),
         });
       }
 
       generateReportPDF(
-        "Platform Analytics Report",
+        "تقرير تحليلات المنصة",
         { from: filters.dateFrom, to: filters.dateTo },
         sections,
         [
-          { label: "Users", value: String(stats?.totalUsers ?? 0) },
-          { label: "Projects", value: String(stats?.totalProjects ?? 0) },
-          { label: "Revenue (SAR)", value: (stats?.revenue ?? 0).toLocaleString() },
-          { label: "Open Disputes", value: String(stats?.openDisputes ?? 0) },
-        ]
+          { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
+          { label: "المشاريع", value: String(stats?.totalProjects ?? 0) },
+          { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
+          { label: "النزاعات المفتوحة", value: String(stats?.openDisputes ?? 0) },
+        ],
+        chartImages
       );
       toast.success("تم تصدير التقرير بصيغة PDF");
     } catch (err) {
@@ -275,7 +297,7 @@ export default function AdminReports() {
         </div>
 
         {/* Filters */}
-        <Card>
+          <Card ref={setChartRef(0, "المشاريع حسب الحالة")}>
           <CardContent className="pt-4 pb-3">
             <ReportFilters filters={filters} onChange={setFilters} />
           </CardContent>
@@ -294,7 +316,7 @@ export default function AdminReports() {
 
         {/* Charts */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card ref={setChartRef(1, "المستخدمين حسب الدور")}>
             <CardHeader><CardTitle className="text-lg">المشاريع حسب الحالة</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -307,7 +329,7 @@ export default function AdminReports() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card ref={setChartRef(2, "الخدمات حسب التصنيف")}>
             <CardHeader><CardTitle className="text-lg">المستخدمين حسب الدور</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -324,7 +346,7 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card ref={setChartRef(3, "المشاريع حسب المنطقة")}>
             <CardHeader><CardTitle className="text-lg">الخدمات حسب التصنيف</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -337,7 +359,7 @@ export default function AdminReports() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card ref={setChartRef(4, "التبرعات الشهرية")}>
             <CardHeader><CardTitle className="text-lg">المشاريع حسب المنطقة</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -352,7 +374,7 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card ref={setChartRef(5, "حالة الخدمات")}>
             <CardHeader><CardTitle className="text-lg">التبرعات الشهرية</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -363,7 +385,7 @@ export default function AdminReports() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card ref={setChartRef(6, "المعاملات المالية الشهرية")}>
             <CardHeader><CardTitle className="text-lg">حالة الخدمات</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -379,7 +401,7 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card ref={setChartRef(7, "توزيع أسعار الساعة")}>
             <CardHeader><CardTitle className="text-lg">المعاملات المالية الشهرية</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -413,7 +435,7 @@ export default function AdminReports() {
           </Card>
         </div>
 
-        <Card>
+        <Card ref={setChartRef(8, "تحليلات المانحين")}>
           <CardHeader><CardTitle className="text-lg">تحليلات المانحين</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4 mb-4">
