@@ -1138,31 +1138,40 @@ export type Database = {
           approval: Database["public"]["Enums"]["approval_status"]
           created_at: string
           description: string
+          end_time: string | null
           hours: number
           id: string
           log_date: string
           project_id: string
           provider_id: string
+          rejection_reason: string | null
+          start_time: string | null
         }
         Insert: {
           approval?: Database["public"]["Enums"]["approval_status"]
           created_at?: string
           description?: string
+          end_time?: string | null
           hours: number
           id?: string
           log_date?: string
           project_id: string
           provider_id: string
+          rejection_reason?: string | null
+          start_time?: string | null
         }
         Update: {
           approval?: Database["public"]["Enums"]["approval_status"]
           created_at?: string
           description?: string
+          end_time?: string | null
           hours?: number
           id?: string
           log_date?: string
           project_id?: string
           provider_id?: string
+          rejection_reason?: string | null
+          start_time?: string | null
         }
         Relationships: [
           {
