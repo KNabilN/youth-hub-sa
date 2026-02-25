@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjects, useUpdateProjectStatusByAssociation } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,11 +8,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { Plus, FolderKanban } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 
 export default function Projects() {
   const [statusFilter, setStatusFilter] = useState("all");
   const { data: projects, isLoading } = useProjects(statusFilter);
+  const updateStatus = useUpdateProjectStatusByAssociation();
   const navigate = useNavigate();
+
+  const handleStatusChange = (id: string, status: "draft" | "pending_approval" | "suspended" | "archived" | "cancelled") => {
+    const labels: Record<string, string> = {
+      pending_approval: "تم تقديم المشروع للموافقة",
+      suspended: "تم إيقاف المشروع مؤقتاً",
+      archived: "تم أرشفة المشروع",
+    };
+    updateStatus.mutate({ id, status }, {
+      onSuccess: () => toast({ title: labels[status] || "تم تحديث الحالة" }),
+      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -39,14 +53,17 @@ export default function Projects() {
             <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px] bg-background"><SelectValue placeholder="حالة المشروع" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">جميع الحالات</SelectItem>
-            <SelectItem value="draft">مسودة</SelectItem>
-            <SelectItem value="open">مفتوح</SelectItem>
-            <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-            <SelectItem value="completed">مكتمل</SelectItem>
-            <SelectItem value="disputed">متنازع</SelectItem>
-            <SelectItem value="cancelled">ملغي</SelectItem>
+              <SelectContent>
+                <SelectItem value="all">جميع الحالات</SelectItem>
+                <SelectItem value="draft">مسودة</SelectItem>
+                <SelectItem value="pending_approval">بانتظار الموافقة</SelectItem>
+                <SelectItem value="open">مفتوح</SelectItem>
+                <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                <SelectItem value="completed">مكتمل</SelectItem>
+                <SelectItem value="disputed">متنازع</SelectItem>
+                <SelectItem value="cancelled">ملغي</SelectItem>
+                <SelectItem value="suspended">معلق</SelectItem>
+                <SelectItem value="archived">مؤرشف</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -63,7 +80,16 @@ export default function Projects() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map(p => <ProjectCard key={p.id} project={p as any} />)}
+            {projects.map(p => (
+              <ProjectCard
+                key={p.id}
+                project={p as any}
+                onSubmitForApproval={(id) => handleStatusChange(id, "pending_approval")}
+                onSuspend={(id) => handleStatusChange(id, "suspended")}
+                onReactivate={(id) => handleStatusChange(id, "pending_approval")}
+                onArchive={(id) => handleStatusChange(id, "archived")}
+              />
+            ))}
           </div>
         )}
       </div>
