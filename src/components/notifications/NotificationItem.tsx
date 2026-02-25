@@ -45,6 +45,11 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   withdrawal_rejected: { icon: Banknote, label: "سحب مرفوض" },
   withdrawal_processed: { icon: Banknote, label: "سحب محوّل" },
   message_received: { icon: Mail, label: "رسالة جديدة" },
+  service_approved: { icon: CheckCircle, label: "خدمة معتمدة" },
+  service_rejected: { icon: AlertTriangle, label: "خدمة مرفوضة" },
+  service_suspended: { icon: AlertTriangle, label: "خدمة معلقة" },
+  service_purchased: { icon: HandCoins, label: "شراء خدمة" },
+  time_log_approval: { icon: Clock, label: "اعتماد وقت" },
 };
 
 export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {
