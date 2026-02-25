@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { StarRating } from "@/components/ratings/StarRating";
-import { Users, FolderKanban, Star, Building2, MapPin, Phone, FileText } from "lucide-react";
+import { RatingDistribution } from "@/components/ratings/RatingDistribution";
+import { Users, FolderKanban, Star, Building2, Phone, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -49,7 +50,6 @@ function useAssociationRatings(id: string | undefined) {
   return useQuery({
     queryKey: ["association-ratings", id],
     queryFn: async () => {
-      // Get contracts where this association is a party, then get ratings
       const { data: contracts, error: cErr } = await supabase
         .from("contracts")
         .select("id")
@@ -63,7 +63,7 @@ function useAssociationRatings(id: string | undefined) {
         .select("*, profiles:rater_id(full_name)")
         .in("contract_id", contractIds)
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(20);
       if (rErr) throw rErr;
 
       const count = ratings?.length ?? 0;
@@ -161,12 +161,22 @@ export default function AssociationProfile() {
           </Card>
           <Card>
             <CardContent className="pt-6 text-center">
-              <FileText className="h-6 w-6 mx-auto text-info mb-2" />
+              <FileText className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
               <p className="text-2xl font-bold">{ratingsLoading ? "..." : ratingsData?.count ?? 0}</p>
               <p className="text-sm text-muted-foreground">تقييمات</p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Rating Distribution */}
+        {!ratingsLoading && ratingsData?.ratings && ratingsData.ratings.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="text-lg">توزيع التقييمات</CardTitle></CardHeader>
+            <CardContent>
+              <RatingDistribution ratings={ratingsData.ratings} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Projects */}
         <Card>
@@ -200,7 +210,7 @@ export default function AssociationProfile() {
           </CardContent>
         </Card>
 
-        {/* Ratings */}
+        {/* Ratings List */}
         <Card>
           <CardHeader><CardTitle className="text-lg">آخر التقييمات</CardTitle></CardHeader>
           <CardContent>
@@ -219,7 +229,12 @@ export default function AssociationProfile() {
                         <StarRating value={Math.round(avg)} readonly size="sm" />
                       </div>
                       {r.comment && <p className="text-xs text-muted-foreground">{r.comment}</p>}
-                      <p className="text-[10px] text-muted-foreground">{format(new Date(r.created_at), "yyyy/MM/dd", { locale: ar })}</p>
+                      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                        <span>الجودة: {r.quality_score}/5</span>
+                        <span>الالتزام: {r.timing_score}/5</span>
+                        <span>التواصل: {r.communication_score}/5</span>
+                        <span>{format(new Date(r.created_at), "yyyy/MM/dd", { locale: ar })}</span>
+                      </div>
                     </div>
                   );
                 })}
