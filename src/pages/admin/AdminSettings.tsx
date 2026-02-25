@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { CommissionForm } from "@/components/admin/CommissionForm";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { RegionManager } from "@/components/admin/RegionManager";
+import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
 import { Settings } from "lucide-react";
 
 export default function AdminSettings() {
@@ -14,11 +15,14 @@ export default function AdminSettings() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">إعدادات المنصة</h1>
-            <p className="text-sm text-muted-foreground">إدارة العمولات والتصنيفات والمناطق الجغرافية</p>
+            <p className="text-sm text-muted-foreground">إدارة العمولات والتصنيفات والمناطق وقالب الفاتورة</p>
           </div>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <CommissionForm />
+          <div className="space-y-6">
+            <CommissionForm />
+            <InvoiceTemplateManager />
+          </div>
           <div className="space-y-6">
             <CategoryManager />
             <RegionManager />
