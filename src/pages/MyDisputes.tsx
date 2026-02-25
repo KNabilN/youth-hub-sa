@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyDisputes } from "@/hooks/useMyDisputes";
 import { useMyAssignedProjects } from "@/hooks/useMyAssignedProjects";
-import { useCreateDispute } from "@/hooks/useDisputes";
+import { useCreateDispute, useReopenDispute } from "@/hooks/useDisputes";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Gavel, ExternalLink, Plus } from "lucide-react";
+import { Gavel, ExternalLink, Plus, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,15 +20,26 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { disputeStatusLabels, disputeStatusColors } from "@/lib/dispute-statuses";
 
+function canReopen(dispute: any): boolean {
+  if (!["resolved", "closed"].includes(dispute.status)) return false;
+  const closedAt = new Date(dispute.updated_at);
+  const daysDiff = (Date.now() - closedAt.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 7;
+}
+
 export default function MyDisputes() {
   const { data: disputes, isLoading } = useMyDisputes();
   const { data: assignedProjects } = useMyAssignedProjects("in_progress");
   const createDispute = useCreateDispute();
+  const reopenDispute = useReopenDispute();
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
   const [description, setDescription] = useState("");
+
+  const [reopenDialogId, setReopenDialogId] = useState<string | null>(null);
+  const [reopenReason, setReopenReason] = useState("");
 
   const handleCreateDispute = () => {
     if (!selectedProject || !description.trim()) return;
@@ -42,6 +53,21 @@ export default function MyDisputes() {
           setDescription("");
         },
         onError: () => toast({ title: "حدث خطأ أثناء رفع النزاع", variant: "destructive" }),
+      }
+    );
+  };
+
+  const handleReopen = () => {
+    if (!reopenDialogId || !reopenReason.trim()) return;
+    reopenDispute.mutate(
+      { disputeId: reopenDialogId, reason: reopenReason.trim() },
+      {
+        onSuccess: () => {
+          toast({ title: "تم إعادة فتح النزاع" });
+          setReopenDialogId(null);
+          setReopenReason("");
+        },
+        onError: (err: any) => toast({ title: err.message || "حدث خطأ", variant: "destructive" }),
       }
     );
   };
@@ -137,11 +163,28 @@ export default function MyDisputes() {
                 <CardContent className="space-y-3">
                   <p className="text-sm">{d.description}</p>
 
-                  {/* Financial Impact */}
                   <DisputeFinancialImpact projectId={d.project_id} />
 
                   {d.resolution_notes && (
                     <p className="text-xs text-muted-foreground border-t pt-2">ملاحظات الحل: {d.resolution_notes}</p>
+                  )}
+
+                  {/* Reopen button */}
+                  {canReopen(d) && (
+                    <div className="border-t pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => setReopenDialogId(d.id)}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        إعادة فتح النزاع
+                      </Button>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        متاح خلال 7 أيام من الإغلاق
+                      </p>
+                    </div>
                   )}
 
                   <DisputeTimeline disputeId={d.id} />
@@ -152,6 +195,37 @@ export default function MyDisputes() {
           </div>
         )}
       </div>
+
+      {/* Reopen Dialog */}
+      <Dialog open={!!reopenDialogId} onOpenChange={(open) => { if (!open) setReopenDialogId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إعادة فتح النزاع</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              سيتم إعادة فتح النزاع وتجميد المبالغ المالية المرتبطة بالمشروع مرة أخرى.
+            </p>
+            <div className="space-y-2">
+              <Label>سبب إعادة الفتح</Label>
+              <Textarea
+                value={reopenReason}
+                onChange={e => setReopenReason(e.target.value)}
+                placeholder="اشرح سبب إعادة فتح النزاع..."
+                rows={3}
+              />
+            </div>
+            <Button
+              onClick={handleReopen}
+              disabled={!reopenReason.trim() || reopenDispute.isPending}
+              variant="destructive"
+              className="w-full"
+            >
+              {reopenDispute.isPending ? "جاري الإرسال..." : "تأكيد إعادة الفتح"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
