@@ -229,6 +229,51 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_versions: {
+        Row: {
+          change_note: string | null
+          changed_by: string | null
+          contract_id: string
+          created_at: string
+          id: string
+          terms: string
+          version_number: number
+        }
+        Insert: {
+          change_note?: string | null
+          changed_by?: string | null
+          contract_id: string
+          created_at?: string
+          id?: string
+          terms?: string
+          version_number?: number
+        }
+        Update: {
+          change_note?: string | null
+          changed_by?: string | null
+          contract_id?: string
+          created_at?: string
+          id?: string
+          terms?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           association_id: string

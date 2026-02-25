@@ -24,6 +24,8 @@ import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { sendNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
+import { ContractTimeline } from "@/components/contracts/ContractTimeline";
+import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
 import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
@@ -81,6 +83,19 @@ export default function ProjectDetails() {
         .eq("project_id", id!)
         .order("created_at", { ascending: false });
       if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: escrow } = useQuery({
+    queryKey: ["project-escrow", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("escrow_transactions")
+        .select("*")
+        .eq("project_id", id!)
+        .maybeSingle();
       return data;
     },
   });
@@ -319,6 +334,17 @@ export default function ProjectDetails() {
                       <span className="flex items-center gap-1">
                         {contract.provider_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
                       </span>
+                      {escrow && (
+                        <>
+                          <span className="text-muted-foreground">الضمان المالي:</span>
+                          <span className="flex items-center gap-1">
+                            {escrow.amount} ر.س
+                            <Badge variant={escrow.status === "released" ? "default" : escrow.status === "held" ? "secondary" : "outline"} className="mr-1 text-xs">
+                              {escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status}
+                            </Badge>
+                          </span>
+                        </>
+                      )}
                     </div>
                     {isAssociation && !contract.association_signed_at && (
                       <Button
@@ -350,6 +376,19 @@ export default function ProjectDetails() {
                     )}
                   </CardContent>
                 </Card>
+
+                <ContractVersionsList
+                  contractId={contract.id}
+                  currentTerms={contract.terms}
+                  canEdit={(isAssociation || isProvider) && !(contract.association_signed_at && contract.provider_signed_at)}
+                />
+
+                <ContractTimeline
+                  contract={contract}
+                  escrow={escrow}
+                  timeLogs={timeLogs as any[]}
+                  disputes={disputes as any[]}
+                />
 
                 <Card>
                   <CardHeader>
