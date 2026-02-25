@@ -29,6 +29,7 @@ import { ContractVersionsList } from "@/components/contracts/ContractVersionsLis
 import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
+import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -310,6 +311,7 @@ export default function ProjectDetails() {
               <Paperclip className="h-3.5 w-3.5" />
               المرفقات
             </TabsTrigger>
+            {role === "super_admin" && <TabsTrigger value="activity">سجل النشاط</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="bids" className="mt-4">
@@ -459,6 +461,17 @@ export default function ProjectDetails() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {role === "super_admin" && (
+            <TabsContent value="activity" className="mt-4">
+              <Card>
+                <CardHeader><CardTitle className="text-lg">سجل النشاط</CardTitle></CardHeader>
+                <CardContent>
+                  <EntityActivityLog tableName="projects" recordId={id ?? null} maxHeight="500px" />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </DashboardLayout>

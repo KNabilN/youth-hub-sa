@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, parseISO, startOfMonth } from "date-fns";
-import { Download, ChevronDown, FileText } from "lucide-react";
+import { Download, ChevronDown, FileText, Printer } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { PeriodComparison } from "@/components/admin/PeriodComparison";
 import { generateReportPDF } from "@/lib/report-pdf";
@@ -251,6 +251,9 @@ export default function AdminReports() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold">التقارير والتحليلات</h1>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.print()} className="gap-1">
+              <Printer className="h-4 w-4" />طباعة
+            </Button>
             <Button variant="outline" onClick={exportPDF} className="gap-1">
               <FileText className="h-4 w-4" />تصدير PDF
             </Button>

@@ -4,9 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUpdateServiceApproval, useAdminDeleteService } from "@/hooks/useAdminServices";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, FileEdit, Pause, Play } from "lucide-react";
+import { Trash2, FileEdit, Pause, Play, History } from "lucide-react";
 import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
+import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
+import { logAudit } from "@/lib/audit";
 
 const approvalLabels: Record<string, string> = {
   draft: "مسودة", pending: "قيد المراجعة", approved: "مقبول", rejected: "مرفوض",
@@ -31,10 +36,40 @@ export function ServiceApprovalCard({ service }: { service: any }) {
   const update = useUpdateServiceApproval();
   const deleteService = useAdminDeleteService();
   const [editOpen, setEditOpen] = useState(false);
+  const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+  const [reasonAction, setReasonAction] = useState<"suspended" | "approved" | null>(null);
+  const [reason, setReason] = useState("");
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const handleApproval = (approval: "approved" | "rejected") => {
     update.mutate({ id: service.id, approval, providerId: service.provider_id }, {
       onSuccess: () => toast.success(approval === "approved" ? "تمت الموافقة" : "تم الرفض"),
+      onError: () => toast.error("حدث خطأ"),
+    });
+  };
+
+  const openReasonDialog = (action: "suspended" | "approved") => {
+    setReasonAction(action);
+    setReason("");
+    setReasonDialogOpen(true);
+  };
+
+  const handleReasonConfirm = () => {
+    if (!reason.trim()) {
+      toast.error("يرجى إدخال السبب");
+      return;
+    }
+    if (!reasonAction) return;
+    const actionLabel = reasonAction === "suspended" ? "تعليق" : "إعادة تفعيل";
+    update.mutate({ id: service.id, approval: reasonAction, providerId: service.provider_id }, {
+      onSuccess: async () => {
+        await logAudit("micro_services", service.id, reasonAction === "suspended" ? "suspend" : "reactivate", 
+          { approval: service.approval }, 
+          { approval: reasonAction, reason: reason.trim() }
+        );
+        toast.success(`تم ${actionLabel} الخدمة`);
+        setReasonDialogOpen(false);
+      },
       onError: () => toast.error("حدث خطأ"),
     });
   };
@@ -69,15 +104,18 @@ export function ServiceApprovalCard({ service }: { service: any }) {
             <Button size="sm" onClick={() => handleApproval("approved")} disabled={update.isPending || service.approval === "approved"}>موافقة</Button>
             <Button size="sm" variant="destructive" onClick={() => handleApproval("rejected")} disabled={update.isPending || service.approval === "rejected"}>رفض</Button>
             {(service.approval === "approved" || service.approval === "pending") && (
-              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleApproval("suspended" as any)} disabled={update.isPending}>
+              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => openReasonDialog("suspended")} disabled={update.isPending}>
                 <Pause className="h-4 w-4 ml-1" />تعليق
               </Button>
             )}
             {(service.approval === "suspended" || service.approval === "archived") && (
-              <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => handleApproval("approved")} disabled={update.isPending}>
+              <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => openReasonDialog("approved")} disabled={update.isPending}>
                 <Play className="h-4 w-4 ml-1" />إعادة تفعيل
               </Button>
             )}
+            <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
+              <History className="h-4 w-4 ml-1" />السجل
+            </Button>
             <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
               <FileEdit className="h-4 w-4 ml-1" />طلب تعديل
             </Button>
@@ -110,6 +148,42 @@ export function ServiceApprovalCard({ service }: { service: any }) {
         fields={serviceFields}
         title="طلب تعديل الخدمة"
       />
+
+      {/* Reason Dialog for suspend/reactivate */}
+      <Dialog open={reasonDialogOpen} onOpenChange={setReasonDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{reasonAction === "suspended" ? "تعليق الخدمة" : "إعادة تفعيل الخدمة"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {reasonAction === "suspended"
+                ? `سيتم تعليق خدمة "${service.title}" مؤقتاً.`
+                : `سيتم إعادة تفعيل خدمة "${service.title}".`}
+            </p>
+            <div>
+              <Label>السبب *</Label>
+              <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="اكتب السبب..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReasonDialogOpen(false)}>إلغاء</Button>
+            <Button variant={reasonAction === "suspended" ? "destructive" : "default"} onClick={handleReasonConfirm} disabled={update.isPending}>
+              تأكيد
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Log Dialog */}
+      <Dialog open={activityOpen} onOpenChange={setActivityOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>سجل نشاط الخدمة</DialogTitle>
+          </DialogHeader>
+          <EntityActivityLog tableName="micro_services" recordId={service.id} maxHeight="400px" />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
