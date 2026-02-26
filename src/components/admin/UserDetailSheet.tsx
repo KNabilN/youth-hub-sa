@@ -127,6 +127,11 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
                 <InfoRow label="الاسم الكامل" value={user.full_name} />
                 <InfoRow label="الهاتف" value={user.phone} />
                 <InfoRow label="اسم المنظمة" value={user.organization_name} />
+                <InfoRow label="رقم الترخيص" value={user.license_number} />
+                <InfoRow label="اسم ضابط الاتصال" value={user.contact_officer_name} />
+                <InfoRow label="رقم ضابط الاتصال" value={user.contact_officer_phone} />
+                <InfoRow label="بريد ضابط الاتصال" value={user.contact_officer_email} />
+                <InfoRow label="صفة ضابط الاتصال" value={user.contact_officer_title} />
                 <InfoRow label="نبذة" value={user.bio} />
                 <InfoRow label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
                 <InfoRow label="تاريخ الانضمام" value={format(new Date(user.created_at), "yyyy/MM/dd", { locale: ar })} />
