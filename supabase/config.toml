@@ -1,1 +1,4 @@
 project_id = "nuneqhhampikooviiphf"
+
+[functions.bulk-create-associations]
+verify_jwt = false

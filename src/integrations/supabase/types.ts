@@ -942,12 +942,17 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          contact_officer_email: string | null
+          contact_officer_name: string | null
+          contact_officer_phone: string | null
+          contact_officer_title: string | null
           created_at: string
           full_name: string
           hourly_rate: number | null
           id: string
           is_suspended: boolean
           is_verified: boolean
+          license_number: string | null
           organization_name: string | null
           pdpl_consent_at: string | null
           pdpl_consent_version: string | null
@@ -958,12 +963,17 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          contact_officer_email?: string | null
+          contact_officer_name?: string | null
+          contact_officer_phone?: string | null
+          contact_officer_title?: string | null
           created_at?: string
           full_name?: string
           hourly_rate?: number | null
           id: string
           is_suspended?: boolean
           is_verified?: boolean
+          license_number?: string | null
           organization_name?: string | null
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
@@ -974,12 +984,17 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          contact_officer_email?: string | null
+          contact_officer_name?: string | null
+          contact_officer_phone?: string | null
+          contact_officer_title?: string | null
           created_at?: string
           full_name?: string
           hourly_rate?: number | null
           id?: string
           is_suspended?: boolean
           is_verified?: boolean
+          license_number?: string | null
           organization_name?: string | null
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null

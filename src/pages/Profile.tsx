@@ -35,6 +35,11 @@ export default function Profile() {
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
   const [organizationName, setOrganizationName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [contactOfficerName, setContactOfficerName] = useState("");
+  const [contactOfficerPhone, setContactOfficerPhone] = useState("");
+  const [contactOfficerEmail, setContactOfficerEmail] = useState("");
+  const [contactOfficerTitle, setContactOfficerTitle] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [initialized, setInitialized] = useState(false);
@@ -44,6 +49,11 @@ export default function Profile() {
     setBio(profile.bio ?? "");
     setPhone(profile.phone ?? "");
     setOrganizationName(profile.organization_name ?? "");
+    setLicenseNumber((profile as any).license_number ?? "");
+    setContactOfficerName((profile as any).contact_officer_name ?? "");
+    setContactOfficerPhone((profile as any).contact_officer_phone ?? "");
+    setContactOfficerEmail((profile as any).contact_officer_email ?? "");
+    setContactOfficerTitle((profile as any).contact_officer_title ?? "");
     setHourlyRate(profile.hourly_rate?.toString() ?? "");
     setEmailNotifications((profile as any).email_notifications ?? true);
     setInitialized(true);
@@ -56,6 +66,11 @@ export default function Profile() {
         bio,
         phone,
         organization_name: organizationName,
+        license_number: licenseNumber,
+        contact_officer_name: contactOfficerName,
+        contact_officer_phone: contactOfficerPhone,
+        contact_officer_email: contactOfficerEmail,
+        contact_officer_title: contactOfficerTitle,
         hourly_rate: hourlyRate ? Number(hourlyRate) : null,
         email_notifications: emailNotifications,
       } as any,
@@ -146,12 +161,18 @@ export default function Profile() {
                   </div>
 
                   {role === "youth_association" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="orgName" className="flex items-center gap-1">
-                        <Building className="h-3.5 w-3.5" /> اسم المنظمة
-                      </Label>
-                      <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className="h-11" />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="orgName" className="flex items-center gap-1">
+                          <Building className="h-3.5 w-3.5" /> اسم المنظمة
+                        </Label>
+                        <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className="h-11" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="licenseNumber">رقم الترخيص</Label>
+                        <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className="h-11" />
+                      </div>
+                    </>
                   )}
 
                   {role === "service_provider" && (
@@ -179,6 +200,34 @@ export default function Profile() {
                 </CardContent>
               </Card>
             </div>
+
+            {role === "youth_association" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-primary" /> بيانات ضابط الاتصال
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactName">اسم ضابط الاتصال</Label>
+                    <Input id="contactName" value={contactOfficerName} onChange={(e) => setContactOfficerName(e.target.value)} className="h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactTitle">الصفة</Label>
+                    <Input id="contactTitle" value={contactOfficerTitle} onChange={(e) => setContactOfficerTitle(e.target.value)} className="h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">رقم ضابط الاتصال</Label>
+                    <Input id="contactPhone" value={contactOfficerPhone} onChange={(e) => setContactOfficerPhone(e.target.value)} dir="ltr" className="h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">بريد ضابط الاتصال</Label>
+                    <Input id="contactEmail" value={contactOfficerEmail} onChange={(e) => setContactOfficerEmail(e.target.value)} dir="ltr" className="h-11" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {role === "service_provider" && <PortfolioManager />}
 
