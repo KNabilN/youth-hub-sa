@@ -4,28 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Database } from "@/integrations/supabase/types";
-
-type ProjectStatus = Database["public"]["Enums"]["project_status"];
-
-const statusConfig: Record<ProjectStatus, { label: string; className: string }> = {
-  draft: { label: "مسودة", className: "bg-muted text-muted-foreground" },
-  pending_approval: { label: "بانتظار الموافقة", className: "bg-orange-500/15 text-orange-600 border-orange-500/30" },
-  open: { label: "مفتوح", className: "bg-[hsl(var(--info))]/15 text-[hsl(var(--info))] border-[hsl(var(--info))]/30" },
-  in_progress: { label: "قيد التنفيذ", className: "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))] border-[hsl(var(--warning))]/30" },
-  completed: { label: "مكتمل", className: "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] border-[hsl(var(--success))]/30" },
-  disputed: { label: "مُشتكى عليه", className: "bg-destructive/15 text-destructive border-destructive/30" },
-  cancelled: { label: "ملغي", className: "bg-muted text-muted-foreground" },
-  suspended: { label: "معلق", className: "bg-orange-500/15 text-orange-600 border-orange-500/30" },
-  archived: { label: "مؤرشف", className: "bg-muted text-muted-foreground" },
-};
 
 interface Project {
   id: string;
   title: string;
   description: string;
   budget: number | null;
-  status: ProjectStatus;
   created_at: string;
   required_skills: string[] | null;
   category: { name: string } | null;
@@ -59,18 +43,16 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
-            {projects.map((p) => {
-              const sc = statusConfig[p.status];
+          {projects.map((p) => {
               const assocName = p.association?.organization_name || p.association?.full_name || "—";
               return (
                 <Card key={p.id} className="card-hover">
                   <CardContent className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
-                      {p.budget != null && (
+                    {p.budget != null && (
+                      <div className="flex items-center justify-end">
                         <span className="font-bold text-primary">{p.budget} ر.س</span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <h3 className="font-bold text-lg">{p.title}</h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">

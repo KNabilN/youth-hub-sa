@@ -38,7 +38,7 @@ export function useLandingStats() {
       const { data, error } = await supabase
         .from("projects")
         .select("id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)")
-        .neq("status", "draft")
+        .eq("status", "open")
         .eq("is_private", false)
         .order("created_at", { ascending: false })
         .limit(6);
