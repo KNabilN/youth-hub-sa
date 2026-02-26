@@ -60,6 +60,29 @@ function HealthMetric({ label, value, color }: { label: string; value: number; c
   );
 }
 
+/* ─── Custom Tooltip ─── */
+function CustomChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-border/50 bg-popover px-4 py-3 shadow-lg" style={{ direction: "rtl" }}>
+      {label && <p className="mb-1.5 text-xs font-bold text-foreground">{label}</p>}
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2 text-xs">
+          <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">{entry.name ?? entry.dataKey}:</span>
+          <span className="font-semibold tabular-nums text-foreground">
+            {typeof entry.value === "number" ? entry.value.toLocaleString() : entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const chartCardCls = "rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border/50 overflow-hidden animate-fade-in";
+const gridProps = { strokeDasharray: "3 3", stroke: "hsl(var(--border))", vertical: false } as const;
+const axisProps = { fontSize: 12, stroke: "hsl(var(--muted-foreground))", tickLine: false, axisLine: false } as const;
+
 export function AdminOverview() {
   const { data: stats, isLoading } = useAdminStats();
   const { data: growth, isLoading: growthLoading } = useAdminGrowthData();
@@ -97,14 +120,14 @@ export function AdminOverview() {
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Growth Chart */}
-        <Card className="md:col-span-2 animate-fade-in">
+        <Card className={cn("md:col-span-2", chartCardCls)}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
               نمو المنصة - آخر 6 أشهر
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {growthLoading ? (
               <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : (
@@ -120,19 +143,12 @@ export function AdminOverview() {
                       <stop offset="95%" stopColor="hsl(var(--info))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      color: "hsl(var(--popover-foreground))",
-                    }}
-                  />
-                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="url(#colorUsers)" name="مستخدمون جدد" strokeWidth={2} />
-                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="طلبات جديدة" strokeWidth={2} />
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="month" {...axisProps} />
+                  <YAxis {...axisProps} />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="url(#colorUsers)" name="مستخدمون جدد" strokeWidth={2.5} dot={false} />
+                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="طلبات جديدة" strokeWidth={2.5} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -140,14 +156,14 @@ export function AdminOverview() {
         </Card>
 
         {/* Platform Health */}
-        <Card className="animate-fade-in">
+        <Card className={chartCardCls}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
               <Activity className="h-5 w-5 text-success" />
               صحة المنصة
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 p-6">
             {healthLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
@@ -180,14 +196,14 @@ export function AdminOverview() {
       </div>
 
       {/* Financial Overview */}
-      <Card className="animate-fade-in">
+      <Card className={chartCardCls}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
             <Receipt className="h-5 w-5 text-success" />
             التدفق المالي - آخر 6 أشهر
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {growthLoading ? (
             <Skeleton className="h-[220px] w-full rounded-lg" />
           ) : (
@@ -203,19 +219,12 @@ export function AdminOverview() {
                     <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--popover))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    color: "hsl(var(--popover-foreground))",
-                  }}
-                />
-                <Area type="monotone" dataKey="escrow" stroke="hsl(var(--success))" fill="url(#colorEscrow)" name="معاملات الضمان (ر.س)" strokeWidth={2} />
-                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="التبرعات (ر.س)" strokeWidth={2} />
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="month" {...axisProps} />
+                <YAxis {...axisProps} />
+                <Tooltip content={<CustomChartTooltip />} />
+                <Area type="monotone" dataKey="escrow" stroke="hsl(var(--success))" fill="url(#colorEscrow)" name="معاملات الضمان (ر.س)" strokeWidth={2.5} dot={false} />
+                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="التبرعات (ر.س)" strokeWidth={2.5} dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           )}
