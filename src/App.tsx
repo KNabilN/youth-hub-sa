@@ -31,7 +31,7 @@ const ProjectBidView = lazy(() => import("./pages/ProjectBidView"));
 const MyBids = lazy(() => import("./pages/MyBids"));
 const TimeTracking = lazy(() => import("./pages/TimeTracking"));
 const Earnings = lazy(() => import("./pages/Earnings"));
-const Notifications = lazy(() => import("./pages/Notifications"));
+
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const TicketCreate = lazy(() => import("./pages/TicketCreate"));
 const Associations = lazy(() => import("./pages/Associations"));
@@ -118,7 +118,7 @@ const App = () => (
                 <Route path="/my-bids" element={<ProtectedRoute><MyBids /></ProtectedRoute>} />
                 <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
                 <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
-                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                
                 <Route path="/tickets" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
                 <Route path="/tickets/new" element={<ProtectedRoute><TicketCreate /></ProtectedRoute>} />
                 <Route path="/associations" element={<ProtectedRoute><Associations /></ProtectedRoute>} />

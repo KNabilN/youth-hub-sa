@@ -61,7 +61,7 @@ export function RecentActivity() {
     <Card className="animate-fade-in">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-lg">النشاط الأخير</CardTitle>
-        <Button variant="ghost" size="sm" onClick={() => navigate("/notifications")}>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/notifications")}>
           عرض الكل
         </Button>
       </CardHeader>
