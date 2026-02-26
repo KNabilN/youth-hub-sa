@@ -1,29 +1,58 @@
 
 
-## Delete the Notifications Page (Remove Duplication)
+## إضافة بيانات الجمعيات الشبابية
 
-The `/notifications` page duplicates the admin notifications view. This plan removes the page and updates all references.
+### ملخص
+الملف يحتوي على بيانات 67 جمعية شبابية تحتاج إلى تسجيل في النظام. هناك 5 حقول جديدة غير موجودة في قاعدة البيانات يجب إضافتها أولاً، ثم تسجيل جميع الجمعيات.
 
-### Changes
+### الخطوات
 
-**1. Delete file:**
-- `src/pages/Notifications.tsx`
+**1. إضافة الحقول الجديدة لجدول profiles**
 
-**2. Edit `src/App.tsx`:**
-- Remove the `Notifications` lazy import (line 34)
-- Remove the `/notifications` route (line 121)
+الحقول المفقودة:
+- `license_number` (رقم الترخيص) - نص
+- `contact_officer_name` (اسم ضابط الاتصال) - نص
+- `contact_officer_phone` (رقم ضابط الاتصال) - نص
+- `contact_officer_email` (البريد الإلكتروني لضابط الاتصال) - نص
+- `contact_officer_title` (صفة ضابط الاتصال) - نص
 
-**3. Edit `src/components/AppSidebar.tsx`:**
-- Remove the "الإشعارات" menu item from the "عام" (General) sidebar section (the `SidebarMenuItem` block around lines 147-161)
-- Keep the `NotificationBadge` import if it's used elsewhere (e.g., the top bar bell icon)
+سيتم إضافتها عبر migration بقيم افتراضية فارغة.
 
-**4. Update navigation references:**
-- `src/components/dashboard/RecentActivity.tsx` (line 64): Change `navigate("/notifications")` to `navigate("/admin/notifications")` so "عرض الكل" still works for admins
-- `src/components/DashboardLayout.tsx` (line 38): Change `navigate("/notifications")` to `navigate("/admin/notifications")` so the top-bar bell icon still works
+**2. إنشاء Edge Function لتسجيل الجمعيات**
 
-### Files NOT deleted:
-- `src/hooks/useNotifications.ts` -- still used by `NotificationBadge`, `RecentActivity`, and realtime subscription logic
-- `src/components/notifications/NotificationBadge.tsx` -- still used in the top bar
-- `src/components/notifications/NotificationItem.tsx` -- may be used by other components
-- `src/pages/admin/AdminNotifications.tsx` -- the admin version stays
+سيتم إنشاء backend function باسم `bulk-create-associations` تقوم بـ:
+- إنشاء حساب مستخدم لكل جمعية باستخدام البريد الإلكتروني وكلمة المرور
+- إدخال بيانات الملف الشخصي (اسم الجمعية، رقم الترخيص، الهاتف، بيانات ضابط الاتصال)
+- تعيين الدور `youth_association` (يتم تلقائياً عبر trigger الموجود)
+- تفعيل التحقق `is_verified = true`
+
+**3. تحديث واجهة الملف الشخصي**
+
+إضافة الحقول الجديدة في صفحة الملف الشخصي وصفحة تفاصيل المستخدم في لوحة الإدارة حتى تكون قابلة للعرض والتعديل.
+
+### تفاصيل تقنية
+
+```text
+Migration SQL:
+  ALTER TABLE profiles
+    ADD COLUMN license_number text DEFAULT '',
+    ADD COLUMN contact_officer_name text DEFAULT '',
+    ADD COLUMN contact_officer_phone text DEFAULT '',
+    ADD COLUMN contact_officer_email text DEFAULT '',
+    ADD COLUMN contact_officer_title text DEFAULT '';
+```
+
+Edge function flow:
+1. Receives array of association data
+2. For each entry: `supabase.auth.admin.createUser()` with email + password + metadata
+3. The existing `handle_new_user` trigger auto-creates the profile
+4. Update the profile with all additional fields (license, contact officer info)
+5. Set `is_verified = true`
+6. Returns summary of successes/failures
+
+Data notes:
+- 67 associations total from the spreadsheet
+- Passwords provided in plaintext in the spreadsheet
+- `full_name` will be set to اسم ضابط الاتصال (contact officer name)
+- `organization_name` will be set to اسم الجمعية
 
