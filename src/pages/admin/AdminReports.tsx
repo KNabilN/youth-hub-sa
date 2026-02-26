@@ -204,7 +204,7 @@ export default function AdminReports() {
   const { data: donorAnalytics } = useQuery({
     queryKey: ["admin-report-donor-analytics", dateFrom, dateTo],
     queryFn: async () => {
-      const { data } = await supabase.from("donor_contributions").select("donor_id, amount, project_id, projects(title)").gte("created_at", dateFrom).lte("created_at", dateTo);
+      const { data } = await supabase.from("donor_contributions").select("donor_id, amount, project_id, association_id, projects(title), profiles!donor_contributions_donor_id_fkey(full_name, organization_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
       const donors = new Set((data ?? []).map((d: any) => d.donor_id));
       const totalGrants = (data ?? []).reduce((s, d: any) => s + Number(d.amount), 0);
       const byProject: Record<string, number> = {};
@@ -212,10 +212,32 @@ export default function AdminReports() {
         const name = (d.projects as any)?.title || "خدمة";
         byProject[name] = (byProject[name] || 0) + Number(d.amount);
       });
+
+      // Per-donor: charities supported + total amount
+      const donorMap: Record<string, { name: string; associations: Set<string>; total: number }> = {};
+      (data ?? []).forEach((d: any) => {
+        if (!donorMap[d.donor_id]) {
+          const profile = d.profiles as any;
+          donorMap[d.donor_id] = {
+            name: profile?.organization_name || profile?.full_name || "مانح",
+            associations: new Set(),
+            total: 0,
+          };
+        }
+        if (d.association_id) donorMap[d.donor_id].associations.add(d.association_id);
+        donorMap[d.donor_id].total += Number(d.amount);
+      });
+      const perDonor = Object.values(donorMap).map((d) => ({
+        name: d.name,
+        charities: d.associations.size,
+        amount: d.total,
+      }));
+
       return {
         totalDonors: donors.size,
         totalGrants,
         byProject: Object.entries(byProject).map(([name, amount]) => ({ name, amount })),
+        perDonor,
       };
     },
   });
@@ -574,6 +596,41 @@ export default function AdminReports() {
             ) : null}
           </CardContent>
         </Card>
+
+        {/* Per-Donor Contributions Chart */}
+        {donorAnalytics?.perDonor?.length ? (
+          <Card ref={setChartRef(9, "مساهمات المانحين")} className={chartCardCls}>
+            <CardHeader><CardTitle className="text-lg text-center">مساهمات المانحين والرعاة</CardTitle></CardHeader>
+            <CardContent className="p-6">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={donorAnalytics.perDonor} barGap={8}>
+                  <defs>
+                    <linearGradient id="donorCharitiesGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#0D9488" stopOpacity={0.55} />
+                    </linearGradient>
+                    <linearGradient id="donorAmountGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.55} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="name" {...xAxisProps} />
+                  <YAxis yAxisId="left" {...yAxisProps} label={{ value: "عدد الجمعيات", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
+                  <YAxis yAxisId="right" orientation="right" {...yAxisProps} label={{ value: "المبلغ (ر.س)", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="charities" fill="url(#donorCharitiesGrad)" name="عدد الجمعيات المدعومة" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="charities" content={renderBarLabel} />
+                  </Bar>
+                  <Bar yAxisId="right" dataKey="amount" fill="url(#donorAmountGrad)" name="إجمالي المنح (ر.س)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="amount" content={renderBarLabel} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </DashboardLayout>
   );
