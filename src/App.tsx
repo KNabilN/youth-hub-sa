@@ -62,7 +62,7 @@ const AdminDisputes = lazy(() => import("./pages/admin/AdminDisputes"));
 const AdminFinance = lazy(() => import("./pages/admin/AdminFinance"));
 const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
-const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
+
 const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
 const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
@@ -144,7 +144,7 @@ const App = () => (
                 <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
                 <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                 <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
-                <Route path="/admin/audit-log" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
+                
                 <Route path="/admin/cms" element={<AdminRoute><AdminCMS /></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />
