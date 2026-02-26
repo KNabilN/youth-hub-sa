@@ -70,7 +70,7 @@ export default function MyServices() {
             </div>
           </div>
           <Button onClick={() => setFormOpen(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
-            <Plus className="h-4 w-4 ml-2" />إضافة خدمة
+            <Plus className="h-4 w-4 me-2" />إضافة خدمة
           </Button>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />

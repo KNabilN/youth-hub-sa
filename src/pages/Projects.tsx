@@ -42,7 +42,7 @@ export default function Projects() {
             </div>
           </div>
           <Button onClick={() => navigate("/projects/new")}>
-            <Plus className="h-4 w-4 ml-1" />
+            <Plus className="h-4 w-4 me-1" />
             طلب جديد
           </Button>
         </div>

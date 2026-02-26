@@ -158,47 +158,47 @@ export default function AdminFinance() {
                             {e.status === "held" && (
                               <>
                                 <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
-                                  <Unlock className="h-3.5 w-3.5 ml-1" />تحرير
+                                  <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
-                                  <Snowflake className="h-3.5 w-3.5 ml-1" />تجميد
+                                  <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
-                                  <RotateCcw className="h-3.5 w-3.5 ml-1" />استرداد
+                                  <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
                             )}
                             {e.status === "frozen" && (
                               <>
                                 <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
-                                  <Lock className="h-3.5 w-3.5 ml-1" />إعادة احتجاز
+                                  <Lock className="h-3.5 w-3.5 me-1" />إعادة احتجاز
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
-                                  <Unlock className="h-3.5 w-3.5 ml-1" />تحرير
+                                  <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
-                                  <RotateCcw className="h-3.5 w-3.5 ml-1" />استرداد
+                                  <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
                             )}
                             {e.status === "under_review" && (
                               <>
                                 <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
-                                  <Lock className="h-3.5 w-3.5 ml-1" />احتجاز
+                                  <Lock className="h-3.5 w-3.5 me-1" />احتجاز
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-blue-600" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
-                                  <Snowflake className="h-3.5 w-3.5 ml-1" />تجميد
+                                  <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                               </>
                             )}
                             {e.status === "pending_payment" && (
                               <Button size="sm" variant="outline" className="text-purple-600" onClick={() => handleEscrowStatus(e.id, "under_review")} disabled={updateEscrow.isPending}>
-                                <Eye className="h-3.5 w-3.5 ml-1" />مراجعة
+                                <Eye className="h-3.5 w-3.5 me-1" />مراجعة
                               </Button>
                             )}
                             {e.status === "failed" && (
                               <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleEscrowStatus(e.id, "pending_payment")} disabled={updateEscrow.isPending}>
-                                <AlertTriangle className="h-3.5 w-3.5 ml-1" />إعادة المحاولة
+                                <AlertTriangle className="h-3.5 w-3.5 me-1" />إعادة المحاولة
                               </Button>
                             )}
                             {(e.status === "released" || e.status === "refunded") && (

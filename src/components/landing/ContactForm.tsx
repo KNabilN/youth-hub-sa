@@ -93,7 +93,7 @@ export function ContactForm() {
             {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
           </div>
           <Button type="submit" className="w-full" disabled={sending}>
-            <Send className="h-4 w-4 ml-2" />
+            <Send className="h-4 w-4 me-2" />
             {sending ? "جارٍ الإرسال..." : "إرسال"}
           </Button>
         </form>

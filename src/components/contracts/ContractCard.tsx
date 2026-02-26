@@ -60,7 +60,7 @@ export function ContractCard({ contract, canSign, onSign, isSignPending }: Contr
         </p>
         {canSign && (
           <Button size="sm" onClick={() => onSign(contract.id)} disabled={isSignPending}>
-            <Check className="h-4 w-4 ml-1" />
+            <Check className="h-4 w-4 me-1" />
             توقيع العقد
           </Button>
         )}

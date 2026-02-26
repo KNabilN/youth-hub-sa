@@ -95,12 +95,12 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
               <SheetDescription className="flex flex-wrap gap-2 mt-1">
                 {role && <Badge variant="secondary">{roleLabels[role] ?? role}</Badge>}
                 {user.is_verified ? (
-                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 ml-1" />موثق</Badge>
+                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 me-1" />موثق</Badge>
                 ) : (
-                  <Badge variant="outline"><XCircle className="h-3 w-3 ml-1" />غير موثق</Badge>
+                  <Badge variant="outline"><XCircle className="h-3 w-3 me-1" />غير موثق</Badge>
                 )}
                 {user.is_suspended && (
-                  <Badge variant="destructive"><Ban className="h-3 w-3 ml-1" />معلّق</Badge>
+                  <Badge variant="destructive"><Ban className="h-3 w-3 me-1" />معلّق</Badge>
                 )}
               </SheetDescription>
             </div>
@@ -269,7 +269,7 @@ function InfoRow({ label, value }: { label: string; value: any }) {
   return (
     <div className="flex justify-between items-start border-b pb-3 last:border-0">
       <span className="text-muted-foreground text-sm">{label}</span>
-      <span className="font-medium text-sm text-left max-w-[60%]">{value || "—"}</span>
+      <span className="font-medium text-sm text-start max-w-[60%]">{value || "—"}</span>
     </div>
   );
 }

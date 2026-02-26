@@ -100,12 +100,12 @@ export default function AvailableProjects() {
           <CardContent className="p-4 space-y-3">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="ابحث عن طلب بالاسم أو الوصف..."
-                className="pr-9 h-10"
+                className="pe-9 h-10"
               />
             </div>
 

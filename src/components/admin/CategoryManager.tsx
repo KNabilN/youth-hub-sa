@@ -99,11 +99,11 @@ export function CategoryManager() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => exportCSV(categories ?? [], "categories.csv")}>
-            <Download className="h-4 w-4 ml-1" /> تصدير CSV
+            <Download className="h-4 w-4 me-1" /> تصدير CSV
           </Button>
           <Button variant="outline" size="sm" asChild>
             <label className="cursor-pointer">
-              <Upload className="h-4 w-4 ml-1" /> استيراد CSV
+              <Upload className="h-4 w-4 me-1" /> استيراد CSV
               <input type="file" accept=".csv" className="hidden" onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;

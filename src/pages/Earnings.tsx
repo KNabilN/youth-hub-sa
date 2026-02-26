@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
 const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض" };
-const statusBorders: Record<string, string> = { pending: "border-r-4 border-yellow-500", approved: "border-r-4 border-emerald-500", rejected: "border-r-4 border-red-500" };
+const statusBorders: Record<string, string> = { pending: "border-e-4 border-yellow-500", approved: "border-e-4 border-emerald-500", rejected: "border-e-4 border-red-500" };
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
   approved: "bg-emerald-500/10 text-emerald-600",
@@ -60,7 +60,7 @@ export default function Earnings() {
           </div>
           {totalEarnings > 0 && (
             <Button onClick={() => setShowDialog(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
-              <Wallet className="h-4 w-4 ml-2" /> طلب سحب
+              <Wallet className="h-4 w-4 me-2" /> طلب سحب
             </Button>
           )}
         </div>

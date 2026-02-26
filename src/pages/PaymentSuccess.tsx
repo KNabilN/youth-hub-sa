@@ -47,11 +47,11 @@ export default function PaymentSuccess() {
 
             <div className="flex flex-col gap-2 w-full">
               <Button onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-4 w-4 ml-1" />
+                <ArrowLeft className="h-4 w-4 me-1" />
                 العودة للوحة التحكم
               </Button>
               <Button variant="outline" onClick={() => navigate("/invoices")}>
-                <Receipt className="h-4 w-4 ml-1" />
+                <Receipt className="h-4 w-4 me-1" />
                 عرض الفواتير
               </Button>
             </div>
