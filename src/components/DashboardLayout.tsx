@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               variant="ghost"
               size="icon"
               className="relative"
-              onClick={() => navigate("/notifications")}
+              onClick={() => navigate("/admin/notifications")}
               aria-label="الإشعارات"
             >
               <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
