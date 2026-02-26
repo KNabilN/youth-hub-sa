@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList,
 } from "recharts";
 
 interface KPICardProps {
@@ -148,7 +148,9 @@ export function AdminOverview() {
                   <YAxis {...axisProps} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="url(#colorUsers)" name="مستخدمون جدد" strokeWidth={2.5} dot={false} />
-                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="طلبات جديدة" strokeWidth={2.5} dot={false} />
+                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="طلبات جديدة" strokeWidth={2.5} dot={false}>
+                    <LabelList dataKey="projects" position="top" fontSize={10} fontWeight={600} fill="#374151" formatter={(v: number) => v ? v.toLocaleString() : ''} />
+                  </Area>
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -224,7 +226,9 @@ export function AdminOverview() {
                 <YAxis {...axisProps} />
                 <Tooltip content={<CustomChartTooltip />} />
                 <Area type="monotone" dataKey="escrow" stroke="hsl(var(--success))" fill="url(#colorEscrow)" name="معاملات الضمان (ر.س)" strokeWidth={2.5} dot={false} />
-                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="التبرعات (ر.س)" strokeWidth={2.5} dot={false} />
+                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="التبرعات (ر.س)" strokeWidth={2.5} dot={false}>
+                  <LabelList dataKey="donations" position="top" fontSize={10} fontWeight={600} fill="#374151" formatter={(v: number) => v ? v.toLocaleString() : ''} />
+                </Area>
               </AreaChart>
             </ResponsiveContainer>
           )}
