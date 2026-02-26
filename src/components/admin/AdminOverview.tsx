@@ -132,7 +132,7 @@ export function AdminOverview() {
               <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : (
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={growth ?? []}>
+                <AreaChart data={growth ?? []} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
@@ -210,7 +210,7 @@ export function AdminOverview() {
             <Skeleton className="h-[220px] w-full rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={growth ?? []}>
+              <AreaChart data={growth ?? []} margin={{ top: 20 }}>
                 <defs>
                   <linearGradient id="colorEscrow" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
