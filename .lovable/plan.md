@@ -1,73 +1,52 @@
 
 
-# إضافة تسميات بيانات ثابتة على الرسوم البيانية (Data Labels)
+## Fix: Prevent Charts from Being Cut Between PDF Pages
 
-## المشكلة
-عند تصدير التقارير بصيغة PDF، لا تظهر أي قيم على الرسوم البيانية لأن Tooltips تعمل فقط عند التفاعل بالماوس. هذا يجعل التقارير المطبوعة غير مفيدة بدون الأرقام.
+### Problem
+The current PDF generation captures the entire report as a single tall image and slices it at fixed A4 page boundaries. This causes charts and tables to be cut in half between pages.
 
-## الحل
-إضافة تسميات بيانات ثابتة (static data labels) على جميع الرسوم البيانية باستخدام خاصية `label` المخصصة في recharts.
+### Solution
+Instead of rendering the entire report as one large canvas, render each logical section (header, summary cards, each pair of charts, each table) as separate canvas captures and place them on pages intelligently -- if a section won't fit on the remaining space of the current page, move it to a new page.
 
----
+### Technical Changes
 
-## الملفات المتأثرة
+**File: `src/lib/report-pdf.ts`**
 
-### 1. `src/pages/admin/AdminReports.tsx` (13 رسم بياني)
+1. Refactor `generateReportPDF` to build individual off-screen DOM elements for each section:
+   - Header block (title + date range)
+   - Summary stats grid
+   - Each pair of chart images (2 per row)
+   - Each table section
 
-**إنشاء مكونات Label مخصصة:**
+2. Capture each section separately with `html2canvas` to get individual canvas images.
 
-- `renderBarLabel`: يعرض القيمة فوق كل عمود بلون داكن عالي التباين، حجم خط 11px، مع `toLocaleString()` للأرقام الكبيرة
-- `renderPieLabel`: يعرض النسبة المئوية والقيمة داخل أو خارج شريحة الدائرة حسب الحجم، مع حساب الموضع بناءً على زاوية الشريحة لتجنب التداخل
+3. Use a cursor-based page layout:
+   - Track current Y position on the page
+   - Before placing a section, check if it fits in the remaining space
+   - If it doesn't fit, call `pdf.addPage()` and reset Y to 0
+   - Add the section image at the current Y position
+   - Add small padding between sections
 
-**التغييرات على كل نوع:**
+4. This ensures no chart or table is ever split across page boundaries -- if a section is too tall for the remaining space, it moves entirely to the next page.
 
-**BarChart (7 رسوم):**
-- إضافة `<LabelList>` من recharts مع `position="top"` وتنسيق مخصص
-- الخط: `fontSize: 11`, `fontWeight: 600`, `fill: "hsl(var(--foreground))"`
+### Implementation Detail
 
-**PieChart (3 رسوم):**
-- استبدال `label` الافتراضي بدالة `renderPieLabel` مخصصة تعرض القيمة العددية
-- استخدام `labelLine={false}` لتجنب الفوضى البصرية مع الدوائر الصغيرة
-
-### 2. `src/components/admin/AdminOverview.tsx` (2 AreaChart)
-
-**AreaChart (2 رسم):**
-- إضافة `<LabelList>` على آخر Area في كل رسم بياني مع `position="top"` لعرض القيم على نقاط البيانات
-- حجم خط أصغر (10px) لتجنب التداخل مع الخطوط
-
----
-
-## التفاصيل التقنية
-
-### مكون renderBarLabel
 ```text
-function renderBarLabel(props):
-  - يأخذ x, y, width, value من props
-  - يعرض <text> فوق العمود بمقدار 10px
-  - يستخدم textAnchor="middle" للتوسيط
-  - يتجاهل القيم الصفرية (لا يعرضها)
-  - يستخدم toLocaleString() للأرقام الكبيرة
+Page Layout Algorithm:
++------------------+
+| Header           |  <- always page 1
+| Summary Cards    |  <- check fit
+|                  |
+| Chart Row 1      |  <- check fit, move to next page if needed
+|                  |
++--- page break ---+
+| Chart Row 2      |  <- starts on new page if previous was full
+| Table 1          |  <- check fit
++--- page break ---+
+| Table 2          |  <- moves to next page if no room
+| Footer           |
++------------------+
 ```
 
-### مكون renderPieLabel
-```text
-function renderPieLabel(props):
-  - يحسب موضع النص بناءً على midAngle و outerRadius
-  - يعرض القيمة خارج الشريحة بمسافة صغيرة
-  - يستخدم cos/sin لحساب x, y
-  - يتجاهل الشرائح الصغيرة جداً (percent < 5%)
-```
+Each section is rendered independently so nothing gets clipped at page boundaries.
 
-### تنسيق التسميات
-- لون النص: `#374151` (رمادي داكن) لضمان التباين العالي
-- حجم الخط: 11px للأعمدة، 10px للدوائر والمساحات
-- وزن الخط: 600 (semi-bold)
-- عدم عرض القيم الصفرية لتجنب الفوضى
-
-### ملخص التغييرات
-
-| الملف | نوع الرسم | التغيير |
-|-------|----------|---------|
-| `AdminReports.tsx` | 7 BarChart | إضافة LabelList position="top" |
-| `AdminReports.tsx` | 3 PieChart | استبدال label بدالة مخصصة تعرض القيمة |
-| `AdminOverview.tsx` | 2 AreaChart | إضافة LabelList على نقاط البيانات |
