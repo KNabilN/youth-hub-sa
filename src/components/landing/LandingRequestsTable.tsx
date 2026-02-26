@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Calendar, Building2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
@@ -24,8 +23,11 @@ const statusConfig: Record<ProjectStatus, { label: string; className: string }> 
 interface Project {
   id: string;
   title: string;
+  description: string;
+  budget: number | null;
   status: ProjectStatus;
   created_at: string;
+  required_skills: string[] | null;
   category: { name: string } | null;
   association: { full_name: string; organization_name: string | null } | null;
 }
@@ -41,87 +43,71 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
   return (
     <section className="py-16 px-4">
       <div className="container mx-auto max-w-5xl">
-        <Card>
-          <CardHeader className="text-center pb-2">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <FolderKanban className="w-6 h-6 text-primary" />
-              <CardTitle className="text-2xl">طلبات الجمعيات</CardTitle>
-            </div>
-            <CardDescription>أحدث طلبات الجمعيات على المنصة</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
-              <>
-                {/* Desktop table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">العنوان</TableHead>
-                        <TableHead className="text-right">الجمعية</TableHead>
-                        <TableHead className="text-right">التصنيف</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right">التاريخ</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {projects.map((p) => {
-                        const sc = statusConfig[p.status];
-                        return (
-                          <TableRow key={p.id}>
-                            <TableCell className="font-medium">{p.title}</TableCell>
-                            <TableCell>{p.association?.organization_name || p.association?.full_name || "—"}</TableCell>
-                            <TableCell>{p.category?.name || "—"}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
-                            </TableCell>
-                            <TableCell dir="ltr" className="text-right">
-                              {new Date(p.created_at).toLocaleDateString("en-CA").replace(/-/g, "/")}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+        <div className="text-center mb-8 space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <FolderKanban className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-bold">طلبات الجمعيات</h2>
+          </div>
+          <p className="text-muted-foreground">أحدث طلبات الجمعيات على المنصة</p>
+        </div>
 
-                {/* Mobile cards */}
-                <div className="md:hidden space-y-3">
-                  {projects.map((p) => {
-                    const sc = statusConfig[p.status];
-                    return (
-                      <div key={p.id} className="border border-border rounded-xl p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{p.title}</span>
-                          <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p>الجمعية: {p.association?.organization_name || p.association?.full_name || "—"}</p>
-                          <p>التصنيف: {p.category?.name || "—"}</p>
-                          <p dir="ltr" className="text-right">
-                            {new Date(p.created_at).toLocaleDateString("en-CA").replace(/-/g, "/")}
-                          </p>
-                        </div>
+        {loading ? (
+          <div className="grid md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-44 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {projects.map((p) => {
+              const sc = statusConfig[p.status];
+              const assocName = p.association?.organization_name || p.association?.full_name || "—";
+              return (
+                <Card key={p.id} className="card-hover">
+                  <CardContent className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className={sc.className}>{sc.label}</Badge>
+                      {p.budget != null && (
+                        <span className="font-bold text-primary">{p.budget} ر.س</span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-lg">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5" />
+                        {assocName}
+                      </span>
+                      {p.category && (
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3.5 h-3.5" />
+                          {p.category.name}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(p.created_at).toLocaleDateString("en-CA").replace(/-/g, "/")}
+                      </span>
+                    </div>
+                    {p.required_skills && p.required_skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {p.required_skills.slice(0, 4).map((skill) => (
+                          <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
-            <div className="text-center mt-6">
-              <Button asChild>
-                <Link to="/auth?mode=register">سجّل لتقديم عروضك</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center mt-8">
+          <Button asChild>
+            <Link to="/auth?mode=register">سجّل لتقديم عروضك</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
