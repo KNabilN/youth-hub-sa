@@ -274,7 +274,7 @@ export default function AdminReports() {
         sections.push({ title: "الطلبات حسب المنطقة", headers: ["المنطقة", "العدد"], rows: projectsByRegion.map((p) => [p.name, String(p.value)]) });
       }
       if (monthlyDonations?.length) {
-        sections.push({ title: "المنح الشهرية", headers: ["الشهر", "المبلغ (ر.س)"], rows: monthlyDonations.map((d) => [d.month, String(d.amount)]) });
+        sections.push({ title: "المنح", headers: ["الشهر", "المبلغ (ر.س)"], rows: monthlyDonations.map((d) => [d.month, String(d.amount)]) });
       }
       if (monthlyEscrow?.length) {
         sections.push({ title: "المعاملات المالية الشهرية", headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"], rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]) });
@@ -433,9 +433,9 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Bar: المنح الشهرية */}
-          <Card ref={setChartRef(5, "المنح الشهرية")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">المنح الشهرية</CardTitle></CardHeader>
+          {/* Bar: المنح */}
+          <Card ref={setChartRef(5, "المنح")} className={chartCardCls}>
+            <CardHeader><CardTitle className="text-lg text-center">المنح</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={monthlyDonations ?? []}>
