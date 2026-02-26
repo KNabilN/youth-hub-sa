@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { format, parseISO, startOfMonth } from "date-fns";
 import { Download, ChevronDown, FileText, Printer } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
@@ -46,6 +46,32 @@ function CustomChartTooltip({ active, payload, label }: any) {
         </div>
       ))}
     </div>
+  );
+}
+
+/* ─── Custom Bar Label ─── */
+function renderBarLabel(props: any) {
+  const { x, y, width, value } = props;
+  if (!value || value === 0) return null;
+  return (
+    <text x={x + width / 2} y={y - 8} fill="#374151" textAnchor="middle" fontSize={11} fontWeight={600}>
+      {typeof value === "number" ? value.toLocaleString() : value}
+    </text>
+  );
+}
+
+/* ─── Custom Pie Label ─── */
+const RADIAN = Math.PI / 180;
+function renderPieLabel(props: any) {
+  const { cx, cy, midAngle, outerRadius, value, percent } = props;
+  if (!value || percent < 0.05) return null;
+  const radius = outerRadius + 18;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="#374151" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" fontSize={10} fontWeight={600}>
+      {value.toLocaleString()}
+    </text>
   );
 }
 
@@ -326,7 +352,7 @@ export default function AdminReports() {
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={projectsByStatus ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label animationDuration={800} animationEasing="ease-out">
+                  <Pie data={projectsByStatus ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {(projectsByStatus ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
@@ -356,6 +382,7 @@ export default function AdminReports() {
                   <Tooltip content={<CustomChartTooltip />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
                     {(usersByRole ?? []).map((_: any, i: number) => <Cell key={i} fill={`url(#roleGrad${i % ROLE_COLORS.length})`} />)}
+                    <LabelList dataKey="value" content={renderBarLabel} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -370,7 +397,7 @@ export default function AdminReports() {
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={servicesByCategory ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label animationDuration={800} animationEasing="ease-out">
+                  <Pie data={servicesByCategory ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {(servicesByCategory ?? []).map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
@@ -396,7 +423,9 @@ export default function AdminReports() {
                   <XAxis dataKey="name" {...xAxisProps} />
                   <YAxis {...yAxisProps} />
                   <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="value" fill="url(#regionGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" />
+                  <Bar dataKey="value" fill="url(#regionGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="value" content={renderBarLabel} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -420,7 +449,9 @@ export default function AdminReports() {
                   <XAxis dataKey="month" {...xAxisProps} />
                   <YAxis {...yAxisProps} />
                   <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="amount" fill="url(#donationGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" name="المبلغ" />
+                  <Bar dataKey="amount" fill="url(#donationGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" name="المبلغ">
+                    <LabelList dataKey="amount" content={renderBarLabel} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -432,7 +463,7 @@ export default function AdminReports() {
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={serviceApprovalStats ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label animationDuration={800} animationEasing="ease-out">
+                  <Pie data={serviceApprovalStats ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {(serviceApprovalStats ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
@@ -464,8 +495,12 @@ export default function AdminReports() {
                   <XAxis dataKey="month" {...xAxisProps} />
                   <YAxis {...yAxisProps} />
                   <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="total" fill="url(#escrowTotalGrad)" name="إجمالي" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" />
-                  <Bar dataKey="released" fill="url(#escrowRelGrad)" name="محرّر" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" />
+                  <Bar dataKey="total" fill="url(#escrowTotalGrad)" name="إجمالي" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="total" content={renderBarLabel} />
+                  </Bar>
+                  <Bar dataKey="released" fill="url(#escrowRelGrad)" name="محرّر" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="released" content={renderBarLabel} />
+                  </Bar>
                   <Legend />
                 </BarChart>
               </ResponsiveContainer>
@@ -491,7 +526,9 @@ export default function AdminReports() {
                       <XAxis dataKey="range" {...xAxisProps} />
                       <YAxis {...yAxisProps} />
                       <Tooltip content={<CustomChartTooltip />} />
-                      <Bar dataKey="count" fill="url(#hourlyGrad)" name="عدد" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" />
+                      <Bar dataKey="count" fill="url(#hourlyGrad)" name="عدد" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                        <LabelList dataKey="count" content={renderBarLabel} />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </>
@@ -529,7 +566,9 @@ export default function AdminReports() {
                   <XAxis dataKey="name" {...xAxisProps} />
                   <YAxis {...yAxisProps} />
                   <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="amount" fill="url(#donorGrad)" name="المبلغ" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" />
+                  <Bar dataKey="amount" fill="url(#donorGrad)" name="المبلغ" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                    <LabelList dataKey="amount" content={renderBarLabel} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : null}
