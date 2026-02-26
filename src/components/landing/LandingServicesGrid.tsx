@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import { Store, User, Tag } from "lucide-react";
+import { Store, User, Tag, Banknote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 interface Service {
   id: string;
@@ -23,68 +22,82 @@ interface LandingServicesGridProps {
   loading: boolean;
 }
 
-const approvalLabel: Record<string, { label: string; className: string }> = {
-  approved: { label: "مقبول", className: "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] border-[hsl(var(--success))]/30" },
-  pending: { label: "قيد المراجعة", className: "bg-orange-500/15 text-orange-600 border-orange-500/30" },
-};
-
 export default function LandingServicesGrid({ services, loading }: LandingServicesGridProps) {
   if (!loading && services.length === 0) return null;
 
   return (
-    <section className="py-16 px-4 bg-muted/30">
+    <section className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto max-w-5xl">
-        <div className="text-center mb-8 space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <Store className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold">الخدمات المتوفرة</h2>
+        <div className="text-center mb-12 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-sm font-medium mb-2">
+            <Store className="w-4 h-4" />
+            <span>خدمات معتمدة</span>
           </div>
-          <p className="text-muted-foreground">خدمات معتمدة من مقدمي خدمات محترفين</p>
+          <h2 className="text-3xl font-bold">الخدمات المتوفرة</h2>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            خدمات معتمدة من مقدمي خدمات محترفين
+          </p>
         </div>
 
         {loading ? (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-52 w-full rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-5">
             {services.map((s) => {
-              const status = approvalLabel[s.approval] || approvalLabel.approved;
               return (
-                <Card key={s.id} className="card-hover">
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className={status.className}>{status.label}</Badge>
-                      <span className="font-bold text-primary">{s.price} ر.س</span>
-                    </div>
-                    <h3 className="font-bold text-lg">{s.title}</h3>
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      {s.provider && (
-                        <span className="flex items-center gap-1">
-                          <User className="w-3.5 h-3.5" />
-                          {s.provider.full_name}
-                        </span>
-                      )}
-                      {s.category && (
-                        <span className="flex items-center gap-1">
-                          <Tag className="w-3.5 h-3.5" />
-                          {s.category.name}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
-                  </CardContent>
-                </Card>
+                <article
+                  key={s.id}
+                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20"
+                >
+                  {/* Top row: category + price */}
+                  <div className="flex items-center justify-between gap-3">
+                    {s.category && (
+                      <Badge variant="secondary" className="gap-1 font-medium">
+                        <Tag className="w-3 h-3" />
+                        {s.category.name}
+                      </Badge>
+                    )}
+                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/8 rounded-full px-3 py-1">
+                      <Banknote className="w-4 h-4" />
+                      {s.price.toLocaleString("ar-SA")} ر.س
+                    </span>
+                  </div>
+
+                  {/* Title & description */}
+                  <div className="space-y-1.5">
+                    <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors">
+                      {s.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                      {s.description}
+                    </p>
+                  </div>
+
+                  {/* Footer meta */}
+                  <div className="flex items-center gap-4 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+                    {s.provider && (
+                      <span className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5" />
+                        {s.provider.full_name}
+                      </span>
+                    )}
+                  </div>
+                </article>
               );
             })}
           </div>
         )}
 
-        <div className="text-center mt-8">
-          <Button asChild>
-            <Link to="/auth?mode=register">تصفح جميع الخدمات</Link>
+        <div className="text-center mt-12">
+          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
+            <Link to="/auth?mode=register">
+              تصفح جميع الخدمات
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
           </Button>
         </div>
       </div>
