@@ -1,24 +1,29 @@
 
 
-## Delete the Audit Log Page
+## Delete the Notifications Page (Remove Duplication)
 
-Remove the "سجل التدقيق" (Audit Log) admin page and all its dedicated references from the app.
+The `/notifications` page duplicates the admin notifications view. This plan removes the page and updates all references.
 
 ### Changes
 
-**1. Delete files:**
-- `src/pages/admin/AdminAuditLog.tsx` -- the page component
-- `src/hooks/useAuditLog.ts` -- the hook used only by this page
+**1. Delete file:**
+- `src/pages/Notifications.tsx`
 
 **2. Edit `src/App.tsx`:**
-- Remove the `AdminAuditLog` lazy import (line 65)
-- Remove the `/admin/audit-log` route (line 147)
+- Remove the `Notifications` lazy import (line 34)
+- Remove the `/notifications` route (line 121)
 
 **3. Edit `src/components/AppSidebar.tsx`:**
-- Remove the sidebar menu item for "سجل التدقيق" (line 64)
+- Remove the "الإشعارات" menu item from the "عام" (General) sidebar section (the `SidebarMenuItem` block around lines 147-161)
+- Keep the `NotificationBadge` import if it's used elsewhere (e.g., the top bar bell icon)
 
-### Files NOT deleted (still used elsewhere):
-- `src/hooks/useEntityAuditLog.ts` -- used by `EntityActivityLog` component for per-entity activity tracking
-- `src/components/admin/EntityActivityLog.tsx` -- used inline in entity detail panels
-- `src/lib/audit.ts` -- used across the app to log audit entries
+**4. Update navigation references:**
+- `src/components/dashboard/RecentActivity.tsx` (line 64): Change `navigate("/notifications")` to `navigate("/admin/notifications")` so "عرض الكل" still works for admins
+- `src/components/DashboardLayout.tsx` (line 38): Change `navigate("/notifications")` to `navigate("/admin/notifications")` so the top-bar bell icon still works
+
+### Files NOT deleted:
+- `src/hooks/useNotifications.ts` -- still used by `NotificationBadge`, `RecentActivity`, and realtime subscription logic
+- `src/components/notifications/NotificationBadge.tsx` -- still used in the top bar
+- `src/components/notifications/NotificationItem.tsx` -- may be used by other components
+- `src/pages/admin/AdminNotifications.tsx` -- the admin version stays
 
