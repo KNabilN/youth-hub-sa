@@ -18,12 +18,28 @@ const PAGE_HEIGHT_MM = 297;
 const PADDING_MM = 5;
 const CONTAINER_WIDTH = 1100;
 
+/* ── Brand palette ── */
+const BRAND = {
+  primary: "#0f766e",        // teal-700
+  primaryLight: "#ccfbf1",   // teal-50
+  primaryMid: "#99f6e4",     // teal-200
+  accent: "#b59535",         // royal gold
+  text: "#1e293b",           // slate-800
+  textMuted: "#64748b",      // slate-500
+  border: "#e2e8f0",         // slate-200
+  headerBg: "#f0fdfa",       // teal-50
+  rowAlt: "#f8fafc",         // slate-50
+  white: "#ffffff",
+};
+
+const BASE_FONT = `'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
+
 function createOffscreenContainer(): HTMLDivElement {
   const el = document.createElement("div");
   el.style.cssText = `
     position: fixed; top: -99999px; left: -99999px;
-    width: ${CONTAINER_WIDTH}px; background: #fff; color: #1a1a2e;
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    width: ${CONTAINER_WIDTH}px; background: ${BRAND.white}; color: ${BRAND.text};
+    font-family: ${BASE_FONT};
     direction: rtl; padding: 0;
   `;
   document.body.appendChild(el);
@@ -33,14 +49,25 @@ function createOffscreenContainer(): HTMLDivElement {
 async function renderSectionToImage(html: string): Promise<string> {
   const container = createOffscreenContainer();
   container.innerHTML = html;
-  // wait for any images
   const images = container.querySelectorAll("img");
   await Promise.all(
     Array.from(images).map(
-      (img) => new Promise<void>((r) => { if (img.complete) r(); else { img.onload = () => r(); img.onerror = () => r(); } })
+      (img) =>
+        new Promise<void>((r) => {
+          if (img.complete) r();
+          else {
+            img.onload = () => r();
+            img.onerror = () => r();
+          }
+        })
     )
   );
-  const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+  const canvas = await html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: BRAND.white,
+    logging: false,
+  });
   document.body.removeChild(container);
   return canvas.toDataURL("image/png");
 }
@@ -57,7 +84,11 @@ function imgHeightMM(dataUrl: string): Promise<number> {
   });
 }
 
-async function addSectionToPdf(pdf: jsPDF, dataUrl: string, cursor: { y: number }) {
+async function addSectionToPdf(
+  pdf: jsPDF,
+  dataUrl: string,
+  cursor: { y: number }
+) {
   const h = await imgHeightMM(dataUrl);
   if (cursor.y + h > PAGE_HEIGHT_MM && cursor.y > PADDING_MM) {
     pdf.addPage();
@@ -67,8 +98,18 @@ async function addSectionToPdf(pdf: jsPDF, dataUrl: string, cursor: { y: number 
   cursor.y += h + PADDING_MM;
 }
 
+/* ── Helpers for formatted currency ── */
+function formatCell(cell: string): string {
+  // Bold currency values like "9500" next to headers containing "ر.س"
+  const num = Number(cell);
+  if (!isNaN(num) && cell.trim() !== "") {
+    return `<span style="font-weight:700;letter-spacing:0.3px;">${num.toLocaleString("ar-SA")}</span>`;
+  }
+  return cell ?? "";
+}
+
 /**
- * Generate a PDF report and trigger download directly.
+ * Generate a professional PDF report and trigger download.
  * Each logical section is captured independently to prevent clipping at page boundaries.
  */
 export async function generateReportPDF(
@@ -80,81 +121,116 @@ export async function generateReportPDF(
 ) {
   const dateStr = `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`;
   const generatedAt = format(new Date(), "yyyy/MM/dd HH:mm");
+  const dateOnly = format(new Date(), "yyyy/MM/dd");
 
   const pdf = new jsPDF("p", "mm", "a4");
   const cursor = { y: 0 };
 
-  // 1. Header
+  // ─── 1. Professional Header ───
   const headerHTML = `
-    <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 50%,#3b82f6 100%);color:#fff;padding:36px 40px 30px;text-align:center;">
-      <h1 style="font-size:28px;font-weight:700;margin-bottom:10px;">${title}</h1>
-      <div style="font-size:13px;opacity:0.9;display:flex;justify-content:center;gap:24px;">
-        <span>📅 ${dateStr}</span>
-        <span>⏰ تم الإنشاء: ${generatedAt}</span>
+    <div style="padding:40px 50px 28px;border-bottom:3px solid ${BRAND.primary};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="text-align:right;">
+          <h1 style="font-size:30px;font-weight:800;color:${BRAND.primary};margin:0 0 6px;font-family:${BASE_FONT};">${title}</h1>
+          <div style="font-size:13px;color:${BRAND.textMuted};font-weight:500;">الفترة: ${dateStr}</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:22px;font-weight:800;color:${BRAND.primary};letter-spacing:1px;">YouthHubSA</div>
+          <div style="font-size:11px;color:${BRAND.textMuted};margin-top:2px;">${dateOnly}</div>
+        </div>
       </div>
     </div>`;
   await addSectionToPdf(pdf, await renderSectionToImage(headerHTML), cursor);
 
-  // 2. Summary stats
+  // ─── 2. Summary Stats ───
   if (summaryStats?.length) {
-    const summaryHTML = `<div style="padding:16px 30px;">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
-        ${summaryStats.map(s => `<div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:12px;padding:20px 16px;text-align:center;">
-          <div style="font-size:13px;color:#475569;font-weight:600;margin-bottom:8px;">${s.label}</div>
-          <div style="font-size:28px;font-weight:800;color:#1e3a5f;">${s.value}</div>
-        </div>`).join("")}
+    const summaryHTML = `<div style="padding:20px 50px 8px;">
+      <div style="display:grid;grid-template-columns:repeat(${summaryStats.length},1fr);gap:18px;">
+        ${summaryStats
+          .map(
+            (s) => `
+          <div style="border:1.5px solid ${BRAND.primaryMid};border-radius:10px;padding:22px 16px;text-align:center;background:${BRAND.headerBg};">
+            <div style="font-size:12px;color:${BRAND.textMuted};font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">${s.label}</div>
+            <div style="font-size:30px;font-weight:800;color:${BRAND.primary};">${s.value}</div>
+          </div>`
+          )
+          .join("")}
       </div>
     </div>`;
     await addSectionToPdf(pdf, await renderSectionToImage(summaryHTML), cursor);
   }
 
-  // 3. Charts – 2 per row
+  // ─── 3. Charts – 2 per row ───
   if (chartImages?.length) {
     for (let i = 0; i < chartImages.length; i += 2) {
       const pair = chartImages.slice(i, i + 2);
       const cols = pair.length === 2 ? "repeat(2,1fr)" : "1fr";
-      const rowHTML = `<div style="padding:0 30px;">
-        <div style="display:grid;grid-template-columns:${cols};gap:20px;">
-          ${pair.map(c => `<div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-            <div style="font-size:14px;font-weight:700;color:#1e3a5f;padding:14px 18px 10px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">${c.title}</div>
-            <img src="${c.imageDataUrl}" style="width:100%;height:auto;display:block;padding:10px;background:#fff;" alt="${c.title}" />
-          </div>`).join("")}
+      const rowHTML = `<div style="padding:12px 50px;">
+        <div style="display:grid;grid-template-columns:${cols};gap:24px;">
+          ${pair
+            .map(
+              (c) => `
+            <div style="border:1.5px solid ${BRAND.border};border-radius:10px;overflow:hidden;background:${BRAND.white};">
+              <div style="font-size:14px;font-weight:700;color:${BRAND.primary};padding:14px 20px 10px;border-bottom:1px solid ${BRAND.border};background:${BRAND.headerBg};font-family:${BASE_FONT};">${c.title}</div>
+              <img src="${c.imageDataUrl}" style="width:100%;height:auto;display:block;padding:12px;background:${BRAND.white};" alt="${c.title}" />
+            </div>`
+            )
+            .join("")}
         </div>
       </div>`;
       await addSectionToPdf(pdf, await renderSectionToImage(rowHTML), cursor);
     }
   }
 
-  // 4. Tables – each as its own section
+  // ─── 4. Tables – professional clean style ───
   for (const section of sections) {
-    const tableHTML = `<div style="padding:0 30px;">
-      <div style="margin-bottom:8px;">
-        <h2 style="font-size:17px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-bottom:8px;border-bottom:3px solid #2563eb;">${section.title}</h2>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
-          <thead>
-            <tr>${section.headers.map(h => `<th style="background:#1e3a5f;color:#fff;padding:12px 16px;text-align:right;font-weight:600;font-size:13px;">${h}</th>`).join("")}</tr>
-          </thead>
-          <tbody>
-            ${section.rows.map((row, i) => `<tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
-              ${row.map(cell => `<td style="padding:10px 16px;border-bottom:1px solid #e2e8f0;font-size:13px;">${cell ?? ""}</td>`).join("")}
-            </tr>`).join("")}
-          </tbody>
-        </table>
-      </div>
+    const isCurrencyTable = section.headers.some((h) => h.includes("ر.س"));
+    const tableHTML = `<div style="padding:12px 50px;">
+      <h2 style="font-size:18px;font-weight:800;color:${BRAND.primary};margin-bottom:14px;padding-bottom:8px;border-bottom:2.5px solid ${BRAND.primary};font-family:${BASE_FONT};">${section.title}</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            ${section.headers
+              .map(
+                (h) =>
+                  `<th style="background:${BRAND.headerBg};color:${BRAND.primary};padding:14px 20px;text-align:center;font-weight:700;font-size:13px;border-bottom:2px solid ${BRAND.primaryMid};font-family:${BASE_FONT};">${h}</th>`
+              )
+              .join("")}
+          </tr>
+        </thead>
+        <tbody>
+          ${section.rows
+            .map(
+              (row, i) => `
+            <tr style="background:${i % 2 === 0 ? BRAND.white : BRAND.rowAlt};">
+              ${row
+                .map(
+                  (cell) =>
+                    `<td style="padding:14px 20px;border-bottom:1px solid ${BRAND.border};font-size:13px;text-align:center;line-height:1.8;${isCurrencyTable ? "font-variant-numeric:tabular-nums;" : ""}">${formatCell(cell)}</td>`
+                )
+                .join("")}
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
     </div>`;
     await addSectionToPdf(pdf, await renderSectionToImage(tableHTML), cursor);
   }
 
-  // 5. Footer
-  const footerHTML = `<div style="padding:16px 30px;">
-    <div style="padding-top:16px;border-top:2px solid #e2e8f0;display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;">
-      <span>YouthHubSA — تقرير تحليلات المنصة</span>
-      <span>${generatedAt}</span>
+  // ─── 5. Professional Footer ───
+  const footerHTML = `<div style="padding:24px 50px 16px;">
+    <div style="padding-top:16px;border-top:2px solid ${BRAND.border};display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:11px;color:${BRAND.textMuted};font-weight:500;">تاريخ الإصدار: ${generatedAt}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:${BRAND.textMuted};">تقرير صادر من</span>
+        <span style="font-size:13px;font-weight:800;color:${BRAND.primary};letter-spacing:0.5px;">YouthHubSA</span>
+      </div>
     </div>
   </div>`;
   await addSectionToPdf(pdf, await renderSectionToImage(footerHTML), cursor);
 
-  // Download
+  // ─── Download ───
   const blob = pdf.output("blob");
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -163,17 +239,27 @@ export async function generateReportPDF(
   a.style.display = "none";
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 200);
 }
 
 /**
  * Capture a chart container (Card element containing a Recharts chart) as a base64 PNG.
  */
-export async function captureChartAsImage(container: HTMLElement): Promise<string> {
+export async function captureChartAsImage(
+  container: HTMLElement
+): Promise<string> {
   const hiddenEls: HTMLElement[] = [];
   const firstChild = container.children[0] as HTMLElement;
-  if (firstChild && firstChild.querySelector('h1, h2, h3, [class*="title"], [class*="Title"]')) {
-    firstChild.style.display = 'none';
+  if (
+    firstChild &&
+    firstChild.querySelector(
+      'h1, h2, h3, [class*="title"], [class*="Title"]'
+    )
+  ) {
+    firstChild.style.display = "none";
     hiddenEls.push(firstChild);
   }
 
@@ -198,6 +284,6 @@ export async function captureChartAsImage(container: HTMLElement): Promise<strin
     },
   });
 
-  hiddenEls.forEach(el => el.style.display = '');
+  hiddenEls.forEach((el) => (el.style.display = ""));
   return canvas.toDataURL("image/png");
 }
