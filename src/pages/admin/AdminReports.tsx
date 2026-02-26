@@ -349,7 +349,7 @@ export default function AdminReports() {
         </div>
 
         {/* Filters */}
-        <Card ref={setChartRef(0, "المشاريع حسب الحالة")}>
+        <Card>
           <CardContent className="pt-4 pb-3">
             <ReportFilters filters={filters} onChange={setFilters} />
           </CardContent>
