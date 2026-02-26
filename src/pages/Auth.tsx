@@ -21,7 +21,7 @@ const loginSchema = z.object({
 
 const registerSchema = loginSchema.extend({
   fullName: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
-  phone: z.string().trim().min(10, "رقم الجوال يجب أن يكون 10 أرقام على الأقل").max(15, "رقم الجوال طويل جداً").regex(/^[0-9+]+$/, "رقم جوال غير صالح"),
+  phone: z.string().trim().length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة").regex(/^[0-9]+$/, "رقم جوال غير صالح"),
   pdplConsent: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }) }),
 });
 
@@ -74,7 +74,7 @@ export default function Auth() {
         navigate("/dashboard");
       }
     } else {
-      const { error } = await signUp(email.trim(), password, fullName.trim(), role, phone.trim());
+      const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
       if (error) {
         toast.error(error.message);
       } else {
@@ -180,18 +180,22 @@ export default function Auth() {
                 {!isLogin && (
                   <div className="space-y-2">
                     <Label htmlFor="phone">رقم الجوال</Label>
-                    <div className="relative">
+                    <div className="relative flex gap-2">
+                      <div className="flex items-center gap-1.5 h-11 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground shrink-0 select-none">
+                        <span>🇸🇦</span>
+                        <span dir="ltr">+966</span>
+                      </div>
                       <Input
                         id="phone"
                         type="tel"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="05xxxxxxxx"
+                        onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="5xxxxxxxx"
                         required
                         dir="ltr"
-                        className={cn("text-left h-11 pl-10", errors.phone && "border-destructive")}
+                        maxLength={9}
+                        className={cn("text-left h-11", errors.phone && "border-destructive")}
                       />
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     </div>
                     {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
                   </div>
