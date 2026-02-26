@@ -96,7 +96,7 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
   const metrics: MetricComparison[] = [
     { label: "المستخدمون الجدد", current: data?.current.users ?? 0, previous: data?.previous.users ?? 0 },
     { label: "الطلبات", current: data?.current.projects ?? 0, previous: data?.previous.projects ?? 0 },
-    { label: "التبرعات", current: data?.current.donations ?? 0, previous: data?.previous.donations ?? 0, isCurrency: true },
+    { label: "المنح", current: data?.current.donations ?? 0, previous: data?.previous.donations ?? 0, isCurrency: true },
     { label: "معاملات الضمان", current: data?.current.escrow ?? 0, previous: data?.previous.escrow ?? 0, isCurrency: true },
     { label: "الشكاوى", current: data?.current.disputes ?? 0, previous: data?.previous.disputes ?? 0 },
   ];

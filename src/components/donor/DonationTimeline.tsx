@@ -38,7 +38,7 @@ export function DonationTimeline({ contributions }: DonationTimelineProps) {
         const st = statusConfig[c.donation_status] ?? statusConfig.available;
         const isProject = !!c.project_id;
         const Icon = isProject ? FolderKanban : c.service_id ? Layers : HandCoins;
-        const target = (c.projects as any)?.title || (c.micro_services as any)?.title || "تبرع عام";
+        const target = (c.projects as any)?.title || (c.micro_services as any)?.title || "منحة عامة";
         const assocName = (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name;
 
         return (

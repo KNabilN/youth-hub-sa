@@ -10,7 +10,7 @@ interface ImpactSummaryProps {
 
 export function ImpactSummary({ totalDonations, projectsFunded, associationsSupported, isLoading }: ImpactSummaryProps) {
   const items = [
-    { title: "إجمالي التبرعات", value: `${totalDonations.toLocaleString()} ر.س`, icon: HandCoins, color: "text-primary" },
+    { title: "إجمالي المنح", value: `${totalDonations.toLocaleString()} ر.س`, icon: HandCoins, color: "text-primary" },
     { title: "الطلبات الممولة", value: projectsFunded, icon: FolderKanban, color: "text-info" },
     { title: "الجمعيات المدعومة", value: associationsSupported, icon: Users, color: "text-success" },
   ];

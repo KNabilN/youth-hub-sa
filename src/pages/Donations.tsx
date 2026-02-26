@@ -31,9 +31,9 @@ export default function Donations() {
   const handleSubmit = async (values: { amount: number; project_id?: string; service_id?: string }) => {
     try {
       await createContribution.mutateAsync(values);
-      toast.success("تم التبرع بنجاح");
+      toast.success("تم تقديم المنحة بنجاح");
     } catch {
-      toast.error("حدث خطأ أثناء التبرع");
+      toast.error("حدث خطأ أثناء تقديم المنحة");
     }
   };
 
@@ -45,8 +45,8 @@ export default function Donations() {
             <HandCoins className="h-7 w-7 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">التبرعات</h1>
-            <p className="text-sm text-muted-foreground">قدم تبرعاً وتابع سجل تبرعاتك وأرصدتك</p>
+            <h1 className="text-2xl font-bold">المنح</h1>
+            <p className="text-sm text-muted-foreground">قدم منحة وتابع سجل منحك وأرصدتك</p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -62,19 +62,19 @@ export default function Donations() {
         />
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">تبرع جديد</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">منحة جديدة</CardTitle></CardHeader>
           <CardContent>
             <DonationForm onSubmit={handleSubmit} isLoading={createContribution.isPending} />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">سجل التبرعات</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">سجل المنح</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : !contributions?.length ? (
-              <EmptyState icon={HandCoins} title="لا توجد تبرعات سابقة" description="قدّم تبرعك الأول من النموذج أعلاه" />
+              <EmptyState icon={HandCoins} title="لا توجد منح سابقة" description="قدّم منحتك الأولى من النموذج أعلاه" />
             ) : (
               <Tabs defaultValue="timeline" dir="rtl">
                 <TabsList className="mb-4">

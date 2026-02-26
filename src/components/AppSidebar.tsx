@@ -48,7 +48,7 @@ const menuByRole = {
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
     { title: "الجمعيات", url: "/associations", icon: Users },
-    { title: "التبرعات", url: "/donations", icon: HandCoins },
+    { title: "المنح", url: "/donations", icon: HandCoins },
     { title: "تقارير الأثر", url: "/impact", icon: BarChart3 },
   ],
   super_admin: [
