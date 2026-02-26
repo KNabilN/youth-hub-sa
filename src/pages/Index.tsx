@@ -87,7 +87,7 @@ export default function Index() {
             <Button size="lg" asChild className="shadow-lg hover:shadow-xl transition-shadow text-base px-8">
               <Link to="/auth">
                 {h.cta_text}
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="me-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -172,7 +172,7 @@ export default function Index() {
           <p className="text-muted-foreground">{ct.description}</p>
           <Button size="lg" asChild className="shadow-lg text-base px-10">
             <Link to="/auth">
-              <Globe className="ml-2 h-5 w-5" />
+              <Globe className="me-2 h-5 w-5" />
               {ct.button_text}
             </Link>
           </Button>

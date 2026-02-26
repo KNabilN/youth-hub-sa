@@ -80,7 +80,7 @@ export function PortfolioManager() {
           </div>
           <div className="flex items-center gap-3">
             <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <ImagePlus className="h-4 w-4 ml-1" /> اختر صورة
+              <ImagePlus className="h-4 w-4 me-1" /> اختر صورة
             </Button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             {file && <span className="text-xs text-muted-foreground truncate max-w-[200px]">{file.name}</span>}
@@ -105,7 +105,7 @@ export function PortfolioManager() {
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 left-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 start-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handleDelete(item.id, item.image_url)}
                   disabled={deleteItem.isPending}
                 >

@@ -201,7 +201,7 @@ export default function ProjectDetails() {
           <div className="flex items-center gap-2 flex-wrap">
             {project.status === "draft" && isAssociation && (
               <Button onClick={handlePublish} disabled={updateProject.isPending}>
-                <Send className="h-4 w-4 ml-1" />
+                <Send className="h-4 w-4 me-1" />
                 إرسال للموافقة
               </Button>
             )}
@@ -209,7 +209,7 @@ export default function ProjectDetails() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button disabled={completing} variant="default">
-                    <CheckCircle className="h-4 w-4 ml-1" />
+                    <CheckCircle className="h-4 w-4 me-1" />
                      إتمام الطلب
                   </Button>
                 </AlertDialogTrigger>
@@ -231,7 +231,7 @@ export default function ProjectDetails() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button disabled={cancelling} variant="outline">
-                    <XCircle className="h-4 w-4 ml-1" />
+                    <XCircle className="h-4 w-4 me-1" />
                      إلغاء الطلب
                   </Button>
                 </AlertDialogTrigger>
@@ -254,7 +254,7 @@ export default function ProjectDetails() {
                 <Dialog open={disputeOpen} onOpenChange={setDisputeOpen}>
                   <DialogTrigger asChild>
                     <Button variant="destructive" size="sm">
-                      <AlertTriangle className="h-4 w-4 ml-1" />
+                      <AlertTriangle className="h-4 w-4 me-1" />
                       رفع شكوى
                     </Button>
                   </DialogTrigger>
@@ -343,7 +343,7 @@ export default function ProjectDetails() {
                           <span className="text-muted-foreground">الضمان المالي:</span>
                           <span className="flex items-center gap-1">
                             {escrow.amount} ر.س
-                            <Badge variant={escrow.status === "released" ? "default" : escrow.status === "held" ? "secondary" : "outline"} className="mr-1 text-xs">
+                            <Badge variant={escrow.status === "released" ? "default" : escrow.status === "held" ? "secondary" : "outline"} className="me-1 text-xs">
                               {escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status}
                             </Badge>
                           </span>
@@ -360,7 +360,7 @@ export default function ProjectDetails() {
                         })}
                         disabled={signContract.isPending}
                       >
-                        <PenLine className="h-4 w-4 ml-1" />
+                        <PenLine className="h-4 w-4 me-1" />
                         توقيع العقد
                       </Button>
                     )}
@@ -374,7 +374,7 @@ export default function ProjectDetails() {
                         })}
                         disabled={signContract.isPending}
                       >
-                        <PenLine className="h-4 w-4 ml-1" />
+                        <PenLine className="h-4 w-4 me-1" />
                         توقيع العقد
                       </Button>
                     )}
@@ -412,7 +412,7 @@ export default function ProjectDetails() {
                             }}
                             disabled={createEscrow.isPending || !project.budget}
                           >
-                            <Shield className="h-4 w-4 ml-1" />
+                            <Shield className="h-4 w-4 me-1" />
                             {createEscrow.isPending ? "جارٍ الإنشاء..." : "إنشاء الضمان"}
                           </Button>
                         </div>

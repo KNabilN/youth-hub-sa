@@ -25,7 +25,7 @@ export default function SupportTickets() {
             </div>
           </div>
           <Button onClick={() => navigate("/tickets/new")}>
-            <Plus className="ml-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             تذكرة جديدة
           </Button>
         </div>

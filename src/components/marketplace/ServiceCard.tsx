@@ -68,7 +68,7 @@ export function ServiceCard({ service }: { service: Service }) {
             </div>
           </div>
           <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
-            <ShoppingCart className="h-4 w-4 ml-1" />
+            <ShoppingCart className="h-4 w-4 me-1" />
             {addToCart.isPending ? "جارٍ الإضافة..." : "أضف إلى السلة"}
           </Button>
         </CardContent>

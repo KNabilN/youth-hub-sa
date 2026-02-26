@@ -105,7 +105,7 @@ export default function AdminProjects() {
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
-                          <FileEdit className="h-4 w-4 ml-1" />طلب تعديل
+                          <FileEdit className="h-4 w-4 me-1" />طلب تعديل
                         </Button>
                       </TableCell>
                     </TableRow>

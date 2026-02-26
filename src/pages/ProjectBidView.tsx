@@ -31,7 +31,7 @@ export default function ProjectBidView() {
     <DashboardLayout>
       <div className="space-y-6 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate("/available-projects")}>
-          <ArrowRight className="h-4 w-4 ml-2" />العودة
+          <ArrowRight className="h-4 w-4 me-2" />العودة
         </Button>
 
         <Card>

@@ -114,7 +114,7 @@ export default function AdminNotifications() {
                             <TableCell><Badge variant="outline" className="text-xs">{n.type}</Badge></TableCell>
                             <TableCell>
                               <Badge variant="outline" className={st.className}>
-                                <StIcon className="h-3 w-3 ml-1" />{st.label}
+                                <StIcon className="h-3 w-3 me-1" />{st.label}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground">

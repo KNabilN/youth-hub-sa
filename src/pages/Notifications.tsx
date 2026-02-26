@@ -48,7 +48,7 @@ export default function Notifications() {
           </div>
           {hasUnread && (
             <Button variant="outline" size="sm" onClick={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
-              <CheckCheck className="ml-2 h-4 w-4" />
+              <CheckCheck className="me-2 h-4 w-4" />
               تحديد الكل كمقروء
             </Button>
           )}

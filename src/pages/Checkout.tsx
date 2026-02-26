@@ -163,12 +163,12 @@ export default function Checkout() {
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 me-2 animate-spin" />
                       جارٍ المعالجة...
                     </>
                   ) : (
                     <>
-                      <CreditCard className="h-4 w-4 ml-2" />
+                      <CreditCard className="h-4 w-4 me-2" />
                       تأكيد الدفع — {total.toLocaleString()} ر.س
                     </>
                   )}

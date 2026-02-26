@@ -33,7 +33,7 @@ export function DonationTimeline({ contributions }: DonationTimelineProps) {
 
   return (
     <div className="relative space-y-0">
-      <div className="absolute top-0 bottom-0 right-4 w-px bg-border" />
+      <div className="absolute top-0 bottom-0 end-4 w-px bg-border" />
       {contributions.map((c, i) => {
         const st = statusConfig[c.donation_status] ?? statusConfig.available;
         const isProject = !!c.project_id;
