@@ -1,62 +1,117 @@
 
-# Upgrade Admin Reports to Professional PDF with Charts
+# تغيير اسم "المشاريع" إلى "طلبات الجمعيات" في كل النظام
 
-## Problem
-The PDF export currently generates a basic HTML page with only summary stats and plain tables. The charts visible on the web page (pie charts, bar charts) are completely missing from the exported report.
+## الملخص
+تحديث جميع النصوص العربية في النظام لاستبدال "المشاريع/مشروع" بـ "طلبات الجمعيات/طلب جمعية" في كل الصفحات والمكونات والقوائم الجانبية والإشعارات والتقارير.
 
-## Solution
-Redesign the PDF report generation to include visual charts by capturing the Recharts SVG charts as images and embedding them in the PDF, plus improving the overall layout with professional styling.
+## الملفات المتأثرة والتغييرات
 
-## Implementation Steps
+### 1. القائمة الجانبية - `src/components/AppSidebar.tsx`
+- "المشاريع" -> "طلبات الجمعيات" (قائمة الجمعية)
+- "المشاريع المتاحة" -> "طلبات الجمعيات المتاحة" (قائمة مقدم الخدمة)
+- "مشاريعي" -> "طلباتي" (قائمة مقدم الخدمة)
+- "المشاريع" -> "طلبات الجمعيات" (قائمة المدير)
 
-### 1. Capture Charts as Images for PDF
-- Use `html-to-image` approach: Before generating the PDF, use the canvas API to convert each Recharts SVG chart into a base64 PNG image
-- Create a helper function that queries all chart containers on the page and converts them to data URLs
+### 2. صفحة الطلبات الرئيسية - `src/pages/Projects.tsx`
+- "المشاريع" -> "طلبات الجمعيات"
+- "إدارة مشاريع الجمعية" -> "إدارة طلبات الجمعية"
+- "مشروع جديد" -> "طلب جديد"
+- "لا توجد مشاريع" -> "لا توجد طلبات"
+- "إنشاء أول مشروع" -> "إنشاء أول طلب"
 
-### 2. Redesign `src/lib/report-pdf.ts`
-- Accept chart images (base64) as an additional parameter
-- Add professional styling: branded header with gradient, better typography, colored stat cards, proper spacing
-- Embed chart images in a 2-column grid layout matching the web view
-- Add page break handling for print
-- Add footer with page info and generation timestamp
+### 3. صفحة طلباتي - `src/pages/MyProjects.tsx`
+- "مشاريعي" -> "طلباتي"
+- "المشاريع المسندة إليك" -> "الطلبات المسندة إليك"
+- "جميع المشاريع" -> "جميع الطلبات"
+- "لا توجد مشاريع" -> "لا توجد طلبات"
+- "ستظهر مشاريعك هنا عند قبول عروضك" -> "ستظهر الطلبات هنا عند قبول عروضك"
 
-### 3. Update `src/pages/admin/AdminReports.tsx`
-- Add `ref` attributes to each chart Card container for capture
-- Update `exportPDF` function to:
-  1. Capture all chart containers as base64 PNG images using canvas/SVG serialization
-  2. Pass chart images along with table data to the enhanced `generateReportPDF`
-- Add chart titles alongside their images in the PDF
+### 4. إنشاء طلب جديد - `src/pages/ProjectCreate.tsx`
+- "تم إنشاء المشروع بنجاح" -> "تم إنشاء الطلب بنجاح"
+- "حدث خطأ أثناء إنشاء المشروع" -> "حدث خطأ أثناء إنشاء الطلب"
+- "تم حفظ المشروع كمسودة" -> "تم حفظ الطلب كمسودة"
+- "إنشاء مشروع جديد" -> "إنشاء طلب جديد"
+- "أضف تفاصيل المشروع" -> "أضف تفاصيل الطلب"
+- "إنشاء مشروع" -> "إنشاء طلب"
 
-## Technical Approach
-- Use native browser SVG serialization + Canvas API (no new dependencies needed)
-- Each `ResponsiveContainer` wrapping a Recharts chart contains an SVG element
-- Serialize each SVG to a string, draw on a canvas, then export as `toDataURL('image/png')`
-- Pass an array of `{ title: string; imageDataUrl: string }` to the PDF generator
+### 5. تعديل الطلب - `src/pages/ProjectEdit.tsx`
+- "المشروع غير موجود" -> "الطلب غير موجود"
+- "لا يمكن تعديل مشروع غير مسودة" -> "لا يمكن تعديل طلب غير مسودة"
+- "تم تحديث المشروع" -> "تم تحديث الطلب"
+- "تعديل المشروع" -> "تعديل الطلب"
 
-## Updated PDF Layout
-```text
-+------------------------------------------+
-|     [Logo/Brand Header with gradient]     |
-|        Platform Analytics Report          |
-|          Date Range | Generated At        |
-+------------------------------------------+
-|  [Stat Card] [Stat Card] [Stat Card] ... |
-+------------------------------------------+
-| [Chart: Projects by Status]  [Chart: Users by Role] |
-| [Chart: Services by Category] [Chart: Projects by Region] |
-| [Chart: Monthly Donations]   [Chart: Service Approval] |
-| [Chart: Monthly Escrow]      [Chart: Hourly Rates]    |
-+------------------------------------------+
-|           Donor Analytics Section         |
-+------------------------------------------+
-|        Detailed Data Tables Below         |
-|   Projects by Status | Projects by Region |
-|   Monthly Donations  | Escrow Transactions|
-+------------------------------------------+
-|              Footer / Page Info            |
-+------------------------------------------+
-```
+### 6. تفاصيل الطلب - `src/pages/ProjectDetails.tsx`
+- "تم إرسال المشروع للمراجعة" -> "تم إرسال الطلب للمراجعة"
+- وجميع نصوص "المشروع" الأخرى في الصفحة
 
-## Files to Modify
-1. **`src/lib/report-pdf.ts`** - Complete redesign with chart image support and professional styling
-2. **`src/pages/admin/AdminReports.tsx`** - Add chart refs, SVG-to-image capture logic, pass images to PDF generator
+### 7. عرض الطلب وتقديم العروض - `src/pages/ProjectBidView.tsx`
+- "المشروع غير موجود" -> "الطلب غير موجود"
+
+### 8. الطلبات المتاحة - `src/pages/AvailableProjects.tsx`
+- "المشاريع المتاحة" -> "طلبات الجمعيات المتاحة"
+- "تصفح المشاريع المفتوحة" -> "تصفح الطلبات المفتوحة"
+- "ابحث عن مشروع" -> "ابحث عن طلب"
+
+### 9. عروضي - `src/pages/MyBids.tsx`
+- "عروضك المقدمة على المشاريع" -> "عروضك المقدمة على الطلبات"
+- "تصفح المشاريع المتاحة" -> "تصفح الطلبات المتاحة"
+
+### 10. لوحة المدير - الطلبات - `src/pages/admin/AdminProjects.tsx`
+- "نظرة عامة على المشاريع" -> "نظرة عامة على طلبات الجمعيات"
+- "لا توجد مشاريع" -> "لا توجد طلبات"
+- "طلب تعديل المشروع" -> "طلب تعديل الطلب"
+
+### 11. التقارير - `src/pages/admin/AdminReports.tsx`
+- "المشاريع" -> "طلبات الجمعيات" (في الإحصائيات والرسوم البيانية)
+- "المشاريع حسب الحالة" -> "الطلبات حسب الحالة"
+- "المشاريع حسب المنطقة" -> "الطلبات حسب المنطقة"
+- "تصدير المشاريع" -> "تصدير الطلبات"
+
+### 12. نظرة عامة المدير - `src/components/admin/AdminOverview.tsx`
+- "المشاريع" -> "طلبات الجمعيات" (KPI card)
+- "معدل إكمال المشاريع" -> "معدل إكمال الطلبات"
+
+### 13. الإشعارات - `src/components/notifications/NotificationItem.tsx`
+- "مشروع مفتوح" -> "طلب مفتوح"
+- "مشروع قيد التنفيذ" -> "طلب قيد التنفيذ"
+- "مشروع مكتمل" -> "طلب مكتمل"
+- "مشروع ملغي" -> "طلب ملغي"
+- "مشروع متنازع" -> "طلب متنازع"
+- "مشروع معلق" -> "طلب معلق"
+
+### 14. مكونات إضافية
+- `src/components/messages/ChatThread.tsx` - "محادثة المشروع" -> "محادثة الطلب"
+- `src/components/messages/ConversationList.tsx` - "مشروع" -> "طلب"
+- `src/components/admin/DisputeCard.tsx` - "مشروع غير معروف" -> "طلب غير معروف"
+- `src/components/admin/CategoryManager.tsx` - "تصنيفات المشاريع" -> "تصنيفات الطلبات"
+- `src/components/admin/UserDetailSheet.tsx` - "المشاريع" -> "الطلبات"
+- `src/components/admin/PeriodComparison.tsx` - "المشاريع" -> "الطلبات"
+- `src/components/donor/ImpactSummary.tsx` - "المشاريع الممولة" -> "الطلبات الممولة"
+- `src/components/donor/DonationForm.tsx` - "مشروع" -> "طلب جمعية"، "المشروع" -> "الطلب"
+- `src/components/time-logs/TimeLogTable.tsx` - "المشروع" -> "الطلب"
+- `src/components/landing/FeaturedProjects.tsx` - "مشاريع مفتوحة" -> "طلبات مفتوحة"
+- `src/components/landing/LiveStats.tsx` - "مشروع مكتمل" -> "طلب مكتمل"
+- `src/components/edit-requests/EditRequestCard.tsx` - "مشروع" -> "طلب جمعية"
+
+### 15. الصفحات الأخرى
+- `src/pages/Notifications.tsx` - "المشاريع" -> "الطلبات"
+- `src/pages/Messages.tsx` - "أطراف المشاريع" -> "أطراف الطلبات"
+- `src/pages/Invoices.tsx` - "إتمام المشاريع" -> "إتمام الطلبات"، "المشروع" -> "الطلب"
+- `src/pages/Donations.tsx` - "المشروع / الخدمة" -> "الطلب / الخدمة"
+- `src/pages/Ratings.tsx` - "مشروع" -> "طلب"
+- `src/pages/Auth.tsx` - "إنشاء مشاريع" -> "إنشاء طلبات"، "عروض للمشاريع" -> "عروض للطلبات"
+- `src/pages/MyDisputes.tsx` - "المشروع" -> "الطلب"، "مشروع محذوف" -> "طلب محذوف"
+- `src/pages/TimeTracking.tsx` - "المشاريع المسندة" -> "الطلبات المسندة"
+- `src/pages/admin/AdminFinance.tsx` - "المشروع" -> "الطلب"
+
+### 16. الـ Hooks
+- `src/hooks/useEditRequests.ts` - "مشروع" -> "طلب جمعية"
+- `src/hooks/useDisputes.ts` - "المشروع" -> "الطلب"
+- `src/hooks/useBids.ts` - "عقد تنفيذ مشروع" -> "عقد تنفيذ طلب"، "المشروع" -> "الطلب"
+- `src/hooks/useContracts.ts` - "للمشروع" -> "للطلب"
+
+## ملاحظات مهمة
+- لن يتم تغيير أي أسماء متغيرات أو مسارات URLs (ستبقى `/projects/`)
+- التغيير محصور فقط في **النصوص العربية المعروضة للمستخدم**
+- أسماء الجداول في قاعدة البيانات لن تتأثر
+- إجمالي الملفات المتأثرة: حوالي 30 ملف
