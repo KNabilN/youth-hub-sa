@@ -82,7 +82,7 @@ export default function MyDisputes() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">النزاعات</h1>
-              <p className="text-sm text-muted-foreground">إدارة ومتابعة النزاعات الخاصة بمشاريعك</p>
+              <p className="text-sm text-muted-foreground">إدارة ومتابعة النزاعات الخاصة بطلباتك</p>
             </div>
           </div>
 
@@ -99,9 +99,9 @@ export default function MyDisputes() {
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>المشروع</Label>
+                  <Label>الطلب</Label>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>
-                    <SelectTrigger><SelectValue placeholder="اختر المشروع" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="اختر الطلب" /></SelectTrigger>
                     <SelectContent>
                       {assignedProjects?.map((p: any) => (
                         <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
@@ -144,7 +144,7 @@ export default function MyDisputes() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="space-y-1">
                       <CardTitle className="text-base">
-                        نزاع على: {d.projects?.title ?? "مشروع محذوف"}
+                        نزاع على: {d.projects?.title ?? "طلب محذوف"}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">بواسطة: {d.profiles?.full_name ?? "—"}</p>
                     </div>
@@ -204,7 +204,7 @@ export default function MyDisputes() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              سيتم إعادة فتح النزاع وتجميد المبالغ المالية المرتبطة بالمشروع مرة أخرى.
+              سيتم إعادة فتح النزاع وتجميد المبالغ المالية المرتبطة بالطلب مرة أخرى.
             </p>
             <div className="space-y-2">
               <Label>سبب إعادة الفتح</Label>

@@ -36,7 +36,7 @@ export function useAcceptBid() {
         project_id: projectId,
         association_id: user!.id,
         provider_id: providerId,
-        terms: `عقد تنفيذ مشروع بقيمة ${price} ر.س`,
+        terms: `عقد تنفيذ طلب بقيمة ${price} ر.س`,
         association_signed_at: new Date().toISOString(),
       });
       if (contractError) throw contractError;
@@ -48,7 +48,7 @@ export function useAcceptBid() {
       if (projectError) throw projectError;
 
       // 5. Notify the provider with link to contracts page
-      await sendNotification(providerId, "تم قبول عرضك على المشروع! يمكنك الآن توقيع العقد. [عرض العقود](/contracts)", "bid_accepted");
+      await sendNotification(providerId, "تم قبول عرضك على الطلب! يمكنك الآن توقيع العقد. [عرض العقود](/contracts)", "bid_accepted");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });
@@ -68,7 +68,7 @@ export function useRejectBid() {
       if (error) throw error;
       // Notify provider
       if (bid?.provider_id) {
-        await sendNotification(bid.provider_id, "تم رفض عرضك على المشروع.", "bid_rejected");
+        await sendNotification(bid.provider_id, "تم رفض عرضك على الطلب.", "bid_rejected");
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bids"] }),

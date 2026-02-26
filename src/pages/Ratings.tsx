@@ -167,7 +167,7 @@ export default function Ratings() {
                         <AvatarFallback>{profile?.full_name?.[0] ?? "؟"}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{(contract as any).projects?.title || "مشروع"}</p>
+                        <p className="font-medium">{(contract as any).projects?.title || "طلب"}</p>
                         <p className="text-sm text-muted-foreground">{profile?.full_name || (isProvider ? "جمعية" : "مقدم خدمة")}</p>
                       </div>
                     </div>
@@ -199,7 +199,7 @@ export default function Ratings() {
                           <AvatarFallback>{profile?.full_name?.[0] ?? "؟"}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{(contract as any).projects?.title || "مشروع"}</p>
+                          <p className="font-medium">{(contract as any).projects?.title || "طلب"}</p>
                           <p className="text-sm text-muted-foreground">{profile?.full_name}</p>
                         </div>
                       </div>

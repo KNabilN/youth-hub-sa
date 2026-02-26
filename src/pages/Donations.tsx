@@ -89,7 +89,7 @@ export default function Donations() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>التاريخ</TableHead>
-                        <TableHead>المشروع / الخدمة</TableHead>
+                        <TableHead>الطلب / الخدمة</TableHead>
                         <TableHead>الحالة</TableHead>
                         <TableHead>المبلغ</TableHead>
                       </TableRow>

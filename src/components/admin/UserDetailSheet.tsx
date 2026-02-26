@@ -112,7 +112,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
           <TabsList className="mx-6 mt-4 flex-wrap h-auto gap-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="services">الخدمات</TabsTrigger>
-            <TabsTrigger value="projects">المشاريع</TabsTrigger>
+            <TabsTrigger value="projects">الطلبات</TabsTrigger>
             <TabsTrigger value="contracts">العقود</TabsTrigger>
             <TabsTrigger value="disputes">النزاعات</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>
@@ -162,7 +162,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
 
             {/* Projects Tab */}
             <TabsContent value="projects">
-              {projects.isLoading ? <LoadingSkeleton /> : !projects.data?.length ? <EmptyState message="لا توجد مشاريع" /> : (
+              {projects.isLoading ? <LoadingSkeleton /> : !projects.data?.length ? <EmptyState message="لا توجد طلبات" /> : (
                 <div className="space-y-3 pt-2">
                   {projects.data.map((p: any) => (
                     <div key={p.id} className="border rounded-lg p-4 space-y-1">

@@ -220,14 +220,14 @@ export default function AdminReports() {
       const sections = [];
       if (projectsByStatus?.length) {
         sections.push({
-          title: "المشاريع حسب الحالة",
+          title: "الطلبات حسب الحالة",
           headers: ["الحالة", "العدد"],
           rows: projectsByStatus.map((p) => [p.name, String(p.value)]),
         });
       }
       if (projectsByRegion?.length) {
         sections.push({
-          title: "المشاريع حسب المنطقة",
+          title: "الطلبات حسب المنطقة",
           headers: ["المنطقة", "العدد"],
           rows: projectsByRegion.map((p) => [p.name, String(p.value)]),
         });
@@ -253,7 +253,7 @@ export default function AdminReports() {
         sections,
         [
           { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
-          { label: "المشاريع", value: String(stats?.totalProjects ?? 0) },
+          { label: "طلبات الجمعيات", value: String(stats?.totalProjects ?? 0) },
           { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
           { label: "النزاعات المفتوحة", value: String(stats?.openDisputes ?? 0) },
         ],
@@ -285,7 +285,7 @@ export default function AdminReports() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={exportUsers}>تصدير المستخدمين</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportProjects}>تصدير المشاريع</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportProjects}>تصدير الطلبات</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportServices}>تصدير الخدمات</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportFinancial}>تصدير المالية</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportInvoices}>تصدير الفواتير</DropdownMenuItem>
@@ -304,7 +304,7 @@ export default function AdminReports() {
         {/* Summary stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المشاريع</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
+          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">طلبات الجمعيات</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">النزاعات المفتوحة</p><p className="text-2xl font-bold">{stats?.openDisputes ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
         </div>
@@ -315,7 +315,7 @@ export default function AdminReports() {
         {/* Charts */}
         <div className="grid gap-6 md:grid-cols-2">
           <Card ref={setChartRef(1, "المستخدمين حسب الدور")}>
-            <CardHeader><CardTitle className="text-lg">المشاريع حسب الحالة</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">الطلبات حسب الحالة</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -358,7 +358,7 @@ export default function AdminReports() {
             </CardContent>
           </Card>
           <Card ref={setChartRef(4, "التبرعات الشهرية")}>
-            <CardHeader><CardTitle className="text-lg">المشاريع حسب المنطقة</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">الطلبات حسب المنطقة</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={projectsByRegion ?? []}>

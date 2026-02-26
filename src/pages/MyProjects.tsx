@@ -24,8 +24,8 @@ export default function MyProjects() {
             <FolderKanban className="h-7 w-7 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">مشاريعي</h1>
-            <p className="text-sm text-muted-foreground">المشاريع المسندة إليك وحالتها الحالية</p>
+            <h1 className="text-2xl font-bold">طلباتي</h1>
+            <p className="text-sm text-muted-foreground">الطلبات المسندة إليك وحالتها الحالية</p>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ export default function MyProjects() {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع المشاريع</SelectItem>
+                <SelectItem value="all">جميع الطلبات</SelectItem>
                 <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                 <SelectItem value="completed">مكتملة</SelectItem>
                 <SelectItem value="disputed">متنازع عليها</SelectItem>
@@ -51,7 +51,7 @@ export default function MyProjects() {
         {isLoading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full" />)}</div>
         ) : !projects?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد مشاريع" description="ستظهر مشاريعك هنا عند قبول عروضك" />
+          <EmptyState icon={FolderKanban} title="لا توجد طلبات" description="ستظهر الطلبات هنا عند قبول عروضك" />
         ) : (
           <div className="grid gap-4">
             {projects.map((project: any) => (

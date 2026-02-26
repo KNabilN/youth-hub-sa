@@ -20,12 +20,12 @@ export default function ProjectBidView() {
     if (!id) return;
     submitBid.mutate({ project_id: id, price: values.price, timeline_days: values.timeline_days, cover_letter: values.cover_letter }, {
       onSuccess: () => { toast({ title: "تم تقديم العرض بنجاح" }); navigate("/my-bids"); },
-      onError: (err: any) => toast({ title: err?.message?.includes("duplicate") ? "لقد قدمت عرضاً على هذا المشروع مسبقاً" : "حدث خطأ", variant: "destructive" }),
+      onError: (err: any) => toast({ title: err?.message?.includes("duplicate") ? "لقد قدمت عرضاً على هذا الطلب مسبقاً" : "حدث خطأ", variant: "destructive" }),
     });
   };
 
   if (isLoading) return <DashboardLayout><p className="text-muted-foreground">جارٍ التحميل...</p></DashboardLayout>;
-  if (!project) return <DashboardLayout><p className="text-muted-foreground">المشروع غير موجود</p></DashboardLayout>;
+  if (!project) return <DashboardLayout><p className="text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
 
   return (
     <DashboardLayout>

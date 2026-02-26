@@ -77,7 +77,7 @@ export function AdminOverview() {
 
   const kpis = [
     { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary" },
-    { title: "المشاريع", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
+    { title: "طلبات الجمعيات", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
     { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
     { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
     { title: "خدمات بانتظار الموافقة", value: stats?.pendingServices ?? 0, icon: Layers, color: "warning" },
@@ -132,7 +132,7 @@ export function AdminOverview() {
                     }}
                   />
                   <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="url(#colorUsers)" name="مستخدمون جدد" strokeWidth={2} />
-                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="مشاريع جديدة" strokeWidth={2} />
+                  <Area type="monotone" dataKey="projects" stroke="hsl(var(--info))" fill="url(#colorProjects)" name="طلبات جديدة" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -154,14 +154,14 @@ export function AdminOverview() {
               </div>
             ) : (
               <>
-                <HealthMetric label="معدل إكمال المشاريع" value={health?.completionRate ?? 0} color="success" />
+                <HealthMetric label="معدل إكمال الطلبات" value={health?.completionRate ?? 0} color="success" />
                 <HealthMetric label="معدل حل النزاعات" value={health?.disputeResolutionRate ?? 0} color="primary" />
                 <HealthMetric label="نجاح المعاملات المالية" value={health?.escrowSuccessRate ?? 0} color="info" />
                 <div className="pt-3 border-t space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                       <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                      مشاريع نشطة
+                      طلبات نشطة
                     </span>
                     <span className="font-bold">{health?.activeProjects ?? 0}</span>
                   </div>

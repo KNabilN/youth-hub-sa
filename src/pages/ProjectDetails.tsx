@@ -108,7 +108,7 @@ export default function ProjectDetails() {
     updateProject.mutate(
       { id, status: "pending_approval" as any },
       {
-        onSuccess: () => toast({ title: "تم إرسال المشروع للمراجعة والموافقة" }),
+        onSuccess: () => toast({ title: "تم إرسال الطلب للمراجعة والموافقة" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
     );
@@ -133,17 +133,17 @@ export default function ProjectDetails() {
       if (project.assigned_provider_id) {
         await sendNotification(
           project.assigned_provider_id,
-          "تم إتمام المشروع وتحرير المستحقات المالية",
+          "تم إتمام الطلب وتحرير المستحقات المالية",
           "project_completed"
         );
       }
 
-      toast({ title: "تم إتمام المشروع وتحرير المستحقات" });
+      toast({ title: "تم إتمام الطلب وتحرير المستحقات" });
       // Refresh
       window.location.reload();
     } catch (err) {
       console.error(err);
-      toast({ title: "حدث خطأ أثناء إتمام المشروع", variant: "destructive" });
+      toast({ title: "حدث خطأ أثناء إتمام الطلب", variant: "destructive" });
     } finally {
       setCompleting(false);
     }
@@ -166,12 +166,12 @@ export default function ProjectDetails() {
       if (project.assigned_provider_id) {
         await sendNotification(
           project.assigned_provider_id,
-          "تم إلغاء المشروع",
+          "تم إلغاء الطلب",
           "project_cancelled"
         );
       }
 
-      toast({ title: "تم إلغاء المشروع" });
+      toast({ title: "تم إلغاء الطلب" });
       window.location.reload();
     } catch (err) {
       console.error(err);
@@ -185,7 +185,7 @@ export default function ProjectDetails() {
   const isProvider = role === "service_provider" && user?.id === project?.assigned_provider_id;
 
   if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
-  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">المشروع غير موجود</p></DashboardLayout>;
+  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
 
   return (
     <DashboardLayout>
@@ -210,14 +210,14 @@ export default function ProjectDetails() {
                 <AlertDialogTrigger asChild>
                   <Button disabled={completing} variant="default">
                     <CheckCircle className="h-4 w-4 ml-1" />
-                    إتمام المشروع
+                     إتمام الطلب
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>إتمام المشروع</AlertDialogTitle>
+                     <AlertDialogTitle>إتمام الطلب</AlertDialogTitle>
                     <AlertDialogDescription>
-                      هل أنت متأكد من إتمام هذا المشروع؟ سيتم تحرير المستحقات المالية لمقدم الخدمة وإصدار فاتورة.
+                      هل أنت متأكد من إتمام هذا الطلب؟ سيتم تحرير المستحقات المالية لمقدم الخدمة وإصدار فاتورة.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -232,14 +232,14 @@ export default function ProjectDetails() {
                 <AlertDialogTrigger asChild>
                   <Button disabled={cancelling} variant="outline">
                     <XCircle className="h-4 w-4 ml-1" />
-                    إلغاء المشروع
+                     إلغاء الطلب
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>إلغاء المشروع</AlertDialogTitle>
+                     <AlertDialogTitle>إلغاء الطلب</AlertDialogTitle>
                     <AlertDialogDescription>
-                      هل أنت متأكد من إلغاء هذا المشروع؟ سيتم استرداد أي مبالغ محجوزة في الضمان المالي.
+                      هل أنت متأكد من إلغاء هذا الطلب؟ سيتم استرداد أي مبالغ محجوزة في الضمان المالي.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -260,7 +260,7 @@ export default function ProjectDetails() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>رفع نزاع على المشروع</DialogTitle>
+                      <DialogTitle>رفع نزاع على الطلب</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <Textarea
@@ -386,7 +386,7 @@ export default function ProjectDetails() {
                           <span className="font-medium text-sm">إنشاء ضمان مالي</span>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">
-                          تم توقيع العقد من الطرفين. يمكنك الآن إنشاء ضمان مالي لحماية المشروع.
+                          تم توقيع العقد من الطرفين. يمكنك الآن إنشاء ضمان مالي لحماية الطلب.
                         </p>
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-medium">المبلغ: {project.budget ?? 0} ر.س</span>
@@ -461,7 +461,7 @@ export default function ProjectDetails() {
                 </Card>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">لا يوجد عقد مرتبط بهذا المشروع</p>
+              <p className="text-sm text-muted-foreground text-center py-8">لا يوجد عقد مرتبط بهذا الطلب</p>
             )}
           </TabsContent>
 
@@ -503,7 +503,7 @@ export default function ProjectDetails() {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Paperclip className="h-5 w-5" />
-                  مرفقات المشروع
+                  مرفقات الطلب
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">

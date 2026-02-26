@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const targetLabels: Record<string, string> = {
   micro_services: "خدمة",
-  projects: "مشروع",
+  projects: "طلب جمعية",
   profiles: "ملف شخصي",
 };
 

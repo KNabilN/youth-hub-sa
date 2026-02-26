@@ -44,7 +44,7 @@ function AnimatedCounter({ target, duration = 1500 }: { target: number; duration
 const statItems = [
   { key: "providers" as const, label: "مقدم خدمة", icon: Users },
   { key: "associations" as const, label: "جمعية مسجلة", icon: FolderKanban },
-  { key: "completed_projects" as const, label: "مشروع مكتمل", icon: CheckCircle },
+  { key: "completed_projects" as const, label: "طلب مكتمل", icon: CheckCircle },
   { key: "approved_services" as const, label: "خدمة معتمدة", icon: Store },
 ];
 
