@@ -226,7 +226,7 @@ export function AdminOverview() {
                 <YAxis {...axisProps} />
                 <Tooltip content={<CustomChartTooltip />} />
                 <Area type="monotone" dataKey="escrow" stroke="hsl(var(--success))" fill="url(#colorEscrow)" name="معاملات الضمان (ر.س)" strokeWidth={2.5} dot={false} />
-                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="التبرعات (ر.س)" strokeWidth={2.5} dot={false}>
+                <Area type="monotone" dataKey="donations" stroke="hsl(var(--accent-foreground))" fill="url(#colorDonations)" name="المنح (ر.س)" strokeWidth={2.5} dot={false}>
                   <LabelList dataKey="donations" position="top" fontSize={10} fontWeight={600} fill="#374151" formatter={(v: number) => v ? v.toLocaleString() : ''} />
                 </Area>
               </AreaChart>

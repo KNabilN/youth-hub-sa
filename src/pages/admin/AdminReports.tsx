@@ -274,7 +274,7 @@ export default function AdminReports() {
         sections.push({ title: "الطلبات حسب المنطقة", headers: ["المنطقة", "العدد"], rows: projectsByRegion.map((p) => [p.name, String(p.value)]) });
       }
       if (monthlyDonations?.length) {
-        sections.push({ title: "التبرعات الشهرية", headers: ["الشهر", "المبلغ (ر.س)"], rows: monthlyDonations.map((d) => [d.month, String(d.amount)]) });
+        sections.push({ title: "المنح الشهرية", headers: ["الشهر", "المبلغ (ر.س)"], rows: monthlyDonations.map((d) => [d.month, String(d.amount)]) });
       }
       if (monthlyEscrow?.length) {
         sections.push({ title: "المعاملات المالية الشهرية", headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"], rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]) });
@@ -433,9 +433,9 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Bar: التبرعات الشهرية */}
-          <Card ref={setChartRef(5, "التبرعات الشهرية")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">التبرعات الشهرية</CardTitle></CardHeader>
+          {/* Bar: المنح الشهرية */}
+          <Card ref={setChartRef(5, "المنح الشهرية")} className={chartCardCls}>
+            <CardHeader><CardTitle className="text-lg text-center">المنح الشهرية</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={monthlyDonations ?? []}>
@@ -549,7 +549,7 @@ export default function AdminReports() {
                 <p className="text-2xl font-bold">{donorAnalytics?.totalDonors ?? 0}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground">إجمالي التبرعات</p>
+                <p className="text-sm text-muted-foreground">إجمالي المنح</p>
                 <p className="text-2xl font-bold">{(donorAnalytics?.totalGrants ?? 0).toLocaleString()} ر.س</p>
               </div>
             </div>

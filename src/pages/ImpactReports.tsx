@@ -71,12 +71,12 @@ export default function ImpactReports() {
 
         {/* Timeline */}
         <Card>
-          <CardHeader><CardTitle className="text-lg">سجل التبرعات الزمني</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">سجل المنح الزمني</CardTitle></CardHeader>
           <CardContent>
             {contribLoading ? (
               <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
             ) : !contributions?.length ? (
-              <EmptyState icon={BarChart3} title="لا توجد تبرعات لعرض تأثيرها" description="قدّم تبرعاً لتتبع أثره على المجتمع" actionLabel="صفحة التبرعات" actionHref="/donations" />
+              <EmptyState icon={BarChart3} title="لا توجد منح لعرض تأثيرها" description="قدّم منحة لتتبع أثرها على المجتمع" actionLabel="صفحة المنح" actionHref="/donations" />
             ) : (
               <DonationTimeline contributions={contributions as any} />
             )}

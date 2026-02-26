@@ -99,7 +99,7 @@ function DonorDashboard() {
   const { data: stats, isLoading } = useDonorStats();
   const items: StatItem[] = [
     { title: "الجمعيات المدعومة", value: stats?.associationsSupported ?? 0, icon: Users, color: "primary" },
-    { title: "إجمالي التبرعات", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "accent" },
+    { title: "إجمالي المنح", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "accent" },
     { title: "المشاريع الممولة", value: stats?.projectsFunded ?? 0, icon: FolderKanban, color: "info" },
     { title: "تقارير الأثر", value: "0", icon: BarChart3, color: "success" },
   ];

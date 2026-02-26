@@ -76,7 +76,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         )} />
         <FormField control={form.control} name="target_type" render={({ field }) => (
           <FormItem>
-            <FormLabel>نوع التبرع</FormLabel>
+            <FormLabel>نوع المنحة</FormLabel>
             <Select onValueChange={(v) => { field.onChange(v); form.setValue("target_id", ""); }} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
@@ -101,7 +101,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
             <FormMessage />
           </FormItem>
         )} />
-        <Button type="submit" disabled={isLoading}>{isLoading ? "جاري التبرع..." : "تبرع الآن"}</Button>
+        <Button type="submit" disabled={isLoading}>{isLoading ? "جاري تقديم المنحة..." : "قدّم المنحة"}</Button>
       </form>
     </Form>
   );
