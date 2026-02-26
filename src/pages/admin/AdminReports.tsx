@@ -301,7 +301,7 @@ export default function AdminReports() {
       if (monthlyEscrow?.length) {
         sections.push({ title: "المعاملات المالية الشهرية", headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"], rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]) });
       }
-      generateReportPDF(
+      await generateReportPDF(
         "تقرير تحليلات المنصة",
         { from: filters.dateFrom, to: filters.dateTo },
         sections,
