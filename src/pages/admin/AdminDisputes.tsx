@@ -21,8 +21,8 @@ export default function AdminDisputes() {
               <Gavel className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">إدارة النزاعات</h1>
-              <p className="text-sm text-muted-foreground">{filtered.length} نزاع</p>
+              <h1 className="text-2xl font-bold">إدارة الشكاوى</h1>
+              <p className="text-sm text-muted-foreground">{filtered.length} شكوى</p>
             </div>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -41,7 +41,7 @@ export default function AdminDisputes() {
         {isLoading ? <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p> : (
           <div className="grid gap-4 md:grid-cols-2">
             {filtered.map((d: any) => <DisputeCard key={d.id} dispute={d} />)}
-            {filtered.length === 0 && <p className="text-muted-foreground col-span-2 text-center py-8">لا توجد نزاعات</p>}
+            {filtered.length === 0 && <p className="text-muted-foreground col-span-2 text-center py-8">لا توجد شكاوى</p>}
           </div>
         )}
       </div>

@@ -255,12 +255,12 @@ export default function ProjectDetails() {
                   <DialogTrigger asChild>
                     <Button variant="destructive" size="sm">
                       <AlertTriangle className="h-4 w-4 ml-1" />
-                      رفع نزاع
+                      رفع شكوى
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>رفع نزاع على الطلب</DialogTitle>
+                      <DialogTitle>رفع شكوى على الطلب</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <Textarea
@@ -276,7 +276,7 @@ export default function ProjectDetails() {
                             { project_id: id, description: disputeDesc },
                             {
                               onSuccess: () => {
-                                toast({ title: "تم رفع النزاع" });
+                                toast({ title: "تم رفع الشكوى" });
                                 setDisputeOpen(false);
                                 setDisputeDesc("");
                               },
@@ -286,7 +286,7 @@ export default function ProjectDetails() {
                         }}
                         disabled={createDispute.isPending || !disputeDesc.trim()}
                       >
-                        إرسال النزاع
+                        إرسال الشكوى
                       </Button>
                     </div>
                   </DialogContent>
@@ -308,7 +308,7 @@ export default function ProjectDetails() {
             <TabsTrigger value="bids">العروض</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
-            <TabsTrigger value="disputes">النزاعات</TabsTrigger>
+            <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
             <TabsTrigger value="attachments" className="flex items-center gap-1">
               <Paperclip className="h-3.5 w-3.5" />
               المرفقات
@@ -481,7 +481,7 @@ export default function ProjectDetails() {
                   <Card key={d.id}>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">نزاع بواسطة: {d.profiles?.full_name ?? "—"}</CardTitle>
+                        <CardTitle className="text-base">شكوى بواسطة: {d.profiles?.full_name ?? "—"}</CardTitle>
                         <Badge variant="outline">{d.status === "open" ? "مفتوح" : d.status === "under_review" ? "قيد المراجعة" : d.status === "resolved" ? "تم الحل" : "مغلق"}</Badge>
                       </div>
                     </CardHeader>
@@ -494,7 +494,7 @@ export default function ProjectDetails() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">لا توجد نزاعات</p>
+              <p className="text-sm text-muted-foreground text-center py-8">لا توجد شكاوى</p>
             )}
           </TabsContent>
 

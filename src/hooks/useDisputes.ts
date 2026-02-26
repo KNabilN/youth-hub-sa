@@ -39,7 +39,7 @@ export function useCreateDispute() {
             ? project.assigned_provider_id
             : project.association_id;
         if (otherPartyId) {
-          await sendNotification(otherPartyId, "تم رفع نزاع على الطلب", "dispute_raised");
+          await sendNotification(otherPartyId, "تم رفع شكوى على الطلب", "dispute_raised");
         }
       }
     },
@@ -63,10 +63,10 @@ export function useReopenDispute() {
         .select("id, status, updated_at, project_id, raised_by")
         .eq("id", disputeId)
         .single();
-      if (fetchErr || !dispute) throw new Error("النزاع غير موجود");
+      if (fetchErr || !dispute) throw new Error("الشكوى غير موجودة");
 
       if (!["resolved", "closed"].includes(dispute.status)) {
-        throw new Error("لا يمكن إعادة فتح نزاع بهذه الحالة");
+        throw new Error("لا يمكن إعادة فتح شكوى بهذه الحالة");
       }
 
       // Check 7-day grace period
@@ -74,7 +74,7 @@ export function useReopenDispute() {
       const now = new Date();
       const daysDiff = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60 * 24);
       if (daysDiff > 7) {
-        throw new Error("انتهت مهلة إعادة فتح النزاع (7 أيام)");
+        throw new Error("انتهت مهلة إعادة فتح الشكوى (7 أيام)");
       }
 
       // Re-open the dispute

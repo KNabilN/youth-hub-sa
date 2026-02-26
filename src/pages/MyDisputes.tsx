@@ -47,12 +47,12 @@ export default function MyDisputes() {
       { project_id: selectedProject, description: description.trim() },
       {
         onSuccess: () => {
-          toast({ title: "تم رفع النزاع بنجاح" });
+          toast({ title: "تم رفع الشكوى بنجاح" });
           setDialogOpen(false);
           setSelectedProject("");
           setDescription("");
         },
-        onError: () => toast({ title: "حدث خطأ أثناء رفع النزاع", variant: "destructive" }),
+        onError: () => toast({ title: "حدث خطأ أثناء رفع الشكوى", variant: "destructive" }),
       }
     );
   };
@@ -63,7 +63,7 @@ export default function MyDisputes() {
       { disputeId: reopenDialogId, reason: reopenReason.trim() },
       {
         onSuccess: () => {
-          toast({ title: "تم إعادة فتح النزاع" });
+          toast({ title: "تم إعادة فتح الشكوى" });
           setReopenDialogId(null);
           setReopenReason("");
         },
@@ -81,8 +81,8 @@ export default function MyDisputes() {
               <Gavel className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">النزاعات</h1>
-              <p className="text-sm text-muted-foreground">إدارة ومتابعة النزاعات الخاصة بطلباتك</p>
+              <h1 className="text-2xl font-bold">الشكاوى</h1>
+              <p className="text-sm text-muted-foreground">إدارة ومتابعة الشكاوى الخاصة بطلباتك</p>
             </div>
           </div>
 
@@ -90,12 +90,12 @@ export default function MyDisputes() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 ml-1" />
-                رفع نزاع
+                رفع شكوى
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>رفع نزاع جديد</DialogTitle>
+                <DialogTitle>رفع شكوى جديدة</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -110,11 +110,11 @@ export default function MyDisputes() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>وصف النزاع</Label>
+                  <Label>وصف الشكوى</Label>
                   <Textarea
                     value={description}
                     onChange={e => setDescription(e.target.value)}
-                    placeholder="اشرح سبب النزاع بالتفصيل..."
+                    placeholder="اشرح سبب الشكوى بالتفصيل..."
                     rows={4}
                   />
                 </div>
@@ -123,7 +123,7 @@ export default function MyDisputes() {
                   disabled={!selectedProject || !description.trim() || createDispute.isPending}
                   className="w-full"
                 >
-                  {createDispute.isPending ? "جاري الإرسال..." : "رفع النزاع"}
+                  {createDispute.isPending ? "جاري الإرسال..." : "رفع الشكوى"}
                 </Button>
               </div>
             </DialogContent>
@@ -135,7 +135,7 @@ export default function MyDisputes() {
         {isLoading ? (
           <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}</div>
         ) : !disputes?.length ? (
-          <EmptyState icon={Gavel} title="لا توجد نزاعات" description="لا يوجد لديك أي نزاعات حالياً" />
+          <EmptyState icon={Gavel} title="لا توجد شكاوى" description="لا يوجد لديك أي شكاوى حالياً" />
         ) : (
           <div className="space-y-4">
             {disputes.map((d: any) => (
@@ -144,7 +144,7 @@ export default function MyDisputes() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="space-y-1">
                       <CardTitle className="text-base">
-                        نزاع على: {d.projects?.title ?? "طلب محذوف"}
+                        شكوى على: {d.projects?.title ?? "طلب محذوف"}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">بواسطة: {d.profiles?.full_name ?? "—"}</p>
                     </div>
@@ -179,7 +179,7 @@ export default function MyDisputes() {
                         onClick={() => setReopenDialogId(d.id)}
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
-                        إعادة فتح النزاع
+                        إعادة فتح الشكوى
                       </Button>
                       <p className="text-[10px] text-muted-foreground mt-1">
                         متاح خلال 7 أيام من الإغلاق
@@ -200,18 +200,18 @@ export default function MyDisputes() {
       <Dialog open={!!reopenDialogId} onOpenChange={(open) => { if (!open) setReopenDialogId(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>إعادة فتح النزاع</DialogTitle>
+            <DialogTitle>إعادة فتح الشكوى</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              سيتم إعادة فتح النزاع وتجميد المبالغ المالية المرتبطة بالطلب مرة أخرى.
+              سيتم إعادة فتح الشكوى وتجميد المبالغ المالية المرتبطة بالطلب مرة أخرى.
             </p>
             <div className="space-y-2">
               <Label>سبب إعادة الفتح</Label>
               <Textarea
                 value={reopenReason}
                 onChange={e => setReopenReason(e.target.value)}
-                placeholder="اشرح سبب إعادة فتح النزاع..."
+                placeholder="اشرح سبب إعادة فتح الشكوى..."
                 rows={3}
               />
             </div>

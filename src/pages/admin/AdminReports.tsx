@@ -19,7 +19,7 @@ const ROLE_COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
 
 const statusLabels: Record<string, string> = {
   draft: "مسودة", open: "مفتوح", in_progress: "قيد التنفيذ",
-  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
+  completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
   pending_approval: "بانتظار الموافقة", suspended: "معلق", archived: "مؤرشف",
 };
 const roleLabels: Record<string, string> = {
@@ -255,7 +255,7 @@ export default function AdminReports() {
           { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
           { label: "طلبات الجمعيات", value: String(stats?.totalProjects ?? 0) },
           { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
-          { label: "النزاعات المفتوحة", value: String(stats?.openDisputes ?? 0) },
+          { label: "الشكاوى المفتوحة", value: String(stats?.openDisputes ?? 0) },
         ],
         chartImages
       );
@@ -305,7 +305,7 @@ export default function AdminReports() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">طلبات الجمعيات</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">النزاعات المفتوحة</p><p className="text-2xl font-bold">{stats?.openDisputes ?? 0}</p></CardContent></Card>
+          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الشكاوى المفتوحة</p><p className="text-2xl font-bold">{stats?.openDisputes ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
         </div>
 
