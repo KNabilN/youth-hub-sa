@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Building2, UserCheck, HandCoins, Shield, CheckCircle2, ArrowRight } from "lucide-react";
+import { Building2, UserCheck, HandCoins, Shield, CheckCircle2, ArrowRight, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { z } from "zod";
@@ -21,6 +21,7 @@ const loginSchema = z.object({
 
 const registerSchema = loginSchema.extend({
   fullName: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
+  phone: z.string().trim().min(10, "رقم الجوال يجب أن يكون 10 أرقام على الأقل").max(15, "رقم الجوال طويل جداً").regex(/^[0-9+]+$/, "رقم جوال غير صالح"),
   pdplConsent: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }) }),
 });
 
@@ -37,6 +38,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<AppRole>("youth_association");
+  const [phone, setPhone] = useState("");
   const [pdplConsent, setPdplConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,7 +52,7 @@ export default function Auth() {
     // Validate
     const schema = isLogin ? loginSchema : registerSchema;
     const parsed = schema.safeParse(
-      isLogin ? { email, password } : { email, password, fullName, pdplConsent }
+      isLogin ? { email, password } : { email, password, fullName, phone, pdplConsent }
     );
 
     if (!parsed.success) {
@@ -72,7 +74,7 @@ export default function Auth() {
         navigate("/dashboard");
       }
     } else {
-      const { error } = await signUp(email.trim(), password, fullName.trim(), role);
+      const { error } = await signUp(email.trim(), password, fullName.trim(), role, phone.trim());
       if (error) {
         toast.error(error.message);
       } else {
@@ -173,6 +175,26 @@ export default function Auth() {
                       </div>
                     </div>
                   </>
+                )}
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">رقم الجوال</Label>
+                    <div className="relative">
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="05xxxxxxxx"
+                        required
+                        dir="ltr"
+                        className={cn("text-left h-11 pl-10", errors.phone && "border-destructive")}
+                      />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    </div>
+                    {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                  </div>
                 )}
 
                 <div className="space-y-2">
