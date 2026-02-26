@@ -27,7 +27,7 @@ export function DisputeCard({ dispute }: { dispute: any }) {
 
   const handleSave = () => {
     updateDispute.mutate({ id: dispute.id, status: newStatus, resolution_notes: notes }, {
-      onSuccess: () => { toast.success("تم تحديث النزاع"); setEditing(false); },
+      onSuccess: () => { toast.success("تم تحديث الشكوى"); setEditing(false); },
       onError: () => toast.error("حدث خطأ"),
     });
   };

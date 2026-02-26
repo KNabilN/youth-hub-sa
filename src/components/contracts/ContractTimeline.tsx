@@ -99,7 +99,7 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
     events.push({
       type: "dispute",
       date: d.created_at,
-      title: "نزاع: " + (d.description?.slice(0, 50) || ""),
+      title: "شكوى: " + (d.description?.slice(0, 50) || ""),
       detail: d.status,
       icon: AlertTriangle,
       color: "text-destructive",

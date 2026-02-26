@@ -9,7 +9,7 @@ const statusConfig: Record<ProjectStatus, { label: string; className: string }> 
   open: { label: "مفتوح", className: "bg-info/15 text-info border-info/30" },
   in_progress: { label: "قيد التنفيذ", className: "bg-warning/15 text-warning border-warning/30" },
   completed: { label: "مكتمل", className: "bg-success/15 text-success border-success/30" },
-  disputed: { label: "متنازع", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  disputed: { label: "مُشتكى عليه", className: "bg-destructive/15 text-destructive border-destructive/30" },
   cancelled: { label: "ملغي", className: "bg-muted text-muted-foreground" },
   suspended: { label: "معلق", className: "bg-orange-500/15 text-orange-600 border-orange-500/30" },
   archived: { label: "مؤرشف", className: "bg-muted text-muted-foreground" },

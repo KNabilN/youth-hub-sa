@@ -78,7 +78,7 @@ export function AdminOverview() {
   const kpis = [
     { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary" },
     { title: "طلبات الجمعيات", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
-    { title: "النزاعات المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
+    { title: "الشكاوى المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
     { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
     { title: "خدمات بانتظار الموافقة", value: stats?.pendingServices ?? 0, icon: Layers, color: "warning" },
     { title: "عروض أسعار معلقة", value: stats?.pendingBids ?? 0, icon: ClipboardList, color: "accent" },
@@ -155,7 +155,7 @@ export function AdminOverview() {
             ) : (
               <>
                 <HealthMetric label="معدل إكمال الطلبات" value={health?.completionRate ?? 0} color="success" />
-                <HealthMetric label="معدل حل النزاعات" value={health?.disputeResolutionRate ?? 0} color="primary" />
+                <HealthMetric label="معدل حل الشكاوى" value={health?.disputeResolutionRate ?? 0} color="primary" />
                 <HealthMetric label="نجاح المعاملات المالية" value={health?.escrowSuccessRate ?? 0} color="info" />
                 <div className="pt-3 border-t space-y-2">
                   <div className="flex items-center justify-between text-sm">
@@ -168,7 +168,7 @@ export function AdminOverview() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                       <Gavel className="h-3.5 w-3.5 text-destructive" />
-                      إجمالي النزاعات
+                      إجمالي الشكاوى
                     </span>
                     <span className="font-bold">{health?.totalDisputes ?? 0}</span>
                   </div>

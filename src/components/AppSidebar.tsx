@@ -40,7 +40,7 @@ const menuByRole = {
     { title: "الأرباح", url: "/earnings", icon: Receipt },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
-    { title: "النزاعات", url: "/my-disputes", icon: Gavel },
+    { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
   ],
   donor: [
@@ -56,7 +56,7 @@ const menuByRole = {
     { title: "إدارة المستخدمين", url: "/admin/users", icon: UserCog },
     { title: "طلبات الجمعيات", url: "/admin/projects", icon: FolderKanban },
     { title: "الخدمات", url: "/admin/services", icon: Store },
-    { title: "النزاعات", url: "/admin/disputes", icon: Gavel },
+    { title: "الشكاوى", url: "/admin/disputes", icon: Gavel },
     { title: "المالية", url: "/admin/finance", icon: Receipt },
     { title: "التقارير", url: "/admin/reports", icon: BarChart3 },
     { title: "الإشعارات", url: "/admin/notifications", icon: Bell },

@@ -36,7 +36,7 @@ const statusLabels: Record<string, string> = {
   open: "مفتوح",
   in_progress: "قيد التنفيذ",
   completed: "مكتمل",
-  disputed: "متنازع",
+  disputed: "مُشتكى عليه",
   cancelled: "ملغى",
 };
 
@@ -114,7 +114,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
             <TabsTrigger value="services">الخدمات</TabsTrigger>
             <TabsTrigger value="projects">الطلبات</TabsTrigger>
             <TabsTrigger value="contracts">العقود</TabsTrigger>
-            <TabsTrigger value="disputes">النزاعات</TabsTrigger>
+            <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>
             <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
             <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
@@ -201,7 +201,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
 
             {/* Disputes Tab */}
             <TabsContent value="disputes">
-              {disputes.isLoading ? <LoadingSkeleton /> : !disputes.data?.length ? <EmptyState message="لا توجد نزاعات" /> : (
+              {disputes.isLoading ? <LoadingSkeleton /> : !disputes.data?.length ? <EmptyState message="لا توجد شكاوى" /> : (
                 <div className="space-y-3 pt-2">
                   {disputes.data.map((d: any) => (
                     <div key={d.id} className="border rounded-lg p-4 space-y-1">
