@@ -151,6 +151,18 @@ export function generateReportPDF(
  * Capture a chart container (Card element containing a Recharts chart) as a base64 PNG.
  */
 export async function captureChartAsImage(container: HTMLElement): Promise<string> {
+  // Hide card headers before capture to avoid garbled Arabic text
+  const headers = container.querySelectorAll<HTMLElement>('[class*="CardHeader"], [class*="card-header"], header, .card-header');
+  const headerH = container.querySelector<HTMLElement>('div > div:first-child h1, div > div:first-child h2, div > div:first-child h3');
+  const hiddenEls: HTMLElement[] = [];
+
+  // Hide the CardHeader (first child div that contains the title)
+  const firstChild = container.children[0] as HTMLElement;
+  if (firstChild && firstChild.querySelector('h1, h2, h3, [class*="title"], [class*="Title"]')) {
+    firstChild.style.display = 'none';
+    hiddenEls.push(firstChild);
+  }
+
   const canvas = await html2canvas(container, {
     scale: 2,
     useCORS: true,
@@ -171,5 +183,9 @@ export async function captureChartAsImage(container: HTMLElement): Promise<strin
       el.style.setProperty("--border", "214.3 31.8% 91.4%");
     },
   });
+
+  // Restore hidden elements
+  hiddenEls.forEach(el => el.style.display = '');
+
   return canvas.toDataURL("image/png");
 }
