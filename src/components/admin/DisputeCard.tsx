@@ -56,7 +56,7 @@ export function DisputeCard({ dispute }: { dispute: any }) {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
         <div className="space-y-1">
-          <CardTitle className="text-base">{dispute.projects?.title ?? "مشروع غير معروف"}</CardTitle>
+          <CardTitle className="text-base">{dispute.projects?.title ?? "طلب غير معروف"}</CardTitle>
           <p className="text-xs text-muted-foreground">بواسطة: {dispute.profiles?.full_name ?? "—"} · {format(new Date(dispute.created_at), "yyyy/MM/dd", { locale: ar })}</p>
         </div>
         <Badge className={disputeStatusColors[dispute.status]}>{disputeStatusLabels[dispute.status] ?? dispute.status}</Badge>

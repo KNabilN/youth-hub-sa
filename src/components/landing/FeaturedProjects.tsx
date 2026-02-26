@@ -46,10 +46,10 @@ export default function FeaturedProjects({ projects, loading }: FeaturedProjects
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-accent/10 text-accent-foreground text-sm font-medium px-4 py-2 rounded-full mb-4">
             <FolderKanban className="w-4 h-4" />
-            مشاريع مفتوحة
+            طلبات مفتوحة
           </div>
-          <h2 className="text-3xl font-bold mb-3">أحدث المشاريع المتاحة</h2>
-          <p className="text-muted-foreground">انضم كمقدم خدمة وقدّم عروضك على المشاريع المفتوحة</p>
+          <h2 className="text-3xl font-bold mb-3">أحدث الطلبات المتاحة</h2>
+          <p className="text-muted-foreground">انضم كمقدم خدمة وقدّم عروضك على الطلبات المفتوحة</p>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
           {projects.map((project) => (
@@ -88,7 +88,7 @@ export default function FeaturedProjects({ projects, loading }: FeaturedProjects
         <div className="text-center mt-8">
           <Button size="lg" asChild className="shadow-lg">
             <Link to="/auth?mode=register">
-              سجّل للتقديم على المشاريع
+              سجّل للتقديم على الطلبات
               <ArrowLeft className="mr-2 h-4 w-4" />
             </Link>
           </Button>

@@ -37,13 +37,13 @@ export default function Projects() {
               <FolderKanban className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">المشاريع</h1>
-              <p className="text-sm text-muted-foreground">إدارة مشاريع الجمعية</p>
+              <h1 className="text-2xl font-bold">طلبات الجمعيات</h1>
+              <p className="text-sm text-muted-foreground">إدارة طلبات الجمعية</p>
             </div>
           </div>
           <Button onClick={() => navigate("/projects/new")}>
             <Plus className="h-4 w-4 ml-1" />
-            مشروع جديد
+            طلب جديد
           </Button>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -75,8 +75,8 @@ export default function Projects() {
           </div>
         ) : !projects?.length ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground">لا توجد مشاريع حتى الآن</p>
-            <Button className="mt-4" onClick={() => navigate("/projects/new")}>إنشاء أول مشروع</Button>
+            <p className="text-muted-foreground">لا توجد طلبات حتى الآن</p>
+            <Button className="mt-4" onClick={() => navigate("/projects/new")}>إنشاء أول طلب</Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

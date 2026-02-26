@@ -21,7 +21,7 @@ export default function Messages() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">الرسائل</h1>
-            <p className="text-sm text-muted-foreground">تواصل مع أطراف المشاريع</p>
+            <p className="text-sm text-muted-foreground">تواصل مع أطراف الطلبات</p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />

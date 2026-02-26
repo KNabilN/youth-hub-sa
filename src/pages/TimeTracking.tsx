@@ -59,7 +59,7 @@ export default function TimeTracking() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">تسجيل الساعات</h1>
-            <p className="text-sm text-muted-foreground">سجّل ساعات عملك على المشاريع المسندة إليك</p>
+            <p className="text-sm text-muted-foreground">سجّل ساعات عملك على الطلبات المسندة إليك</p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -90,7 +90,7 @@ export default function TimeTracking() {
           </CardHeader>
           <CardContent className="pt-4">
             {!projects?.length ? (
-              <p className="text-sm text-muted-foreground">لا توجد مشاريع مسندة إليك حالياً</p>
+              <p className="text-sm text-muted-foreground">لا توجد طلبات مسندة إليك حالياً</p>
             ) : (
               <TimeEntryForm projects={projects} onSubmit={handleSubmit} isLoading={createTimeLog.isPending} defaultValues={timerDefaults} />
             )}
@@ -104,7 +104,7 @@ export default function TimeTracking() {
             {isLoading ? (
               <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}</div>
             ) : !timeLogs?.length ? (
-              <EmptyState icon={ClipboardList} title="لا توجد ساعات مسجلة" description="سجل ساعات عملك على المشاريع المسندة إليك" />
+              <EmptyState icon={ClipboardList} title="لا توجد ساعات مسجلة" description="سجل ساعات عملك على الطلبات المسندة إليك" />
             ) : (
               <div className="space-y-2">
                 {timeLogs.map((log: any) => {

@@ -25,8 +25,8 @@ const registerSchema = loginSchema.extend({
 });
 
 const roleOptions: { key: AppRole; label: string; icon: typeof Building2; desc: string }[] = [
-  { key: "youth_association", label: "جمعية شبابية", icon: Building2, desc: "إنشاء مشاريع وتعيين مقدمي خدمات" },
-  { key: "service_provider", label: "مقدم خدمة", icon: UserCheck, desc: "تقديم خدمات وعروض للمشاريع" },
+  { key: "youth_association", label: "جمعية شبابية", icon: Building2, desc: "إنشاء طلبات وتعيين مقدمي خدمات" },
+  { key: "service_provider", label: "مقدم خدمة", icon: UserCheck, desc: "تقديم خدمات وعروض للطلبات" },
   { key: "donor", label: "مانح", icon: HandCoins, desc: "تمويل المشاريع والخدمات" },
 ];
 

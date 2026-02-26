@@ -12,15 +12,15 @@ export default function ProjectEdit() {
   const navigate = useNavigate();
 
   if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
-  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">المشروع غير موجود</p></DashboardLayout>;
-  if (project.status !== "draft") return <DashboardLayout><p className="text-center py-16 text-muted-foreground">لا يمكن تعديل مشروع غير مسودة</p></DashboardLayout>;
+  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
+  if (project.status !== "draft") return <DashboardLayout><p className="text-center py-16 text-muted-foreground">لا يمكن تعديل طلب غير مسودة</p></DashboardLayout>;
 
   const handleSubmit = (values: ProjectFormValues) => {
     updateProject.mutate(
       { id: project.id, ...values } as any,
       {
         onSuccess: () => {
-          toast({ title: "تم تحديث المشروع" });
+          toast({ title: "تم تحديث الطلب" });
           navigate(`/projects/${project.id}`);
         },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
@@ -31,7 +31,7 @@ export default function ProjectEdit() {
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">تعديل المشروع</h1>
+        <h1 className="text-2xl font-bold">تعديل الطلب</h1>
         <ProjectForm
           defaultValues={{
             title: project.title,

@@ -84,8 +84,8 @@ export default function AvailableProjects() {
               <FolderKanban className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">المشاريع المتاحة</h1>
-              <p className="text-sm text-muted-foreground">تصفح المشاريع المفتوحة وقدّم عروضك</p>
+              <h1 className="text-2xl font-bold">طلبات الجمعيات المتاحة</h1>
+              <p className="text-sm text-muted-foreground">تصفح الطلبات المفتوحة وقدّم عروضك</p>
             </div>
           </div>
           {activeFiltersCount > 0 && (
@@ -104,7 +104,7 @@ export default function AvailableProjects() {
               <Input
                 value={searchQuery}
                 onChange={e => handleSearchChange(e.target.value)}
-                placeholder="ابحث عن مشروع بالاسم أو الوصف..."
+                placeholder="ابحث عن طلب بالاسم أو الوصف..."
                 className="pr-9 h-10"
               />
             </div>
@@ -156,7 +156,7 @@ export default function AvailableProjects() {
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-52 w-full rounded-xl" />)}
           </div>
         ) : !projects?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد مشاريع متاحة حالياً" description="لم يتم العثور على مشاريع مطابقة. جرّب تغيير الفلاتر أو تحقق لاحقاً." />
+          <EmptyState icon={FolderKanban} title="لا توجد طلبات متاحة حالياً" description="لم يتم العثور على طلبات مطابقة. جرّب تغيير الفلاتر أو تحقق لاحقاً." />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (

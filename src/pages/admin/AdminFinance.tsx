@@ -135,7 +135,7 @@ export default function AdminFinance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>المشروع</TableHead>
+                      <TableHead>الطلب</TableHead>
                       <TableHead>الدافع</TableHead>
                       <TableHead>المستفيد</TableHead>
                       <TableHead>المبلغ</TableHead>

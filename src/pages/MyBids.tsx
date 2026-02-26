@@ -70,7 +70,7 @@ export default function MyBids() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">عروضي</h1>
-            <p className="text-sm text-muted-foreground">تابع حالة عروضك المقدمة على المشاريع</p>
+            <p className="text-sm text-muted-foreground">تابع حالة عروضك المقدمة على الطلبات</p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -97,7 +97,7 @@ export default function MyBids() {
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : !bids?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح المشاريع المتاحة وقدم عرضك الأول" actionLabel="تصفح المشاريع" actionHref="/available-projects" />
+          <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح الطلبات المتاحة وقدم عرضك الأول" actionLabel="تصفح الطلبات" actionHref="/available-projects" />
         ) : (
           <div className="space-y-3">
             {bids.map((bid: any) => {

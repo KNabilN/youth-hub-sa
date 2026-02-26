@@ -86,7 +86,7 @@ export function CategoryManager() {
           </div>
           <Badge variant="secondary">{categories?.length ?? 0}</Badge>
         </div>
-        <CardDescription>تصنيفات المشاريع والخدمات المتاحة على المنصة</CardDescription>
+        <CardDescription>تصنيفات الطلبات والخدمات المتاحة على المنصة</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">

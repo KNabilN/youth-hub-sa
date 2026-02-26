@@ -94,7 +94,7 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
       {/* Header */}
       <div className="p-4 border-b bg-card">
         <h2 className="font-bold text-lg">{projectTitle}</h2>
-        <p className="text-xs text-muted-foreground">محادثة المشروع</p>
+        <p className="text-xs text-muted-foreground">محادثة الطلب</p>
       </div>
 
       {/* Messages */}

@@ -38,7 +38,7 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
           <MessageSquare className="h-6 w-6 text-muted-foreground/50" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">لا توجد محادثات</p>
-        <p className="text-xs text-muted-foreground mt-1">ستظهر المحادثات هنا عند بدء العمل على مشروع</p>
+        <p className="text-xs text-muted-foreground mt-1">ستظهر المحادثات هنا عند بدء العمل على طلب</p>
       </div>
     );
   }

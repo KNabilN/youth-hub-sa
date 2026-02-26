@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 const menuByRole = {
   youth_association: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
-    { title: "المشاريع", url: "/projects", icon: FolderKanban },
+    { title: "طلبات الجمعيات", url: "/projects", icon: FolderKanban },
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
@@ -31,8 +31,8 @@ const menuByRole = {
   service_provider: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "خدماتي", url: "/my-services", icon: Layers },
-    { title: "المشاريع المتاحة", url: "/available-projects", icon: FolderKanban },
-    { title: "مشاريعي", url: "/my-projects", icon: FolderKanban },
+    { title: "طلبات الجمعيات المتاحة", url: "/available-projects", icon: FolderKanban },
+    { title: "طلباتي", url: "/my-projects", icon: FolderKanban },
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "عروضي", url: "/my-bids", icon: FileText },
     { title: "العقود", url: "/contracts", icon: ScrollText },
@@ -54,7 +54,7 @@ const menuByRole = {
   super_admin: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "إدارة المستخدمين", url: "/admin/users", icon: UserCog },
-    { title: "المشاريع", url: "/admin/projects", icon: FolderKanban },
+    { title: "طلبات الجمعيات", url: "/admin/projects", icon: FolderKanban },
     { title: "الخدمات", url: "/admin/services", icon: Store },
     { title: "النزاعات", url: "/admin/disputes", icon: Gavel },
     { title: "المالية", url: "/admin/finance", icon: Receipt },

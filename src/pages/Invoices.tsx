@@ -100,7 +100,7 @@ export default function Invoices() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">الفواتير</h1>
-              <p className="text-sm text-muted-foreground">سجل الفواتير والعمولات الخاصة بمشاريعك</p>
+              <p className="text-sm text-muted-foreground">سجل الفواتير والعمولات الخاصة بطلباتك</p>
             </div>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -119,7 +119,7 @@ export default function Invoices() {
         {isLoading ? (
           <Skeleton className="h-64 w-full" />
         ) : !filtered?.length ? (
-          <EmptyState icon={Receipt} title="لا توجد فواتير" description="ستظهر الفواتير هنا بعد إتمام المشاريع" />
+          <EmptyState icon={Receipt} title="لا توجد فواتير" description="ستظهر الفواتير هنا بعد إتمام الطلبات" />
         ) : (
           <Card>
             <CardContent className="p-0">
@@ -127,7 +127,7 @@ export default function Invoices() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>رقم الفاتورة</TableHead>
-                    <TableHead>المشروع</TableHead>
+                    <TableHead>الطلب</TableHead>
                     <TableHead>المبلغ</TableHead>
                     <TableHead>العمولة</TableHead>
                     <TableHead>الصافي</TableHead>

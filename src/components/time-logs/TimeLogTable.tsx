@@ -54,7 +54,7 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead>مقدم الخدمة</TableHead>
-              <TableHead>المشروع</TableHead>
+              <TableHead>الطلب</TableHead>
               <TableHead>التاريخ</TableHead>
               <TableHead>الوقت</TableHead>
               <TableHead>الساعات</TableHead>

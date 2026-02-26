@@ -98,7 +98,7 @@ export function useSignContract() {
             // Notify both parties
             await sendNotifications(
               [contract.association_id, contract.provider_id],
-              "تم إنشاء الضمان المالي للمشروع",
+              "تم إنشاء الضمان المالي للطلب",
               "escrow_created"
             );
           }

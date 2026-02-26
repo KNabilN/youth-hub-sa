@@ -80,7 +80,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
             <Select onValueChange={(v) => { field.onChange(v); form.setValue("target_id", ""); }} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
-                <SelectItem value="project">مشروع</SelectItem>
+                <SelectItem value="project">طلب جمعية</SelectItem>
                 <SelectItem value="service">خدمة</SelectItem>
               </SelectContent>
             </Select>
@@ -89,7 +89,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         )} />
         <FormField control={form.control} name="target_id" render={({ field }) => (
           <FormItem>
-            <FormLabel>{targetType === "project" ? "المشروع" : "الخدمة"}</FormLabel>
+            <FormLabel>{targetType === "project" ? "الطلب" : "الخدمة"}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl><SelectTrigger><SelectValue placeholder="اختر..." /></SelectTrigger></FormControl>
               <SelectContent>

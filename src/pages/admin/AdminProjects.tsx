@@ -61,7 +61,7 @@ export default function AdminProjects() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">نظرة عامة على المشاريع</h1>
+        <h1 className="text-2xl font-bold">نظرة عامة على طلبات الجمعيات</h1>
         <div className="flex flex-wrap gap-3">
           <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -110,7 +110,7 @@ export default function AdminProjects() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد مشاريع</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>
@@ -134,7 +134,7 @@ export default function AdminProjects() {
           targetUserId={editProject.association_id}
           currentValues={editProject}
           fields={projectFields}
-          title="طلب تعديل المشروع"
+          title="طلب تعديل الطلب"
         />
       )}
     </DashboardLayout>

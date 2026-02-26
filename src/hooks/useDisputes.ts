@@ -39,7 +39,7 @@ export function useCreateDispute() {
             ? project.assigned_provider_id
             : project.association_id;
         if (otherPartyId) {
-          await sendNotification(otherPartyId, "تم رفع نزاع على المشروع", "dispute_raised");
+          await sendNotification(otherPartyId, "تم رفع نزاع على الطلب", "dispute_raised");
         }
       }
     },

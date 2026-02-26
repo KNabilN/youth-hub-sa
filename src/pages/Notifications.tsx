@@ -16,7 +16,7 @@ const typeFilters = [
   { value: "bid", label: "العروض" },
   { value: "contract", label: "العقود" },
   { value: "escrow", label: "الضمان" },
-  { value: "project", label: "المشاريع" },
+  { value: "project", label: "الطلبات" },
   { value: "dispute", label: "المنازعات" },
   { value: "timelog", label: "سجل الوقت" },
   { value: "withdrawal", label: "السحب" },
