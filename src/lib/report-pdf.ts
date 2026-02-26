@@ -126,7 +126,18 @@ export function generateReportPDF(
         heightLeft -= pageHeight;
       }
 
-      pdf.save(`${title.replace(/\s+/g, "-")}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, "-")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
     })
     .catch((err) => {
       console.error("PDF generation error:", err);
