@@ -389,7 +389,7 @@ export default function AdminReports() {
             <CardHeader><CardTitle className="text-lg text-center">المستخدمين حسب الدور</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={usersByRole ?? []}>
+                <BarChart data={usersByRole ?? []} margin={{ top: 20 }}>
                   <defs>
                     {ROLE_COLORS.map((c, i) => (
                       <linearGradient key={i} id={`roleGrad${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -434,7 +434,7 @@ export default function AdminReports() {
             <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب المنطقة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={projectsByRegion ?? []}>
+                <BarChart data={projectsByRegion ?? []} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="regionGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
@@ -460,7 +460,7 @@ export default function AdminReports() {
             <CardHeader><CardTitle className="text-lg text-center">المنح</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={monthlyDonations ?? []}>
+                <BarChart data={monthlyDonations ?? []} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="donationGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#FB923C" stopOpacity={1} />
@@ -502,7 +502,7 @@ export default function AdminReports() {
             <CardHeader><CardTitle className="text-lg text-center">المعاملات المالية الشهرية</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={monthlyEscrow ?? []}>
+                <BarChart data={monthlyEscrow ?? []} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="escrowTotalGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
@@ -537,7 +537,7 @@ export default function AdminReports() {
                 <>
                   <p className="text-sm text-muted-foreground mb-3 text-center">المتوسط: <span className="font-bold text-foreground">{hourlyRateData.avg.toFixed(0)} ر.س/ساعة</span></p>
                   <ResponsiveContainer width="100%" height={210}>
-                    <BarChart data={hourlyRateData.distribution}>
+                    <BarChart data={hourlyRateData.distribution} margin={{ top: 20 }}>
                       <defs>
                         <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#6366F1" stopOpacity={1} />
@@ -577,7 +577,7 @@ export default function AdminReports() {
             </div>
             {donorAnalytics?.byProject?.length ? (
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={donorAnalytics.byProject}>
+                <BarChart data={donorAnalytics.byProject} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="donorGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
@@ -603,7 +603,7 @@ export default function AdminReports() {
             <CardHeader><CardTitle className="text-lg text-center">مساهمات المانحين والرعاة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={donorAnalytics.perDonor} barGap={8}>
+                <BarChart data={donorAnalytics.perDonor} barGap={8} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="donorCharitiesGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
