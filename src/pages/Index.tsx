@@ -4,8 +4,8 @@ import { Shield, Users, Store, HandCoins, ArrowLeft, CheckCircle2, Zap, Globe, L
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useLandingStats } from "@/hooks/useLandingStats";
 import LiveStats from "@/components/landing/LiveStats";
-import FeaturedServices from "@/components/landing/FeaturedServices";
-import FeaturedProjects from "@/components/landing/FeaturedProjects";
+import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
+import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
 import { ContactForm } from "@/components/landing/ContactForm";
 
 const featureIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -97,6 +97,12 @@ export default function Index() {
       {/* Live Stats (DB) - replaces CMS stats */}
       <LiveStats stats={stats} loading={statsLoading} />
 
+      {/* طلبات الجمعيات */}
+      <LandingRequestsTable projects={featuredProjects} loading={projectsLoading} />
+
+      {/* الخدمات المتوفرة */}
+      <LandingServicesGrid services={services} loading={servicesLoading} />
+
       {/* Features */}
       {feat.items?.length > 0 && (
         <section className="py-20 px-4 bg-pattern">
@@ -124,9 +130,6 @@ export default function Index() {
         </section>
       )}
 
-      {/* Featured Services (DB) */}
-      <FeaturedServices services={services} loading={servicesLoading} />
-
       {/* Trust */}
       {tr.items?.length > 0 && (
         <section className="py-20 px-4 bg-card/50">
@@ -153,9 +156,6 @@ export default function Index() {
           </div>
         </section>
       )}
-
-      {/* Featured Projects (DB) */}
-      <FeaturedProjects projects={featuredProjects} loading={projectsLoading} />
 
       {/* Contact Form */}
       <section className="py-20 px-4 bg-muted/30">

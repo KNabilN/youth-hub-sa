@@ -22,7 +22,7 @@ export function useLandingStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title, description, price, service_type, image_url, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
+        .select("id, title, description, price, service_type, image_url, approval, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
         .eq("approval", "approved")
         .order("created_at", { ascending: false })
         .limit(6);
@@ -37,11 +37,11 @@ export function useLandingStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, budget, required_skills, association:profiles!projects_association_id_fkey(full_name, organization_name)")
-        .eq("status", "open")
+        .select("id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)")
+        .neq("status", "draft")
         .eq("is_private", false)
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(6);
       if (error) throw error;
       return data;
     },
