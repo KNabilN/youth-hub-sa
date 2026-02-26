@@ -1,88 +1,73 @@
 
-# تحسين الرسوم البيانية والتصورات البصرية - تصميم احترافي
+
+# إضافة تسميات بيانات ثابتة على الرسوم البيانية (Data Labels)
+
+## المشكلة
+عند تصدير التقارير بصيغة PDF، لا تظهر أي قيم على الرسوم البيانية لأن Tooltips تعمل فقط عند التفاعل بالماوس. هذا يجعل التقارير المطبوعة غير مفيدة بدون الأرقام.
+
+## الحل
+إضافة تسميات بيانات ثابتة (static data labels) على جميع الرسوم البيانية باستخدام خاصية `label` المخصصة في recharts.
+
+---
 
 ## الملفات المتأثرة
 
-### 1. `src/pages/admin/AdminReports.tsx` - الملف الرئيسي (13 رسم بياني)
-التغييرات:
-- **لوحة الألوان**: استبدال الألوان الحالية بلوحة احترافية: `#0D9488` (Deep Teal), `#F43F5E` (Rose), `#FB923C` (Orange), `#6366F1` (Indigo), `#8B5CF6` (Violet), `#64748B` (Slate)
-- **عناوين الرسوم**: توسيط جميع `CardTitle` داخل `CardHeader` باستخدام `text-center`
-- **أشرطة BarChart**: إضافة `radius={[6, 6, 0, 0]}` لزوايا دائرية علوية
-- **Tooltip مخصص**: استبدال `<Tooltip />` الافتراضي بـ tooltip مخصص مع تصميم RTL متوافق
-- **تدرجات لونية**: إضافة `<defs>` مع `<linearGradient>` لجميع الأشرطة
-- **CartesianGrid**: تحديث اللون إلى `stroke="hsl(var(--border))"` مع `vertical={false}`
-- **XAxis/YAxis**: إضافة `fontSize={12}` و `stroke="hsl(var(--muted-foreground))"` و `tickLine={false}` و `axisLine={false}`
-- **الحاويات (Cards)**: إضافة `shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden`
-- **animationDuration**: إضافة `animationDuration={800}` لجميع عناصر Bar و Pie
-- **PieChart**: إضافة `innerRadius={40}` لتحويلها إلى Donut charts مع `paddingAngle={3}` و `cornerRadius={4}`
+### 1. `src/pages/admin/AdminReports.tsx` (13 رسم بياني)
 
-### 2. `src/components/admin/AdminOverview.tsx` - لوحة التحكم الرئيسية (2 AreaChart)
-التغييرات:
-- توسيط عناوين الرسوم البيانية
-- تحديث Tooltip لاستخدام التصميم المخصص الموحد
-- إضافة `strokeWidth={2.5}` و `dot={false}` للخطوط
-- تحسين الظلال على بطاقات الرسوم
+**إنشاء مكونات Label مخصصة:**
 
-### 3. `src/components/ratings/RatingDistribution.tsx` - توزيع التقييمات
-- لا تغييرات كبيرة مطلوبة (يستخدم أشرطة CSS مخصصة، ليس recharts)
+- `renderBarLabel`: يعرض القيمة فوق كل عمود بلون داكن عالي التباين، حجم خط 11px، مع `toLocaleString()` للأرقام الكبيرة
+- `renderPieLabel`: يعرض النسبة المئوية والقيمة داخل أو خارج شريحة الدائرة حسب الحجم، مع حساب الموضع بناءً على زاوية الشريحة لتجنب التداخل
 
-### 4. `src/components/admin/FinanceSummary.tsx` - ملخص مالي
-- لا يحتوي على رسوم بيانية recharts، فقط بطاقات KPI
+**التغييرات على كل نوع:**
+
+**BarChart (7 رسوم):**
+- إضافة `<LabelList>` من recharts مع `position="top"` وتنسيق مخصص
+- الخط: `fontSize: 11`, `fontWeight: 600`, `fill: "hsl(var(--foreground))"`
+
+**PieChart (3 رسوم):**
+- استبدال `label` الافتراضي بدالة `renderPieLabel` مخصصة تعرض القيمة العددية
+- استخدام `labelLine={false}` لتجنب الفوضى البصرية مع الدوائر الصغيرة
+
+### 2. `src/components/admin/AdminOverview.tsx` (2 AreaChart)
+
+**AreaChart (2 رسم):**
+- إضافة `<LabelList>` على آخر Area في كل رسم بياني مع `position="top"` لعرض القيم على نقاط البيانات
+- حجم خط أصغر (10px) لتجنب التداخل مع الخطوط
 
 ---
 
 ## التفاصيل التقنية
 
-### Tooltip المخصص الموحد
-سيتم إنشاء مكون `CustomTooltip` مشترك في `AdminReports.tsx` يتميز بـ:
-- خلفية `bg-popover` مع حدود ناعمة
-- `border-radius: 12px` و `shadow-lg`
-- محاذاة RTL مع `direction: rtl`
-- خط عربي واضح
-
+### مكون renderBarLabel
 ```text
-+---------------------------+
-|   التبرعات الشهرية        |  <-- centered bold title
-|  ┌─────────────────────┐  |
-|  │  ██████░░░░  12,000 │  |  <-- rounded bars with gradient
-|  │  ████████░░  18,500 │  |
-|  │  ██████████  25,000 │  |
-|  └─────────────────────┘  |
-+---------------------------+
+function renderBarLabel(props):
+  - يأخذ x, y, width, value من props
+  - يعرض <text> فوق العمود بمقدار 10px
+  - يستخدم textAnchor="middle" للتوسيط
+  - يتجاهل القيم الصفرية (لا يعرضها)
+  - يستخدم toLocaleString() للأرقام الكبيرة
 ```
 
-### لوحة الألوان الجديدة
+### مكون renderPieLabel
 ```text
-STATUS_COLORS = ["#0D9488", "#FB923C", "#F59E0B", "#10B981", "#F43F5E", "#64748B"]
-ROLE_COLORS   = ["#0D9488", "#FB923C", "#6366F1", "#8B5CF6"]
+function renderPieLabel(props):
+  - يحسب موضع النص بناءً على midAngle و outerRadius
+  - يعرض القيمة خارج الشريحة بمسافة صغيرة
+  - يستخدم cos/sin لحساب x, y
+  - يتجاهل الشرائح الصغيرة جداً (percent < 5%)
 ```
 
-### أنماط البطاقات المحسنة
-كل بطاقة رسم بياني ستحصل على:
-- `rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300`
-- `border border-border/50`
-- padding موحد في `CardContent` بـ `p-6`
+### تنسيق التسميات
+- لون النص: `#374151` (رمادي داكن) لضمان التباين العالي
+- حجم الخط: 11px للأعمدة، 10px للدوائر والمساحات
+- وزن الخط: 600 (semi-bold)
+- عدم عرض القيم الصفرية لتجنب الفوضى
 
-### التغييرات على كل نوع رسم:
+### ملخص التغييرات
 
-**BarChart (7 رسوم):**
-- `radius={[6, 6, 0, 0]}` على كل `<Bar>`
-- تدرج لوني عمودي لكل عمود
-- `animationDuration={800}` و `animationEasing="ease-out"`
-
-**PieChart (3 رسوم):**
-- تحويل إلى Donut: `innerRadius={45} outerRadius={85}`
-- `paddingAngle={3}` و `cornerRadius={4}`
-- `animationDuration={800}`
-
-**AreaChart (2 رسوم في AdminOverview):**
-- `strokeWidth={2.5}` و `dot={false}`
-- توسيط العناوين
-- تحسين Tooltip
-
-### ملخص الملفات
-
-| الملف | عدد الرسوم | نوع التغيير |
-|-------|-----------|------------|
-| `AdminReports.tsx` | 13 رسم | لوحة ألوان + زوايا + tooltip + تدرجات + عناوين |
-| `AdminOverview.tsx` | 2 رسم | توسيط عناوين + تحسين tooltip |
+| الملف | نوع الرسم | التغيير |
+|-------|----------|---------|
+| `AdminReports.tsx` | 7 BarChart | إضافة LabelList position="top" |
+| `AdminReports.tsx` | 3 PieChart | استبدال label بدالة مخصصة تعرض القيمة |
+| `AdminOverview.tsx` | 2 AreaChart | إضافة LabelList على نقاط البيانات |
