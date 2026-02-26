@@ -40,7 +40,7 @@ function createOffscreenContainer(): HTMLDivElement {
     position: fixed; top: -99999px; left: -99999px;
     width: ${CONTAINER_WIDTH}px; background: ${BRAND.white}; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: rtl; padding: 0;
+    direction: ltr; padding: 0;
   `;
   document.body.appendChild(el);
   return el;
@@ -128,13 +128,13 @@ export async function generateReportPDF(
 
   // ─── 1. Professional Header ───
   const headerHTML = `
-    <div style="padding:40px 50px 28px;border-bottom:3px solid ${BRAND.primary};">
+    <div dir="rtl" style="padding:40px 50px 28px;border-bottom:3px solid ${BRAND.primary};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <div style="text-align:right;">
           <h1 style="font-size:30px;font-weight:800;color:${BRAND.primary};margin:0 0 6px;font-family:${BASE_FONT};">${title}</h1>
           <div style="font-size:13px;color:${BRAND.textMuted};font-weight:500;">الفترة: ${dateStr}</div>
         </div>
-        <div style="text-align:left;">
+        <div style="text-align:left;direction:ltr;">
           <div style="font-size:22px;font-weight:800;color:${BRAND.primary};letter-spacing:1px;">YouthHubSA</div>
           <div style="font-size:11px;color:${BRAND.textMuted};margin-top:2px;">${dateOnly}</div>
         </div>
@@ -144,7 +144,7 @@ export async function generateReportPDF(
 
   // ─── 2. Summary Stats ───
   if (summaryStats?.length) {
-    const summaryHTML = `<div style="padding:20px 50px 8px;">
+    const summaryHTML = `<div dir="rtl" style="padding:20px 50px 8px;">
       <div style="display:grid;grid-template-columns:repeat(${summaryStats.length},1fr);gap:18px;">
         ${summaryStats
           .map(
@@ -165,7 +165,7 @@ export async function generateReportPDF(
     for (let i = 0; i < chartImages.length; i += 2) {
       const pair = chartImages.slice(i, i + 2);
       const cols = pair.length === 2 ? "repeat(2,1fr)" : "1fr";
-      const rowHTML = `<div style="padding:12px 50px;">
+      const rowHTML = `<div dir="rtl" style="padding:12px 50px;">
         <div style="display:grid;grid-template-columns:${cols};gap:24px;">
           ${pair
             .map(
@@ -185,7 +185,7 @@ export async function generateReportPDF(
   // ─── 4. Tables – professional clean style ───
   for (const section of sections) {
     const isCurrencyTable = section.headers.some((h) => h.includes("ر.س"));
-    const tableHTML = `<div style="padding:12px 50px;">
+    const tableHTML = `<div dir="rtl" style="padding:12px 50px;">
       <h2 style="font-size:18px;font-weight:800;color:${BRAND.primary};margin-bottom:14px;padding-bottom:8px;border-bottom:2.5px solid ${BRAND.primary};font-family:${BASE_FONT};">${section.title}</h2>
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <thead>
@@ -219,7 +219,7 @@ export async function generateReportPDF(
   }
 
   // ─── 5. Professional Footer ───
-  const footerHTML = `<div style="padding:24px 50px 16px;">
+  const footerHTML = `<div dir="rtl" style="padding:24px 50px 16px;">
     <div style="padding-top:16px;border-top:2px solid ${BRAND.border};display:flex;justify-content:space-between;align-items:center;">
       <div style="font-size:11px;color:${BRAND.textMuted};font-weight:500;">تاريخ الإصدار: ${generatedAt}</div>
       <div style="display:flex;align-items:center;gap:8px;">
