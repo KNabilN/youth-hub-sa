@@ -137,7 +137,7 @@ export function UserTable({ pagination }: UserTableProps) {
             <SelectItem value="unverified">غير موثق</SelectItem>
           </SelectContent>
         </Select>
-        <div className="mr-auto">
+        <div className="me-auto">
           <Button onClick={() => setCreateOpen(true)} className="gap-1">
             <UserPlus className="h-4 w-4" />تسجيل مستخدم
           </Button>
@@ -184,15 +184,15 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   {u.is_verified ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 ml-1" />موثق</Badge>
+                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 ms-1" />موثق</Badge>
                   ) : (
-                    <Badge variant="outline" className="text-muted-foreground"><XCircle className="h-3 w-3 ml-1" />غير موثق</Badge>
+                    <Badge variant="outline" className="text-muted-foreground"><XCircle className="h-3 w-3 ms-1" />غير موثق</Badge>
                   )}
                 </TableCell>
                 <TableCell>
                   {u.is_suspended ? (
                     <div>
-                      <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ml-1" />معلّق</Badge>
+                      <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ms-1" />معلّق</Badge>
                       {u.suspension_reason && (
                         <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate" title={u.suspension_reason}>
                           {u.suspension_reason}
