@@ -24,9 +24,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowRight, FileEdit, CheckCircle, XCircle, Ban, User, Phone, Building2,
-  FileText, Mail, Briefcase, Clock, Calendar, UserCircle, DollarSign, AlignRight,
-  ShieldCheck, ShieldOff,
+  ArrowRight,
+  FileEdit,
+  CheckCircle,
+  XCircle,
+  Ban,
+  User,
+  Phone,
+  Building2,
+  FileText,
+  Mail,
+  Briefcase,
+  Clock,
+  Calendar,
+  UserCircle,
+  DollarSign,
+  AlignRight,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -92,7 +107,7 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card">
+    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card text-start">
       <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
@@ -144,7 +159,7 @@ export default function AdminUserDetail() {
         <div className="text-center py-20">
           <p className="text-muted-foreground text-lg">لم يتم العثور على المستخدم</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/admin/users")}>
-            <ArrowRight className="h-4 w-4 ms-2 rtl:-scale-x-100" />
+            <ArrowRight className="h-4 w-4 ms-2" />
             العودة
           </Button>
         </div>
@@ -160,7 +175,7 @@ export default function AdminUserDetail() {
       {
         onSuccess: () => toast.success(user.is_verified ? "تم إلغاء التوثيق" : "تم التوثيق"),
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -173,16 +188,19 @@ export default function AdminUserDetail() {
       { id: user.id, is_suspended: !user.is_suspended, suspension_reason: user.is_suspended ? "" : suspensionReason },
       {
         onSuccess: async () => {
-          await logAudit("profiles", user.id, user.is_suspended ? "unsuspend" : "suspend",
+          await logAudit(
+            "profiles",
+            user.id,
+            user.is_suspended ? "unsuspend" : "suspend",
             { is_suspended: user.is_suspended },
-            { is_suspended: !user.is_suspended, reason: suspensionReason.trim() }
+            { is_suspended: !user.is_suspended, reason: suspensionReason.trim() },
           );
           toast.success(user.is_suspended ? "تم إلغاء التعليق" : "تم تعليق الحساب");
           setSuspendOpen(false);
           setSuspensionReason("");
         },
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -191,10 +209,6 @@ export default function AdminUserDetail() {
       {/* Sticky Action Bar */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b mb-6">
         <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
-          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
-            العودة للمستخدمين
-            <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
-          </Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
               <FileEdit className="h-4 w-4" />
@@ -222,6 +236,10 @@ export default function AdminUserDetail() {
               {user.is_suspended ? "إلغاء التعليق" : "تعليق"}
             </Button>
           </div>
+          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
+            العودة للمستخدمين
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -280,7 +298,7 @@ export default function AdminUserDetail() {
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs defaultValue="profile" className="w-full" dir="rtl">
           <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="services">الخدمات</TabsTrigger>
@@ -338,7 +356,11 @@ export default function AdminUserDetail() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={AlignRight} label="النبذة" value={user.bio} />
-                  <InfoField icon={DollarSign} label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
+                  <InfoField
+                    icon={DollarSign}
+                    label="السعر بالساعة"
+                    value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -346,7 +368,11 @@ export default function AdminUserDetail() {
 
           {/* Services Tab */}
           <TabsContent value="services" className="mt-6">
-            {services.isLoading ? <LoadingSkeleton /> : !services.data?.length ? <EmptyState message="لا توجد خدمات" /> : (
+            {services.isLoading ? (
+              <LoadingSkeleton />
+            ) : !services.data?.length ? (
+              <EmptyState message="لا توجد خدمات" />
+            ) : (
               <div className="grid gap-4">
                 {services.data.map((s: any) => (
                   <Card key={s.id}>
@@ -369,7 +395,11 @@ export default function AdminUserDetail() {
 
           {/* Projects Tab */}
           <TabsContent value="projects" className="mt-6">
-            {projects.isLoading ? <LoadingSkeleton /> : !projects.data?.length ? <EmptyState message="لا توجد طلبات" /> : (
+            {projects.isLoading ? (
+              <LoadingSkeleton />
+            ) : !projects.data?.length ? (
+              <EmptyState message="لا توجد طلبات" />
+            ) : (
               <div className="grid gap-4">
                 {projects.data.map((p: any) => (
                   <Card key={p.id}>
@@ -392,7 +422,11 @@ export default function AdminUserDetail() {
 
           {/* Contracts Tab */}
           <TabsContent value="contracts" className="mt-6">
-            {contracts.isLoading ? <LoadingSkeleton /> : !contracts.data?.length ? <EmptyState message="لا توجد عقود" /> : (
+            {contracts.isLoading ? (
+              <LoadingSkeleton />
+            ) : !contracts.data?.length ? (
+              <EmptyState message="لا توجد عقود" />
+            ) : (
               <div className="grid gap-4">
                 {contracts.data.map((c: any) => (
                   <Card key={c.id}>
@@ -402,7 +436,9 @@ export default function AdminUserDetail() {
                         <span>مقدم الخدمة: {c.provider_signed_at ? "وقّع" : "لم يوقّع"}</span>
                         <span>• الجمعية: {c.association_signed_at ? "وقّعت" : "لم توقّع"}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -412,7 +448,11 @@ export default function AdminUserDetail() {
 
           {/* Disputes Tab */}
           <TabsContent value="disputes" className="mt-6">
-            {disputes.isLoading ? <LoadingSkeleton /> : !disputes.data?.length ? <EmptyState message="لا توجد شكاوى" /> : (
+            {disputes.isLoading ? (
+              <LoadingSkeleton />
+            ) : !disputes.data?.length ? (
+              <EmptyState message="لا توجد شكاوى" />
+            ) : (
               <div className="grid gap-4">
                 {disputes.data.map((d: any) => (
                   <Card key={d.id}>
@@ -431,7 +471,11 @@ export default function AdminUserDetail() {
 
           {/* Time Logs Tab */}
           <TabsContent value="timelogs" className="mt-6">
-            {timeLogs.isLoading ? <LoadingSkeleton /> : !timeLogs.data?.length ? <EmptyState message="لا يوجد سجل وقت" /> : (
+            {timeLogs.isLoading ? (
+              <LoadingSkeleton />
+            ) : !timeLogs.data?.length ? (
+              <EmptyState message="لا يوجد سجل وقت" />
+            ) : (
               <div className="grid gap-4">
                 {timeLogs.data.map((t: any) => (
                   <Card key={t.id}>
@@ -454,7 +498,11 @@ export default function AdminUserDetail() {
 
           {/* Edit Requests Tab */}
           <TabsContent value="editrequests" className="mt-6">
-            {editRequests.isLoading ? <LoadingSkeleton /> : !editRequests.data?.length ? <EmptyState message="لا توجد طلبات تعديل" /> : (
+            {editRequests.isLoading ? (
+              <LoadingSkeleton />
+            ) : !editRequests.data?.length ? (
+              <EmptyState message="لا توجد طلبات تعديل" />
+            ) : (
               <div className="grid gap-4">
                 {editRequests.data.map((e: any) => (
                   <Card key={e.id}>
@@ -466,7 +514,9 @@ export default function AdminUserDetail() {
                         </Badge>
                       </div>
                       {e.message && <p className="text-sm text-muted-foreground mt-1">{e.message}</p>}
-                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -497,7 +547,15 @@ export default function AdminUserDetail() {
       )}
 
       {/* Suspend Dialog */}
-      <Dialog open={suspendOpen} onOpenChange={(o) => { if (!o) { setSuspendOpen(false); setSuspensionReason(""); } }}>
+      <Dialog
+        open={suspendOpen}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSuspendOpen(false);
+            setSuspensionReason("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{user.is_suspended ? "إلغاء تعليق الحساب" : "تعليق الحساب"}</DialogTitle>
@@ -525,8 +583,18 @@ export default function AdminUserDetail() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setSuspendOpen(false); setSuspensionReason(""); }}>إلغاء</Button>
-            <Button variant={user.is_suspended ? "default" : "destructive"} onClick={handleSuspendConfirm}>تأكيد</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSuspendOpen(false);
+                setSuspensionReason("");
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button variant={user.is_suspended ? "default" : "destructive"} onClick={handleSuspendConfirm}>
+              تأكيد
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
