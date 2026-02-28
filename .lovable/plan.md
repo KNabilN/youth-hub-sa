@@ -1,58 +1,53 @@
 
 
-## إضافة بيانات الجمعيات الشبابية
+## تحويل شاشات تسجيل الدخول والتسجيل إلى نوافذ منبثقة (Modals)
 
-### ملخص
-الملف يحتوي على بيانات 67 جمعية شبابية تحتاج إلى تسجيل في النظام. هناك 5 حقول جديدة غير موجودة في قاعدة البيانات يجب إضافتها أولاً، ثم تسجيل جميع الجمعيات.
+### الملخص
+بدلاً من فتح صفحة `/auth` منفصلة، ستظهر نماذج تسجيل الدخول والتسجيل كنوافذ منبثقة أنيقة فوق الصفحة الرئيسية. على الموبايل ستظهر كـ Bottom Sheet.
 
-### الخطوات
+### التغييرات
 
-**1. إضافة الحقول الجديدة لجدول profiles**
+**1. إنشاء مكون `AuthModal` جديد**
+- ملف: `src/components/AuthModal.tsx`
+- ينقل كامل منطق ونموذج تسجيل الدخول/التسجيل من `Auth.tsx` إلى هذا المكون
+- يستخدم `Dialog` (من Radix) على الشاشات الكبيرة مع تأثير `backdrop-blur-md` على الخلفية
+- يستخدم `Drawer` (من Vaul) على الموبايل كـ Bottom Sheet
+- يستقبل props: `open`, `onOpenChange`, `defaultMode` (login/register)
+- يحتوي على زر التبديل بين تسجيل الدخول والتسجيل داخل نفس النافذة
+- يحتفظ بنفس التصميم الحالي (الحقول، الألوان، النصوص العربية)
+- عند نجاح تسجيل الدخول يتم التوجيه إلى `/dashboard` وإغلاق النافذة
 
-الحقول المفقودة:
-- `license_number` (رقم الترخيص) - نص
-- `contact_officer_name` (اسم ضابط الاتصال) - نص
-- `contact_officer_phone` (رقم ضابط الاتصال) - نص
-- `contact_officer_email` (البريد الإلكتروني لضابط الاتصال) - نص
-- `contact_officer_title` (صفة ضابط الاتصال) - نص
+**2. تحديث الصفحة الرئيسية `Index.tsx`**
+- إضافة state لإدارة فتح/إغلاق النافذة ونوعها (login/register)
+- تحويل أزرار "تسجيل الدخول" و"إنشاء حساب" في Header من روابط `Link` إلى أزرار تفتح الـ Modal
+- تحويل أزرار CTA و Hero ("ابدأ الآن"، "سجّل مجاناً") لتفتح الـ Modal بدلاً من التوجيه لصفحة `/auth`
+- إضافة `AuthModal` component في أسفل الصفحة
 
-سيتم إضافتها عبر migration بقيم افتراضية فارغة.
-
-**2. إنشاء Edge Function لتسجيل الجمعيات**
-
-سيتم إنشاء backend function باسم `bulk-create-associations` تقوم بـ:
-- إنشاء حساب مستخدم لكل جمعية باستخدام البريد الإلكتروني وكلمة المرور
-- إدخال بيانات الملف الشخصي (اسم الجمعية، رقم الترخيص، الهاتف، بيانات ضابط الاتصال)
-- تعيين الدور `youth_association` (يتم تلقائياً عبر trigger الموجود)
-- تفعيل التحقق `is_verified = true`
-
-**3. تحديث واجهة الملف الشخصي**
-
-إضافة الحقول الجديدة في صفحة الملف الشخصي وصفحة تفاصيل المستخدم في لوحة الإدارة حتى تكون قابلة للعرض والتعديل.
+**3. تحديث `Auth.tsx`**
+- يبقى كـ fallback إذا وصل المستخدم مباشرة عبر URL `/auth`
+- يعرض الـ Modal مفتوحاً تلقائياً مع إعادة توجيه للصفحة الرئيسية عند الإغلاق
 
 ### تفاصيل تقنية
 
+**استخدام `useIsMobile` hook** الموجود لتحديد عرض Dialog أو Drawer:
+
 ```text
-Migration SQL:
-  ALTER TABLE profiles
-    ADD COLUMN license_number text DEFAULT '',
-    ADD COLUMN contact_officer_name text DEFAULT '',
-    ADD COLUMN contact_officer_phone text DEFAULT '',
-    ADD COLUMN contact_officer_email text DEFAULT '',
-    ADD COLUMN contact_officer_title text DEFAULT '';
+Desktop: Dialog مع DialogOverlay معدّل (backdrop-blur-md بدل bg-black/80)
+Mobile:  Drawer (Bottom Sheet) مع نفس محتوى النموذج
 ```
 
-Edge function flow:
-1. Receives array of association data
-2. For each entry: `supabase.auth.admin.createUser()` with email + password + metadata
-3. The existing `handle_new_user` trigger auto-creates the profile
-4. Update the profile with all additional fields (license, contact officer info)
-5. Set `is_verified = true`
-6. Returns summary of successes/failures
+**هيكل المكون:**
 
-Data notes:
-- 67 associations total from the spreadsheet
-- Passwords provided in plaintext in the spreadsheet
-- `full_name` will be set to اسم ضابط الاتصال (contact officer name)
-- `organization_name` will be set to اسم الجمعية
+```text
+AuthModal
+  +-- useIsMobile()
+  +-- if mobile -> Drawer + DrawerContent
+  +-- if desktop -> Dialog + DialogContent (with glassmorphism overlay)
+  +-- AuthForm (shared form content - login/register toggle, fields, validation)
+```
+
+**الملفات المتأثرة:**
+- `src/components/AuthModal.tsx` -- جديد
+- `src/pages/Index.tsx` -- تعديل الأزرار لتفتح Modal
+- `src/pages/Auth.tsx` -- تبسيط ليستخدم AuthModal
 
