@@ -28,6 +28,9 @@ export function useUpdateTicketStatus() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-tickets"] }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-ticket", variables.id] });
+    },
   });
 }
