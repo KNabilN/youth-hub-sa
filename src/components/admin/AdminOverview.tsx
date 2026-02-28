@@ -162,7 +162,7 @@ export function AdminOverview() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
               <Activity className="h-5 w-5 text-success" />
-              صحة المنصة
+              مؤشرات المنصة
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 p-6">
