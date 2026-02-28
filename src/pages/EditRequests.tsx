@@ -14,7 +14,16 @@ export default function EditRequests() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">طلبات التعديل</h1>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <FileEdit className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">طلبات التعديل</h1>
+            <p className="text-sm text-muted-foreground">طلبات التعديل المرسلة من المدير</p>
+          </div>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2">

@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { RecentActivity } from "@/components/dashboard/RecentActivity";
+
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectStats } from "@/hooks/useProjects";
