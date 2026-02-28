@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">2. البيانات التي نجمعها</h2>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li><strong>بيانات الهوية:</strong> الاسم الكامل، البريد الإلكتروني، رقم الهاتف</li>
               <li><strong>بيانات المؤسسة:</strong> اسم الجمعية/المنظمة (للجمعيات الشبابية)</li>
               <li><strong>بيانات مالية:</strong> تفاصيل المعاملات، الفواتير، معاملات الضمان</li>
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">3. أغراض المعالجة</h2>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li>تقديم خدمات المنصة وإدارة الحسابات</li>
               <li>معالجة المعاملات المالية وإصدار الفواتير</li>
               <li>إدارة العقود والشكاوى بين الأطراف</li>
@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">4. الأساس القانوني للمعالجة</h2>
             <p>نعالج بياناتك بناءً على:</p>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li><strong>الموافقة:</strong> عند التسجيل والموافقة على هذه السياسة</li>
               <li><strong>تنفيذ العقد:</strong> لتقديم الخدمات المطلوبة</li>
               <li><strong>المصلحة المشروعة:</strong> لحماية أمن المنصة ومنع الاحتيال</li>
@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">5. حقوقك</h2>
             <p>وفقاً لنظام PDPL، لديك الحقوق التالية:</p>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li><strong>حق الوصول:</strong> طلب نسخة من بياناتك الشخصية</li>
               <li><strong>حق التصحيح:</strong> تعديل بياناتك غير الدقيقة</li>
               <li><strong>حق الحذف:</strong> طلب حذف بياناتك (مع مراعاة الالتزامات القانونية)</li>
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">6. حماية البيانات</h2>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li>تشفير البيانات أثناء النقل والتخزين</li>
               <li>سياسات أمان على مستوى الصفوف (RLS) للتحكم في الوصول</li>
               <li>سجل تدقيق شامل لجميع العمليات الحساسة</li>
@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">7. مشاركة البيانات</h2>
             <p>لا نشارك بياناتك مع أطراف ثالثة إلا في الحالات التالية:</p>
-            <ul className="list-disc pr-6 space-y-1">
+            <ul className="list-disc pe-6 space-y-1">
               <li>بموافقتك الصريحة</li>
               <li>لتنفيذ العقود بينك وبين الأطراف الأخرى على المنصة</li>
               <li>للامتثال لمتطلبات قانونية أو أوامر قضائية</li>

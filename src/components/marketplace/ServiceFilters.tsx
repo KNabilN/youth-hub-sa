@@ -30,12 +30,12 @@ export function ServiceFilters({
     <div className="space-y-3 w-full">
       {/* Search bar */}
       <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           placeholder="ابحث عن خدمة بالاسم أو الوصف..."
-          className="pr-9 h-10"
+          className="pe-9 h-10"
         />
       </div>
 

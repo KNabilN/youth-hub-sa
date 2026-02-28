@@ -203,15 +203,15 @@ function MessageBubble({
         </AvatarFallback>
       </Avatar>
       <div className={cn("max-w-[70%] space-y-1")}>
-        <p className={cn("text-[11px] font-medium", isOwn ? "text-left" : "text-right")}>
+        <p className={cn("text-[11px] font-medium", isOwn ? "text-end" : "text-start")}>
           {message.sender?.full_name}
         </p>
         <div
           className={cn(
             "rounded-2xl px-4 py-2.5 text-sm",
             isOwn
-              ? "bg-primary text-primary-foreground rounded-tl-sm"
-              : "bg-muted rounded-tr-sm"
+              ? "bg-primary text-primary-foreground rounded-ss-sm"
+              : "bg-muted rounded-se-sm"
           )}
         >
           {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
@@ -240,7 +240,7 @@ function MessageBubble({
             </a>
           )}
         </div>
-        <p className={cn("text-[10px] text-muted-foreground", isOwn ? "text-left" : "text-right")}>
+        <p className={cn("text-[10px] text-muted-foreground", isOwn ? "text-end" : "text-start")}>
           {formatDistanceToNow(new Date(message.created_at), { addSuffix: true, locale: ar })}
         </p>
       </div>

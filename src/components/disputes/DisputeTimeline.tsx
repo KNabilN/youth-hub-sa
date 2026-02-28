@@ -15,11 +15,11 @@ export function DisputeTimeline({ disputeId }: { disputeId: string }) {
         <Clock className="h-3.5 w-3.5" />
         سجل تغيير الحالة
       </h4>
-      <div className="relative pr-4 border-r-2 border-border space-y-3">
+      <div className="relative pe-4 border-e-2 border-border space-y-3">
         {logs.map((log: any) => (
           <div key={log.id} className="relative">
-            <div className={`absolute -right-[13px] top-1.5 h-2.5 w-2.5 rounded-full ${disputeTimelineColors[log.new_status] || "bg-muted-foreground"}`} />
-            <div className="pr-4">
+            <div className={`absolute [inset-inline-end:-13px] top-1.5 h-2.5 w-2.5 rounded-full ${disputeTimelineColors[log.new_status] || "bg-muted-foreground"}`} />
+            <div className="pe-4">
               <div className="flex items-center gap-1.5 text-xs">
                 {log.old_status && (
                   <>

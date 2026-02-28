@@ -14,10 +14,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-r-4 border-yellow-500" },
-  accepted: { label: "مقبول", variant: "default", border: "border-r-4 border-emerald-500" },
-  rejected: { label: "مرفوض", variant: "destructive", border: "border-r-4 border-red-500" },
-  withdrawn: { label: "تم السحب", variant: "outline", border: "border-r-4 border-muted-foreground/40" },
+  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
+  accepted: { label: "مقبول", variant: "default", border: "border-e-4 border-emerald-500" },
+  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-red-500" },
+  withdrawn: { label: "تم السحب", variant: "outline", border: "border-e-4 border-muted-foreground/40" },
 };
 
 export default function MyBids() {

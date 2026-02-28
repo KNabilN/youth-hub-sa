@@ -12,9 +12,9 @@ import { ClipboardList, Clock, CheckCircle2, Timer, AlertCircle } from "lucide-r
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-r-4 border-yellow-500" },
-  approved: { label: "معتمد", variant: "default", border: "border-r-4 border-emerald-500" },
-  rejected: { label: "مرفوض", variant: "destructive", border: "border-r-4 border-red-500" },
+  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
+  approved: { label: "معتمد", variant: "default", border: "border-e-4 border-emerald-500" },
+  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-red-500" },
 };
 
 export default function TimeTracking() {
@@ -84,7 +84,7 @@ export default function TimeTracking() {
         {projects && projects.length > 0 && <WorkTimer onStop={handleTimerStop} />}
 
         {/* New Entry */}
-        <Card className="border-r-4 border-primary">
+        <Card className="border-e-4 border-primary">
           <CardHeader className="bg-gradient-to-l from-primary/5 to-transparent rounded-t-lg">
             <CardTitle className="text-lg">تسجيل ساعات جديدة</CardTitle>
           </CardHeader>
@@ -131,7 +131,7 @@ export default function TimeTracking() {
                           </TooltipProvider>
                         )}
                       </div>
-                      <Badge variant={st.variant} className="shrink-0 mr-3">{st.label}</Badge>
+                      <Badge variant={st.variant} className="shrink-0 ms-3">{st.label}</Badge>
                     </div>
                   );
                 })}
