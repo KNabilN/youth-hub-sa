@@ -1,81 +1,93 @@
 
+# تحديث الهوية البصرية - شعار وألوان منصة الخدمات المشتركة
 
-# Comprehensive RTL Consistency Fix - Full System Review
+## ملخص
+سيتم تحديث الألوان في جميع أنحاء المنصة لتتطابق مع الهوية الرسمية المعتمدة، واستخدام الشعار الرسمي بدلا من الأيقونة الحالية.
 
-## Problem
-Despite previous RTL fixes, many components still use physical CSS properties (left/right, ml/mr, pl/pr) instead of logical ones (start/end, ms/me, ps/pe). This causes inconsistent RTL behavior across the application.
+## الألوان المستخرجة من الشعار
 
-## Changes Required
-
-### 1. Fix `ml-` and `mr-` to `ms-` and `me-` across all components
-
-**Files and specific fixes:**
-
-- **`src/pages/MyBids.tsx`** (line 136): `ml-1` on icon inside button -> `me-1`
-- **`src/components/provider/WorkTimer.tsx`** (line 64): `mr-2` -> `me-2`
-- **`src/pages/admin/AdminCMS.tsx`** (lines 85, 139, 194, 253, 349): all `ml-1` on icons -> `me-1`
-- **`src/components/PaginationControls.tsx`** (line 21): `ml-1` -> `me-1`; (line 27): `mr-1` -> `ms-1`
-- **`src/components/bids/BidCard.tsx`** (lines 54, 58): `ml-1` -> `me-1`
-- **`src/pages/admin/AdminReports.tsx`** (line 337): `ml-2` -> `me-2`, `mr-2` -> `ms-2`
-
-### 2. Fix physical positioning properties
-
-- **`src/components/AppSidebar.tsx`** (line 97): `-right-1` -> `-end-1` or use `[inset-inline-end:-0.25rem]`
-- **`src/components/AccessibilityWidget.tsx`** (line 46): `left-4` -> `start-4` (accessibility widget should be on start side)
-- **`src/components/messages/ConversationList.tsx`** (line 65): `-right-1` -> use `[inset-inline-end:-0.25rem]`
-- **`src/pages/Index.tsx`** (line 76): `left-1/2` -> keep as-is (centering is direction-independent)
-
-### 3. Fix `text-left` / `text-right` remaining instances
-
-- **`src/components/ui/drawer.tsx`** (line 47): `sm:text-left` -> `sm:text-start`
-- **`src/components/messages/ConversationList.tsx`** (line 53): `text-right` -> `text-start` (since in RTL, start IS right)
-
-### 4. Fix physical border properties
-
-- **`src/components/ui/scroll-area.tsx`** (line 27): `border-l` -> `border-s` (scrollbar track)
-
-### 5. Fix sidebar component physical properties
-
-- **`src/components/ui/sidebar.tsx`** (line 278): `ml-2` and `ml-0` -> `ms-2` and `ms-0`
-- **`src/components/ui/sidebar.tsx`** (line 415): `pr-8` -> `pe-8` in menu button variants
-
-### 6. AdminUserDetail action bar - RTL UX improvement
-
-- **`src/pages/admin/AdminUserDetail.tsx`**: Swap the order of the action buttons div and the back button in the sticky action bar so that the "back" navigation is on the right (start in RTL) and action buttons are on the left (end in RTL), following standard RTL navigation patterns.
-
-## Technical Details
-
-### Logical property mapping applied:
 ```text
-ml-*  ->  ms-*  (margin-start)
-mr-*  ->  me-*  (margin-end)
-pl-*  ->  ps-*  (padding-start)
-pr-*  ->  pe-*  (padding-end)
-left-*  ->  start-*
-right-*  ->  end-*
-border-l-*  ->  border-s-*
-border-r-*  ->  border-e-*
-text-left  ->  text-start
-text-right  ->  text-end
+الأخضر الرئيسي (Primary):  #2EAE7D  ->  HSL: 155 58% 43%
+الأزرق المائي (Accent):     #3BB5A5  ->  HSL: 172 50% 47%
+الأزرق الداكن (Navy/Info):   #1B3668  ->  HSL: 218 58% 26%
 ```
 
-### Files to modify (14 total):
-1. `src/pages/MyBids.tsx`
-2. `src/components/provider/WorkTimer.tsx`
-3. `src/pages/admin/AdminCMS.tsx`
-4. `src/components/PaginationControls.tsx`
-5. `src/components/bids/BidCard.tsx`
-6. `src/pages/admin/AdminReports.tsx`
-7. `src/components/AppSidebar.tsx`
-8. `src/components/AccessibilityWidget.tsx`
-9. `src/components/messages/ConversationList.tsx`
-10. `src/components/ui/drawer.tsx`
-11. `src/components/ui/scroll-area.tsx`
-12. `src/components/ui/sidebar.tsx`
-13. `src/pages/admin/AdminUserDetail.tsx`
-14. `src/pages/Index.tsx` (verify centering is OK)
+---
 
-### Notes:
-- UI component files (shadcn) like popover, tooltip, select use `data-[side=left/right]` for animation directions - these are Radix-controlled and should NOT be changed
-- `dir="ltr"` on specific input fields (email, phone, numbers) is intentional and correct
-- The `AuthModal.tsx` `fixed left-[50%]` centering pattern is direction-independent and should stay
+## المرحلة 1: إضافة الشعار للمشروع
+
+- نسخ صورة الشعار من ملف PDF المرفوع إلى `src/assets/logo.png`
+- استخدام الشعار في:
+  - **الشريط الجانبي** (`AppSidebar.tsx`): استبدال أيقونة الـ Avatar بالشعار في أعلى الشريط الجانبي
+  - **صفحة الهبوط** (`Index.tsx`): استبدال أيقونة Shield بالشعار في الـ Header
+  - **نافذة تسجيل الدخول** (`AuthModal.tsx`): إضافة الشعار أعلى النموذج
+
+---
+
+## المرحلة 2: تحديث الألوان الأساسية
+
+### ملف `src/index.css` - الوضع الفاتح (Light Mode)
+
+| المتغير | القيمة الحالية | القيمة الجديدة |
+|---------|---------------|---------------|
+| `--primary` | `158 64% 20%` | `155 58% 43%` |
+| `--primary-foreground` | `60 20% 98%` | `0 0% 100%` |
+| `--accent` | `42 78% 55%` | `172 50% 47%` |
+| `--accent-foreground` | `160 25% 10%` | `0 0% 100%` |
+| `--ring` | `158 64% 20%` | `155 58% 43%` |
+| `--info` | `210 80% 50%` | `218 58% 40%` |
+| `--sidebar-background` | `158 64% 16%` | `218 58% 20%` |
+| `--sidebar-accent` | `158 50% 22%` | `218 45% 28%` |
+| `--sidebar-border` | `158 40% 25%` | `218 40% 30%` |
+| `--sidebar-primary` (ring) | `42 78% 55%` | `155 58% 50%` |
+| `--sidebar-ring` | `42 78% 55%` | `155 58% 50%` |
+
+### الوضع الداكن (Dark Mode)
+
+| المتغير | القيمة الحالية | القيمة الجديدة |
+|---------|---------------|---------------|
+| `--primary` | `158 55% 40%` | `155 55% 48%` |
+| `--accent` | `42 78% 50%` | `172 45% 45%` |
+| `--ring` | `158 55% 40%` | `155 55% 48%` |
+| `--info` | `210 70% 55%` | `218 55% 50%` |
+| `--sidebar-background` | `160 20% 5%` | `218 50% 10%` |
+| `--sidebar-accent` | `160 15% 12%` | `218 40% 18%` |
+| `--sidebar-border` | `160 15% 15%` | `218 35% 20%` |
+| `--sidebar-primary` | `42 78% 50%` | `155 55% 50%` |
+| `--sidebar-ring` | `42 78% 50%` | `155 55% 50%` |
+
+---
+
+## المرحلة 3: تحديث المكونات
+
+### `src/components/AppSidebar.tsx`
+- إضافة الشعار فوق معلومات المستخدم في `SidebarHeader`
+
+### `src/pages/Index.tsx`
+- استبدال أيقونة Shield + مربع التدرج بصورة الشعار الرسمي في الـ Header
+- تحديث الـ gradient text ليتناسب مع الألوان الجديدة
+
+### `src/components/AuthModal.tsx`
+- إضافة الشعار أعلى نموذج تسجيل الدخول/إنشاء الحساب
+
+---
+
+## المرحلة 4: تحديث Favicon
+
+- استخراج أيقونة من الشعار وتحديث `public/favicon.ico`
+
+---
+
+## التفاصيل التقنية
+
+### الملفات المتأثرة (5 ملفات):
+1. `src/index.css` - تحديث متغيرات الألوان
+2. `src/components/AppSidebar.tsx` - إضافة الشعار
+3. `src/pages/Index.tsx` - استبدال أيقونة Header بالشعار
+4. `src/components/AuthModal.tsx` - إضافة الشعار
+5. `src/assets/logo.png` - ملف جديد (نسخ من المرفقات)
+
+### ملاحظات:
+- الألوان الثانوية (secondary, muted, destructive, success, warning) ستبقى كما هي لأنها وظيفية وليست جزءا من الهوية البصرية
+- لوحة الألوان الجديدة تحافظ على نسب التباين المطلوبة للوصولية (WCAG)
+- الشريط الجانبي سينتقل من اللون الأخضر الداكن إلى الأزرق الداكن (Navy) ليتناسب مع الهوية
