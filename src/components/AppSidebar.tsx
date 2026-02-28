@@ -88,7 +88,9 @@ export function AppSidebar() {
       {/* User Profile Header */}
       <SidebarHeader className="p-5 pb-4">
         <div className="flex flex-col items-center text-center gap-3">
-          <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-20 w-auto object-contain mb-2" />
+          <div className="bg-white/95 rounded-xl px-4 py-3 shadow-md">
+            <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-16 w-auto object-contain" />
+          </div>
           <div className="relative">
             <Avatar className="h-14 w-14 border-[3px] border-sidebar-ring shadow-lg">
               <AvatarImage src={profile?.avatar_url || undefined} />
