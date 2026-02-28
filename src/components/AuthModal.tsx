@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Building2, UserCheck, HandCoins, Shield, CheckCircle2, Phone, X } from "lucide-react";
+import { Building2, UserCheck, HandCoins, CheckCircle2, Phone, X } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { z } from "zod";
@@ -116,9 +117,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     <div className="space-y-5 p-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-md">
-          <Shield className="w-6 h-6 text-primary-foreground" />
-        </div>
+        <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-14 w-auto object-contain" />
         <h2 className="text-xl font-bold">{isLogin ? "مرحباً بعودتك" : "إنشاء حساب جديد"}</h2>
         <p className="text-muted-foreground text-sm">
           {isLogin ? "أدخل بيانات الدخول الخاصة بك" : "أنشئ حسابك للبدء في استخدام المنصة"}
