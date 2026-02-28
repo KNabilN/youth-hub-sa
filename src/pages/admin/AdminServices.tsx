@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
@@ -93,6 +95,7 @@ export default function AdminServices() {
                     <TableHead>التصنيف</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>السعر</TableHead>
+                    <TableHead>التاريخ</TableHead>
                     <TableHead>تغيير الحالة</TableHead>
                     <TableHead>إجراءات</TableHead>
                   </TableRow>
@@ -105,6 +108,7 @@ export default function AdminServices() {
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={approvalColors[s.approval]}>{approvalLabels[s.approval]}</Badge></TableCell>
                       <TableCell>{s.price} ر.س</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
                         <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
                           <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
@@ -120,7 +124,7 @@ export default function AdminServices() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paged.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
+                  {paged.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>
