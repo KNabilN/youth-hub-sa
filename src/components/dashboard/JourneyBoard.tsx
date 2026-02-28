@@ -27,7 +27,7 @@ function StepPipeline({ steps }: { steps: Step[] }) {
             {step.label}
             {step.count > 0 && <Badge variant="secondary" className="text-[10px] px-1 h-4">{step.count}</Badge>}
           </div>
-          {i < steps.length - 1 && <ArrowLeft className="h-3 w-3 text-muted-foreground shrink-0" />}
+          {i < steps.length - 1 && <ArrowLeft className="h-3 w-3 text-muted-foreground shrink-0 rtl:-scale-x-100" />}
         </div>
       ))}
     </div>

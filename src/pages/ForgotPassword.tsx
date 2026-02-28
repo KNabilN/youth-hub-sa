@@ -61,7 +61,7 @@ export default function ForgotPassword() {
                     placeholder="example@domain.com"
                     required
                     dir="ltr"
-                    className="text-left h-11"
+                    className="text-start h-11"
                   />
                 </div>
                 <Button type="submit" className="w-full h-11" disabled={loading}>
@@ -72,7 +72,7 @@ export default function ForgotPassword() {
 
             <div className="mt-6 text-center">
               <Link to="/auth" className="text-sm text-primary font-semibold hover:underline inline-flex items-center gap-1">
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
                 العودة لتسجيل الدخول
               </Link>
             </div>

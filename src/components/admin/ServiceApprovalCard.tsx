@@ -108,23 +108,23 @@ export function ServiceApprovalCard({ service }: { service: any }) {
             <Button size="sm" variant="destructive" onClick={() => handleApproval("rejected")} disabled={update.isPending || service.approval === "rejected"}>رفض</Button>
             {(service.approval === "approved" || service.approval === "pending") && (
               <Button size="sm" variant="outline" className="text-orange-600" onClick={() => openReasonDialog("suspended")} disabled={update.isPending}>
-                <Pause className="h-4 w-4 ml-1" />تعليق
+                <Pause className="h-4 w-4 me-1" />تعليق
               </Button>
             )}
             {(service.approval === "suspended" || service.approval === "archived") && (
               <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => openReasonDialog("approved")} disabled={update.isPending}>
-                <Play className="h-4 w-4 ml-1" />إعادة تفعيل
+                <Play className="h-4 w-4 me-1" />إعادة تفعيل
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
-              <History className="h-4 w-4 ml-1" />السجل
+              <History className="h-4 w-4 me-1" />السجل
             </Button>
             <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
-              <FileEdit className="h-4 w-4 ml-1" />طلب تعديل
+              <FileEdit className="h-4 w-4 me-1" />طلب تعديل
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="outline" className="mr-auto"><Trash2 className="h-4 w-4" /></Button>
+                <Button size="sm" variant="outline" className="me-auto"><Trash2 className="h-4 w-4" /></Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>

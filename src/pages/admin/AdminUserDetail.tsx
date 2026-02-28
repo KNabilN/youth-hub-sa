@@ -144,7 +144,7 @@ export default function AdminUserDetail() {
         <div className="text-center py-20">
           <p className="text-muted-foreground text-lg">لم يتم العثور على المستخدم</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/admin/users")}>
-            <ArrowRight className="h-4 w-4 ms-2" />
+            <ArrowRight className="h-4 w-4 ms-2 rtl:-scale-x-100" />
             العودة
           </Button>
         </div>
@@ -193,7 +193,7 @@ export default function AdminUserDetail() {
         <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
           <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
             العودة للمستخدمين
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">

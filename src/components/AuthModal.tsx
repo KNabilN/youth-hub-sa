@@ -187,7 +187,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   required
                   dir="ltr"
                   maxLength={9}
-                  className={cn("text-left h-11", errors.phone && "border-destructive")}
+                  className={cn("text-start h-11", errors.phone && "border-destructive")}
                 />
               </div>
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
@@ -205,7 +205,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             placeholder="example@domain.com"
             required
             dir="ltr"
-            className={cn("text-left h-11", errors.email && "border-destructive")}
+            className={cn("text-start h-11", errors.email && "border-destructive")}
           />
           {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
         </div>
@@ -220,7 +220,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             placeholder="••••••••"
             required
             dir="ltr"
-            className={cn("text-left h-11", errors.password && "border-destructive")}
+            className={cn("text-start h-11", errors.password && "border-destructive")}
             minLength={6}
           />
           {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}

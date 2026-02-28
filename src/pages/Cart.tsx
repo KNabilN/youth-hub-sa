@@ -47,7 +47,7 @@ export default function Cart() {
           </div>
           {(items?.length ?? 0) > 0 && (
             <Button variant="outline" size="sm" onClick={handleClearCart} disabled={clearCart.isPending}>
-              <Trash2 className="h-4 w-4 ml-1" />
+              <Trash2 className="h-4 w-4 me-1" />
               تفريغ السلة
             </Button>
           )}
@@ -81,7 +81,7 @@ export default function Cart() {
                 لم تضف أي خدمات إلى السلة بعد. تصفح سوق الخدمات لإضافة خدمات.
               </p>
               <Button onClick={() => navigate("/marketplace")}>
-                <ArrowLeft className="h-4 w-4 ml-1" />
+                <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
                 تصفح الخدمات
               </Button>
             </CardContent>
@@ -165,7 +165,7 @@ export default function Cart() {
                     size="lg"
                     onClick={() => navigate("/checkout")}
                   >
-                    <CreditCard className="h-4 w-4 ml-2" />
+                    <CreditCard className="h-4 w-4 me-2" />
                     إتمام الشراء
                   </Button>
                   <Button

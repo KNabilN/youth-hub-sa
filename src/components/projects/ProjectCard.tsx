@@ -56,18 +56,18 @@ export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSub
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/projects/${project.id}`)}>
-            <Eye className="h-3.5 w-3.5 ml-1" />
+            <Eye className="h-3.5 w-3.5 me-1" />
             عرض
           </Button>
           {project.status === "draft" && (
             <>
               <Button size="sm" variant="outline" onClick={() => navigate(`/projects/${project.id}/edit`)}>
-                <Pencil className="h-3.5 w-3.5 ml-1" />
+                <Pencil className="h-3.5 w-3.5 me-1" />
                 تعديل
               </Button>
               {onSubmitForApproval && (
                 <Button size="sm" onClick={() => onSubmitForApproval(project.id)}>
-                  <Send className="h-3.5 w-3.5 ml-1" />
+                  <Send className="h-3.5 w-3.5 me-1" />
                   تقديم للموافقة
                 </Button>
               )}
@@ -75,19 +75,19 @@ export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSub
           )}
           {(project.status === "open" || project.status === "pending_approval") && onSuspend && (
             <Button size="sm" variant="outline" className="text-orange-600 hover:bg-orange-500/10" onClick={() => onSuspend(project.id)}>
-              <Pause className="h-3.5 w-3.5 ml-1" />
+              <Pause className="h-3.5 w-3.5 me-1" />
               إيقاف
             </Button>
           )}
           {(project.status === "suspended" || project.status === "cancelled") && onReactivate && (
             <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => onReactivate(project.id)}>
-              <Play className="h-3.5 w-3.5 ml-1" />
+              <Play className="h-3.5 w-3.5 me-1" />
               إعادة تقديم
             </Button>
           )}
           {project.status !== "archived" && project.status !== "completed" && onArchive && (
             <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => onArchive(project.id)}>
-              <Archive className="h-3.5 w-3.5 ml-1" />
+              <Archive className="h-3.5 w-3.5 me-1" />
               أرشفة
             </Button>
           )}
