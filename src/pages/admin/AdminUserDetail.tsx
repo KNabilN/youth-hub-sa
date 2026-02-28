@@ -92,7 +92,7 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card">
+    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card text-start">
       <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
@@ -191,10 +191,6 @@ export default function AdminUserDetail() {
       {/* Sticky Action Bar */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b mb-6">
         <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
-          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
-            <ArrowRight className="h-4 w-4" />
-            العودة للمستخدمين
-          </Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
               <FileEdit className="h-4 w-4" />
@@ -222,22 +218,26 @@ export default function AdminUserDetail() {
               {user.is_suspended ? "إلغاء التعليق" : "تعليق"}
             </Button>
           </div>
+          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
+            العودة للمستخدمين
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 pb-12 space-y-6">
         {/* Hero Section */}
-        <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8" dir="rtl">
-          <div className="flex items-center gap-6">
+        <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8">
+          <div className="flex flex-col items-center text-center gap-4">
             <Avatar className="h-20 w-20 ring-4 ring-primary/10">
               <AvatarImage src={user.avatar_url} />
               <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                 <User className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-foreground mb-2">{user.full_name || "—"}</h1>
-              <div className="flex flex-wrap gap-2">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-3">{user.full_name || "—"}</h1>
+              <div className="flex flex-wrap justify-center gap-2">
                 {role && (
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     {roleLabels[role] ?? role}
@@ -261,7 +261,7 @@ export default function AdminUserDetail() {
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground mt-3 flex items-center justify-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 تاريخ الانضمام: {format(new Date(user.created_at), "yyyy/MM/dd", { locale: ar })}
               </p>
