@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield, Users, Store, HandCoins, ArrowLeft, CheckCircle2, Zap, Globe, Lock } from "lucide-react";
 import { useSiteContent } from "@/hooks/useSiteContent";
@@ -7,6 +7,7 @@ import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
 import { ContactForm } from "@/components/landing/ContactForm";
+import AuthModal from "@/components/AuthModal";
 
 const featureIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   users: Users,
@@ -30,6 +31,14 @@ export default function Index() {
   const { data: header } = useSiteContent("header");
   const { data: footer } = useSiteContent("footer");
 
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+
+  const openAuth = (mode: "login" | "register") => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
+
   // Fallback defaults
   const h = hero || { badge: "", title: "منصة الخدمات المشتركة", subtitle: "للجمعيات الشبابية", description: "", cta_text: "ابدأ الآن" };
   const st = cmsStats?.items || [];
@@ -51,11 +60,11 @@ export default function Index() {
             <span className="font-bold text-lg">{hd.site_name}</span>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" asChild>
-              <Link to="/auth">{hd.login_text}</Link>
+            <Button variant="ghost" onClick={() => openAuth("login")}>
+              {hd.login_text}
             </Button>
-            <Button asChild className="shadow-md">
-              <Link to="/auth?mode=register">{hd.register_text}</Link>
+            <Button className="shadow-md" onClick={() => openAuth("register")}>
+              {hd.register_text}
             </Button>
           </div>
         </div>
@@ -84,17 +93,15 @@ export default function Index() {
             </p>
           )}
           <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
-            <Button size="lg" asChild className="shadow-lg hover:shadow-xl transition-shadow text-base px-8">
-              <Link to="/auth">
-                {h.cta_text}
-                <ArrowLeft className="me-2 h-4 w-4" />
-              </Link>
+            <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow text-base px-8" onClick={() => openAuth("register")}>
+              {h.cta_text}
+              <ArrowLeft className="me-2 h-4 w-4" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Live Stats (DB) - replaces CMS stats */}
+      {/* Live Stats (DB) */}
       <LiveStats stats={stats} loading={statsLoading} />
 
       {/* طلبات الجمعيات */}
@@ -170,11 +177,9 @@ export default function Index() {
         <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
           <h2 className="text-3xl font-bold">{ct.title}</h2>
           <p className="text-muted-foreground">{ct.description}</p>
-          <Button size="lg" asChild className="shadow-lg text-base px-10">
-            <Link to="/auth">
-              <Globe className="me-2 h-5 w-5" />
-              {ct.button_text}
-            </Link>
+          <Button size="lg" className="shadow-lg text-base px-10" onClick={() => openAuth("register")}>
+            <Globe className="me-2 h-5 w-5" />
+            {ct.button_text}
           </Button>
         </div>
       </section>
@@ -204,6 +209,9 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode={authMode} />
     </div>
   );
 }
