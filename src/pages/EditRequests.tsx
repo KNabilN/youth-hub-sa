@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyEditRequests } from "@/hooks/useEditRequests";
 import { EditRequestCard } from "@/components/edit-requests/EditRequestCard";
 import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FileEdit } from "lucide-react";
 
 export default function EditRequests() {
@@ -16,7 +17,15 @@ export default function EditRequests() {
         <h1 className="text-2xl font-bold">طلبات التعديل</h1>
 
         {isLoading ? (
-          <p className="text-center text-muted-foreground py-8">جارٍ التحميل...</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="border rounded-lg p-4 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
         ) : pending.length === 0 && others.length === 0 ? (
           <EmptyState
             icon={FileEdit}

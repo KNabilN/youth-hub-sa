@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminTickets, useUpdateTicketStatus } from "@/hooks/useAdminTickets";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -89,7 +90,11 @@ export default function AdminTickets() {
             إعادة تعيين
           </Button>
         </div>
-        {isLoading ? <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p> : (
+        {isLoading ? (
+          <div className="border rounded-lg p-4 space-y-3">
+            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+          </div>
+        ) : (
           <div className="border rounded-lg">
             <Table>
               <TableHeader>

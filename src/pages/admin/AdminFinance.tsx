@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText } from "lucide-react";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
@@ -142,7 +143,11 @@ export default function AdminFinance() {
               </Button>
               <span className="text-sm text-muted-foreground self-center">{filteredEscrows.length} معاملة</span>
             </div>
-            {loadingEscrow ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
+            {loadingEscrow ? (
+              <div className="border rounded-lg p-4 space-y-3">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : (
               <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -250,7 +255,11 @@ export default function AdminFinance() {
               </Button>
               <span className="text-sm text-muted-foreground self-center">{filteredInvoices.length} فاتورة</span>
             </div>
-            {loadingInvoices ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
+            {loadingInvoices ? (
+              <div className="border rounded-lg p-4 space-y-3">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : (
               <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -300,7 +309,11 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="withdrawals">
-            {loadingW ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
+            {loadingW ? (
+              <div className="border rounded-lg p-4 space-y-3">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : (
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>

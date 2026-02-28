@@ -62,7 +62,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </Avatar>
             </button>
           </header>
-          <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern" role="main" tabIndex={-1}>
+          <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
             {children}
           </main>
         </div>
