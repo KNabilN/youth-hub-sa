@@ -51,11 +51,11 @@ export function BidCard({ bid, onAccept, onReject, isLoading }: BidCardProps) {
         {bid.status === "pending" && (
           <div className="flex gap-2">
             <Button size="sm" className="flex-1" onClick={() => onAccept?.(bid)} disabled={isLoading}>
-              <Check className="h-3.5 w-3.5 ml-1" />
+              <Check className="h-3.5 w-3.5 me-1" />
               قبول
             </Button>
             <Button size="sm" variant="outline" onClick={() => onReject?.(bid.id)} disabled={isLoading}>
-              <X className="h-3.5 w-3.5 ml-1" />
+              <X className="h-3.5 w-3.5 me-1" />
               رفض
             </Button>
           </div>

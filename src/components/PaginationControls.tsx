@@ -18,13 +18,13 @@ export function PaginationControls({ page, pageSize, totalFetched, onPrev, onNex
   return (
     <div className="flex items-center justify-center gap-3 pt-4">
       <Button variant="outline" size="sm" disabled={!hasPrev} onClick={onPrev}>
-        <ChevronRight className="h-4 w-4 ml-1" />
+        <ChevronRight className="h-4 w-4 me-1" />
         السابق
       </Button>
       <span className="text-sm text-muted-foreground">صفحة {page + 1}</span>
       <Button variant="outline" size="sm" disabled={!hasNext} onClick={onNext}>
         التالي
-        <ChevronLeft className="h-4 w-4 mr-1" />
+        <ChevronLeft className="h-4 w-4 ms-1" />
       </Button>
     </div>
   );

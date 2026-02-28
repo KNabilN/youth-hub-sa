@@ -82,7 +82,7 @@ function ArrayEditor({
         size="sm"
         onClick={() => onChange([...items, ""])}
       >
-        <Plus className="h-4 w-4 ml-1" />
+        <Plus className="h-4 w-4 me-1" />
         إضافة عنصر
       </Button>
     </div>
@@ -136,7 +136,7 @@ function FooterLinksEditor({
         size="sm"
         onClick={() => onChange([...links, { label: "", url: "#" }])}
       >
-        <Plus className="h-4 w-4 ml-1" />
+        <Plus className="h-4 w-4 me-1" />
         إضافة رابط
       </Button>
     </div>
@@ -191,7 +191,7 @@ function StatsEditor({
         size="sm"
         onClick={() => onChange([...items, { value: "", label: "" }])}
       >
-        <Plus className="h-4 w-4 ml-1" />
+        <Plus className="h-4 w-4 me-1" />
         إضافة إحصائية
       </Button>
     </div>
@@ -250,7 +250,7 @@ function FeaturesEditor({
         size="sm"
         onClick={() => onChange([...items, { title: "", desc: "", icon: "users" }])}
       >
-        <Plus className="h-4 w-4 ml-1" />
+        <Plus className="h-4 w-4 me-1" />
         إضافة ميزة
       </Button>
     </div>
@@ -346,7 +346,7 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{sectionLabels[sectionKey] || sectionKey}</CardTitle>
           <Button size="sm" onClick={handleSave} disabled={update.isPending}>
-            <Save className="h-4 w-4 ml-1" />
+            <Save className="h-4 w-4 me-1" />
             {update.isPending ? "جارٍ الحفظ..." : "حفظ"}
           </Button>
         </div>
