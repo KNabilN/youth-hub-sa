@@ -92,7 +92,7 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card flex-row-reverse text-end">
+    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card">
       <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
@@ -281,7 +281,7 @@ export default function AdminUserDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full flex-wrap flex-row-reverse justify-end h-auto gap-1 p-1">
+          <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="services">الخدمات</TabsTrigger>
             <TabsTrigger value="projects">الطلبات</TabsTrigger>
@@ -296,13 +296,13 @@ export default function AdminUserDetail() {
           <TabsContent value="profile" className="space-y-6 mt-6">
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <UserCircle className="h-5 w-5 text-primary" />
                   البيانات الأساسية
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={User} label="الاسم الكامل" value={user.full_name} />
                   <InfoField icon={Phone} label="الهاتف" value={user.phone} />
                   <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
@@ -313,13 +313,13 @@ export default function AdminUserDetail() {
 
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Briefcase className="h-5 w-5 text-primary" />
                   بيانات ضابط الاتصال
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={UserCircle} label="الاسم" value={user.contact_officer_name} />
                   <InfoField icon={Phone} label="الهاتف" value={user.contact_officer_phone} />
                   <InfoField icon={Mail} label="البريد الإلكتروني" value={user.contact_officer_email} />
@@ -330,13 +330,13 @@ export default function AdminUserDetail() {
 
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <AlignRight className="h-5 w-5 text-primary" />
                   معلومات إضافية
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={AlignRight} label="النبذة" value={user.bio} />
                   <InfoField icon={DollarSign} label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
                 </div>
