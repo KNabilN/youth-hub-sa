@@ -281,7 +281,7 @@ export default function AdminUserDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="flex-wrap flex-row-reverse justify-start h-auto gap-1 p-1">
+          <TabsList className="w-full flex-wrap flex-row-reverse justify-end h-auto gap-1 p-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="services">الخدمات</TabsTrigger>
             <TabsTrigger value="projects">الطلبات</TabsTrigger>
@@ -302,7 +302,7 @@ export default function AdminUserDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
                   <InfoField icon={User} label="الاسم الكامل" value={user.full_name} />
                   <InfoField icon={Phone} label="الهاتف" value={user.phone} />
                   <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
@@ -319,7 +319,7 @@ export default function AdminUserDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
                   <InfoField icon={UserCircle} label="الاسم" value={user.contact_officer_name} />
                   <InfoField icon={Phone} label="الهاتف" value={user.contact_officer_phone} />
                   <InfoField icon={Mail} label="البريد الإلكتروني" value={user.contact_officer_email} />
@@ -336,7 +336,7 @@ export default function AdminUserDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
                   <InfoField icon={AlignRight} label="النبذة" value={user.bio} />
                   <InfoField icon={DollarSign} label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
                 </div>
