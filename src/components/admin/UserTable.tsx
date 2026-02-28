@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole } from "@/hooks/useAdminUsers";
-import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
+import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
+import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -40,10 +40,15 @@ interface UserTableProps {
   pagination?: PaginationProps;
 }
 
-const profileFields: FieldConfig[] = [
+const profileFields: DirectEditFieldConfig[] = [
   { key: "full_name", label: "الاسم" },
   { key: "phone", label: "الهاتف" },
   { key: "organization_name", label: "اسم المنظمة" },
+  { key: "license_number", label: "رقم الترخيص" },
+  { key: "contact_officer_name", label: "اسم ضابط الاتصال" },
+  { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
+  { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
+  { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
   { key: "bio", label: "نبذة", type: "textarea" },
   { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
 ];
@@ -56,6 +61,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
   const changeRole = useChangeUserRole();
+  const updateProfile = useAdminUpdateProfile();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
@@ -284,15 +290,16 @@ export function UserTable({ pagination }: UserTableProps) {
 
       {/* Edit Request Dialog */}
       {editUser && (
-        <EditRequestDialog
+        <AdminDirectEditDialog
           open={!!editUser}
           onOpenChange={(o) => !o && setEditUser(null)}
-          targetTable="profiles"
-          targetId={editUser.id}
-          targetUserId={editUser.id}
           currentValues={editUser}
           fields={profileFields}
-          title="طلب تعديل الملف الشخصي"
+          title="تعديل الملف الشخصي"
+          onSave={async (updates) => {
+            await updateProfile.mutateAsync({ id: editUser.id, ...updates });
+          }}
+          isPending={updateProfile.isPending}
         />
       )}
 
