@@ -33,6 +33,17 @@ export function useUpdateServiceApproval() {
   });
 }
 
+export function useAdminUpdateService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+      const { error } = await supabase.from("micro_services").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),
+  });
+}
+
 export function useAdminDeleteService() {
   const qc = useQueryClient();
   return useMutation({

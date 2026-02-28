@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useUpdateServiceApproval, useAdminDeleteService } from "@/hooks/useAdminServices";
+import { useUpdateServiceApproval, useAdminDeleteService, useAdminUpdateService } from "@/hooks/useAdminServices";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2, FileEdit, Pause, Play, History } from "lucide-react";
-import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
+import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { logAudit } from "@/lib/audit";
 
@@ -26,15 +26,18 @@ const approvalColors: Record<string, string> = {
   archived: "bg-muted text-muted-foreground",
 };
 
-const serviceFields: FieldConfig[] = [
+const serviceFields: DirectEditFieldConfig[] = [
   { key: "title", label: "العنوان" },
   { key: "description", label: "الوصف", type: "textarea" },
   { key: "price", label: "السعر", type: "number" },
+  { key: "category_id", label: "التصنيف", type: "select", selectSource: "categories" },
+  { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
 ];
 
 export function ServiceApprovalCard({ service }: { service: any }) {
   const update = useUpdateServiceApproval();
   const deleteService = useAdminDeleteService();
+  const updateService = useAdminUpdateService();
   const [editOpen, setEditOpen] = useState(false);
   const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reasonAction, setReasonAction] = useState<"suspended" | "approved" | null>(null);
@@ -138,15 +141,16 @@ export function ServiceApprovalCard({ service }: { service: any }) {
         </CardContent>
       </Card>
 
-      <EditRequestDialog
+      <AdminDirectEditDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        targetTable="micro_services"
-        targetId={service.id}
-        targetUserId={service.provider_id}
         currentValues={service}
         fields={serviceFields}
-        title="طلب تعديل الخدمة"
+        title="تعديل الخدمة"
+        isPending={updateService.isPending}
+        onSave={async (updates) => {
+          await updateService.mutateAsync({ id: service.id, ...updates });
+        }}
       />
 
       {/* Reason Dialog for suspend/reactivate */}

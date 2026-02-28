@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { FileEdit } from "lucide-react";
-import { EditRequestDialog, type FieldConfig } from "@/components/admin/EditRequestDialog";
+import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
@@ -31,16 +31,19 @@ const statusColors: Record<string, string> = {
   suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
 };
 
-const projectFields: FieldConfig[] = [
+const projectFields: DirectEditFieldConfig[] = [
   { key: "title", label: "العنوان" },
   { key: "description", label: "الوصف", type: "textarea" },
   { key: "budget", label: "الميزانية", type: "number" },
+  { key: "category_id", label: "التصنيف", type: "select", selectSource: "categories" },
+  { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
 ];
 
 export default function AdminProjects() {
   const pagination = usePagination();
   const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
   const updateStatus = useUpdateProjectStatus();
+  const updateProject = useAdminUpdateProject();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editProject, setEditProject] = useState<any>(null);
@@ -105,7 +108,7 @@ export default function AdminProjects() {
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
-                          <FileEdit className="h-4 w-4 me-1" />طلب تعديل
+                          <FileEdit className="h-4 w-4 me-1" />تعديل
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -126,15 +129,16 @@ export default function AdminProjects() {
       </div>
 
       {editProject && (
-        <EditRequestDialog
+        <AdminDirectEditDialog
           open={!!editProject}
           onOpenChange={(o) => !o && setEditProject(null)}
-          targetTable="projects"
-          targetId={editProject.id}
-          targetUserId={editProject.association_id}
           currentValues={editProject}
           fields={projectFields}
-          title="طلب تعديل الطلب"
+          title="تعديل الطلب"
+          isPending={updateProject.isPending}
+          onSave={async (updates) => {
+            await updateProject.mutateAsync({ id: editProject.id, ...updates });
+          }}
         />
       )}
     </DashboardLayout>

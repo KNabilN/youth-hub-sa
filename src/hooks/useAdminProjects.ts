@@ -29,3 +29,14 @@ export function useUpdateProjectStatus() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
   });
 }
+
+export function useAdminUpdateProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+      const { error } = await supabase.from("projects").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
+  });
+}
