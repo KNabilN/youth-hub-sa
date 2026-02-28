@@ -117,7 +117,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     <div className="space-y-5 p-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-14 w-auto object-contain" />
+        <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-20 w-auto object-contain" />
         <h2 className="text-xl font-bold">{isLogin ? "مرحباً بعودتك" : "إنشاء حساب جديد"}</h2>
         <p className="text-muted-foreground text-sm">
           {isLogin ? "أدخل بيانات الدخول الخاصة بك" : "أنشئ حسابك للبدء في استخدام المنصة"}

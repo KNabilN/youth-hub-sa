@@ -55,7 +55,7 @@ export default function Index() {
       <header className="border-b border-border glass sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
-            <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-10 w-auto object-contain" />
+            <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-14 w-auto object-contain" />
             <span className="font-bold text-lg">{hd.site_name}</span>
           </div>
           <div className="flex gap-2">
@@ -188,7 +188,7 @@ export default function Index() {
         <div className="container mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-8 w-auto object-contain" />
+              <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-12 w-auto object-contain" />
               <span className="font-bold text-sm">{ft.site_name}</span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
