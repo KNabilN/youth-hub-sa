@@ -1,53 +1,73 @@
 
 
-## تحويل شاشات تسجيل الدخول والتسجيل إلى نوافذ منبثقة (Modals)
+## تحويل إدارة الطلبات والخدمات إلى تعديل مباشر من الأدمن
 
 ### الملخص
-بدلاً من فتح صفحة `/auth` منفصلة، ستظهر نماذج تسجيل الدخول والتسجيل كنوافذ منبثقة أنيقة فوق الصفحة الرئيسية. على الموبايل ستظهر كـ Bottom Sheet.
+حالياً، الأدمن يستخدم نظام "طلب تعديل" (Edit Request) الذي يرسل طلباً للمستخدم لقبوله. سيتم تغيير هذا إلى تعديل مباشر فوري بدون الحاجة لموافقة أي طرف.
 
 ### التغييرات
 
-**1. إنشاء مكون `AuthModal` جديد**
-- ملف: `src/components/AuthModal.tsx`
-- ينقل كامل منطق ونموذج تسجيل الدخول/التسجيل من `Auth.tsx` إلى هذا المكون
-- يستخدم `Dialog` (من Radix) على الشاشات الكبيرة مع تأثير `backdrop-blur-md` على الخلفية
-- يستخدم `Drawer` (من Vaul) على الموبايل كـ Bottom Sheet
-- يستقبل props: `open`, `onOpenChange`, `defaultMode` (login/register)
-- يحتوي على زر التبديل بين تسجيل الدخول والتسجيل داخل نفس النافذة
-- يحتفظ بنفس التصميم الحالي (الحقول، الألوان، النصوص العربية)
-- عند نجاح تسجيل الدخول يتم التوجيه إلى `/dashboard` وإغلاق النافذة
+**1. إضافة mutation للتعديل المباشر في `useAdminProjects.ts`**
+- إضافة `useAdminUpdateProject` mutation يحدّث أي حقل في جدول `projects` مباشرة (title, description, budget, category_id, region_id, etc.)
 
-**2. تحديث الصفحة الرئيسية `Index.tsx`**
-- إضافة state لإدارة فتح/إغلاق النافذة ونوعها (login/register)
-- تحويل أزرار "تسجيل الدخول" و"إنشاء حساب" في Header من روابط `Link` إلى أزرار تفتح الـ Modal
-- تحويل أزرار CTA و Hero ("ابدأ الآن"، "سجّل مجاناً") لتفتح الـ Modal بدلاً من التوجيه لصفحة `/auth`
-- إضافة `AuthModal` component في أسفل الصفحة
+**2. إضافة mutation للتعديل المباشر في `useAdminServices.ts`**
+- إضافة `useAdminUpdateService` mutation يحدّث أي حقل في جدول `micro_services` مباشرة (title, description, price, category_id, region_id, etc.)
 
-**3. تحديث `Auth.tsx`**
-- يبقى كـ fallback إذا وصل المستخدم مباشرة عبر URL `/auth`
-- يعرض الـ Modal مفتوحاً تلقائياً مع إعادة توجيه للصفحة الرئيسية عند الإغلاق
+**3. إنشاء مكون `AdminDirectEditDialog` جديد**
+- ملف: `src/components/admin/AdminDirectEditDialog.tsx`
+- يشبه `EditRequestDialog` في الشكل لكنه يحفظ التغييرات مباشرة في قاعدة البيانات
+- يدعم حقول النص والأرقام والقوائم المنسدلة (التصنيف، المنطقة)
+- لا يوجد حقل "رسالة للمستخدم" -- التعديل فوري
+- يعرض toast عند النجاح
+
+**4. تحديث `AdminProjects.tsx`**
+- استبدال `EditRequestDialog` بـ `AdminDirectEditDialog`
+- تغيير نص الزر من "طلب تعديل" إلى "تعديل"
+- إضافة حقول أكثر للتعديل (العنوان، الوصف، الميزانية، التصنيف، المنطقة)
+
+**5. تحديث `ServiceApprovalCard.tsx`**
+- استبدال `EditRequestDialog` بـ `AdminDirectEditDialog`
+- تغيير نص الزر من "طلب تعديل" إلى "تعديل"
+- إضافة حقول أكثر للتعديل (العنوان، الوصف، السعر، التصنيف، المنطقة)
 
 ### تفاصيل تقنية
 
-**استخدام `useIsMobile` hook** الموجود لتحديد عرض Dialog أو Drawer:
+**AdminDirectEditDialog props:**
 
 ```text
-Desktop: Dialog مع DialogOverlay معدّل (backdrop-blur-md بدل bg-black/80)
-Mobile:  Drawer (Bottom Sheet) مع نفس محتوى النموذج
+- open / onOpenChange
+- tableName: "projects" | "micro_services"
+- recordId: string
+- currentValues: Record<string, any>
+- fields: FieldConfig[] (extended with "select" type for category/region)
+- onSuccess: callback
+- title: string
 ```
 
-**هيكل المكون:**
+**الحقول القابلة للتعديل:**
 
-```text
-AuthModal
-  +-- useIsMobile()
-  +-- if mobile -> Drawer + DrawerContent
-  +-- if desktop -> Dialog + DialogContent (with glassmorphism overlay)
-  +-- AuthForm (shared form content - login/register toggle, fields, validation)
-```
+للطلبات (Projects):
+- العنوان (title) - نص
+- الوصف (description) - textarea
+- الميزانية (budget) - رقم
+- التصنيف (category_id) - select
+- المنطقة (region_id) - select
+
+للخدمات (Services):
+- العنوان (title) - نص
+- الوصف (description) - textarea
+- السعر (price) - رقم
+- التصنيف (category_id) - select
+- المنطقة (region_id) - select
+
+**الأمان:**
+- RLS policies الحالية تسمح بالفعل لـ super_admin بالتعديل على كلا الجدولين (policy "Admin manage all projects" و "Admin manage all services")
+- لا حاجة لتغييرات في قاعدة البيانات
 
 **الملفات المتأثرة:**
-- `src/components/AuthModal.tsx` -- جديد
-- `src/pages/Index.tsx` -- تعديل الأزرار لتفتح Modal
-- `src/pages/Auth.tsx` -- تبسيط ليستخدم AuthModal
+- `src/components/admin/AdminDirectEditDialog.tsx` -- جديد
+- `src/hooks/useAdminProjects.ts` -- إضافة mutation
+- `src/hooks/useAdminServices.ts` -- إضافة mutation
+- `src/pages/admin/AdminProjects.tsx` -- استبدال EditRequestDialog
+- `src/components/admin/ServiceApprovalCard.tsx` -- استبدال EditRequestDialog
 
