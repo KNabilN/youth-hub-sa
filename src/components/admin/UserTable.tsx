@@ -124,26 +124,43 @@ export function UserTable({ pagination }: UserTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 items-center">
-        <Input placeholder="بحث بالاسم..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="youth_association">جمعية شبابية</SelectItem>
-            <SelectItem value="service_provider">مقدم خدمة</SelectItem>
-            <SelectItem value="donor">مانح</SelectItem>
-            <SelectItem value="super_admin">مدير النظام</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={verifiedFilter} onValueChange={setVerifiedFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="التوثيق" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="verified">موثق</SelectItem>
-            <SelectItem value="unverified">غير موثق</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">البحث</Label>
+          <Input placeholder="بحث بالاسم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">الدور</Label>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="youth_association">جمعية شبابية</SelectItem>
+              <SelectItem value="service_provider">مقدم خدمة</SelectItem>
+              <SelectItem value="donor">مانح</SelectItem>
+              <SelectItem value="super_admin">مدير النظام</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">التوثيق</Label>
+          <Select value={verifiedFilter} onValueChange={setVerifiedFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="التوثيق" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="verified">موثق</SelectItem>
+              <SelectItem value="unverified">غير موثق</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10"
+          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); }}
+        >
+          إعادة تعيين
+        </Button>
         <div className="me-auto">
           <Button onClick={() => setCreateOpen(true)} className="gap-1">
             <UserPlus className="h-4 w-4" />تسجيل مستخدم
