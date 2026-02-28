@@ -83,6 +83,7 @@ export function AdminDirectEditDialog({
                 />
               ) : field.type === "select" && field.selectSource ? (
                 <Select
+                  dir="rtl"
                   value={values[field.key] ?? ""}
                   onValueChange={(val) => setValues((v) => ({ ...v, [field.key]: val }))}
                 >
