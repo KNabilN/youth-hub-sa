@@ -73,7 +73,7 @@ export default function MyProjects() {
                     <Button asChild size="sm" variant="outline">
                       <Link to={`/projects/${project.id}`}>
                         عرض التفاصيل
-                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
                       </Link>
                     </Button>
                   </div>

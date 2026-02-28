@@ -118,7 +118,7 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
             <Link to="/auth?mode=register">
               سجّل لتقديم عروضك
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>
         </div>

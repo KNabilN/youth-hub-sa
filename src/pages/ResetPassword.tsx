@@ -81,7 +81,7 @@ export default function ResetPassword() {
                   placeholder="••••••••"
                   required
                   dir="ltr"
-                  className="text-left h-11"
+                  className="text-start h-11"
                   minLength={6}
                 />
               </div>
@@ -95,7 +95,7 @@ export default function ResetPassword() {
                   placeholder="••••••••"
                   required
                   dir="ltr"
-                  className="text-left h-11"
+                  className="text-start h-11"
                   minLength={6}
                 />
               </div>

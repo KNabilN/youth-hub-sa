@@ -52,7 +52,7 @@ export function ContractVersionsList({ contractId, currentTerms, canEdit }: Cont
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 ml-1" />
+                <Plus className="h-4 w-4 me-1" />
                 تعديل الشروط
               </Button>
             </DialogTrigger>

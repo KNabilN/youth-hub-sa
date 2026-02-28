@@ -167,7 +167,7 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       </div>
 
       <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => onChange(getDefaultFilters())}>
-        <RotateCcw className="h-3 w-3 ml-1" />إعادة تعيين
+        <RotateCcw className="h-3 w-3 me-1" />إعادة تعيين
       </Button>
 
       {/* Save / Load filters */}
@@ -182,7 +182,7 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
           </SelectTrigger>
           <SelectContent>
             {savedFilters.map((sf) => (
-              <div key={sf.name} className="flex items-center justify-between pr-2">
+              <div key={sf.name} className="flex items-center justify-between pe-2">
                 <SelectItem value={sf.name} className="flex-1">{sf.name}</SelectItem>
                 <button
                   type="button"

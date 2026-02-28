@@ -89,7 +89,7 @@ export default function MyDisputes() {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 ml-1" />
+                <Plus className="h-4 w-4 me-1" />
                 رفع شكوى
               </Button>
             </DialogTrigger>
