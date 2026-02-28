@@ -120,12 +120,12 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative space-y-4 pr-6 before:absolute before:right-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+        <div className="relative space-y-4 pe-6 before:absolute before:[inset-inline-end:0.5rem] before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
           {events.map((event, i) => {
             const Icon = event.icon;
             return (
               <div key={i} className="relative flex items-start gap-3">
-                <div className={`absolute -right-[1.15rem] mt-1 rounded-full bg-background p-0.5 border`}>
+                <div className={`absolute [inset-inline-end:-1.15rem] mt-1 rounded-full bg-background p-0.5 border`}>
                   <Icon className={`h-3.5 w-3.5 ${event.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">

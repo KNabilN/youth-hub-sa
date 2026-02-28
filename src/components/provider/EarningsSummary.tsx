@@ -2,10 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  held: { label: "محتجز", variant: "secondary", border: "border-r-4 border-yellow-500" },
-  released: { label: "صُرف", variant: "default", border: "border-r-4 border-emerald-500" },
-  frozen: { label: "مجمّد", variant: "outline", border: "border-r-4 border-blue-500" },
-  refunded: { label: "مسترد", variant: "destructive", border: "border-r-4 border-red-500" },
+  held: { label: "محتجز", variant: "secondary", border: "border-e-4 border-yellow-500" },
+  released: { label: "صُرف", variant: "default", border: "border-e-4 border-emerald-500" },
+  frozen: { label: "مجمّد", variant: "outline", border: "border-e-4 border-blue-500" },
+  refunded: { label: "مسترد", variant: "destructive", border: "border-e-4 border-red-500" },
 };
 
 interface EarningsSummaryProps {
@@ -22,7 +22,7 @@ interface EarningsSummaryProps {
 export function EarningsSummary({ totalEarnings, transactions }: EarningsSummaryProps) {
   return (
     <div className="space-y-4">
-      <Card className="border-r-4 border-primary bg-gradient-to-l from-primary/5 to-primary/10">
+      <Card className="border-e-4 border-primary bg-gradient-to-l from-primary/5 to-primary/10">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm text-muted-foreground">إجمالي الأرباح المصروفة</CardTitle>
         </CardHeader>
