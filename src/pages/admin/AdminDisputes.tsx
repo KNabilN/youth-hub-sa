@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminDisputes } from "@/hooks/useAdminDisputes";
 import { DisputeCard } from "@/components/admin/DisputeCard";
@@ -53,7 +54,17 @@ export default function AdminDisputes() {
 
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        {isLoading ? <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p> : (
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="border rounded-lg p-4 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {filtered.map((d: any) => <DisputeCard key={d.id} dispute={d} />)}
             {filtered.length === 0 && <p className="text-muted-foreground col-span-2 text-center py-8">لا توجد شكاوى</p>}

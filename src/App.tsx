@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Eager-load critical routes
@@ -79,7 +80,7 @@ const queryClient = new QueryClient({
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen animate-fade-in">
       <div className="space-y-4 w-full max-w-md px-8">
         <Skeleton className="h-8 w-3/4 mx-auto" />
         <Skeleton className="h-4 w-1/2 mx-auto" />
@@ -87,6 +88,10 @@ function PageLoader() {
       </div>
     </div>
   );
+}
+
+function SuspenseWrap({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>;
 }
 
 const App = () => (
@@ -105,50 +110,50 @@ const App = () => (
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-                <Route path="/projects/new" element={<ProtectedRoute><ProjectCreate /></ProtectedRoute>} />
-                <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
-                <Route path="/projects/:id/edit" element={<ProtectedRoute><ProjectEdit /></ProtectedRoute>} />
-                <Route path="/time-logs" element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} />
-                <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
-                <Route path="/ratings" element={<ProtectedRoute><Ratings /></ProtectedRoute>} />
-                <Route path="/my-services" element={<ProtectedRoute><MyServices /></ProtectedRoute>} />
-                <Route path="/available-projects" element={<ProtectedRoute><AvailableProjects /></ProtectedRoute>} />
-                <Route path="/available-projects/:id" element={<ProtectedRoute><ProjectBidView /></ProtectedRoute>} />
-                <Route path="/my-bids" element={<ProtectedRoute><MyBids /></ProtectedRoute>} />
-                <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
-                <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><SuspenseWrap><Dashboard /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><SuspenseWrap><Projects /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/projects/new" element={<ProtectedRoute><SuspenseWrap><ProjectCreate /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectDetails /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/projects/:id/edit" element={<ProtectedRoute><SuspenseWrap><ProjectEdit /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/time-logs" element={<ProtectedRoute><SuspenseWrap><TimeLogs /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/marketplace" element={<ProtectedRoute><SuspenseWrap><Marketplace /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/ratings" element={<ProtectedRoute><SuspenseWrap><Ratings /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/my-services" element={<ProtectedRoute><SuspenseWrap><MyServices /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/available-projects" element={<ProtectedRoute><SuspenseWrap><AvailableProjects /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/available-projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectBidView /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/my-bids" element={<ProtectedRoute><SuspenseWrap><MyBids /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/time-tracking" element={<ProtectedRoute><SuspenseWrap><TimeTracking /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/earnings" element={<ProtectedRoute><SuspenseWrap><Earnings /></SuspenseWrap></ProtectedRoute>} />
                 
-                <Route path="/tickets" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
-                <Route path="/tickets/new" element={<ProtectedRoute><TicketCreate /></ProtectedRoute>} />
-                <Route path="/associations" element={<ProtectedRoute><Associations /></ProtectedRoute>} />
-                <Route path="/associations/:id" element={<ProtectedRoute><AssociationProfile /></ProtectedRoute>} />
-                <Route path="/donations" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
-                <Route path="/impact" element={<ProtectedRoute><ImpactReports /></ProtectedRoute>} />
-                <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
-                <Route path="/my-projects" element={<ProtectedRoute><MyProjects /></ProtectedRoute>} />
-                <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
-                <Route path="/my-disputes" element={<ProtectedRoute><MyDisputes /></ProtectedRoute>} />
-                <Route path="/edit-requests" element={<ProtectedRoute><EditRequests /></ProtectedRoute>} />
-                <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-                <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-                <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
-                <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
-                <Route path="/admin/projects" element={<AdminRoute><AdminProjects /></AdminRoute>} />
-                <Route path="/admin/services" element={<AdminRoute><AdminServices /></AdminRoute>} />
-                <Route path="/admin/disputes" element={<AdminRoute><AdminDisputes /></AdminRoute>} />
-                <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
-                <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
-                <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-                <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
+                <Route path="/tickets" element={<ProtectedRoute><SuspenseWrap><SupportTickets /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/tickets/new" element={<ProtectedRoute><SuspenseWrap><TicketCreate /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/associations" element={<ProtectedRoute><SuspenseWrap><Associations /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/associations/:id" element={<ProtectedRoute><SuspenseWrap><AssociationProfile /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/donations" element={<ProtectedRoute><SuspenseWrap><Donations /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/impact" element={<ProtectedRoute><SuspenseWrap><ImpactReports /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/contracts" element={<ProtectedRoute><SuspenseWrap><Contracts /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/my-projects" element={<ProtectedRoute><SuspenseWrap><MyProjects /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/invoices" element={<ProtectedRoute><SuspenseWrap><Invoices /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/my-disputes" element={<ProtectedRoute><SuspenseWrap><MyDisputes /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/edit-requests" element={<ProtectedRoute><SuspenseWrap><EditRequests /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/cart" element={<ProtectedRoute><SuspenseWrap><Cart /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><ProviderProfile /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/users/:id" element={<AdminRoute><SuspenseWrap><AdminUserDetail /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/projects" element={<AdminRoute><SuspenseWrap><AdminProjects /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/services" element={<AdminRoute><SuspenseWrap><AdminServices /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/disputes" element={<AdminRoute><SuspenseWrap><AdminDisputes /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/finance" element={<AdminRoute><SuspenseWrap><AdminFinance /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/reports" element={<AdminRoute><SuspenseWrap><AdminReports /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/settings" element={<AdminRoute><SuspenseWrap><AdminSettings /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/tickets" element={<AdminRoute><SuspenseWrap><AdminTickets /></SuspenseWrap></AdminRoute>} />
                 
-                <Route path="/admin/cms" element={<AdminRoute><AdminCMS /></AdminRoute>} />
-                <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
+                <Route path="/admin/cms" element={<AdminRoute><SuspenseWrap><AdminCMS /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/notifications" element={<AdminRoute><SuspenseWrap><AdminNotifications /></SuspenseWrap></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
@@ -120,7 +121,18 @@ export function UserTable({ pagination }: UserTableProps) {
     setEditUser(u);
   };
 
-  if (isLoading) return <div className="text-center py-8 text-muted-foreground">جارٍ التحميل...</div>;
+  if (isLoading) return (
+    <div className="space-y-4">
+      <div className="flex gap-3">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-10 w-40" />
+      </div>
+      <div className="border rounded-lg p-4 space-y-3">
+        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
