@@ -156,7 +156,7 @@ export default function Dashboard() {
         )}
         {role ? <DashboardStats role={role} /> : null}
         {role && role !== "super_admin" && <JourneyBoard role={role} />}
-        <RecentActivity />
+        
       </div>
     </DashboardLayout>
   );
