@@ -3,6 +3,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminDisputes } from "@/hooks/useAdminDisputes";
 import { DisputeCard } from "@/components/admin/DisputeCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { disputeStatusLabels, allDisputeStatuses } from "@/lib/dispute-statuses";
 import { Gavel } from "lucide-react";
 
@@ -25,15 +27,28 @@ export default function AdminDisputes() {
               <p className="text-sm text-muted-foreground">{filtered.length} شكوى</p>
             </div>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="الحالة" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">الكل</SelectItem>
-              {allDisputeStatuses.map(s => (
-                <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">الحالة</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  {allDisputeStatuses.map(s => (
+                    <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10"
+              onClick={() => setStatusFilter("all")}
+            >
+              إعادة تعيين
+            </Button>
+          </div>
         </div>
 
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />

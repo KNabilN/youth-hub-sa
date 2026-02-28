@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Bell, Send, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react";
@@ -68,17 +69,27 @@ export default function AdminNotifications() {
         </div>
 
         <Card className="border-dashed bg-muted/30">
-          <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
-            <span className="text-sm font-medium text-muted-foreground">تصفية حسب حالة التوصيل</span>
-            <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
-              <SelectTrigger className="w-[180px] bg-background"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="delivered">تم التوصيل</SelectItem>
-                <SelectItem value="failed">فشل</SelectItem>
-                <SelectItem value="pending">قيد الإرسال</SelectItem>
-              </SelectContent>
-            </Select>
+          <CardContent className="py-3 px-4 flex items-end flex-wrap gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">حالة التوصيل</Label>
+              <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
+                <SelectTrigger className="w-[180px] bg-background"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="delivered">تم التوصيل</SelectItem>
+                  <SelectItem value="failed">فشل</SelectItem>
+                  <SelectItem value="pending">قيد الإرسال</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10"
+              onClick={() => { setFilter("all"); setPage(0); }}
+            >
+              إعادة تعيين
+            </Button>
           </CardContent>
         </Card>
 
