@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -63,15 +65,29 @@ export default function AdminTickets() {
     <DashboardLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">تذاكر الدعم الفني</h1>
-        <div className="flex flex-wrap gap-3">
-          <Input placeholder="بحث بالموضوع..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">الكل</SelectItem>
-              {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">البحث</Label>
+            <Input placeholder="بحث بالموضوع..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">الحالة</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10"
+            onClick={() => { setSearch(""); setStatusFilter("all"); }}
+          >
+            إعادة تعيين
+          </Button>
         </div>
         {isLoading ? <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p> : (
           <div className="border rounded-lg">

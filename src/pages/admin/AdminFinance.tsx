@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText } from "lucide-react";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
@@ -118,17 +119,28 @@ export default function AdminFinance() {
             <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
           </TabsList>
           <TabsContent value="escrow">
-            <div className="flex items-center gap-3 mb-4">
-              <Select value={escrowFilter} onValueChange={setEscrowFilter}>
-                <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الحالات</SelectItem>
-                  {Object.entries(escrowStatusLabels).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">{filteredEscrows.length} معاملة</span>
+            <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">الحالة</Label>
+                <Select value={escrowFilter} onValueChange={setEscrowFilter}>
+                  <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
+                    {Object.entries(escrowStatusLabels).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10"
+                onClick={() => setEscrowFilter("all")}
+              >
+                إعادة تعيين
+              </Button>
+              <span className="text-sm text-muted-foreground self-center">{filteredEscrows.length} معاملة</span>
             </div>
             {loadingEscrow ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
               <div className="border rounded-lg overflow-x-auto">
@@ -215,17 +227,28 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="invoices">
-            <div className="flex items-center gap-3 mb-4">
-              <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
-                <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الحالات</SelectItem>
-                  <SelectItem value="issued">صادرة</SelectItem>
-                  <SelectItem value="viewed">تم الاطلاع</SelectItem>
-                  <SelectItem value="archived">مؤرشفة</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">{filteredInvoices.length} فاتورة</span>
+            <div className="flex flex-wrap gap-3 items-end mb-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">الحالة</Label>
+                <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
+                  <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
+                    <SelectItem value="issued">صادرة</SelectItem>
+                    <SelectItem value="viewed">تم الاطلاع</SelectItem>
+                    <SelectItem value="archived">مؤرشفة</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10"
+                onClick={() => setInvoiceFilter("all")}
+              >
+                إعادة تعيين
+              </Button>
+              <span className="text-sm text-muted-foreground self-center">{filteredInvoices.length} فاتورة</span>
             </div>
             {loadingInvoices ? <p className="text-center py-8 text-muted-foreground">جارٍ التحميل...</p> : (
               <div className="border rounded-lg overflow-x-auto">
