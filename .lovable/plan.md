@@ -1,35 +1,71 @@
 
 
-## تعديل بيانات المستخدمين مباشرة بدون طلب تعديل
+## تحويل عرض تفاصيل المستخدم إلى صفحة كاملة بتصميم احترافي
 
 ### الملخص
-استبدال `EditRequestDialog` في جدول المستخدمين بـ `AdminDirectEditDialog` ليتمكن الأدمن من تعديل بيانات أي مستخدم فوراً بدون إرسال طلب.
+استبدال `UserDetailSheet` (الـ Drawer الجانبي) بصفحة مستقلة `/admin/users/:id` بتصميم عصري واسع ومنظم في أقسام واضحة.
 
-### التغييرات
+### التغييرات المطلوبة
 
-**1. تعديل `src/components/admin/UserTable.tsx`**
-- استبدال `EditRequestDialog` بـ `AdminDirectEditDialog`
-- إزالة import الـ `EditRequestDialog`
-- توسيع قائمة الحقول القابلة للتعديل لتشمل جميع حقول الملف الشخصي:
-  - الاسم (full_name)
-  - الهاتف (phone)
-  - اسم المنظمة (organization_name)
-  - رقم الترخيص (license_number)
-  - اسم ضابط الاتصال (contact_officer_name)
-  - رقم ضابط الاتصال (contact_officer_phone)
-  - بريد ضابط الاتصال (contact_officer_email)
-  - صفة ضابط الاتصال (contact_officer_title)
-  - نبذة (bio) - textarea
-  - السعر بالساعة (hourly_rate) - number
-- ربط `onSave` بـ `useAdminUpdateProfile` mutation الموجود بالفعل
-- تغيير عنوان الحوار من "طلب تعديل الملف الشخصي" إلى "تعديل الملف الشخصي"
+**1. إنشاء صفحة جديدة `src/pages/admin/AdminUserDetail.tsx`**
 
-### تفاصيل تقنية
+تصميم الصفحة:
 
-- الـ mutation `useAdminUpdateProfile` موجود بالفعل في `useAdminUsers.ts` ويدعم تحديث أي حقل في جدول `profiles`
-- RLS policy "Admins can update all profiles" تسمح لـ super_admin بالتعديل
-- لا حاجة لتغييرات في قاعدة البيانات أو hooks جديدة
+```text
++----------------------------------------------------------+
+| [زر رجوع]                      [زر تعديل] [توثيق/تعليق] |  <-- Sticky Header
++----------------------------------------------------------+
+|  +----- Hero Section (خلفية متدرجة ناعمة) -------------+ |
+|  |  Avatar   الاسم الكامل                               | |
+|  |           [Badge: جمعية شبابية] [Badge: موثق]        | |
+|  |           تاريخ الانضمام: 2026/02/26                 | |
+|  +------------------------------------------------------+ |
+|                                                            |
+|  [Tabs: الملف الشخصي | الخدمات | الطلبات | العقود | ...]   |
+|                                                            |
+|  Tab: الملف الشخصي                                        |
+|  +--- Card: البيانات الأساسية -------------------------+  |
+|  | [Icon] الاسم الكامل    |  [Icon] الهاتف             |  |
+|  | [Icon] اسم المنظمة     |  [Icon] رقم الترخيص        |  |
+|  +------------------------------------------------------+  |
+|  +--- Card: بيانات ضابط الاتصال ----------------------+  |
+|  | [Icon] الاسم            |  [Icon] الهاتف             |  |
+|  | [Icon] البريد           |  [Icon] الصفة              |  |
+|  +------------------------------------------------------+  |
+|  +--- Card: معلومات إضافية ---------------------------+  |
+|  | النبذة | السعر بالساعة                               |  |
+|  +------------------------------------------------------+  |
++----------------------------------------------------------+
+```
 
-**الملفات المتأثرة:**
-- `src/components/admin/UserTable.tsx` -- تعديل فقط
+- Hero header بخلفية `bg-gradient-to-l from-teal-50 to-white` مع Avatar كبير واسم وبادجات
+- أزرار (رجوع، تعديل، توثيق، تعليق) في شريط علوي sticky
+- تبويبات (Tabs) لكل قسم كما في الـ Sheet الحالي
+- عرض الملف الشخصي في grid من 2 أعمدة داخل Cards منظمة مع أيقونات
+- كل حقل يعرض بأيقونة + label بخط عريض + القيمة
+
+**2. إضافة Route جديد في `src/App.tsx`**
+- إضافة `/admin/users/:id` مغلف بـ `AdminRoute`
+
+**3. تعديل `src/components/admin/UserTable.tsx`**
+- تغيير `setViewUser(u)` إلى `navigate(`/admin/users/${u.id}`)` باستخدام `useNavigate`
+- إزالة `UserDetailSheet` و state الخاص به
+
+**4. إنشاء hook لجلب بيانات مستخدم واحد `src/hooks/useAdminUserById.ts`**
+- جلب بيانات المستخدم من `profiles` + `user_roles` بالـ ID من URL
+
+### تفاصيل التصميم
+
+- **RTL**: جميع العناصر تستخدم `me-`/`ms-`/`start`/`end` للمحاذاة
+- **الأيقونات**: `User`, `Phone`, `Building2`, `FileText`, `UserCircle`, `Mail`, `Briefcase`, `Clock`, `Calendar` من lucide-react
+- **البطاقات**: تقسيم البيانات إلى 3 مجموعات: أساسية، ضابط اتصال، إضافية
+- **Grid**: استخدام `grid grid-cols-1 md:grid-cols-2 gap-4` لعرض الحقول جنباً إلى جنب
+- **سبب التعليق**: عرضه في alert بارز إذا كان الحساب معلقاً
+- **أزرار الإجراء**: تعديل مباشر عبر `AdminDirectEditDialog`، توثيق/تعليق بنفس منطق `UserTable`
+
+### الملفات المتأثرة
+- `src/pages/admin/AdminUserDetail.tsx` -- جديد
+- `src/hooks/useAdminUserById.ts` -- جديد
+- `src/App.tsx` -- إضافة route
+- `src/components/admin/UserTable.tsx` -- استبدال Sheet بـ navigate
 
