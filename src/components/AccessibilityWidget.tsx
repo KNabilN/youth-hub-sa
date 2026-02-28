@@ -43,7 +43,7 @@ export function AccessibilityWidget() {
   return (
     <>
       <div id="a11y-announcer" className="sr-only" aria-live="polite" aria-atomic="true" />
-      <div className="fixed bottom-4 left-4 z-50">
+      <div className="fixed bottom-4 start-4 z-50">
         <Popover>
           <PopoverTrigger asChild>
             <Button

@@ -133,7 +133,7 @@ export default function MyBids() {
                         )}
                         {needsSign && (
                           <Button size="sm" onClick={() => handleSign(contract.id)} disabled={signContract.isPending} className="bg-gradient-to-l from-primary to-primary/90 shadow-md">
-                            <Check className="h-4 w-4 ml-1" />
+                            <Check className="h-4 w-4 me-1" />
                             توقيع العقد
                           </Button>
                         )}

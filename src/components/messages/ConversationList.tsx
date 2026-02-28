@@ -50,7 +50,7 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
           key={conv.project_id}
           onClick={() => onSelect(conv.project_id)}
           className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-xl text-right transition-all duration-200",
+            "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
             selectedProjectId === conv.project_id
               ? "bg-primary/10 border border-primary/20"
               : "hover:bg-muted/50"
@@ -62,7 +62,7 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
               <AvatarFallback className="text-sm">{conv.other_party_name[0]}</AvatarFallback>
             </Avatar>
             {conv.unread_count > 0 && (
-              <div className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+              <div className="absolute -top-1 [inset-inline-end:-0.25rem] h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
                 {conv.unread_count}
               </div>
             )}

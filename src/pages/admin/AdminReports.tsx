@@ -334,7 +334,7 @@ export default function AdminReports() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
-                  <Download className="h-4 w-4 ml-2" />CSV<ChevronDown className="h-4 w-4 mr-2" />
+                  <Download className="h-4 w-4 me-2" />CSV<ChevronDown className="h-4 w-4 ms-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

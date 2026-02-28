@@ -191,6 +191,10 @@ export default function AdminUserDetail() {
       {/* Sticky Action Bar */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b mb-6">
         <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
+          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
+            العودة للمستخدمين
+            <ArrowRight className="h-4 w-4" />
+          </Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
               <FileEdit className="h-4 w-4" />
@@ -218,10 +222,6 @@ export default function AdminUserDetail() {
               {user.is_suspended ? "إلغاء التعليق" : "تعليق"}
             </Button>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
-            العودة للمستخدمين
-            <ArrowRight className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 

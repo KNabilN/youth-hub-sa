@@ -61,7 +61,7 @@ export function WorkTimer({ onStop }: WorkTimerProps) {
             <p className={`text-2xl font-mono font-bold tabular-nums ${running ? "text-primary" : "text-foreground"}`}>{fmt(elapsed)}</p>
           </div>
           {startedAt && (
-            <p className="text-xs text-muted-foreground mr-2">بدأ: {timeFmt(startedAt)}</p>
+            <p className="text-xs text-muted-foreground me-2">بدأ: {timeFmt(startedAt)}</p>
           )}
         </div>
         <div className="flex gap-2">
