@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Ban, FileEdit, UserPlus } from "lucide-react";
-import { UserDetailSheet } from "@/components/admin/UserDetailSheet";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -54,6 +54,7 @@ const profileFields: DirectEditFieldConfig[] = [
 ];
 
 export function UserTable({ pagination }: UserTableProps) {
+  const navigate = useNavigate();
   const from = pagination?.from ?? 0;
   const to = pagination?.to ?? 19;
   const { data: users, isLoading } = useAdminUsers(from, to);
@@ -66,7 +67,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
   const [editUser, setEditUser] = useState<any>(null);
-  const [viewUser, setViewUser] = useState<any>(null);
+  
   const [createOpen, setCreateOpen] = useState(false);
 
   // Suspension reason dialog state
@@ -166,7 +167,7 @@ export function UserTable({ pagination }: UserTableProps) {
             {filtered.map((u: any) => (
               <TableRow key={u.id}>
                 <TableCell>
-                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => setViewUser(u)}>
+                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => navigate(`/admin/users/${u.id}`)}>
                     {u.full_name || "—"}
                   </Button>
                 </TableCell>
@@ -303,12 +304,6 @@ export function UserTable({ pagination }: UserTableProps) {
         />
       )}
 
-      {/* User Detail Sheet */}
-      <UserDetailSheet
-        user={viewUser}
-        open={!!viewUser}
-        onOpenChange={(o) => !o && setViewUser(null)}
-      />
 
       {/* Create User Dialog */}
       <AdminCreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />

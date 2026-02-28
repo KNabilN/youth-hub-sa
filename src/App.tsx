@@ -66,6 +66,7 @@ const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
 const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -137,6 +138,7 @@ const App = () => (
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><ProviderProfile /></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
                 <Route path="/admin/projects" element={<AdminRoute><AdminProjects /></AdminRoute>} />
                 <Route path="/admin/services" element={<AdminRoute><AdminServices /></AdminRoute>} />
                 <Route path="/admin/disputes" element={<AdminRoute><AdminDisputes /></AdminRoute>} />
