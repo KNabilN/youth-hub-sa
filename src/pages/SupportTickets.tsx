@@ -20,8 +20,8 @@ export default function SupportTickets() {
               <MessageSquare className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">الدعم الفني</h1>
-              <p className="text-sm text-muted-foreground">تذاكر الدعم الخاصة بك</p>
+              <h1 className="text-2xl font-bold">تذاكر الدعم</h1>
+              <p className="text-sm text-muted-foreground">تواصل مع فريق الدعم</p>
             </div>
           </div>
           <Button onClick={() => navigate("/tickets/new")}>
