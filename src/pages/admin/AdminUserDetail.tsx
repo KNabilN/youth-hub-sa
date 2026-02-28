@@ -281,7 +281,7 @@ export default function AdminUserDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="flex-wrap h-auto gap-1 p-1">
+          <TabsList className="flex-wrap flex-row-reverse justify-start h-auto gap-1 p-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="services">الخدمات</TabsTrigger>
             <TabsTrigger value="projects">الطلبات</TabsTrigger>
