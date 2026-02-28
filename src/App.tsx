@@ -65,6 +65,7 @@ const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
 const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
+const AdminTicketDetail = lazy(() => import("./pages/admin/AdminTicketDetail"));
 const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
@@ -151,6 +152,7 @@ const App = () => (
                 <Route path="/admin/reports" element={<AdminRoute><SuspenseWrap><AdminReports /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/settings" element={<AdminRoute><SuspenseWrap><AdminSettings /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/tickets" element={<AdminRoute><SuspenseWrap><AdminTickets /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/tickets/:id" element={<AdminRoute><SuspenseWrap><AdminTicketDetail /></SuspenseWrap></AdminRoute>} />
                 
                 <Route path="/admin/cms" element={<AdminRoute><SuspenseWrap><AdminCMS /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><SuspenseWrap><AdminNotifications /></SuspenseWrap></AdminRoute>} />

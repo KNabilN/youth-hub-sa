@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminTickets, useUpdateTicketStatus } from "@/hooks/useAdminTickets";
@@ -44,6 +45,7 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function AdminTickets() {
+  const navigate = useNavigate();
   const { data: tickets, isLoading } = useAdminTickets();
   const updateStatus = useUpdateTicketStatus();
   const [search, setSearch] = useState("");
@@ -109,7 +111,7 @@ export default function AdminTickets() {
               </TableHeader>
               <TableBody>
                 {filtered.map((t: any) => (
-                  <TableRow key={t.id}>
+                  <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/tickets/${t.id}`)}>
                     <TableCell className="font-medium">{t.subject}</TableCell>
                     <TableCell>{t.profiles?.full_name ?? "—"}</TableCell>
                     <TableCell><Badge className={priorityColors[t.priority]}>{priorityLabels[t.priority]}</Badge></TableCell>
