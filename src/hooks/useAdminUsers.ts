@@ -69,7 +69,7 @@ export function useChangeUserRole() {
 export function useAdminUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string; full_name?: string; phone?: string; organization_name?: string; bio?: string; hourly_rate?: number | null }) => {
+    mutationFn: async ({ id, ...values }: { id: string; [key: string]: any }) => {
       const { error } = await supabase.from("profiles").update(values).eq("id", id);
       if (error) throw error;
     },
