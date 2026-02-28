@@ -168,20 +168,8 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/tickets"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-s-[3px] border-sidebar-ring"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
-                      <MessageSquare className="h-[17px] w-[17px]" />
-                    </div>
-                    <span className="text-sm">الدعم الفني</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
