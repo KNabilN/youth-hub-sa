@@ -92,7 +92,7 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card text-start">
+    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card flex-row-reverse text-end">
       <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
@@ -296,7 +296,7 @@ export default function AdminUserDetail() {
           <TabsContent value="profile" className="space-y-6 mt-6">
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
                   <UserCircle className="h-5 w-5 text-primary" />
                   البيانات الأساسية
                 </CardTitle>
@@ -313,7 +313,7 @@ export default function AdminUserDetail() {
 
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
                   <Briefcase className="h-5 w-5 text-primary" />
                   بيانات ضابط الاتصال
                 </CardTitle>
@@ -330,7 +330,7 @@ export default function AdminUserDetail() {
 
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg flex-row-reverse justify-end">
                   <AlignRight className="h-5 w-5 text-primary" />
                   معلومات إضافية
                 </CardTitle>
