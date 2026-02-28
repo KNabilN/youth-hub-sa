@@ -92,13 +92,13 @@ function EmptyState({ message }: { message: string }) {
 
 function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-      <div className="mt-0.5 p-2 rounded-md bg-primary/10">
+    <div className="flex items-start gap-3 p-4 rounded-xl border bg-card">
+      <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground font-medium mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-foreground">{value || "—"}</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
+        <p className="text-sm font-bold text-foreground leading-relaxed">{value || "—"}</p>
       </div>
     </div>
   );
@@ -227,7 +227,7 @@ export default function AdminUserDetail() {
 
       <div className="max-w-6xl mx-auto px-4 pb-12 space-y-6">
         {/* Hero Section */}
-        <div className="rounded-2xl bg-gradient-to-l from-primary/5 to-background border p-8">
+        <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8" dir="rtl">
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20 ring-4 ring-primary/10">
               <AvatarImage src={user.avatar_url} />
