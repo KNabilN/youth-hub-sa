@@ -16,6 +16,7 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import logoImg from "@/assets/logo.png";
 
 const menuByRole = {
   youth_association: [
@@ -87,8 +88,9 @@ export function AppSidebar() {
       {/* User Profile Header */}
       <SidebarHeader className="p-5 pb-4">
         <div className="flex flex-col items-center text-center gap-3">
+          <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-14 w-auto object-contain mb-1" />
           <div className="relative">
-            <Avatar className="h-16 w-16 border-[3px] border-sidebar-ring shadow-lg">
+            <Avatar className="h-14 w-14 border-[3px] border-sidebar-ring shadow-lg">
               <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="text-lg bg-sidebar-accent text-sidebar-accent-foreground font-bold">
                 {(profile?.full_name?.[0] || "؟")}
