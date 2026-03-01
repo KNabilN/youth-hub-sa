@@ -3,16 +3,25 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "@/hooks/useNotifications";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, Bell } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Menu, Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: profile } = useProfile();
   const navigate = useNavigate();
+  const { data: notifications } = useNotifications(0, 9);
+  const { data: unreadCount } = useUnreadCount();
+  const markAsRead = useMarkAsRead();
+  const markAllAsRead = useMarkAllAsRead();
+
+  const isAdmin = role === "super_admin";
 
   return (
     <SidebarProvider>
@@ -31,16 +40,72 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="flex-1" />
 
             {/* Notification bell */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => navigate("/admin/notifications")}
-              aria-label="الإشعارات"
-            >
-              <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <NotificationBadge />
-            </Button>
+            {isAdmin ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => navigate("/admin/notifications")}
+                aria-label="الإشعارات"
+              >
+                <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                <NotificationBadge />
+              </Button>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative"
+                    aria-label="الإشعارات"
+                  >
+                    <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                    <NotificationBadge />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
+                  <div className="flex items-center justify-between p-3 border-b">
+                    <h3 className="text-sm font-semibold">الإشعارات</h3>
+                    {(unreadCount ?? 0) > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7 gap-1"
+                        onClick={() => markAllAsRead.mutate()}
+                      >
+                        <CheckCheck className="h-3.5 w-3.5" />
+                        قراءة الكل
+                      </Button>
+                    )}
+                  </div>
+                  <ScrollArea className="max-h-80">
+                    {!notifications?.length ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
+                    ) : (
+                      <div className="divide-y">
+                        {notifications.map((n) => (
+                          <button
+                            key={n.id}
+                            className={`w-full text-start p-3 text-sm hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
+                            onClick={() => {
+                              if (!n.is_read) markAsRead.mutate(n.id);
+                            }}
+                          >
+                            <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
+                              {n.message}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+            )}
 
             {/* User info */}
             <button

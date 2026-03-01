@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { sendNotification, sendNotifications } from "@/lib/notifications";
 
 export function useContracts(filter = "all") {
   const { user, role } = useAuth();
@@ -45,7 +44,7 @@ export function useContracts(filter = "all") {
 
 export function useSignContract() {
   const qc = useQueryClient();
-  const { role, user } = useAuth();
+  const { role } = useAuth();
   return useMutation({
     mutationFn: async (contractId: string) => {
       const field = role === "youth_association" ? "association_signed_at" : "provider_signed_at";
@@ -64,13 +63,10 @@ export function useSignContract() {
 
       if (!contract) return;
 
-      // Notify the other party about signing
-      const otherPartyId = role === "youth_association" ? contract.provider_id : contract.association_id;
-      await sendNotification(otherPartyId, "تم توقيع العقد من الطرف الآخر", "contract_signed");
+      // DB trigger handles notifications — no client-side sendNotification needed
 
       // If both signed, create escrow
       if (contract.association_signed_at && contract.provider_signed_at) {
-        // Check if escrow already exists
         const { data: existingEscrow } = await supabase
           .from("escrow_transactions")
           .select("id")
@@ -78,7 +74,6 @@ export function useSignContract() {
           .maybeSingle();
 
         if (!existingEscrow) {
-          // Get accepted bid price
           const { data: bid } = await supabase
             .from("bids")
             .select("price")
@@ -94,19 +89,14 @@ export function useSignContract() {
               amount: bid.price,
               status: "held",
             });
-
-            // Notify both parties
-            await sendNotifications(
-              [contract.association_id, contract.provider_id],
-              "تم إنشاء الضمان المالي للطلب",
-              "escrow_created"
-            );
+            // DB trigger notify_on_escrow_change handles notifications
           }
         }
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["contract"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
     },
   });
