@@ -99,6 +99,7 @@ export default function AdminDisputes() {
                   <TableRow>
                     <TableHead>المشروع</TableHead>
                     <TableHead>مقدم الشكوى</TableHead>
+                    <TableHead>الوصف</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>التاريخ</TableHead>
                     <TableHead>تغيير الحالة</TableHead>
@@ -114,6 +115,9 @@ export default function AdminDisputes() {
                         </Link>
                       </TableCell>
                       <TableCell>{d.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground" title={d.description}>
+                        {d.description?.length > 60 ? d.description.slice(0, 60) + "…" : d.description || "—"}
+                      </TableCell>
                       <TableCell>
                         <Badge className={disputeStatusColors[d.status]}>
                           {disputeStatusLabels[d.status] ?? d.status}
@@ -144,7 +148,7 @@ export default function AdminDisputes() {
                   ))}
                   {paged.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد شكاوى</TableCell>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد شكاوى</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
