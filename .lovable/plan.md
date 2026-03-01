@@ -1,60 +1,37 @@
 
-# Role-Aware Admin User Detail Page
 
-## Problem
-Currently, the Admin User Detail page (`AdminUserDetail.tsx`) and the `UserDetailSheet.tsx` show identical tabs and profile fields for ALL user roles. This means:
-- **Associations** see "Services" and "Time Logs" tabs (irrelevant -- they don't provide services or log time)
-- **Service Providers** see "Organization Name" and "License Number" fields (these are association-specific)
-- **Donors** see Services, Projects, Contracts, Time Logs, and Disputes tabs (they only have contributions)
-- **Hourly Rate** shows for associations and donors (only relevant for providers)
-- The edit dialog shows all fields for all roles (e.g., hourly_rate for associations)
+# Improve Admin Finance Page - UI Polish & Info Tooltips
 
-## Solution
-Conditionally show tabs, profile fields, and edit fields based on the user's role.
+## Changes
 
-### Role-to-Tab Mapping
+### 1. FinanceSummary.tsx - Better Wording + Info Tooltips
 
-| Tab | Service Provider | Association | Donor | Admin |
-|-----|-----------------|-------------|-------|-------|
-| Profile | Yes | Yes | Yes | Yes |
-| Services | Yes | No | No | No |
-| Projects (Requests) | Yes (assigned) | Yes (owned) | No | No |
-| Contracts | Yes | Yes | No | No |
-| Disputes | Yes | Yes | No | No |
-| Time Logs | Yes | No | No | No |
-| Contributions/Grants | No | No | Yes | No |
-| Edit Requests | Yes | Yes | Yes | Yes |
-| Activity Log | Yes | Yes | Yes | Yes |
+Update the summary cards with clearer Arabic labels and add an (i) icon tooltip to each card explaining what the metric means.
 
-### Role-to-Profile-Fields Mapping
+**Updated card definitions:**
 
-**Service Provider fields:**
-- Full Name, Phone, Bio, Hourly Rate, Skills
+| Current Label | New Label | Tooltip Description |
+|---|---|---|
+| الضمان المحتجز | الضمان المحتجز | مبالغ محجوزة بانتظار اكتمال الطلب وتأكيد التسليم |
+| المجمد | الضمان المجمّد | مبالغ تم تجميدها مؤقتاً بسبب شكوى أو مراجعة إدارية |
+| المبالغ المحررة | المبالغ المحرّرة | مبالغ تم تحريرها لمقدمي الخدمات بعد اكتمال الطلب بنجاح |
+| المسترد | المبالغ المستردة | مبالغ تم إعادتها للجمعيات بعد إلغاء أو رفض الطلب |
+| إجمالي العمولات | إيرادات العمولات | إجمالي العمولات المحصّلة من المنصة على جميع المعاملات المكتملة |
+| عدد الفواتير | عدد الفواتير الصادرة | إجمالي عدد الفواتير الإلكترونية التي تم إصدارها عبر المنصة |
 
-**Association fields:**
-- Full Name, Phone, Organization Name, License Number, Contact Officer (name, phone, email, title), Bio
+**Implementation:**
+- Import `Tooltip, TooltipTrigger, TooltipContent, TooltipProvider` and `Info` icon from lucide-react
+- Add a `description` field to each item in the items array
+- Render a small `Info` icon wrapped in a Tooltip next to each card title
+- Wrap the grid in `TooltipProvider`
 
-**Donor fields:**
-- Full Name, Phone, Organization Name, Bio
+### 2. AdminFinance.tsx - Page Header Enhancement
 
-### Technical Changes
+Update the page title from the plain `<h1>` to include a subtitle for context:
+- Title: "النظرة المالية"
+- Subtitle: "إدارة الضمان المالي والفواتير وطلبات السحب"
 
-#### 1. `src/pages/admin/AdminUserDetail.tsx`
-- Use the `role` variable to conditionally render tabs (hide Services/TimeLogs for non-providers, hide irrelevant tabs for donors)
-- Split profile fields into role-specific sections:
-  - Show "Organization Info" card (org name, license) only for associations
-  - Show "Contact Officer" card only for associations
-  - Show "Provider Info" (hourly rate, skills) only for providers
-  - Keep "Basic Info" (name, phone, bio) for all
-- Filter `profileFields` for the edit dialog based on role
+### Files to Edit
+1. `src/components/admin/FinanceSummary.tsx` -- add tooltips, improve labels
+2. `src/pages/admin/AdminFinance.tsx` -- improve header with description
 
-#### 2. `src/components/admin/UserDetailSheet.tsx`
-- Apply the same role-based tab filtering
-- Apply role-based profile field filtering
-
-#### 3. `src/hooks/useAdminUserDetails.ts`
-- Add a new `useAdminUserDonations` hook to fetch donor contributions when viewing a donor's profile
-
-#### 4. Donor Contributions Tab
-- Add a new "المنح" (Grants) tab that shows donor_contributions data when the user is a donor
-- Display amount, project/service linkage, and donation status
