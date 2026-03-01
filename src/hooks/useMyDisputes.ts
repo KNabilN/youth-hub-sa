@@ -17,7 +17,8 @@ export function useMyDisputes() {
       return (data ?? []).filter(
         (d: any) =>
           d.raised_by === user!.id ||
-          d.projects?.assigned_provider_id === user!.id
+          d.projects?.assigned_provider_id === user!.id ||
+          d.projects?.association_id === user!.id
       );
     },
   });
