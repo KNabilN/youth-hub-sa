@@ -111,7 +111,10 @@ export default function AdminFinance() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">النظرة المالية</h1>
+        <div>
+          <h1 className="text-2xl font-bold">النظرة المالية</h1>
+          <p className="text-sm text-muted-foreground mt-1">إدارة الضمان المالي والفواتير وطلبات السحب</p>
+        </div>
         <FinanceSummary />
         <Tabs defaultValue="escrow">
           <TabsList>
