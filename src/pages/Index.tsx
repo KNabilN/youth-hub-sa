@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Users, Store, HandCoins, ArrowLeft, CheckCircle2, Zap, Globe, Lock } from "lucide-react";
-import logoImg from "@/assets/logo.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useLandingStats } from "@/hooks/useLandingStats";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Zap, Globe, CheckCircle2, Lock, Star, FileText, Award } from "lucide-react";
+import LandingHeader from "@/components/landing/LandingHeader";
+import LandingFooter from "@/components/landing/LandingFooter";
 import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
+import Testimonials from "@/components/landing/Testimonials";
 import { ContactForm } from "@/components/landing/ContactForm";
-import AuthModal from "@/components/AuthModal";
+import { Users, Store, HandCoins } from "lucide-react";
 
 const featureIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   users: Users,
@@ -29,45 +30,22 @@ export default function Index() {
   const { data: trust } = useSiteContent("trust");
   const { stats, statsLoading, services, servicesLoading, projects: featuredProjects, projectsLoading } = useLandingStats();
   const { data: cta } = useSiteContent("cta");
-  const { data: header } = useSiteContent("header");
-  const { data: footer } = useSiteContent("footer");
 
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
-
-  const openAuth = (mode: "login" | "register") => {
-    setAuthMode(mode);
-    setAuthOpen(true);
-  };
-
-  // Fallback defaults
-  const h = hero || { badge: "", title: "منصة الخدمات المشتركة", subtitle: "للجمعيات الشبابية", description: "", cta_text: "ابدأ الآن" };
-  const st = cmsStats?.items || [];
+  const h = hero || { badge: "", title: "كل ماتحتاجه في مكان واحد", subtitle: "للجمعيات الشبابية", description: "ازدهر في منظومة مزوّدي الخدمة، حيث التميّز والفرص بلا حدود", cta_text: "ابدأ الآن" };
   const feat = features || { title: "", subtitle: "", items: [] };
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
-  const hd = header || { site_name: "الخدمات المشتركة", login_text: "تسجيل الدخول", register_text: "إنشاء حساب" };
-  const ft = footer || { site_name: "منصة الخدمات المشتركة", copyright: "", links: [] };
+
+  // Static stats from old site
+  const oldSiteStats = [
+    { icon: Star, value: "4.91/5", label: "متوسط التقييم" },
+    { icon: FileText, value: "211K+", label: "عقد منجز" },
+    { icon: Award, value: "1,665", label: "مهارة مدعومة" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border glass sticky top-0 z-50">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <div className="flex items-center gap-3">
-            <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-14 w-auto object-contain" />
-            <span className="font-bold text-lg">{hd.site_name}</span>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => openAuth("login")}>
-              {hd.login_text}
-            </Button>
-            <Button className="shadow-md" onClick={() => openAuth("register")}>
-              {hd.register_text}
-            </Button>
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
 
       {/* Hero */}
       <section className="relative py-24 px-4 overflow-hidden">
@@ -92,10 +70,27 @@ export default function Index() {
             </p>
           )}
           <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
-            <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow text-base px-8" onClick={() => openAuth("register")}>
+            <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow text-base px-8" onClick={() => window.location.href = '/auth'}>
               {h.cta_text}
               <ArrowLeft className="me-2 h-4 w-4" />
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Old-site style stats */}
+      <section className="py-12 px-4 bg-card/50 border-y border-border">
+        <div className="container mx-auto max-w-4xl">
+          <div className="grid grid-cols-3 gap-6">
+            {oldSiteStats.map((s) => (
+              <div key={s.label} className="text-center space-y-2">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <s.icon className="h-6 w-6 text-primary" />
+                </div>
+                <p className="text-2xl md:text-3xl font-bold">{s.value}</p>
+                <p className="text-sm text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -163,6 +158,9 @@ export default function Index() {
         </section>
       )}
 
+      {/* Testimonials */}
+      <Testimonials />
+
       {/* Contact Form */}
       <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
@@ -176,39 +174,14 @@ export default function Index() {
         <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
           <h2 className="text-3xl font-bold">{ct.title}</h2>
           <p className="text-muted-foreground">{ct.description}</p>
-          <Button size="lg" className="shadow-lg text-base px-10" onClick={() => openAuth("register")}>
+          <Button size="lg" className="shadow-lg text-base px-10" onClick={() => window.location.href = '/auth'}>
             <Globe className="me-2 h-5 w-5" />
             {ct.button_text}
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-10 px-4 bg-card">
-        <div className="container mx-auto space-y-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-12 w-auto object-contain" />
-              <span className="font-bold text-sm">{ft.site_name}</span>
-            </div>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              {(ft.links || []).map((link: any) => (
-                <a key={link.label} href={link.url} className="hover:text-foreground transition-colors">
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="border-t border-border pt-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} {ft.copyright}
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Auth Modal */}
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode={authMode} />
+      <LandingFooter />
     </div>
   );
 }

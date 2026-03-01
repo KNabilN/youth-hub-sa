@@ -17,10 +17,24 @@ import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManage
 const pageGroups = {
   landing: {
     label: "الصفحة الرئيسية",
-    description: "Hero، الإحصائيات، المميزات، لماذا المنصة، CTA",
+    description: "Hero، الإحصائيات، المميزات، لماذا المنصة، CTA، آراء العملاء",
     icon: Globe,
-    keys: ["hero", "stats", "features", "trust", "cta"],
-    count: 5,
+    keys: ["hero", "stats", "features", "trust", "cta", "testimonials"],
+    count: 6,
+  },
+  about: {
+    label: "صفحة من نحن",
+    description: "محتوى صفحة من نحن",
+    icon: Globe,
+    keys: ["about"],
+    count: 1,
+  },
+  faq: {
+    label: "الأسئلة الشائعة",
+    description: "الأسئلة والأجوبة الشائعة",
+    icon: Globe,
+    keys: ["faq"],
+    count: 1,
   },
   layout: {
     label: "الهيدر والفوتر",
@@ -46,6 +60,9 @@ const sectionLabels: Record<string, string> = {
   features: "المميزات",
   trust: "لماذا المنصة",
   cta: "دعوة الإجراء (CTA)",
+  testimonials: "آراء العملاء",
+  about: "صفحة من نحن",
+  faq: "الأسئلة الشائعة",
   header: "الهيدر",
   footer: "الفوتر",
 };

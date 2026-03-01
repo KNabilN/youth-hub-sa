@@ -53,6 +53,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Messages = lazy(() => import("./pages/Messages"));
+const About = lazy(() => import("./pages/About"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
@@ -111,6 +113,8 @@ const App = () => (
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
+                <Route path="/faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
                 <Route path="/dashboard" element={<ProtectedRoute><SuspenseWrap><Dashboard /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><SuspenseWrap><Projects /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/new" element={<ProtectedRoute><SuspenseWrap><ProjectCreate /></SuspenseWrap></ProtectedRoute>} />
