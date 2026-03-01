@@ -76,7 +76,11 @@ export function useReleaseEscrow() {
       // Return original amount info for invoice generation
       return { ...escrow, net_amount: netAmount, commission_amount: commissionAmount };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["escrow"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["earnings"] });
+      qc.invalidateQueries({ queryKey: ["provider-stats"] });
+    },
   });
 }
 

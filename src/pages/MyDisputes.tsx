@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyDisputes } from "@/hooks/useMyDisputes";
 import { useMyAssignedProjects } from "@/hooks/useMyAssignedProjects";
+import { useProjects } from "@/hooks/useProjects";
 import { useCreateDispute, useReopenDispute } from "@/hooks/useDisputes";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
@@ -18,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { disputeStatusLabels, disputeStatusColors } from "@/lib/dispute-statuses";
 
 function canReopen(dispute: any): boolean {
@@ -29,7 +31,13 @@ function canReopen(dispute: any): boolean {
 
 export default function MyDisputes() {
   const { data: disputes, isLoading } = useMyDisputes();
+  const { role } = useAuth();
+  const isAssociation = role === "youth_association";
   const { data: assignedProjects } = useMyAssignedProjects("in_progress");
+  const { data: associationProjects } = useProjects("all");
+  const disputeProjects = isAssociation
+    ? (associationProjects ?? []).filter((p: any) => ["in_progress", "completed", "disputed"].includes(p.status))
+    : assignedProjects;
   const createDispute = useCreateDispute();
   const reopenDispute = useReopenDispute();
   const { toast } = useToast();
@@ -103,7 +111,7 @@ export default function MyDisputes() {
                   <Select value={selectedProject} onValueChange={setSelectedProject}>
                     <SelectTrigger><SelectValue placeholder="اختر الطلب" /></SelectTrigger>
                     <SelectContent>
-                      {assignedProjects?.map((p: any) => (
+                      {disputeProjects?.map((p: any) => (
                         <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
                       ))}
                     </SelectContent>

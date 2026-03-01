@@ -60,6 +60,9 @@ export function useUpdateWithdrawalStatus() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-withdrawals"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-withdrawals"] });
+      qc.invalidateQueries({ queryKey: ["withdrawals"] });
+    },
   });
 }
