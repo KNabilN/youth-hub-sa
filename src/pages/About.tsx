@@ -1,5 +1,3 @@
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -21,9 +19,7 @@ export default function About() {
   const a = data || {} as any;
 
   return (
-    <div className="min-h-screen bg-background">
-      <LandingHeader />
-
+    <>
       {/* Hero */}
       <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="container mx-auto max-w-4xl text-center space-y-6">
@@ -195,8 +191,6 @@ export default function About() {
           </div>
         </section>
       )}
-
-      <LandingFooter />
-    </div>
+    </>
   );
 }

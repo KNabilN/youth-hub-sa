@@ -2,8 +2,6 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { useLandingStats } from "@/hooks/useLandingStats";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Zap, Globe, CheckCircle2, Lock, Star, FileText, Award } from "lucide-react";
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
@@ -36,7 +34,6 @@ export default function Index() {
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
 
-  // Static stats from old site
   const oldSiteStats = [
     { icon: Star, value: "4.91/5", label: "متوسط التقييم" },
     { icon: FileText, value: "211K+", label: "عقد منجز" },
@@ -44,9 +41,7 @@ export default function Index() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <LandingHeader />
-
+    <>
       {/* Hero */}
       <section className="relative py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-pattern" />
@@ -180,8 +175,6 @@ export default function Index() {
           </Button>
         </div>
       </section>
-
-      <LandingFooter />
-    </div>
+    </>
   );
 }

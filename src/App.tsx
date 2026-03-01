@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PublicLayout from "@/components/landing/PublicLayout";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -108,13 +109,15 @@ const App = () => (
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
+                  <Route path="/faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
+                </Route>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
-                <Route path="/faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
                 <Route path="/dashboard" element={<ProtectedRoute><SuspenseWrap><Dashboard /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><SuspenseWrap><Projects /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/new" element={<ProtectedRoute><SuspenseWrap><ProjectCreate /></SuspenseWrap></ProtectedRoute>} />

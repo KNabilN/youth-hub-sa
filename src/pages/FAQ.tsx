@@ -1,5 +1,3 @@
-import LandingHeader from "@/components/landing/LandingHeader";
-import LandingFooter from "@/components/landing/LandingFooter";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,9 +8,7 @@ export default function FAQ() {
   const faq = data || { title: "الأسئلة الشائعة", subtitle: "", categories: [] };
 
   return (
-    <div className="min-h-screen bg-background">
-      <LandingHeader />
-
+    <>
       <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="container mx-auto max-w-3xl text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
@@ -57,8 +53,6 @@ export default function FAQ() {
           )}
         </div>
       </section>
-
-      <LandingFooter />
-    </div>
+    </>
   );
 }
