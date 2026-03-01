@@ -1,21 +1,46 @@
 
-# استبدال "value" بـ "القيمة" في تلميحات الرسوم البيانية
+# تحسين تصدير PDF ليطابق شكل لوحة التحكم بالضبط مع دعم كامل للعربية
 
-## المشكلة
-في صفحة التقارير، عند تمرير الماوس على الرسوم البيانية، يظهر النص "value" بالإنجليزية بدلاً من "القيمة" بالعربية.
+## المشكلة الحالية
+النص العربي في ملف PDF المُصدَّر يظهر مكسوراً/معكوساً (كما يظهر في الصورة المرفقة)، خاصة في بطاقات الإحصائيات. السبب أن الحاوية المخفية تستخدم `direction: ltr` والخط العربي غير محمّل بشكل صحيح قبل التقاط الصورة.
 
 ## الحل
-تعديل مكون `CustomChartTooltip` في ملف `src/pages/admin/AdminReports.tsx` لاستبدال "value" بـ "القيمة" عند عرض اسم السلسلة في التلميح.
 
-### التعديل في `src/pages/admin/AdminReports.tsx`
-- السطر 41: تغيير عرض `entry.name` بحيث إذا كانت القيمة "value" يتم استبدالها بـ "القيمة"
+### تعديل `src/lib/report-pdf.ts`
 
-```tsx
-// قبل
-<span className="text-muted-foreground">{entry.name ?? entry.dataKey}:</span>
+1. **تحميل خط عربي (Cairo) من Google Fonts قبل التقاط الصور**
+   - إضافة دالة `loadArabicFont()` تقوم بتحميل خط Cairo عبر `@import` أو `FontFace API`
+   - انتظار تحميل الخط قبل بدء عملية html2canvas
+   - تغيير `BASE_FONT` ليستخدم `'Cairo'` كخط أساسي
 
-// بعد
-<span className="text-muted-foreground">{(entry.name === "value" ? "القيمة" : entry.name) ?? entry.dataKey}:</span>
+2. **إصلاح اتجاه النص في الحاوية المخفية**
+   - تغيير `direction: ltr` إلى `direction: rtl` في `createOffscreenContainer`
+   - إضافة `unicode-bidi: bidi-override` للتأكد من عرض النص بشكل صحيح
+
+3. **تحسين عرض بطاقات الإحصائيات**
+   - إضافة `direction: rtl` و `text-align: center` لكل بطاقة
+   - التأكد من أن التسميات والأرقام تظهر بوضوح
+
+4. **استدعاء `loadArabicFont()` في بداية `generateReportPDF`**
+   - ضمان تحميل الخط مرة واحدة قبل أي عملية تصيير
+
+### تعديل `src/pages/admin/AdminReports.tsx`
+
+5. **لا تغييرات جوهرية** - الملف يعمل بشكل صحيح، التعديل فقط في طبقة PDF
+
+## التفاصيل التقنية
+
+```text
+generateReportPDF()
+  |
+  +-- loadArabicFont()  <-- جديد: تحميل خط Cairo
+  |
+  +-- renderSectionToImage(headerHTML)
+  |     |
+  |     +-- createOffscreenContainer()  <-- إصلاح: direction: rtl
+  |     +-- html2canvas()  <-- الخط العربي محمّل مسبقاً
+  |
+  +-- (بقية الأقسام كما هي)
 ```
 
-تعديل بسيط في سطر واحد فقط يحل المشكلة لجميع الرسوم البيانية التي تستخدم نفس مكون التلميح.
+التعديل يقتصر على ملف واحد (`src/lib/report-pdf.ts`) ويحل مشكلة النص العربي المكسور في جميع أقسام التقرير.
