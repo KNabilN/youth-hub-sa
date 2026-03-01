@@ -23,27 +23,10 @@ export function useUpdateProfile() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({
-      full_name,
-      bio,
-      phone,
-      organization_name,
-      hourly_rate,
-      avatar_url,
-    }: {
-      full_name: string;
-      bio: string;
-      phone?: string;
-      organization_name?: string;
-      hourly_rate?: number | null;
-      avatar_url?: string;
-    }) => {
-      const updates: Record<string, unknown> = { full_name, bio, phone, organization_name };
-      if (hourly_rate !== undefined) updates.hourly_rate = hourly_rate;
-      if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    mutationFn: async (updates: Record<string, unknown>) => {
       const { error } = await supabase
         .from("profiles")
-        .update(updates)
+        .update(updates as any)
         .eq("id", user!.id);
       if (error) throw error;
     },

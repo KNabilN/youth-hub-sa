@@ -47,7 +47,7 @@ export function ServiceCard({ service }: { service: Service }) {
             <CardTitle className="text-base truncate">{service.title}</CardTitle>
             <Badge variant="outline" className="shrink-0">{typeLabel[service.service_type] || service.service_type}</Badge>
           </div>
-          <Link to={`/providers/${service.provider_id}`} className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity">
+          <Link to={`/profile/${service.provider_id}`} className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
                 {service.profiles?.full_name?.[0] || "؟"}

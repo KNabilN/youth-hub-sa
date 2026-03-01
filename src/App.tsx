@@ -37,12 +37,11 @@ const Earnings = lazy(() => import("./pages/Earnings"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const TicketCreate = lazy(() => import("./pages/TicketCreate"));
 const Associations = lazy(() => import("./pages/Associations"));
-const AssociationProfile = lazy(() => import("./pages/AssociationProfile"));
 const Donations = lazy(() => import("./pages/Donations"));
 const ImpactReports = lazy(() => import("./pages/ImpactReports"));
 const Contracts = lazy(() => import("./pages/Contracts"));
 const Profile = lazy(() => import("./pages/Profile"));
-const ProviderProfile = lazy(() => import("./pages/ProviderProfile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const MyProjects = lazy(() => import("./pages/MyProjects"));
 const Invoices = lazy(() => import("./pages/Invoices"));
 const MyDisputes = lazy(() => import("./pages/MyDisputes"));
@@ -114,6 +113,7 @@ const App = () => (
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
                   <Route path="/faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
+                  <Route path="/profile/:id" element={<Suspense fallback={<PageLoader />}><PublicProfile /></Suspense>} />
                 </Route>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -136,7 +136,7 @@ const App = () => (
                 <Route path="/tickets" element={<ProtectedRoute><SuspenseWrap><SupportTickets /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/tickets/new" element={<ProtectedRoute><SuspenseWrap><TicketCreate /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/associations" element={<ProtectedRoute><SuspenseWrap><Associations /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/associations/:id" element={<ProtectedRoute><SuspenseWrap><AssociationProfile /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/associations/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/donations" element={<ProtectedRoute><SuspenseWrap><Donations /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/impact" element={<ProtectedRoute><SuspenseWrap><ImpactReports /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/contracts" element={<ProtectedRoute><SuspenseWrap><Contracts /></SuspenseWrap></ProtectedRoute>} />
@@ -149,7 +149,7 @@ const App = () => (
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><ProviderProfile /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/users/:id" element={<AdminRoute><SuspenseWrap><AdminUserDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/projects" element={<AdminRoute><SuspenseWrap><AdminProjects /></SuspenseWrap></AdminRoute>} />
