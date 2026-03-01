@@ -15,6 +15,7 @@ import {
   useAdminUserDisputes,
   useAdminUserTimeLogs,
   useAdminUserEditRequests,
+  useAdminUserDonations,
 } from "@/hooks/useAdminUserDetails";
 
 const roleLabels: Record<string, string> = {
@@ -47,6 +48,12 @@ const disputeStatusLabels: Record<string, string> = {
   closed: "مغلق",
 };
 
+const donationStatusLabels: Record<string, string> = {
+  available: "متاح",
+  consumed: "مستهلك",
+  reserved: "محجوز",
+};
+
 interface UserDetailSheetProps {
   user: any;
   open: boolean;
@@ -75,6 +82,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
   const disputes = useAdminUserDisputes(userId);
   const timeLogs = useAdminUserTimeLogs(userId);
   const editRequests = useAdminUserEditRequests(userId);
+  const donations = useAdminUserDonations(userId);
 
   if (!user) return null;
 
@@ -111,11 +119,18 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
         <Tabs defaultValue="profile" className="flex-1 flex flex-col min-h-0">
           <TabsList className="mx-6 mt-4 flex-wrap h-auto gap-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="services">الخدمات</TabsTrigger>
-            <TabsTrigger value="projects">الطلبات</TabsTrigger>
-            <TabsTrigger value="contracts">العقود</TabsTrigger>
-            <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
-            <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>
+            {role === "service_provider" && <TabsTrigger value="services">الخدمات</TabsTrigger>}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="projects">الطلبات</TabsTrigger>
+            )}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="contracts">العقود</TabsTrigger>
+            )}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
+            )}
+            {role === "service_provider" && <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>}
+            {role === "donor" && <TabsTrigger value="donations">المنح</TabsTrigger>}
             <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
             <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
           </TabsList>
@@ -126,14 +141,22 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
               <div className="space-y-4 pt-2">
                 <InfoRow label="الاسم الكامل" value={user.full_name} />
                 <InfoRow label="الهاتف" value={user.phone} />
-                <InfoRow label="اسم المنظمة" value={user.organization_name} />
-                <InfoRow label="رقم الترخيص" value={user.license_number} />
-                <InfoRow label="اسم ضابط الاتصال" value={user.contact_officer_name} />
-                <InfoRow label="رقم ضابط الاتصال" value={user.contact_officer_phone} />
-                <InfoRow label="بريد ضابط الاتصال" value={user.contact_officer_email} />
-                <InfoRow label="صفة ضابط الاتصال" value={user.contact_officer_title} />
+                {(role === "youth_association" || role === "donor") && (
+                  <InfoRow label="اسم المنظمة" value={user.organization_name} />
+                )}
+                {role === "youth_association" && (
+                  <>
+                    <InfoRow label="رقم الترخيص" value={user.license_number} />
+                    <InfoRow label="اسم ضابط الاتصال" value={user.contact_officer_name} />
+                    <InfoRow label="رقم ضابط الاتصال" value={user.contact_officer_phone} />
+                    <InfoRow label="بريد ضابط الاتصال" value={user.contact_officer_email} />
+                    <InfoRow label="صفة ضابط الاتصال" value={user.contact_officer_title} />
+                  </>
+                )}
                 <InfoRow label="نبذة" value={user.bio} />
-                <InfoRow label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
+                {role === "service_provider" && (
+                  <InfoRow label="السعر بالساعة" value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null} />
+                )}
                 <InfoRow label="تاريخ الانضمام" value={format(new Date(user.created_at), "yyyy/MM/dd", { locale: ar })} />
                 {user.is_suspended && user.suspension_reason && (
                   <div className="bg-destructive/10 rounded-lg p-3 space-y-1">
@@ -236,6 +259,28 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
                         <span>• {t.log_date}</span>
                       </div>
                       {t.description && <p className="text-sm text-muted-foreground">{t.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Donations Tab - Donors only */}
+            <TabsContent value="donations">
+              {donations.isLoading ? <LoadingSkeleton /> : !donations.data?.length ? <EmptyState message="لا توجد منح" /> : (
+                <div className="space-y-3 pt-2">
+                  {donations.data.map((d: any) => (
+                    <div key={d.id} className="border rounded-lg p-4 space-y-1">
+                      <div className="flex justify-between items-start">
+                        <span className="font-medium">
+                          {d.projects?.title ?? d.micro_services?.title ?? d.profiles?.organization_name ?? d.profiles?.full_name ?? "منحة عامة"}
+                        </span>
+                        <Badge variant="outline">{donationStatusLabels[d.donation_status] ?? d.donation_status}</Badge>
+                      </div>
+                      <div className="flex gap-3 text-sm text-muted-foreground">
+                        <span>{d.amount} ر.س</span>
+                        <span>• {format(new Date(d.created_at), "yyyy/MM/dd", { locale: ar })}</span>
+                      </div>
                     </div>
                   ))}
                 </div>

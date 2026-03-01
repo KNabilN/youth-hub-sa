@@ -8,6 +8,7 @@ import {
   useAdminUserDisputes,
   useAdminUserTimeLogs,
   useAdminUserEditRequests,
+  useAdminUserDonations,
 } from "@/hooks/useAdminUserDetails";
 import { useToggleVerification, useToggleSuspension, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
@@ -42,6 +43,8 @@ import {
   AlignRight,
   ShieldCheck,
   ShieldOff,
+  Heart,
+  Wrench,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -78,18 +81,48 @@ const disputeStatusLabels: Record<string, string> = {
   closed: "مغلق",
 };
 
-const profileFields: DirectEditFieldConfig[] = [
-  { key: "full_name", label: "الاسم" },
-  { key: "phone", label: "الهاتف" },
-  { key: "organization_name", label: "اسم المنظمة" },
-  { key: "license_number", label: "رقم الترخيص" },
-  { key: "contact_officer_name", label: "اسم ضابط الاتصال" },
-  { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
-  { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
-  { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
-  { key: "bio", label: "نبذة", type: "textarea" },
-  { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
-];
+function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
+  const common: DirectEditFieldConfig[] = [
+    { key: "full_name", label: "الاسم" },
+    { key: "phone", label: "الهاتف" },
+    { key: "bio", label: "نبذة", type: "textarea" },
+  ];
+
+  if (role === "service_provider") {
+    return [...common, { key: "hourly_rate", label: "السعر بالساعة", type: "number" }];
+  }
+  if (role === "youth_association") {
+    return [
+      ...common,
+      { key: "organization_name", label: "اسم المنظمة" },
+      { key: "license_number", label: "رقم الترخيص" },
+      { key: "contact_officer_name", label: "اسم ضابط الاتصال" },
+      { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
+      { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
+      { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
+    ];
+  }
+  if (role === "donor") {
+    return [...common, { key: "organization_name", label: "اسم المنظمة" }];
+  }
+  // super_admin or unknown
+  return [
+    ...common,
+    { key: "organization_name", label: "اسم المنظمة" },
+    { key: "license_number", label: "رقم الترخيص" },
+    { key: "contact_officer_name", label: "اسم ضابط الاتصال" },
+    { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
+    { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
+    { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
+    { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
+  ];
+}
+
+const donationStatusLabels: Record<string, string> = {
+  available: "متاح",
+  consumed: "مستهلك",
+  reserved: "محجوز",
+};
 
 function LoadingSkeleton() {
   return (
@@ -130,6 +163,8 @@ export default function AdminUserDetail() {
   const disputes = useAdminUserDisputes(id ?? null);
   const timeLogs = useAdminUserTimeLogs(id ?? null);
   const editRequests = useAdminUserEditRequests(id ?? null);
+
+  const donations = useAdminUserDonations(id ?? null);
 
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
@@ -301,17 +336,24 @@ export default function AdminUserDetail() {
         <Tabs defaultValue="profile" className="w-full" dir="rtl">
           <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="services">الخدمات</TabsTrigger>
-            <TabsTrigger value="projects">الطلبات</TabsTrigger>
-            <TabsTrigger value="contracts">العقود</TabsTrigger>
-            <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
-            <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>
+            {role === "service_provider" && <TabsTrigger value="services">الخدمات</TabsTrigger>}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="projects">الطلبات</TabsTrigger>
+            )}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="contracts">العقود</TabsTrigger>
+            )}
+            {(role === "service_provider" || role === "youth_association") && (
+              <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
+            )}
+            {role === "service_provider" && <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>}
+            {role === "donor" && <TabsTrigger value="donations">المنح</TabsTrigger>}
             <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
             <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6 mt-6">
+            {/* Basic Info - All roles */}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -323,45 +365,68 @@ export default function AdminUserDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={User} label="الاسم الكامل" value={user.full_name} />
                   <InfoField icon={Phone} label="الهاتف" value={user.phone} />
-                  <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
-                  <InfoField icon={FileText} label="رقم الترخيص" value={user.license_number} />
+                  {(role === "youth_association" || role === "donor") && (
+                    <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
+                  )}
+                  {role === "youth_association" && (
+                    <InfoField icon={FileText} label="رقم الترخيص" value={user.license_number} />
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  بيانات ضابط الاتصال
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoField icon={UserCircle} label="الاسم" value={user.contact_officer_name} />
-                  <InfoField icon={Phone} label="الهاتف" value={user.contact_officer_phone} />
-                  <InfoField icon={Mail} label="البريد الإلكتروني" value={user.contact_officer_email} />
-                  <InfoField icon={Briefcase} label="الصفة" value={user.contact_officer_title} />
-                </div>
-              </CardContent>
-            </Card>
+            {/* Contact Officer - Associations only */}
+            {role === "youth_association" && (
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    بيانات ضابط الاتصال
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoField icon={UserCircle} label="الاسم" value={user.contact_officer_name} />
+                    <InfoField icon={Phone} label="الهاتف" value={user.contact_officer_phone} />
+                    <InfoField icon={Mail} label="البريد الإلكتروني" value={user.contact_officer_email} />
+                    <InfoField icon={Briefcase} label="الصفة" value={user.contact_officer_title} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
+            {/* Provider Info - Providers only */}
+            {role === "service_provider" && (
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Wrench className="h-5 w-5 text-primary" />
+                    بيانات مقدم الخدمة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoField
+                      icon={DollarSign}
+                      label="السعر بالساعة"
+                      value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null}
+                    />
+                    <InfoField icon={AlignRight} label="المهارات" value={user.skills?.join("، ") || null} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Bio - All roles */}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <AlignRight className="h-5 w-5 text-primary" />
-                  معلومات إضافية
+                  النبذة
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoField icon={AlignRight} label="النبذة" value={user.bio} />
-                  <InfoField
-                    icon={DollarSign}
-                    label="السعر بالساعة"
-                    value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null}
-                  />
-                </div>
+                <p className="text-sm text-foreground leading-relaxed">{user.bio || "—"}</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -496,6 +561,34 @@ export default function AdminUserDetail() {
             )}
           </TabsContent>
 
+          {/* Donations Tab - Donors only */}
+          <TabsContent value="donations" className="mt-6">
+            {donations.isLoading ? (
+              <LoadingSkeleton />
+            ) : !donations.data?.length ? (
+              <EmptyState message="لا توجد منح" />
+            ) : (
+              <div className="grid gap-4">
+                {donations.data.map((d: any) => (
+                  <Card key={d.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <span className="font-medium">
+                          {d.projects?.title ?? d.micro_services?.title ?? d.profiles?.organization_name ?? d.profiles?.full_name ?? "منحة عامة"}
+                        </span>
+                        <Badge variant="outline">{donationStatusLabels[d.donation_status] ?? d.donation_status}</Badge>
+                      </div>
+                      <div className="flex gap-3 text-sm text-muted-foreground mt-2">
+                        <span>{d.amount} ر.س</span>
+                        <span>• {format(new Date(d.created_at), "yyyy/MM/dd", { locale: ar })}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* Edit Requests Tab */}
           <TabsContent value="editrequests" className="mt-6">
             {editRequests.isLoading ? (
@@ -537,7 +630,7 @@ export default function AdminUserDetail() {
           open={editOpen}
           onOpenChange={setEditOpen}
           currentValues={user}
-          fields={profileFields}
+          fields={getProfileFieldsForRole(role)}
           title="تعديل الملف الشخصي"
           onSave={async (updates) => {
             await updateProfile.mutateAsync({ id: user.id, ...updates });
