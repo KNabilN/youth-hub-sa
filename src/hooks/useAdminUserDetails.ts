@@ -81,21 +81,6 @@ export function useAdminUserTimeLogs(userId: string | null) {
   });
 }
 
-export function useAdminUserEditRequests(userId: string | null) {
-  return useQuery({
-    queryKey: ["admin-user-editrequests", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("edit_requests")
-        .select("*")
-        .eq("target_user_id", userId!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-}
 
 export function useAdminUserDonations(userId: string | null) {
   return useQuery({

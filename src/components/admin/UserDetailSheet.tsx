@@ -14,7 +14,6 @@ import {
   useAdminUserContracts,
   useAdminUserDisputes,
   useAdminUserTimeLogs,
-  useAdminUserEditRequests,
   useAdminUserDonations,
 } from "@/hooks/useAdminUserDetails";
 
@@ -81,7 +80,6 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
   const contracts = useAdminUserContracts(userId);
   const disputes = useAdminUserDisputes(userId);
   const timeLogs = useAdminUserTimeLogs(userId);
-  const editRequests = useAdminUserEditRequests(userId);
   const donations = useAdminUserDonations(userId);
 
   if (!user) return null;
@@ -131,7 +129,7 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
             )}
             {role === "service_provider" && <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>}
             {role === "donor" && <TabsTrigger value="donations">المنح</TabsTrigger>}
-            <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
+            
             <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
           </TabsList>
 
@@ -287,23 +285,6 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
               )}
             </TabsContent>
 
-            {/* Edit Requests Tab */}
-            <TabsContent value="editrequests">
-              {editRequests.isLoading ? <LoadingSkeleton /> : !editRequests.data?.length ? <EmptyState message="لا توجد طلبات تعديل" /> : (
-                <div className="space-y-3 pt-2">
-                  {editRequests.data.map((e: any) => (
-                    <div key={e.id} className="border rounded-lg p-4 space-y-1">
-                      <div className="flex justify-between items-start">
-                        <span className="font-medium">{e.target_table}</span>
-                        <Badge variant={e.status === "pending" ? "default" : "outline"}>{e.status === "pending" ? "قيد الانتظار" : e.status === "accepted" ? "مقبول" : "مرفوض"}</Badge>
-                      </div>
-                      {e.message && <p className="text-sm text-muted-foreground">{e.message}</p>}
-                      <p className="text-xs text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
             {/* Activity Log Tab */}
             <TabsContent value="activity">
               <EntityActivityLog tableName="profiles" recordId={userId} />
