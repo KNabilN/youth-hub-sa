@@ -7,7 +7,6 @@ import {
   useAdminUserContracts,
   useAdminUserDisputes,
   useAdminUserTimeLogs,
-  useAdminUserEditRequests,
   useAdminUserDonations,
 } from "@/hooks/useAdminUserDetails";
 import { useToggleVerification, useToggleSuspension, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
@@ -162,8 +161,6 @@ export default function AdminUserDetail() {
   const contracts = useAdminUserContracts(id ?? null);
   const disputes = useAdminUserDisputes(id ?? null);
   const timeLogs = useAdminUserTimeLogs(id ?? null);
-  const editRequests = useAdminUserEditRequests(id ?? null);
-
   const donations = useAdminUserDonations(id ?? null);
 
   const toggleVerify = useToggleVerification();
@@ -348,7 +345,7 @@ export default function AdminUserDetail() {
             )}
             {role === "service_provider" && <TabsTrigger value="timelogs">سجل الوقت</TabsTrigger>}
             {role === "donor" && <TabsTrigger value="donations">المنح</TabsTrigger>}
-            <TabsTrigger value="editrequests">طلبات التعديل</TabsTrigger>
+            
             <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
           </TabsList>
 
@@ -582,34 +579,6 @@ export default function AdminUserDetail() {
                         <span>{d.amount} ر.س</span>
                         <span>• {format(new Date(d.created_at), "yyyy/MM/dd", { locale: ar })}</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Edit Requests Tab */}
-          <TabsContent value="editrequests" className="mt-6">
-            {editRequests.isLoading ? (
-              <LoadingSkeleton />
-            ) : !editRequests.data?.length ? (
-              <EmptyState message="لا توجد طلبات تعديل" />
-            ) : (
-              <div className="grid gap-4">
-                {editRequests.data.map((e: any) => (
-                  <Card key={e.id}>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <span className="font-medium">{e.target_table}</span>
-                        <Badge variant={e.status === "pending" ? "default" : "outline"}>
-                          {e.status === "pending" ? "قيد الانتظار" : e.status === "accepted" ? "مقبول" : "مرفوض"}
-                        </Badge>
-                      </div>
-                      {e.message && <p className="text-sm text-muted-foreground mt-1">{e.message}</p>}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}
-                      </p>
                     </CardContent>
                   </Card>
                 ))}
