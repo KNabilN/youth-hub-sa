@@ -1,4 +1,6 @@
 import { useSiteContent } from "@/hooks/useSiteContent";
+import heroBg from "@/assets/hero-bg.jpg";
+import ctaBg from "@/assets/cta-bg.jpg";
 import { useLandingStats } from "@/hooks/useLandingStats";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Zap, Globe, CheckCircle2, Lock } from "lucide-react";
@@ -36,9 +38,11 @@ export default function Index() {
   return (
     <>
       {/* 1. Hero */}
-      <section className="relative py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-pattern" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl" />
+      <section className="relative py-24 px-4 overflow-hidden min-h-[520px] flex items-center">
+        <div className="absolute inset-0">
+          <img src={heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
+        </div>
         <div className="container mx-auto max-w-4xl text-center space-y-8 relative z-10">
           {h.badge && (
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-4 py-2 rounded-full animate-fade-in">
@@ -133,7 +137,10 @@ export default function Index() {
 
       {/* 8. CTA نهائي */}
       <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+        <div className="absolute inset-0">
+          <img src={ctaBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+          <div className="absolute inset-0 bg-background/60" />
+        </div>
         <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
           <h2 className="text-3xl font-bold">{ct.title}</h2>
           <p className="text-muted-foreground">{ct.description}</p>
