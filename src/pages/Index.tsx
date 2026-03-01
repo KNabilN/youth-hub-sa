@@ -38,30 +38,30 @@ export default function Index() {
   return (
     <>
       {/* 1. Hero */}
-      <section className="relative py-24 px-4 overflow-hidden min-h-[520px] flex items-center">
+      <section className="relative py-28 px-4 overflow-hidden min-h-[560px] flex items-center">
         <div className="absolute inset-0">
           <img src={heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
+          <div className="absolute inset-0 bg-[hsl(var(--primary))]/75" />
         </div>
         <div className="container mx-auto max-w-4xl text-center space-y-8 relative z-10">
           {h.badge && (
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-4 py-2 rounded-full animate-fade-in">
+            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
               <Zap className="w-4 h-4" />
               {h.badge}
             </div>
           )}
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-white drop-shadow-md">
             {h.title}
             <br />
-            <span className="gradient-text">{h.subtitle}</span>
+            <span className="text-white/90">{h.subtitle}</span>
           </h1>
           {h.description && (
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1" style={{ animationFillMode: "both" }}>
+            <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1" style={{ animationFillMode: "both" }}>
               {h.description}
             </p>
           )}
           <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
-            <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow text-base px-8" onClick={() => window.location.href = '/auth'}>
+            <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold" onClick={() => window.location.href = '/auth'}>
               {h.cta_text}
               <ArrowLeft className="me-2 h-4 w-4" />
             </Button>
