@@ -1,57 +1,101 @@
 
-# مراجعة وتحسين تناسق الواجهات لجميع الأدوار
+# مراجعة وإصلاح الربط بين قاعدة البيانات والأدوار المختلفة
 
-## ملخص المراجعة
-بعد فحص جميع صفحات مقدمي الخدمات والمانحين والجمعيات، وجدت عدة نقاط تحتاج إلى تحسين لضمان التناسق مع التحديثات الأخيرة في لوحة الإدارة.
+## المشاكل المكتشفة
 
-## المشاكل والتحسينات المطلوبة
+### 1. صفحة الشكاوى (MyDisputes) - الجمعيات لا ترى شكاوى مشاريعها
+**المشكلة:** hook `useMyDisputes` يفلتر النتائج بناءً على `raised_by === user.id || projects.assigned_provider_id === user.id` فقط. هذا يعني أن الجمعية لا ترى الشكاوى المرفوعة من مقدم الخدمة على مشاريعها.
 
-### 1. صفحة طلبات التعديل (EditRequests) - تفتقر لنمط التصميم الموحد
-**المشكلة:** الصفحة لا تتبع نمط "Page Header + Gradient Divider" المستخدم في باقي الصفحات.
-**الحل:** إضافة أيقونة وعنوان فرعي وفاصل تدريجي كباقي الصفحات.
+**الحل:** إضافة `d.projects?.association_id === user!.id` في الفلتر ضمن `src/hooks/useMyDisputes.ts`.
 
-### 2. صفحة تذاكر الدعم (SupportTickets) - عنوان قديم
-**المشكلة:** العنوان لا يزال "الدعم الفني" بينما تمت إزالة هذا الرابط وتغييره إلى "تذاكر الدعم" في القائمة الجانبية.
-**الحل:** تحديث العنوان إلى "تذاكر الدعم" والعنوان الفرعي.
+### 2. صفحة الشكاوى - الجمعيات لا تستطيع رفع شكاوى
+**المشكلة:** عند رفع شكوى جديدة، يُستخدم `useMyAssignedProjects` الذي يجلب المشاريع حيث `assigned_provider_id === user.id`. الجمعيات ليست مقدمي خدمة فلن تظهر لهم أي مشاريع في القائمة.
 
-### 3. استيراد غير مستخدم في Dashboard
-**المشكلة:** `RecentActivity` لا يزال مستوردا رغم إزالة استخدامه.
-**الحل:** حذف سطر الاستيراد.
+**الحل:** تعديل صفحة `src/pages/MyDisputes.tsx` لاستخدام hook مختلف حسب الدور:
+- للجمعيات: جلب المشاريع عبر `useProjects` (التي تستخدم `association_id`)
+- لمقدمي الخدمة: البقاء على `useMyAssignedProjects`
 
-### 4. صفحة تذاكر الدعم - عدم وجود رابط في القائمة الجانبية
-**المشكلة:** تم إزالة رابط "الدعم الفني" من القائمة الجانبية لكن صفحة `/tickets` لا تزال موجودة. المستخدمون لا يمكنهم الوصول إليها.
-**الحل:** إضافة رابط "تذاكر الدعم" في قسم "عام" بالقائمة الجانبية لجميع الأدوار (ماعدا المدير الذي لديه `/admin/tickets`).
+### 3. فلتر حالة المشاريع عند رفع شكوى
+**المشكلة:** حالياً يجلب `useMyAssignedProjects("in_progress")` فقط. الجمعية قد تحتاج لرفع شكوى على مشاريع بحالات أخرى مثل `completed`.
 
-### 5. صفحة الشكاوى (MyDisputes) - غير متاحة للجمعيات
-**المشكلة:** رابط "الشكاوى" موجود فقط لمقدمي الخدمة. الجمعيات لا يمكنها الوصول لصفحة الشكاوى رغم أنها قد تحتاج ذلك.
-**الحل:** إضافة رابط "الشكاوى" في قائمة الجمعية.
+**الحل:** تمرير قيم حالات إضافية عند جلب المشاريع لرفع الشكاوى (in_progress, completed).
 
-### 6. صفحة الفواتير (Invoices) - غير متاحة للجمعيات
-**المشكلة:** الفواتير متاحة فقط لمقدمي الخدمة، لكن الجمعيات أيضا لديها فواتير.
-**الحل:** إضافة رابط "الفواتير" في قائمة الجمعية.
+### 4. Realtime غير مفعل لجداول مهمة
+**المشكلة:** Realtime مفعل فقط لـ `notifications`, `edit_requests`, `messages`. جداول مهمة مثل `support_tickets`, `disputes`, `escrow_transactions` لا تحدث بشكل فوري.
+
+**الحل:** إضافة `support_tickets` و `disputes` إلى Realtime publication ليتمكن المستخدمون من رؤية التحديثات فوراً.
+
+### 5. عدم إبطال كاش الفواتير عند تحرير الضمان
+**المشكلة:** عند تحرير الضمان المالي (escrow release) وتوليد فاتورة، لا يتم إبطال كاش `my-invoices`، فلن تظهر الفاتورة الجديدة فوراً للمستخدم.
+
+**الحل:** إضافة invalidation لـ `my-invoices` في `useGenerateInvoice` hook.
+
+### 6. عدم إبطال كاش الأرباح عند تحرير الضمان
+**المشكلة:** `useReleaseEscrow` لا يبطل كاش `earnings` ولا `provider-stats`، فالأرباح لا تتحدث فوراً بعد التحرير.
+
+**الحل:** إضافة invalidation لـ `earnings` و `provider-stats` في `useReleaseEscrow`.
+
+### 7. عدم إبطال كاش طلبات السحب عند الموافقة
+**المشكلة:** `useUpdateWithdrawalStatus` يبطل فقط `admin-withdrawals` ولا يبطل `withdrawals` الخاص بمقدم الخدمة.
+
+**الحل:** إضافة invalidation لـ `withdrawals` في `useUpdateWithdrawalStatus`.
 
 ## التفاصيل التقنية
 
 ### الملفات المتأثرة:
 
-1. **`src/pages/EditRequests.tsx`** - إضافة Page Header مع أيقونة + gradient divider
-2. **`src/pages/SupportTickets.tsx`** - تغيير "الدعم الفني" إلى "تذاكر الدعم"
-3. **`src/pages/Dashboard.tsx`** - حذف استيراد `RecentActivity` غير المستخدم
-4. **`src/components/AppSidebar.tsx`** - إضافة "تذاكر الدعم" و"الشكاوى" و"الفواتير" للأدوار المناسبة
+1. **`src/hooks/useMyDisputes.ts`** - إضافة فلتر `association_id` للجمعيات
+2. **`src/pages/MyDisputes.tsx`** - استخدام hook المشاريع المناسب حسب الدور (useProjects للجمعيات)
+3. **`src/hooks/useInvoices.ts`** - إضافة cache invalidation لـ `my-invoices`
+4. **`src/hooks/useEscrow.ts`** - إضافة cache invalidation لـ `earnings` و `provider-stats`
+5. **`src/hooks/useWithdrawals.ts`** - إضافة cache invalidation لـ `withdrawals`
+6. **Migration SQL** - إضافة `support_tickets` و `disputes` إلى Realtime
 
-### تفاصيل تعديل القائمة الجانبية:
+### تفصيل التعديلات:
 
-- **youth_association:** إضافة الشكاوى (`/my-disputes`) والفواتير (`/invoices`)
-- **جميع الأدوار (ماعدا المدير):** إضافة "تذاكر الدعم" (`/tickets`) في قسم "عام"
-
-### تفاصيل تعديل EditRequests:
+**useMyDisputes.ts:**
 ```text
-+------------------------------------------+
-|  [أيقونة FileEdit]  طلبات التعديل        |
-|  طلبات التعديل المرسلة من المدير          |  <- Header موحد
-+------------------------------------------+
-|  ========= gradient divider ============ |
-+------------------------------------------+
-|  ... المحتوى الحالي ...                   |
-+------------------------------------------+
+// قبل
+filter: raised_by === user.id || assigned_provider_id === user.id
+
+// بعد  
+filter: raised_by === user.id || assigned_provider_id === user.id || association_id === user.id
+```
+
+**MyDisputes.tsx:**
+```text
+// إضافة useAuth للتحقق من الدور
+// إذا youth_association: جلب المشاريع بحالات in_progress أو completed
+// إذا service_provider: استخدام useMyAssignedProjects كما هو
+```
+
+**useEscrow.ts - useReleaseEscrow:**
+```text
+onSuccess: () => {
+  qc.invalidateQueries({ queryKey: ["escrow"] });
+  qc.invalidateQueries({ queryKey: ["earnings"] });
+  qc.invalidateQueries({ queryKey: ["provider-stats"] });
+}
+```
+
+**useInvoices.ts - useGenerateInvoice:**
+```text
+onSuccess: () => {
+  qc.invalidateQueries({ queryKey: ["invoices"] });
+  qc.invalidateQueries({ queryKey: ["my-invoices"] });
+}
+```
+
+**useWithdrawals.ts - useUpdateWithdrawalStatus:**
+```text
+onSuccess: () => {
+  qc.invalidateQueries({ queryKey: ["admin-withdrawals"] });
+  qc.invalidateQueries({ queryKey: ["withdrawals"] });
+}
+```
+
+**Migration:**
+```text
+ALTER PUBLICATION supabase_realtime ADD TABLE public.support_tickets;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.disputes;
 ```
