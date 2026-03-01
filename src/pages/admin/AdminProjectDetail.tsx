@@ -1,0 +1,337 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { useUpdateProjectStatus, useAdminUpdateProject } from "@/hooks/useAdminProjects";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowRight, FileEdit, Tag, MapPin, Calendar, DollarSign, Clock, Users, Eye, Lock } from "lucide-react";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { toast } from "sonner";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import { BidList } from "@/components/bids/BidList";
+import { ContractTimeline } from "@/components/contracts/ContractTimeline";
+import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Database } from "@/integrations/supabase/types";
+
+type ProjectStatus = Database["public"]["Enums"]["project_status"];
+
+const statusLabels: Record<string, string> = {
+  draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
+  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
+  suspended: "معلق", archived: "مؤرشف",
+};
+
+const statusColors: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
+  open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
+  completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
+  cancelled: "bg-muted text-muted-foreground",
+  suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
+};
+
+const projectFields: DirectEditFieldConfig[] = [
+  { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف", type: "textarea" },
+  { key: "budget", label: "الميزانية", type: "number" },
+  { key: "estimated_hours", label: "الساعات المقدرة", type: "number" },
+  { key: "category_id", label: "التصنيف", type: "select", selectSource: "categories" },
+  { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
+];
+
+export default function AdminProjectDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const updateStatus = useUpdateProjectStatus();
+  const updateProject = useAdminUpdateProject();
+  const [editOpen, setEditOpen] = useState(false);
+
+  const { data: project, isLoading, error } = useQuery({
+    queryKey: ["admin-project-detail", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*, categories(name), regions(name), profiles!projects_association_id_fkey(id, full_name, avatar_url, organization_name), assigned_provider:profiles!projects_assigned_provider_id_fkey(id, full_name, avatar_url)")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: contract } = useQuery({
+    queryKey: ["admin-project-contract", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contracts")
+        .select("*, profiles:provider_id(full_name)")
+        .eq("project_id", id!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: escrow } = useQuery({
+    queryKey: ["admin-project-escrow", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("escrow_transactions")
+        .select("*")
+        .eq("project_id", id!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: bidsCount } = useQuery({
+    queryKey: ["admin-project-bids-count", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("bids")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", id!);
+      return count ?? 0;
+    },
+  });
+
+  const handleStatusChange = (status: ProjectStatus) => {
+    if (!id) return;
+    updateStatus.mutate(
+      { id, status },
+      {
+        onSuccess: () => toast.success("تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
+      }
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-16 space-y-4">
+          <p className="text-muted-foreground">لم يتم العثور على الطلب</p>
+          <Button variant="outline" onClick={() => navigate("/admin/projects")}>
+            <ArrowRight className="h-4 w-4 me-1" />العودة للقائمة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const association = project.profiles as any;
+  const assignedProvider = project.assigned_provider as any;
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6 max-w-5xl">
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/admin/projects")}>
+            <ArrowRight className="h-4 w-4 me-1" />العودة لطلبات الجمعيات
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <FileEdit className="h-4 w-4 me-1" />تعديل
+          </Button>
+        </div>
+
+        {/* Title & Status */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold">{project.title}</h1>
+            <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+            {project.is_private && (
+              <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />خاص</Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground">{project.description}</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Skills */}
+            {project.required_skills && project.required_skills.length > 0 && (
+              <div className="space-y-2">
+                <h2 className="text-sm font-semibold text-muted-foreground">المهارات المطلوبة</h2>
+                <div className="flex flex-wrap gap-2">
+                  {project.required_skills.map((skill) => (
+                    <Badge key={skill} variant="outline">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tabs: Bids, Contract, Activity */}
+            <Tabs defaultValue="bids" dir="rtl">
+              <TabsList>
+                <TabsTrigger value="bids">العروض ({bidsCount ?? 0})</TabsTrigger>
+                <TabsTrigger value="contract">العقد</TabsTrigger>
+                <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
+              </TabsList>
+              <TabsContent value="bids" className="mt-4">
+                <BidList projectId={project.id} />
+              </TabsContent>
+              <TabsContent value="contract" className="mt-4">
+                {contract ? (
+                  <Card>
+                    <CardContent className="pt-6 space-y-3 text-sm">
+                      <p>{contract.terms}</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <span className="text-muted-foreground">توقيع الجمعية:</span>
+                        <span>{contract.association_signed_at ? new Date(contract.association_signed_at).toLocaleDateString("ar-SA") : "لم يوقّع بعد"}</span>
+                        <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
+                        <span>{contract.provider_signed_at ? new Date(contract.provider_signed_at).toLocaleDateString("ar-SA") : "لم يوقّع بعد"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">لا يوجد عقد بعد</p>
+                )}
+              </TabsContent>
+              <TabsContent value="activity" className="mt-4">
+                <EntityActivityLog tableName="projects" recordId={project.id} />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-4">
+            {/* Status Change */}
+            <Card>
+              <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+                <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(statusLabels).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Association */}
+            {association && (
+              <Card>
+                <CardHeader><CardTitle className="text-sm">الجمعية</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={association.avatar_url} />
+                      <AvatarFallback>{association.full_name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-sm">{association.full_name}</p>
+                      {association.organization_name && (
+                        <p className="text-xs text-muted-foreground">{association.organization_name}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Assigned Provider */}
+            {assignedProvider && (
+              <Card>
+                <CardHeader><CardTitle className="text-sm">مقدم الخدمة المعين</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={assignedProvider.avatar_url} />
+                      <AvatarFallback>{assignedProvider.full_name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-medium text-sm">{assignedProvider.full_name}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Meta Info */}
+            <Card>
+              <CardContent className="pt-6 space-y-3 text-sm">
+                {project.budget && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-4 w-4" />
+                    <span>الميزانية: {project.budget?.toLocaleString()} ر.س</span>
+                  </div>
+                )}
+                {project.estimated_hours && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>الساعات المقدرة: {project.estimated_hours}</span>
+                  </div>
+                )}
+                {(project.categories as any)?.name && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Tag className="h-4 w-4" />
+                    <span>{(project.categories as any).name}</span>
+                  </div>
+                )}
+                {(project.regions as any)?.name && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{(project.regions as any).name}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span>{bidsCount ?? 0} عرض مقدم</span>
+                </div>
+                {escrow && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <DollarSign className="h-4 w-4" />
+                    <span>الضمان: {escrow.amount?.toLocaleString()} ر.س ({escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status})</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>{format(new Date(project.created_at), "yyyy/MM/dd", { locale: ar })}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {editOpen && (
+        <AdminDirectEditDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          currentValues={project}
+          fields={projectFields}
+          title="تعديل الطلب"
+          isPending={updateProject.isPending}
+          onSave={async (updates) => {
+            await updateProject.mutateAsync({ id: project.id, ...updates });
+          }}
+        />
+      )}
+    </DashboardLayout>
+  );
+}

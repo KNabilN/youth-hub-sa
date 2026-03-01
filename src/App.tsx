@@ -72,6 +72,7 @@ const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
 const AdminServiceDetail = lazy(() => import("./pages/admin/AdminServiceDetail"));
+const AdminProjectDetail = lazy(() => import("./pages/admin/AdminProjectDetail"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
@@ -158,6 +159,7 @@ const App = () => (
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/users/:id" element={<AdminRoute><SuspenseWrap><AdminUserDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/projects" element={<AdminRoute><SuspenseWrap><AdminProjects /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/projects/:id" element={<AdminRoute><SuspenseWrap><AdminProjectDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/services" element={<AdminRoute><SuspenseWrap><AdminServices /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/services/:id" element={<AdminRoute><SuspenseWrap><AdminServiceDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/disputes" element={<AdminRoute><SuspenseWrap><AdminDisputes /></SuspenseWrap></AdminRoute>} />
