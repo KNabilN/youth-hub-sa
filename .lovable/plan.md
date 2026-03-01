@@ -1,37 +1,79 @@
 
 
-# Improve Admin Finance Page - UI Polish & Info Tooltips
+# تطبيق فلتر المناطق على جميع الرسومات البيانية والتصدير
 
-## Changes
+## المشكلة الحالية
+فلتر المنطقة يعمل فقط على رسم "الطلبات حسب الحالة" ورسم "الطلبات حسب المنطقة" وتصدير CSV للطلبات. باقي الرسومات والتصدير لا تتأثر بالفلتر.
 
-### 1. FinanceSummary.tsx - Better Wording + Info Tooltips
+## الحل المقترح
 
-Update the summary cards with clearer Arabic labels and add an (i) icon tooltip to each card explaining what the metric means.
+### الرسومات التي ستتأثر بفلتر المنطقة
 
-**Updated card definitions:**
+| الرسم البياني | طريقة الربط بالمنطقة |
+|---|---|
+| الطلبات حسب الحالة | مباشر - `projects.region_id` (موجود) |
+| الطلبات حسب المنطقة | مباشر (موجود) |
+| الخدمات حسب التصنيف | مباشر - `micro_services.region_id` |
+| حالة الخدمات | مباشر - `micro_services.region_id` |
+| المنح الشهرية | عبر الطلبات - `donor_contributions.project_id` -> `projects.region_id` |
+| المعاملات المالية الشهرية | عبر الطلبات - `escrow_transactions.project_id` -> `projects.region_id` |
+| تحليلات المانحين | عبر الطلبات - `donor_contributions.project_id` -> `projects.region_id` |
+| مساهمات المانحين | نفس الطريقة |
 
-| Current Label | New Label | Tooltip Description |
-|---|---|---|
-| الضمان المحتجز | الضمان المحتجز | مبالغ محجوزة بانتظار اكتمال الطلب وتأكيد التسليم |
-| المجمد | الضمان المجمّد | مبالغ تم تجميدها مؤقتاً بسبب شكوى أو مراجعة إدارية |
-| المبالغ المحررة | المبالغ المحرّرة | مبالغ تم تحريرها لمقدمي الخدمات بعد اكتمال الطلب بنجاح |
-| المسترد | المبالغ المستردة | مبالغ تم إعادتها للجمعيات بعد إلغاء أو رفض الطلب |
-| إجمالي العمولات | إيرادات العمولات | إجمالي العمولات المحصّلة من المنصة على جميع المعاملات المكتملة |
-| عدد الفواتير | عدد الفواتير الصادرة | إجمالي عدد الفواتير الإلكترونية التي تم إصدارها عبر المنصة |
+**لن يتأثر بالفلتر:**
+- المستخدمين حسب الدور (لا توجد علاقة مباشرة بالمنطقة)
+- توزيع أسعار الساعة (بيانات عامة لمقدمي الخدمات)
 
-**Implementation:**
-- Import `Tooltip, TooltipTrigger, TooltipContent, TooltipProvider` and `Info` icon from lucide-react
-- Add a `description` field to each item in the items array
-- Render a small `Info` icon wrapped in a Tooltip next to each card title
-- Wrap the grid in `TooltipProvider`
+### التصدير (CSV) الذي سيتأثر
 
-### 2. AdminFinance.tsx - Page Header Enhancement
+| التصدير | الطريقة |
+|---|---|
+| تصدير الطلبات | موجود بالفعل |
+| تصدير الخدمات | فلتر `region_id` مباشر |
+| تصدير المالية (الضمان) | عبر `project_id` -> `projects.region_id` |
+| تصدير الفواتير | عبر `escrow_id` -> `escrow_transactions.project_id` -> `projects.region_id` |
 
-Update the page title from the plain `<h1>` to include a subtitle for context:
-- Title: "النظرة المالية"
-- Subtitle: "إدارة الضمان المالي والفواتير وطلبات السحب"
+**PDF:** سيُصدّر البيانات المفلترة تلقائياً لأنه يعتمد على نفس البيانات المعروضة.
 
-### Files to Edit
-1. `src/components/admin/FinanceSummary.tsx` -- add tooltips, improve labels
-2. `src/pages/admin/AdminFinance.tsx` -- improve header with description
+---
+
+### التفاصيل التقنية
+
+#### ملف واحد: `src/pages/admin/AdminReports.tsx`
+
+**1. إضافة دالة مساعدة لجلب معرّفات الطلبات حسب المنطقة:**
+
+عند اختيار منطقة، نجلب أولاً قائمة `project_id` المرتبطة بتلك المنطقة، ثم نستخدمها لتصفية الجداول المرتبطة (الضمان، المنح).
+
+```text
+regionId selected?
+    |
+    YES --> fetch project IDs where region_id = regionId
+    |         |
+    |         v
+    |    use .in("project_id", projectIds) on:
+    |      - escrow_transactions
+    |      - donor_contributions
+    |
+    NO --> no filter applied
+```
+
+**2. تعديل الاستعلامات:**
+
+- `servicesByCategory`: إضافة `if (regionId) q = q.eq("region_id", regionId)`
+- `serviceApprovalStats`: نفس الشيء
+- `monthlyDonations`: جلب project IDs أولاً ثم `.in("project_id", ids)`
+- `monthlyEscrow`: نفس الطريقة
+- `donorAnalytics`: نفس الطريقة
+- إضافة `regionId` لـ `queryKey` في كل استعلام لإعادة الجلب عند تغيير الفلتر
+
+**3. تعديل دوال التصدير CSV:**
+
+- `exportServices`: إضافة فلتر المنطقة
+- `exportFinancial`: فلتر عبر project IDs
+- `exportInvoices`: فلتر عبر escrow -> project IDs
+
+**4. استعلام مشترك لجلب project IDs حسب المنطقة:**
+
+إنشاء `useQuery` لجلب قائمة معرّفات الطلبات عند اختيار منطقة، يُعاد استخدامه في كل الاستعلامات المرتبطة.
 
