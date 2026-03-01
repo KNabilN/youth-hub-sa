@@ -10,7 +10,6 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { format, parseISO, startOfMonth } from "date-fns";
 import { Download, ChevronDown, FileText, Printer } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
-import { PeriodComparison } from "@/components/admin/PeriodComparison";
 import { generateReportPDF, captureChartAsImage } from "@/lib/report-pdf";
 import { toast } from "sonner";
 
@@ -363,8 +362,6 @@ export default function AdminReports() {
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
         </div>
 
-        {/* Period Comparison */}
-        <PeriodComparison dateFrom={filters.dateFrom} dateTo={filters.dateTo} regionId={filters.regionId} />
 
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
