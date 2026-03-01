@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
 import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
 import { useAllWithdrawals, useUpdateWithdrawalStatus } from "@/hooks/useWithdrawals";
+import { useAdminBankTransfers, useApproveBankTransfer, useRejectBankTransfer } from "@/hooks/useBankTransfer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,13 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -43,12 +46,18 @@ export default function AdminFinance() {
   const { data: escrows, isLoading: loadingEscrow } = useEscrowTransactions();
   const { data: invoices, isLoading: loadingInvoices } = useInvoices();
   const { data: withdrawals, isLoading: loadingW } = useAllWithdrawals();
+  const { data: bankTransfers, isLoading: loadingBT } = useAdminBankTransfers();
   const updateW = useUpdateWithdrawalStatus();
   const updateEscrow = useUpdateEscrowStatus();
+  const approveBT = useApproveBankTransfer();
+  const rejectBT = useRejectBankTransfer();
   const { data: templateContent } = useSiteContent("invoice_template");
   const queryClient = useQueryClient();
   const [escrowFilter, setEscrowFilter] = useState("all");
   const [invoiceFilter, setInvoiceFilter] = useState("all");
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<{ transferId: string; escrowId: string } | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
@@ -121,6 +130,7 @@ export default function AdminFinance() {
             <TabsTrigger value="escrow">الضمان</TabsTrigger>
             <TabsTrigger value="invoices">الفواتير</TabsTrigger>
             <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
+            <TabsTrigger value="bank-transfers">التحويلات البنكية</TabsTrigger>
           </TabsList>
           <TabsContent value="escrow">
             <div className="flex flex-wrap gap-3 items-end mb-4">
@@ -349,7 +359,125 @@ export default function AdminFinance() {
               </div>
             )}
           </TabsContent>
+          <TabsContent value="bank-transfers">
+            {loadingBT ? (
+              <div className="border rounded-lg p-4 space-y-3">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>المستخدم</TableHead>
+                      <TableHead>المبلغ</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>الإيصال</TableHead>
+                      <TableHead>إجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(bankTransfers ?? []).map((bt: any) => {
+                      const statusLabel = bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض";
+                      const statusColor = bt.status === "pending" ? "bg-orange-500/10 text-orange-600" : bt.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
+                      return (
+                        <TableRow key={bt.id}>
+                          <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(bt.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                const { data } = await supabase.storage.from("transfer-receipts").createSignedUrl(bt.receipt_url, 300);
+                                if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                else toast.error("تعذر فتح الإيصال");
+                              }}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 me-1" />عرض
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            {bt.status === "pending" ? (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    approveBT.mutate({ transferId: bt.id, escrowId: bt.escrow_id }, {
+                                      onSuccess: () => toast.success("تمت الموافقة على التحويل"),
+                                      onError: () => toast.error("حدث خطأ"),
+                                    });
+                                  }}
+                                  disabled={approveBT.isPending}
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5 me-1" />موافقة
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setRejectTarget({ transferId: bt.id, escrowId: bt.escrow_id });
+                                    setRejectNote("");
+                                    setRejectDialogOpen(true);
+                                  }}
+                                  disabled={rejectBT.isPending}
+                                >
+                                  <XCircle className="h-3.5 w-3.5 me-1" />رفض
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">{bt.admin_note || "—"}</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {(bankTransfers ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد تحويلات بنكية</TableCell></TableRow>}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
+
+        {/* Reject Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>رفض التحويل البنكي</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Label>سبب الرفض (اختياري)</Label>
+              <Textarea
+                value={rejectNote}
+                onChange={(e) => setRejectNote(e.target.value)}
+                placeholder="اكتب سبب الرفض..."
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
+              <Button
+                variant="destructive"
+                disabled={rejectBT.isPending}
+                onClick={() => {
+                  if (!rejectTarget) return;
+                  rejectBT.mutate({ ...rejectTarget, adminNote: rejectNote }, {
+                    onSuccess: () => {
+                      toast.success("تم رفض التحويل");
+                      setRejectDialogOpen(false);
+                    },
+                    onError: () => toast.error("حدث خطأ"),
+                  });
+                }}
+              >
+                تأكيد الرفض
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

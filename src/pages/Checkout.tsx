@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
+import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,9 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StepProgress } from "@/components/ui/step-progress";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -20,16 +23,34 @@ const checkoutSteps = [
   { label: "التأكيد" },
 ];
 
+const BANK_INFO = {
+  bank: "مصرف الراجحي",
+  accountName: "شركة معين التنموية لحلول الاعمال",
+  accountNumber: "161000010006080221187",
+};
+
 export default function Checkout() {
   const { user } = useAuth();
   const { data: items, isLoading } = useCartItems();
   const purchase = usePurchaseService();
+  const bankTransfer = useCreateBankTransfer();
   const clearCart = useClearCart();
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [copied, setCopied] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+
+  const handleCopyAccount = () => {
+    navigator.clipboard.writeText(BANK_INFO.accountNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("تم نسخ رقم الحساب");
+  };
 
   const handleCheckout = async () => {
     if (!user || !items?.length) return;
@@ -37,16 +58,36 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
-      for (const item of items) {
-        await purchase.mutateAsync({
-          serviceId: item.micro_services.id,
-          providerId: item.micro_services.provider_id,
-          buyerId: user.id,
-          amount: item.micro_services.price,
+      if (paymentMethod === "electronic") {
+        for (const item of items) {
+          await purchase.mutateAsync({
+            serviceId: item.micro_services.id,
+            providerId: item.micro_services.provider_id,
+            buyerId: user.id,
+            amount: item.micro_services.price,
+          });
+        }
+        await clearCart.mutateAsync();
+        navigate("/payment-success", { state: { total, count: items.length, method: "electronic" } });
+      } else {
+        if (!receiptFile) {
+          toast.error("يرجى رفع صورة إيصال التحويل");
+          setProcessing(false);
+          return;
+        }
+        await bankTransfer.mutateAsync({
+          receiptFile,
+          amount: total,
+          userId: user.id,
+          items: items.map((item) => ({
+            serviceId: item.micro_services.id,
+            providerId: item.micro_services.provider_id,
+            price: item.micro_services.price,
+          })),
         });
+        await clearCart.mutateAsync();
+        navigate("/payment-success", { state: { total, count: items.length, method: "bank_transfer" } });
       }
-      await clearCart.mutateAsync();
-      navigate("/payment-success", { state: { total, count: items.length } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
@@ -72,10 +113,8 @@ export default function Checkout() {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-3xl mx-auto">
-        {/* Step Progress */}
         <StepProgress steps={checkoutSteps} currentStep={2} className="mb-2" />
 
-        {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")}>
             <ArrowLeft className="h-5 w-5" />
@@ -87,8 +126,8 @@ export default function Checkout() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          {/* Order Details */}
           <div className="md:col-span-3 space-y-4">
+            {/* Order Details */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -122,11 +161,145 @@ export default function Checkout() {
               </CardContent>
             </Card>
 
+            {/* Payment Method Selection */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">طريقة الدفع</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer")}
+                  className="space-y-3"
+                >
+                  <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
+                    <RadioGroupItem value="electronic" id="electronic" />
+                    <Label htmlFor="electronic" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">دفع إلكتروني</p>
+                        <p className="text-xs text-muted-foreground">يتم الدفع فوراً وحجز المبلغ في الضمان</p>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-border"}`}>
+                    <RadioGroupItem value="bank_transfer" id="bank_transfer" />
+                    <Label htmlFor="bank_transfer" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">تحويل بنكي</p>
+                        <p className="text-xs text-muted-foreground">حوّل المبلغ وارفع إيصال التحويل للمراجعة</p>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
+            {/* Bank Transfer Details */}
+            {paymentMethod === "bank_transfer" && (
+              <Card className="border-primary/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    بيانات الحساب البنكي
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">البنك</span>
+                      <span className="font-medium">{BANK_INFO.bank}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">اسم الحساب</span>
+                      <span className="font-medium text-sm">{BANK_INFO.accountName}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-sm text-muted-foreground">رقم الحساب</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-medium text-sm">{BANK_INFO.accountNumber}</span>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyAccount}>
+                          {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">المبلغ المطلوب</span>
+                      <span className="font-bold text-primary">{total.toLocaleString()} ر.س</span>
+                    </div>
+                  </div>
+
+                  {/* Receipt Upload */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">إيصال التحويل</Label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("الحد الأقصى لحجم الملف 5 ميجابايت");
+                            return;
+                          }
+                          setReceiptFile(file);
+                        }
+                      }}
+                    />
+                    {receiptFile ? (
+                      <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Upload className="h-5 w-5 text-primary" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{receiptFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(receiptFile.size / 1024).toFixed(0)} كيلوبايت
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setReceiptFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                        >
+                          تغيير
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="w-full h-20 border-dashed"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-sm">اضغط لرفع صورة الإيصال</span>
+                          <span className="text-[10px] text-muted-foreground">PNG, JPG, PDF (حد أقصى 5MB)</span>
+                        </div>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span>سيتم حجز المبلغ في نظام الضمان المالي حتى إتمام الخدمة</span>
+                  <span>
+                    {paymentMethod === "electronic"
+                      ? "سيتم حجز المبلغ في نظام الضمان المالي حتى إتمام الخدمة"
+                      : "سيتم مراجعة إيصال التحويل من الإدارة وحجز المبلغ بعد الموافقة"}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -148,6 +321,12 @@ export default function Checkout() {
                     <span className="text-muted-foreground">المجموع الفرعي</span>
                     <span>{total.toLocaleString()} ر.س</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">طريقة الدفع</span>
+                    <Badge variant="outline">
+                      {paymentMethod === "electronic" ? "دفع إلكتروني" : "تحويل بنكي"}
+                    </Badge>
+                  </div>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
@@ -158,7 +337,13 @@ export default function Checkout() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={() => setConfirmOpen(true)}
+                  onClick={() => {
+                    if (paymentMethod === "bank_transfer" && !receiptFile) {
+                      toast.error("يرجى رفع صورة إيصال التحويل أولاً");
+                      return;
+                    }
+                    setConfirmOpen(true);
+                  }}
                   disabled={processing}
                 >
                   {processing ? (
@@ -166,10 +351,15 @@ export default function Checkout() {
                       <Loader2 className="h-4 w-4 me-2 animate-spin" />
                       جارٍ المعالجة...
                     </>
-                  ) : (
+                  ) : paymentMethod === "electronic" ? (
                     <>
                       <CreditCard className="h-4 w-4 me-2" />
                       تأكيد الدفع — {total.toLocaleString()} ر.س
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 me-2" />
+                      إرسال إيصال التحويل
                     </>
                   )}
                 </Button>
@@ -185,9 +375,13 @@ export default function Checkout() {
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="تأكيد عملية الدفع"
-          description={`هل تريد تأكيد دفع ${total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`}
-          confirmLabel="تأكيد الدفع"
+          title={paymentMethod === "electronic" ? "تأكيد عملية الدفع" : "تأكيد إرسال إيصال التحويل"}
+          description={
+            paymentMethod === "electronic"
+              ? `هل تريد تأكيد دفع ${total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
+              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
+          }
+          confirmLabel={paymentMethod === "electronic" ? "تأكيد الدفع" : "إرسال الإيصال"}
           cancelLabel="مراجعة الطلب"
           loading={processing}
           onConfirm={handleCheckout}
