@@ -114,7 +114,7 @@ export default function AdminReports() {
     queryFn: async () => {
       const { data } = await supabase.from("user_roles").select("role, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
       const counts: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => { counts[r.role] = (counts[r.role] || 0) + 1; });
+      (data ?? []).filter((r: any) => r.role !== "super_admin").forEach((r: any) => { counts[r.role] = (counts[r.role] || 0) + 1; });
       return Object.entries(counts).map(([name, value]) => ({ name: roleLabels[name] || name, value }));
     },
   });
