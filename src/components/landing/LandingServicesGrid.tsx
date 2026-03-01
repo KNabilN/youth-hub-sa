@@ -49,9 +49,10 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
           <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
             {services.map((s) => {
               return (
-                <article
+                <Link
+                  to={`/services/${s.id}`}
                   key={s.id}
-                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 min-w-[320px] w-[320px] shrink-0 snap-start"
+                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 min-w-[320px] w-[320px] shrink-0 snap-start block"
                 >
                   {/* Top row: category + price */}
                   <div className="flex items-center justify-between gap-3">
@@ -86,7 +87,7 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
                       </span>
                     )}
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>
