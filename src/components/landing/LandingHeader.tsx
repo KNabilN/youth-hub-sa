@@ -34,7 +34,6 @@ export default function LandingHeader() {
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-3">
               <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-14 w-auto object-contain" />
-              <span className="font-bold text-lg hidden sm:inline">{hd.site_name}</span>
             </Link>
           </div>
 
