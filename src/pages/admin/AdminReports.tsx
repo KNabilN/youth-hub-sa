@@ -96,6 +96,17 @@ export default function AdminReports() {
   const dateTo = filters.dateTo.toISOString();
   const regionId = filters.regionId;
 
+  // --- Helper: fetch project IDs for selected region (used by related tables) ---
+  const { data: regionProjectIds } = useQuery({
+    queryKey: ["region-project-ids", regionId],
+    queryFn: async () => {
+      if (!regionId) return null;
+      const { data } = await supabase.from("projects").select("id").eq("region_id", regionId);
+      return (data ?? []).map((p: any) => p.id);
+    },
+    enabled: !!regionId,
+  });
+
   // --- Filtered queries ---
   const { data: projectsByStatus } = useQuery({
     queryKey: ["admin-report-projects-status", dateFrom, dateTo, regionId],
@@ -120,9 +131,14 @@ export default function AdminReports() {
   });
 
   const { data: monthlyDonations } = useQuery({
-    queryKey: ["admin-report-donations", dateFrom, dateTo],
+    queryKey: ["admin-report-donations", dateFrom, dateTo, regionId],
     queryFn: async () => {
-      const { data } = await supabase.from("donor_contributions").select("amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+      let q = supabase.from("donor_contributions").select("amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId && regionProjectIds) {
+        if (regionProjectIds.length === 0) return [];
+        q = q.in("project_id", regionProjectIds);
+      }
+      const { data } = await q;
       const months: Record<string, number> = {};
       (data ?? []).forEach((d: any) => {
         const key = format(startOfMonth(parseISO(d.created_at)), "yyyy-MM");
@@ -133,9 +149,11 @@ export default function AdminReports() {
   });
 
   const { data: servicesByCategory } = useQuery({
-    queryKey: ["admin-report-services-category", dateFrom, dateTo],
+    queryKey: ["admin-report-services-category", dateFrom, dateTo, regionId],
     queryFn: async () => {
-      const { data } = await supabase.from("micro_services").select("category_id, categories(name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+      let q = supabase.from("micro_services").select("category_id, categories(name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId) q = q.eq("region_id", regionId);
+      const { data } = await q;
       const counts: Record<string, number> = {};
       (data ?? []).forEach((s: any) => {
         const name = s.categories?.name || "بدون تصنيف";
@@ -159,9 +177,11 @@ export default function AdminReports() {
   });
 
   const { data: serviceApprovalStats } = useQuery({
-    queryKey: ["admin-report-service-approval", dateFrom, dateTo],
+    queryKey: ["admin-report-service-approval", dateFrom, dateTo, regionId],
     queryFn: async () => {
-      const { data } = await supabase.from("micro_services").select("approval").gte("created_at", dateFrom).lte("created_at", dateTo);
+      let q = supabase.from("micro_services").select("approval").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId) q = q.eq("region_id", regionId);
+      const { data } = await q;
       const counts: Record<string, number> = {};
       (data ?? []).forEach((s: any) => { counts[s.approval] = (counts[s.approval] || 0) + 1; });
       const labels: Record<string, string> = { pending: "قيد المراجعة", approved: "معتمد", rejected: "مرفوض" };
@@ -170,9 +190,14 @@ export default function AdminReports() {
   });
 
   const { data: monthlyEscrow } = useQuery({
-    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo],
+    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo, regionId],
     queryFn: async () => {
-      const { data } = await supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+      let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId && regionProjectIds) {
+        if (regionProjectIds.length === 0) return [];
+        q = q.in("project_id", regionProjectIds);
+      }
+      const { data } = await q;
       const months: Record<string, { total: number; released: number }> = {};
       (data ?? []).forEach((e: any) => {
         const key = format(startOfMonth(parseISO(e.created_at)), "yyyy-MM");
@@ -201,9 +226,14 @@ export default function AdminReports() {
   });
 
   const { data: donorAnalytics } = useQuery({
-    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo],
+    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId],
     queryFn: async () => {
-      const { data } = await supabase.from("donor_contributions").select("donor_id, amount, project_id, association_id, projects(title), profiles!donor_contributions_donor_id_fkey(full_name, organization_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+      let q = supabase.from("donor_contributions").select("donor_id, amount, project_id, association_id, projects(title), profiles!donor_contributions_donor_id_fkey(full_name, organization_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId && regionProjectIds) {
+        if (regionProjectIds.length === 0) return { totalDonors: 0, totalGrants: 0, byProject: [], perDonor: [] };
+        q = q.in("project_id", regionProjectIds);
+      }
+      const { data } = await q;
       const donors = new Set((data ?? []).map((d: any) => d.donor_id));
       const totalGrants = (data ?? []).reduce((s, d: any) => s + Number(d.amount), 0);
       const byProject: Record<string, number> = {};
@@ -255,17 +285,31 @@ export default function AdminReports() {
       (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
   };
   const exportServices = async () => {
-    const { data } = await supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+    let q = supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+    if (regionId) q = q.eq("region_id", regionId);
+    const { data } = await q;
     downloadCSV("services.csv", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((s: any) => [s.title, (s.profiles as any)?.full_name ?? "", s.price, (s.categories as any)?.name ?? "", s.approval, s.created_at?.slice(0, 10)]));
   };
   const exportFinancial = async () => {
-    const { data } = await supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+    let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+    if (regionId && regionProjectIds?.length) q = q.in("project_id", regionProjectIds);
+    const { data } = await q;
     downloadCSV("financial.csv", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((e: any) => [e.amount, e.status, e.created_at?.slice(0, 10)]));
   };
   const exportInvoices = async () => {
-    const { data } = await supabase.from("invoices").select("invoice_number, amount, commission_amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+    let escrowIds: string[] | null = null;
+    if (regionId && regionProjectIds?.length) {
+      const { data: escrows } = await supabase.from("escrow_transactions").select("id").in("project_id", regionProjectIds);
+      escrowIds = (escrows ?? []).map((e: any) => e.id);
+    }
+    let q = supabase.from("invoices").select("invoice_number, amount, commission_amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
+    if (escrowIds !== null) {
+      if (escrowIds.length === 0) { downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"], []); return; }
+      q = q.in("escrow_id", escrowIds);
+    }
+    const { data } = await q;
     downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
       (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
   };

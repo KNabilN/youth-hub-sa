@@ -46,6 +46,13 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
       const fetchPeriod = async (from: string, to: string) => {
         const regionFilter = regionId;
 
+        // Get project IDs for region filtering on related tables
+        let projectIds: string[] | null = null;
+        if (regionFilter) {
+          const { data: pData } = await supabase.from("projects").select("id").eq("region_id", regionFilter);
+          projectIds = (pData ?? []).map(p => p.id);
+        }
+
         let projectsQ = supabase.from("projects").select("id", { count: "exact", head: true })
           .gte("created_at", from).lte("created_at", to);
         if (regionFilter) projectsQ = projectsQ.eq("region_id", regionFilter);
@@ -55,12 +62,15 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
 
         let donationsQ = supabase.from("donor_contributions").select("amount")
           .gte("created_at", from).lte("created_at", to);
+        if (regionFilter && projectIds?.length) donationsQ = donationsQ.in("project_id", projectIds);
 
         let escrowQ = supabase.from("escrow_transactions").select("amount")
           .gte("created_at", from).lte("created_at", to);
+        if (regionFilter && projectIds?.length) escrowQ = escrowQ.in("project_id", projectIds);
 
         let disputesQ = supabase.from("disputes").select("id", { count: "exact", head: true })
           .gte("created_at", from).lte("created_at", to);
+        if (regionFilter && projectIds?.length) disputesQ = disputesQ.in("project_id", projectIds);
 
         const [projects, users, donations, escrow, disputes] = await Promise.all([
           projectsQ, usersQ, donationsQ, escrowQ, disputesQ,
@@ -69,9 +79,9 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
         return {
           projects: projects.count ?? 0,
           users: users.count ?? 0,
-          donations: (donations.data ?? []).reduce((s, d) => s + Number(d.amount), 0),
-          escrow: (escrow.data ?? []).reduce((s, e) => s + Number(e.amount), 0),
-          disputes: disputes.count ?? 0,
+          donations: (regionFilter && !projectIds?.length) ? 0 : (donations.data ?? []).reduce((s, d) => s + Number(d.amount), 0),
+          escrow: (regionFilter && !projectIds?.length) ? 0 : (escrow.data ?? []).reduce((s, e) => s + Number(e.amount), 0),
+          disputes: (regionFilter && !projectIds?.length) ? 0 : (disputes.count ?? 0),
         };
       };
 
