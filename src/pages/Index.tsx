@@ -135,19 +135,37 @@ export default function Index() {
       {/* 7. آراء العملاء */}
       <Testimonials />
 
-      {/* 8. CTA نهائي */}
-      <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={ctaBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-          <div className="absolute inset-0 bg-background/40" />
-        </div>
-        <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
-          <h2 className="text-3xl font-bold">{ct.title}</h2>
-          <p className="text-muted-foreground">{ct.description}</p>
-          <Button size="lg" className="shadow-lg text-base px-10" onClick={() => window.location.href = '/auth'}>
-            <Globe className="me-2 h-5 w-5" />
-            {ct.button_text}
-          </Button>
+      {/* 8. CTA نهائي - dark style with glowing border */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="relative rounded-2xl bg-[hsl(220,20%,14%)] p-10 md:p-14 overflow-hidden">
+            {/* Animated glowing border */}
+            <div className="absolute inset-0 rounded-2xl border border-[hsl(var(--primary))]/30" />
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[hsl(var(--primary))]/10 rounded-full blur-3xl" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[hsl(var(--primary))]/8 rounded-full blur-3xl" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              {/* Right side - text */}
+              <div className="text-right space-y-4 flex-1">
+                <span className="text-[hsl(var(--primary))] text-sm font-medium">تواصل معنا</span>
+                <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                  نلتزم بتوفير فرص متساوية للجميع، دائمًا وفي كل مرة.
+                </h2>
+                <p className="text-white/60 text-sm leading-relaxed max-w-xl">
+                  {ct.description || "تواصل مع محترفين متميزين، وسهّل التعاون، وابدأ رحلتك نحو النجاح. انضم الآن وأعد تعريف تجربتك في العمل!"}
+                </p>
+              </div>
+              
+              {/* Left side - button + guarantee */}
+              <div className="shrink-0 flex flex-col items-center gap-3">
+                <Button size="lg" className="shadow-lg text-base px-10 py-6 text-lg" onClick={() => window.location.href = '/auth'}>
+                  {ct.button_text || "ابدأ الآن"}
+                  <ArrowLeft className="me-2 h-5 w-5" />
+                </Button>
+                <p className="text-white/40 text-xs text-center">جرّبه بدون مخاطر – ضمان استرجاع<br/>الأموال خلال 14 يومًا!</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
