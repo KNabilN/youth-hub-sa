@@ -139,7 +139,7 @@ export default function Index() {
       <section className="py-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0">
           <img src={ctaBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-          <div className="absolute inset-0 bg-background/60" />
+          <div className="absolute inset-0 bg-background/40" />
         </div>
         <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
           <h2 className="text-3xl font-bold">{ct.title}</h2>
