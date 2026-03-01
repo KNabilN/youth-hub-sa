@@ -49,7 +49,7 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
               const assocName = p.association?.organization_name || p.association?.full_name || "—";
               return (
                 <Link
-                  to={`/services/${p.id}`}
+                  to={`/projects/${p.id}`}
                   key={p.id}
                   className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 min-w-[340px] w-[340px] shrink-0 snap-start block"
                 >
