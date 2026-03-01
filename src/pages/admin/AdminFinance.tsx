@@ -321,18 +321,15 @@ export default function AdminFinance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>المبلغ</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>التاريخ</TableHead>
                       <TableHead>إجراءات</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>المبلغ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {(withdrawals ?? []).map((w: any) => (
                       <TableRow key={w.id}>
-                        <TableCell className="font-medium">{Number(w.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell><Badge variant="outline">{wStatusLabels[w.status] ?? w.status}</Badge></TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                         <TableCell>
                           {w.status === "pending" && (
                             <div className="flex gap-2">
@@ -341,6 +338,9 @@ export default function AdminFinance() {
                             </div>
                           )}
                         </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                        <TableCell><Badge variant="outline">{wStatusLabels[w.status] ?? w.status}</Badge></TableCell>
+                        <TableCell className="font-medium">{Number(w.amount).toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     ))}
                     {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
