@@ -1,7 +1,7 @@
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useLandingStats } from "@/hooks/useLandingStats";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Zap, Globe, CheckCircle2, Lock, Star, FileText, Award } from "lucide-react";
+import { ArrowLeft, Zap, Globe, CheckCircle2, Lock } from "lucide-react";
 import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
@@ -23,7 +23,6 @@ const featureColors = [
 
 export default function Index() {
   const { data: hero } = useSiteContent("hero");
-  const { data: cmsStats } = useSiteContent("stats");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
   const { stats, statsLoading, services, servicesLoading, projects: featuredProjects, projectsLoading } = useLandingStats();
@@ -34,19 +33,12 @@ export default function Index() {
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
 
-  const oldSiteStats = [
-    { icon: Star, value: "4.91/5", label: "متوسط التقييم" },
-    { icon: FileText, value: "211K+", label: "عقد منجز" },
-    { icon: Award, value: "1,665", label: "مهارة مدعومة" },
-  ];
-
   return (
     <>
-      {/* Hero */}
+      {/* 1. Hero */}
       <section className="relative py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-pattern" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl" />
-
         <div className="container mx-auto max-w-4xl text-center space-y-8 relative z-10">
           {h.badge && (
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-4 py-2 rounded-full animate-fade-in">
@@ -73,33 +65,10 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Old-site style stats */}
-      <section className="py-12 px-4 bg-card/50 border-y border-border">
-        <div className="container mx-auto max-w-4xl">
-          <div className="grid grid-cols-3 gap-6">
-            {oldSiteStats.map((s) => (
-              <div key={s.label} className="text-center space-y-2">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <s.icon className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold">{s.value}</p>
-                <p className="text-sm text-muted-foreground">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Live Stats (DB) */}
+      {/* 2. احصائيات موحدة */}
       <LiveStats stats={stats} loading={statsLoading} />
 
-      {/* طلبات الجمعيات */}
-      <LandingRequestsTable projects={featuredProjects} loading={projectsLoading} />
-
-      {/* الخدمات المتوفرة */}
-      <LandingServicesGrid services={services} loading={servicesLoading} />
-
-      {/* Features */}
+      {/* 3. المميزات */}
       {feat.items?.length > 0 && (
         <section className="py-20 px-4 bg-pattern">
           <div className="container mx-auto max-w-5xl">
@@ -126,7 +95,13 @@ export default function Index() {
         </section>
       )}
 
-      {/* Trust */}
+      {/* 4. الخدمات المتوفرة */}
+      <LandingServicesGrid services={services} loading={servicesLoading} />
+
+      {/* 5. طلبات الجمعيات */}
+      <LandingRequestsTable projects={featuredProjects} loading={projectsLoading} />
+
+      {/* 6. الثقة والأمان */}
       {tr.items?.length > 0 && (
         <section className="py-20 px-4 bg-card/50">
           <div className="container mx-auto max-w-3xl text-center space-y-8">
@@ -153,17 +128,10 @@ export default function Index() {
         </section>
       )}
 
-      {/* Testimonials */}
+      {/* 7. آراء العملاء */}
       <Testimonials />
 
-      {/* Contact Form */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <ContactForm />
-        </div>
-      </section>
-
-      {/* CTA */}
+      {/* 8. CTA نهائي */}
       <section className="py-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
         <div className="container mx-auto max-w-2xl text-center relative z-10 space-y-6">
@@ -173,6 +141,13 @@ export default function Index() {
             <Globe className="me-2 h-5 w-5" />
             {ct.button_text}
           </Button>
+        </div>
+      </section>
+
+      {/* 9. نموذج التواصل */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <ContactForm />
         </div>
       </section>
     </>
