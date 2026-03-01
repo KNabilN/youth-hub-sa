@@ -2,80 +2,182 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminDisputes } from "@/hooks/useAdminDisputes";
-import { DisputeCard } from "@/components/admin/DisputeCard";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAdminDisputes, useUpdateDispute } from "@/hooks/useAdminDisputes";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { disputeStatusLabels, allDisputeStatuses } from "@/lib/dispute-statuses";
-import { Gavel } from "lucide-react";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
+import { Eye, FileEdit } from "lucide-react";
+import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
+import type { Database } from "@/integrations/supabase/types";
+
+type DisputeStatus = Database["public"]["Enums"]["dispute_status"];
+
+const disputeFields: DirectEditFieldConfig[] = [
+  { key: "resolution_notes", label: "ملاحظات الحل", type: "textarea" },
+];
 
 export default function AdminDisputes() {
+  const pagination = usePagination();
   const { data: disputes, isLoading } = useAdminDisputes();
+  const updateDispute = useUpdateDispute();
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editDispute, setEditDispute] = useState<any>(null);
 
-  const filtered = (disputes ?? []).filter((d: any) => statusFilter === "all" || d.status === statusFilter);
+  const filtered = (disputes ?? []).filter((d: any) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const title = d.projects?.title?.toLowerCase() ?? "";
+      const name = d.profiles?.full_name?.toLowerCase() ?? "";
+      if (!title.includes(q) && !name.includes(q)) return false;
+    }
+    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    return true;
+  });
+
+  const paged = filtered.slice(pagination.from, pagination.to + 1);
+
+  const handleStatusChange = (dispute: any, status: DisputeStatus) => {
+    updateDispute.mutate(
+      { id: dispute.id, status },
+      {
+        onSuccess: () => toast.success("تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
+      }
+    );
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 rounded-xl p-3">
-              <Gavel className="h-7 w-7 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">إدارة الشكاوى</h1>
-              <p className="text-sm text-muted-foreground">{filtered.length} شكوى</p>
-            </div>
+        <h1 className="text-2xl font-bold">إدارة الشكاوى</h1>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">البحث</Label>
+            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
           </div>
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">الحالة</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48"><SelectValue placeholder="الحالة" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  {allDisputeStatuses.map(s => (
-                    <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10"
-              onClick={() => setStatusFilter("all")}
-            >
-              إعادة تعيين
-            </Button>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">الحالة</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {allDisputeStatuses.map(s => (
+                  <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10"
+            onClick={() => { setSearch(""); setStatusFilter("all"); }}
+          >
+            إعادة تعيين
+          </Button>
         </div>
 
-        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
-
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="border rounded-lg p-4 space-y-3">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            ))}
+          <div className="border rounded-lg p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filtered.map((d: any) => (
-              <Link key={d.id} to={`/admin/disputes/${d.id}`} className="block transition-opacity hover:opacity-80">
-                <DisputeCard dispute={d} />
-              </Link>
-            ))}
-            {filtered.length === 0 && <p className="text-muted-foreground col-span-2 text-center py-8">لا توجد شكاوى</p>}
-          </div>
+          <>
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>المشروع</TableHead>
+                    <TableHead>مقدم الشكوى</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>التاريخ</TableHead>
+                    <TableHead>تغيير الحالة</TableHead>
+                    <TableHead>إجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paged.map((d: any) => (
+                    <TableRow key={d.id}>
+                      <TableCell className="font-medium">
+                        <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
+                          {d.projects?.title ?? "—"}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{d.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>
+                        <Badge className={disputeStatusColors[d.status]}>
+                          {disputeStatusLabels[d.status] ?? d.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(d.created_at), "yyyy/MM/dd", { locale: ar })}
+                      </TableCell>
+                      <TableCell>
+                        <Select value={d.status} onValueChange={(v) => handleStatusChange(d, v as DisputeStatus)}>
+                          <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {allDisputeStatuses.map(s => (
+                              <SelectItem key={s} value={s}>{disputeStatusLabels[s]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/admin/disputes/${d.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditDispute(d)}>
+                          <FileEdit className="h-4 w-4 me-1" />تعديل
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paged.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد شكاوى</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalFetched={paged.length}
+              onPrev={pagination.prevPage}
+              onNext={pagination.nextPage}
+            />
+          </>
         )}
       </div>
+
+      {editDispute && (
+        <AdminDirectEditDialog
+          open={!!editDispute}
+          onOpenChange={(o) => !o && setEditDispute(null)}
+          currentValues={editDispute}
+          fields={disputeFields}
+          title="تعديل ملاحظات الشكوى"
+          isPending={updateDispute.isPending}
+          onSave={async (updates) => {
+            await updateDispute.mutateAsync({
+              id: editDispute.id,
+              status: editDispute.status,
+              resolution_notes: updates.resolution_notes,
+            });
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 }
