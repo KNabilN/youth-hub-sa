@@ -241,4 +241,13 @@
     background-image: radial-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px);
     background-size: 20px 20px;
   }
+
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

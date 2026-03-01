@@ -38,19 +38,19 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
         </div>
 
         {loading ? (
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-52 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-52 min-w-[340px] w-[340px] shrink-0 rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
             {projects.map((p) => {
               const assocName = p.association?.organization_name || p.association?.full_name || "—";
               return (
                 <article
                   key={p.id}
-                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20"
+                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 min-w-[340px] w-[340px] shrink-0 snap-start"
                 >
                   {/* Top row: category + budget */}
                   <div className="flex items-center justify-between gap-3">
