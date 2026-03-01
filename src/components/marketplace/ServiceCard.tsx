@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Eye } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -67,10 +67,18 @@ export function ServiceCard({ service }: { service: Service }) {
               {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
-            <ShoppingCart className="h-4 w-4 me-1" />
-            {addToCart.isPending ? "جارٍ الإضافة..." : "أضف إلى السلة"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1" asChild>
+              <Link to={`/services/${service.id}`}>
+                <Eye className="h-4 w-4 me-1" />
+                التفاصيل
+              </Link>
+            </Button>
+            <Button size="sm" className="flex-1" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
+              <ShoppingCart className="h-4 w-4 me-1" />
+              {addToCart.isPending ? "إضافة..." : "أضف للسلة"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

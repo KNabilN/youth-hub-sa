@@ -26,23 +26,23 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: ServiceFormValues & { image_url?: string | null }) => {
-    createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url }, {
+  const handleCreate = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+    createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم إنشاء الخدمة بنجاح" }); setFormOpen(false); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
-  const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null }) => {
-    createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any } as any, {
+  const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+    createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم حفظ الخدمة كمسودة" }); setFormOpen(false); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
-  const handleEdit = (values: ServiceFormValues & { image_url?: string | null }) => {
+  const handleEdit = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
     if (!editingId) return;
-    updateService.mutate({ id: editingId, ...values }, {
+    updateService.mutate({ id: editingId, ...values, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
@@ -107,7 +107,7 @@ export default function MyServices() {
         )}
 
         <Dialog open={formOpen} onOpenChange={setFormOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>إضافة خدمة جديدة</DialogTitle></DialogHeader>
             <ServiceForm
               onSubmit={handleCreate}
@@ -119,7 +119,7 @@ export default function MyServices() {
         </Dialog>
 
         <Dialog open={!!editingId} onOpenChange={(open) => !open && setEditingId(null)}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>تعديل الخدمة</DialogTitle></DialogHeader>
             <Alert variant="default" className="border-warning bg-warning/10">
               <AlertTriangle className="h-4 w-4 text-warning" />
@@ -130,11 +130,16 @@ export default function MyServices() {
                 defaultValues={{
                   title: editingService.title,
                   description: editingService.description,
+                  long_description: (editingService as any).long_description ?? "",
                   category_id: editingService.category_id ?? "",
                   region_id: editingService.region_id ?? "",
                   service_type: editingService.service_type,
                   price: editingService.price,
+                  faq: (editingService as any).faq ?? [],
+                  packages: (editingService as any).packages ?? [],
                 }}
+                defaultImageUrl={(editingService as any).image_url}
+                defaultGallery={(editingService as any).gallery ?? []}
                 onSubmit={handleEdit}
                 isLoading={updateService.isPending}
                 submitLabel="حفظ التعديلات"

@@ -71,6 +71,7 @@ const AdminTicketDetail = lazy(() => import("./pages/admin/AdminTicketDetail"));
 const AdminCMS = lazy(() => import("./pages/admin/AdminCMS"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
+const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -114,6 +115,7 @@ const App = () => (
                   <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
                   <Route path="/faq" element={<Suspense fallback={<PageLoader />}><FAQ /></Suspense>} />
                   <Route path="/profile/:id" element={<Suspense fallback={<PageLoader />}><PublicProfile /></Suspense>} />
+                  <Route path="/services/:id" element={<Suspense fallback={<PageLoader />}><ServiceDetail /></Suspense>} />
                 </Route>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
