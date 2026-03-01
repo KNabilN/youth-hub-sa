@@ -995,6 +995,7 @@ export type Database = {
           contact_officer_title: string | null
           cover_image_url: string | null
           created_at: string
+          email_notifications: boolean
           full_name: string
           hourly_rate: number | null
           id: string
@@ -1020,6 +1021,7 @@ export type Database = {
           contact_officer_title?: string | null
           cover_image_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string
           hourly_rate?: number | null
           id: string
@@ -1045,6 +1047,7 @@ export type Database = {
           contact_officer_title?: string | null
           cover_image_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string
           hourly_rate?: number | null
           id?: string
