@@ -32,7 +32,25 @@ const BRAND = {
   white: "#ffffff",
 };
 
-const BASE_FONT = `'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
+const BASE_FONT = `'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
+
+let fontLoaded = false;
+async function loadArabicFont(): Promise<void> {
+  if (fontLoaded) return;
+  try {
+    const font = new FontFace(
+      "Cairo",
+      "url(https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLKoN-at6p1N2aQ.woff2)",
+      { weight: "400 900", style: "normal" }
+    );
+    const loaded = await font.load();
+    document.fonts.add(loaded);
+    await document.fonts.ready;
+    fontLoaded = true;
+  } catch {
+    console.warn("Failed to load Cairo font, falling back to system fonts");
+  }
+}
 
 function createOffscreenContainer(): HTMLDivElement {
   const el = document.createElement("div");
@@ -40,7 +58,7 @@ function createOffscreenContainer(): HTMLDivElement {
     position: fixed; top: -99999px; left: -99999px;
     width: ${CONTAINER_WIDTH}px; background: ${BRAND.white}; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: ltr; padding: 0;
+    direction: rtl; unicode-bidi: embed; padding: 0;
   `;
   document.body.appendChild(el);
   return el;
@@ -122,6 +140,8 @@ export async function generateReportPDF(
   const dateStr = `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`;
   const generatedAt = format(new Date(), "yyyy/MM/dd HH:mm");
   const dateOnly = format(new Date(), "yyyy/MM/dd");
+
+  await loadArabicFont();
 
   const pdf = new jsPDF("p", "mm", "a4");
   const cursor = { y: 0 };
