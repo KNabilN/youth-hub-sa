@@ -1,172 +1,181 @@
-# خطة شاملة لبناء صفحة الملف الشخصي العام للكيانات (مزودي الخدمات والجمعيات والجهات المانحة)
+
+
+# خطة إنشاء صفحات تفصيلية للخدمات والطلبات (Service & Project Detail Pages)
 
 ## الهدف
+إنشاء صفحة تفصيلية عامة لكل خدمة وطلب، مشابهة لصفحة الموقع القديم، تتضمن: معرض صور، وصف تفصيلي، أسئلة متكررة، باقات أسعار، معلومات مقدم الخدمة، تقييمات، ومشاهدات. مع اتباع نظام التصميم الحالي للمنصة.
 
-بناء صفحة ملف شخصي عام (Public Profile) لكل كيان مشابهة لصفحة الموقع القديم، تحتوي على: صورة غلاف، شعار، نبذة، مهارات، خدمات، معرض أعمال، مؤهلات، وتقييمات. مع إمكانية تعديل الملف من قبل صاحبه والمدير.
+---
 
-## ما هو موجود حالياً
+## الوضع الحالي
 
-- صفحة ملف المزود (`/providers/:id`) - بسيطة، تتطلب تسجيل دخول
-- صفحة ملف الجمعية (`/associations/:id`) - تتطلب تسجيل دخول
-- صفحة الملف الشخصي (`/profile`) - تعديل البيانات الأساسية فقط
-- معرض أعمال (Portfolio) - موجود ويعمل
-- لا توجد حقول للمهارات أو المؤهلات أو صورة الغلاف في قاعدة البيانات
+- **الخدمات:** لا توجد صفحة تفصيلية - بطاقة الخدمة (ServiceCard) تضيف مباشرة للسلة بدون إمكانية عرض التفاصيل
+- **الطلبات:** صفحة التفاصيل (`ProjectDetails`) موجودة لكن داخلية (Dashboard) وليست عامة
+- **قاعدة البيانات:** جدول `micro_services` يحتوي على حقل صورة واحدة فقط (`image_url`)، ولا توجد حقول للأسئلة المتكررة أو الباقات أو المعرض أو عدد المشاهدات
+
+---
 
 ## التغييرات المطلوبة
 
 ### 1. تحديث قاعدة البيانات (Migration)
 
-إضافة حقول جديدة لجدول `profiles`:
+**إضافة حقول جديدة لجدول `micro_services`:**
+- `gallery` (jsonb, default '[]') - معرض صور (مصفوفة روابط)
+- `faq` (jsonb, default '[]') - الأسئلة المتكررة (مصفوفة {question, answer})
+- `packages` (jsonb, default '[]') - باقات الأسعار (مصفوفة {name, description, price, old_price?})
+- `long_description` (text, default '') - وصف تفصيلي طويل
+- `service_views` (integer, default 0) - عدد المشاهدات
+- `sales_count` (integer, default 0) - عدد المبيعات
 
-- `cover_image_url` (text) - صورة الغلاف/البانر
-- `skills` (text[]) - المهارات كمصفوفة نصية
-- `qualifications` (jsonb) - المؤهلات (عنوان + وصف اختياري لكل مؤهل)
-- `profile_views` (integer, default 0) - عدد المشاهدات
-
-إنشاء جدول `profile_saves` لميزة "حفظ" الملف الشخصي:
-
+**إنشاء دالة RPC لزيادة المشاهدات:**
 ```text
-profile_saves (
-  id uuid PK,
-  user_id uuid (من يحفظ),
-  profile_id uuid (الملف المحفوظ),
-  created_at timestamp,
-  UNIQUE(user_id, profile_id)
-)
+increment_service_views(s_id uuid) - SECURITY DEFINER
 ```
 
-مع سياسات RLS مناسبة:
+**تحديث trigger المبيعات:**
+عند إضافة escrow_transaction بـ service_id، يتم زيادة sales_count تلقائياً.
 
-- المستخدم يدير حفظه الخاص
-- قراءة عامة للعدد فقط
+### 2. صفحة تفاصيل الخدمة (Service Detail Page)
 
-إضافة storage bucket جديد:
+إنشاء صفحة `src/pages/ServiceDetail.tsx` على المسار `/services/:id`:
+- **متاحة بدون تسجيل دخول** (عبر PublicLayout)
+- **متاحة أيضاً للمستخدمين المسجلين** (عبر ProtectedRoute كـ fallback)
 
-- `cover-images` (عام) لصور الغلاف
+**هيكل الصفحة (يتبع تصميم المنصة الحالي):**
 
-### 2. صفحة الملف الشخصي العام (Public Profile)
+```text
++--------------------------------------------------+
+| Header (PublicLayout)                             |
++--------------------------------------------------+
+| عنوان الخدمة                                      |
+| [تقييم] [مشاهدات] [مبيعات] [حفظ]                 |
++--------------------------------------------------+
+|                          |                        |
+| [معرض الصور - Carousel]  | باقات الأسعار          |
+| صورة رئيسية + thumbnails | (Tabs لكل باقة)        |
+|                          | السعر + وصف + زر شراء  |
+|                          |                        |
+|                          | معلومات مقدم الخدمة    |
+|                          | [صورة + اسم + تقييم]   |
+|                          | [زر: عرض الملف الشخصي] |
++--------------------------------------------------+
+| وصف الخدمة (تفصيلي)                              |
++--------------------------------------------------+
+| الأسئلة المتكررة (Accordion)                      |
++--------------------------------------------------+
+| التقييمات والمراجعات                              |
++--------------------------------------------------+
+| Footer                                            |
++--------------------------------------------------+
+```
 
-إنشاء صفحة جديدة `src/pages/PublicProfile.tsx` موحدة لمزودي الخدمات والجمعيات:
+**المكونات الفرعية:**
+- `ServiceGallery` - معرض صور بأسلوب carousel مع thumbnails (باستخدام embla-carousel الموجود)
+- `ServicePackages` - باقات الأسعار كـ Tabs مع السعر القديم والجديد
+- `ServiceProviderCard` - بطاقة مقدم الخدمة المصغرة
+- `ServiceFAQ` - أسئلة متكررة بنظام Accordion
 
-- متاحة بدون تسجيل دخول على المسار `/profile/:id`
-- تستخدم `PublicLayout` (نفس هيدر وفوتر الصفحة الرئيسية)
+### 3. صفحة تفاصيل الطلب العامة (Public Project Detail)
+
+إنشاء صفحة `src/pages/ProjectPublicView.tsx` على المسار `/projects/public/:id`:
+- **متاحة للمستخدمين المسجلين** فقط (مزودي خدمة + جمعيات + داعمين)
+- تعرض تفاصيل الطلب بشكل احترافي مع إمكانية تقديم عرض
 
 **هيكل الصفحة:**
-
 ```text
 +--------------------------------------------------+
-| صورة الغلاف (Banner)                              |
-| +----------------------------------------------+ |
-| |  صورة كبيرة بعرض كامل، ارتفاع ~300px        | |
-| +----------------------------------------------+ |
+| عنوان الطلب + التصنيف + المنطقة                   |
 +--------------------------------------------------+
-| [الشعار/الصورة]  الاسم + التوثيق                 |
-|                   الوصف المختصر                   |
-|                   التقييم + المشاهدات + حفظ       |
+| الوصف التفصيلي                                    |
+| الميزانية | الساعات المقدرة | المهارات المطلوبة    |
 +--------------------------------------------------+
-| نبذة | المهارات | الخدمات | الأعمال | المؤهلات | التقييمات |
+| معلومات الجمعية (بطاقة مصغرة + رابط للملف العام)  |
 +--------------------------------------------------+
-| [محتوى القسم المحدد حسب التاب النشط]             |
+| نموذج تقديم العرض (للمزودين)                      |
 +--------------------------------------------------+
 ```
 
-**الأقسام (Tabs):**
+### 4. تحديث نموذج إنشاء/تعديل الخدمة
 
-1. **نبذة** - النص التعريفي (bio)
-2. **المهارات** - عرض المهارات كـ badges/tags
-3. **الخدمات** - بطاقات الخدمات المعتمدة مع الصورة والسعر والتقييم
-4. **جميع الأعمال** - معرض الأعمال (Portfolio) بتصميم شبكي
-5. **المؤهلات** - قائمة المؤهلات والشهادات
-6. **التقييمات** - التقييمات مع التوزيع والتعليقات
+تحديث `src/components/services/ServiceForm.tsx` لإضافة:
+- **معرض الصور:** رفع حتى 5 صور إضافية (gallery)
+- **الوصف التفصيلي:** حقل textarea كبير (long_description)
+- **الأسئلة المتكررة:** إضافة/حذف أسئلة ديناميكياً (faq)
+- **باقات الأسعار:** إضافة/حذف باقات ديناميكياً (packages)
 
-### 3. تحديث صفحة تعديل الملف الشخصي (`/profile`)
+### 5. تحديث التوجيه (Routing)
 
-إضافة أقسام جديدة لصفحة Profile.tsx:
+```text
+/services/:id  -> صفحة تفاصيل الخدمة (عامة، PublicLayout)
+```
 
-- **صورة الغلاف:** رفع صورة غلاف مع معاينة
-- **المهارات:** إضافة/حذف مهارات كـ tags (نفس نمط إضافة المهارات في نموذج المشاريع)
-- **المؤهلات:** إضافة/حذف مؤهلات (عنوان + وصف اختياري)
+تحديث `ServiceCard` لإضافة رابط "عرض التفاصيل" يوجه إلى `/services/:id`
 
-إنشاء hooks جديدة:
+### 6. تحديث بطاقة الخدمة (ServiceCard)
 
-- `useUploadCover` - رفع صورة الغلاف إلى storage bucket
-- تحديث `useUpdateProfile` لتشمل الحقول الجديدة (skills, qualifications)
+- إضافة زر/رابط "عرض التفاصيل" بجانب "أضف إلى السلة"
+- عرض التقييم والمبيعات على البطاقة
 
-### 4. صلاحيات المدير (Super Admin)
-
-- المدير يستطيع تعديل أي ملف شخصي عبر `AdminDirectEditDialog` الموجود
-- تحديث `AdminDirectEditDialog` لتشمل الحقول الجديدة (المهارات، المؤهلات، صورة الغلاف)
-- سياسات RLS الحالية تدعم هذا بالفعل (Admins can update all profiles)
-
-### 5. تحديث الروابط والتوجيه (Routing)
-
-- إضافة مسار `/profile/:id` في PublicLayout (بدون تسجيل دخول)
-- تحديث الروابط في بطاقات الخدمات والمشاريع للإشارة إلى الملف العام
-- إزالة أو إعادة توجيه `/providers/:id` و `/associations/:id` إلى `/profile/:id`
-
-### 6. عداد المشاهدات
-
-- عند زيارة الملف العام، يتم تحديث `profile_views` عبر استدعاء RPC function
-- دالة `increment_profile_views` (security definer) تزيد العداد بـ 1
+---
 
 ## التفاصيل التقنية
 
 ### الملفات الجديدة:
-
-1. `src/pages/PublicProfile.tsx` - الصفحة العامة الموحدة
-2. `src/hooks/usePublicProfile.ts` - جلب بيانات الملف العام + الخدمات + التقييمات + الأعمال
-3. `src/hooks/useUploadCover.ts` - رفع صورة الغلاف
+1. `src/pages/ServiceDetail.tsx` - صفحة تفاصيل الخدمة
+2. `src/components/services/ServiceGallery.tsx` - معرض الصور
+3. `src/components/services/ServicePackages.tsx` - باقات الأسعار
+4. `src/components/services/ServiceProviderCard.tsx` - بطاقة المزود
+5. `src/components/services/ServiceFAQ.tsx` - الأسئلة المتكررة
+6. `src/hooks/useServiceDetail.ts` - hook لجلب بيانات الخدمة + المزود + التقييمات
 
 ### الملفات المعدلة:
-
-1. `src/pages/Profile.tsx` - إضافة أقسام المهارات والمؤهلات وصورة الغلاف
-2. `src/hooks/useProfile.ts` - تحديث mutation لتشمل الحقول الجديدة
-3. `src/App.tsx` - إضافة مسار `/profile/:id` ضمن PublicLayout
-4. `src/components/admin/AdminDirectEditDialog.tsx` - دعم الحقول الجديدة
-5. `src/components/marketplace/ServiceCard.tsx` - ربط بالملف العام
+1. `src/components/services/ServiceForm.tsx` - إضافة حقول المعرض والباقات والأسئلة
+2. `src/components/marketplace/ServiceCard.tsx` - إضافة رابط التفاصيل
+3. `src/App.tsx` - إضافة route جديد
+4. `src/integrations/supabase/types.ts` - (تلقائي بعد migration)
 
 ### Migration SQL:
-
 ```text
-ALTER TABLE profiles ADD COLUMN cover_image_url text DEFAULT '';
-ALTER TABLE profiles ADD COLUMN skills text[] DEFAULT '{}';
-ALTER TABLE profiles ADD COLUMN qualifications jsonb DEFAULT '[]';
-ALTER TABLE profiles ADD COLUMN profile_views integer DEFAULT 0;
+ALTER TABLE micro_services ADD COLUMN gallery jsonb DEFAULT '[]';
+ALTER TABLE micro_services ADD COLUMN faq jsonb DEFAULT '[]';
+ALTER TABLE micro_services ADD COLUMN packages jsonb DEFAULT '[]';
+ALTER TABLE micro_services ADD COLUMN long_description text DEFAULT '';
+ALTER TABLE micro_services ADD COLUMN service_views integer DEFAULT 0;
+ALTER TABLE micro_services ADD COLUMN sales_count integer DEFAULT 0;
 
-CREATE TABLE profile_saves (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  profile_id uuid NOT NULL,
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(user_id, profile_id)
-);
-ALTER TABLE profile_saves ENABLE ROW LEVEL SECURITY;
--- RLS policies for profile_saves
-
-CREATE OR REPLACE FUNCTION increment_profile_views(p_id uuid)
-RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
-  UPDATE profiles SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = p_id;
+CREATE OR REPLACE FUNCTION increment_service_views(s_id uuid)
+RETURNS void LANGUAGE sql SECURITY DEFINER
+SET search_path = public AS $$
+  UPDATE micro_services 
+  SET service_views = COALESCE(service_views, 0) + 1 
+  WHERE id = s_id;
 $$;
 
-INSERT INTO storage.buckets (id, name, public) VALUES ('cover-images', 'cover-images', true);
-```
+-- Trigger to auto-increment sales_count on escrow creation
+CREATE OR REPLACE FUNCTION increment_service_sales()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+  IF NEW.service_id IS NOT NULL THEN
+    UPDATE micro_services 
+    SET sales_count = COALESCE(sales_count, 0) + 1 
+    WHERE id = NEW.service_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
 
-### تصميم بطاقة الخدمة في الملف العام:
-
-```text
-+----------------------------+
-| [صورة الخدمة]              |
-| عنوان الخدمة               |
-| التقييم: 5/5 (التقييمات)   |
-| ابتداءً من 1,500 ر.س       |
-+----------------------------+
+CREATE TRIGGER on_escrow_increment_sales
+  AFTER INSERT ON escrow_transactions
+  FOR EACH ROW EXECUTE FUNCTION increment_service_sales();
 ```
 
 ### ترتيب التنفيذ:
+1. Migration (إضافة الحقول + الدوال + الـ trigger)
+2. إنشاء hook useServiceDetail
+3. بناء المكونات الفرعية (Gallery, Packages, FAQ, ProviderCard)
+4. بناء صفحة ServiceDetail
+5. تحديث ServiceForm (إضافة حقول التعديل)
+6. تحديث ServiceCard + Routing
+7. اختبار التدفق الكامل
 
-1. Migration (إضافة الحقول + الجدول + الدالة + الـ bucket)
-2. إنشاء hooks جديدة
-3. بناء صفحة PublicProfile
-4. تحديث صفحة Profile (إضافة أقسام التعديل)
-5. تحديث الروابط والتوجيه
-6. تحديث أدوات المدير
