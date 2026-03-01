@@ -1,101 +1,53 @@
 
-# مراجعة وإصلاح الربط بين قاعدة البيانات والأدوار المختلفة
+# إعادة هيكلة صفحة إدارة المحتوى (CMS) بنظام الصفحات
 
-## المشاكل المكتشفة
+## الفكرة
+بدلاً من عرض جميع الأقسام القابلة للتعديل مرة واحدة، سيتم تنظيم المحتوى حسب "الصفحة" أو "القالب". يختار المدير أولاً الصفحة المطلوبة من قائمة بطاقات، ثم تظهر له الأقسام القابلة للتعديل الخاصة بتلك الصفحة فقط.
 
-### 1. صفحة الشكاوى (MyDisputes) - الجمعيات لا ترى شكاوى مشاريعها
-**المشكلة:** hook `useMyDisputes` يفلتر النتائج بناءً على `raised_by === user.id || projects.assigned_provider_id === user.id` فقط. هذا يعني أن الجمعية لا ترى الشكاوى المرفوعة من مقدم الخدمة على مشاريعها.
+## الصفحات/الأقسام المتاحة
 
-**الحل:** إضافة `d.projects?.association_id === user!.id` في الفلتر ضمن `src/hooks/useMyDisputes.ts`.
+1. **الصفحة الرئيسية (Landing Page)** - تحتوي على: Hero, Stats, Features, Trust, CTA
+2. **الهيدر والفوتر (Header & Footer)** - تحتوي على: Header, Footer
+3. **قالب الفاتورة (Invoice Template)** - تحتوي على: invoice_template (سيُنقل من صفحة الإعدادات إلى هنا)
 
-### 2. صفحة الشكاوى - الجمعيات لا تستطيع رفع شكاوى
-**المشكلة:** عند رفع شكوى جديدة، يُستخدم `useMyAssignedProjects` الذي يجلب المشاريع حيث `assigned_provider_id === user.id`. الجمعيات ليست مقدمي خدمة فلن تظهر لهم أي مشاريع في القائمة.
+## التعديلات المطلوبة
 
-**الحل:** تعديل صفحة `src/pages/MyDisputes.tsx` لاستخدام hook مختلف حسب الدور:
-- للجمعيات: جلب المشاريع عبر `useProjects` (التي تستخدم `association_id`)
-- لمقدمي الخدمة: البقاء على `useMyAssignedProjects`
+### 1. إعادة بناء صفحة AdminCMS
+- إضافة حالة `selectedPage` للتحكم في الصفحة المختارة
+- عرض بطاقات اختيار الصفحة عند عدم وجود اختيار (Landing Page, Header/Footer, Invoice Template)
+- عند اختيار صفحة، عرض أقسامها فقط مع زر "رجوع" للعودة للقائمة
+- نقل محرر قالب الفاتورة (InvoiceTemplateManager) ليكون ضمن صفحة CMS بدلاً من الإعدادات
 
-### 3. فلتر حالة المشاريع عند رفع شكوى
-**المشكلة:** حالياً يجلب `useMyAssignedProjects("in_progress")` فقط. الجمعية قد تحتاج لرفع شكوى على مشاريع بحالات أخرى مثل `completed`.
-
-**الحل:** تمرير قيم حالات إضافية عند جلب المشاريع لرفع الشكاوى (in_progress, completed).
-
-### 4. Realtime غير مفعل لجداول مهمة
-**المشكلة:** Realtime مفعل فقط لـ `notifications`, `edit_requests`, `messages`. جداول مهمة مثل `support_tickets`, `disputes`, `escrow_transactions` لا تحدث بشكل فوري.
-
-**الحل:** إضافة `support_tickets` و `disputes` إلى Realtime publication ليتمكن المستخدمون من رؤية التحديثات فوراً.
-
-### 5. عدم إبطال كاش الفواتير عند تحرير الضمان
-**المشكلة:** عند تحرير الضمان المالي (escrow release) وتوليد فاتورة، لا يتم إبطال كاش `my-invoices`، فلن تظهر الفاتورة الجديدة فوراً للمستخدم.
-
-**الحل:** إضافة invalidation لـ `my-invoices` في `useGenerateInvoice` hook.
-
-### 6. عدم إبطال كاش الأرباح عند تحرير الضمان
-**المشكلة:** `useReleaseEscrow` لا يبطل كاش `earnings` ولا `provider-stats`، فالأرباح لا تتحدث فوراً بعد التحرير.
-
-**الحل:** إضافة invalidation لـ `earnings` و `provider-stats` في `useReleaseEscrow`.
-
-### 7. عدم إبطال كاش طلبات السحب عند الموافقة
-**المشكلة:** `useUpdateWithdrawalStatus` يبطل فقط `admin-withdrawals` ولا يبطل `withdrawals` الخاص بمقدم الخدمة.
-
-**الحل:** إضافة invalidation لـ `withdrawals` في `useUpdateWithdrawalStatus`.
+### 2. تحديث صفحة AdminSettings
+- إزالة InvoiceTemplateManager من صفحة الإعدادات (لأنه سينتقل لصفحة CMS)
+- تحديث الوصف الفرعي ليعكس المحتوى المتبقي
 
 ## التفاصيل التقنية
 
+### تصميم واجهة اختيار الصفحة
+```text
++------------------+  +------------------+  +------------------+
+|  [Globe icon]    |  |  [Layout icon]   |  |  [FileText icon] |
+|  الصفحة الرئيسية |  |  الهيدر والفوتر  |  |  قالب الفاتورة   |
+|  5 أقسام         |  |  2 أقسام         |  |  إعدادات الفاتورة |
++------------------+  +------------------+  +------------------+
+```
+
+### تجميع الأقسام حسب الصفحة (في الكود)
+```text
+pageGroups = {
+  landing: { label: "الصفحة الرئيسية", keys: ["hero","stats","features","trust","cta"] },
+  layout:  { label: "الهيدر والفوتر", keys: ["header","footer"] },
+  invoice: { label: "قالب الفاتورة", keys: ["invoice_template"] },
+}
+```
+
 ### الملفات المتأثرة:
+1. **`src/pages/admin/AdminCMS.tsx`** - إعادة بناء الصفحة بنظام اختيار الصفحة + إضافة محرر قالب الفاتورة
+2. **`src/pages/admin/AdminSettings.tsx`** - إزالة InvoiceTemplateManager وتحديث الوصف
 
-1. **`src/hooks/useMyDisputes.ts`** - إضافة فلتر `association_id` للجمعيات
-2. **`src/pages/MyDisputes.tsx`** - استخدام hook المشاريع المناسب حسب الدور (useProjects للجمعيات)
-3. **`src/hooks/useInvoices.ts`** - إضافة cache invalidation لـ `my-invoices`
-4. **`src/hooks/useEscrow.ts`** - إضافة cache invalidation لـ `earnings` و `provider-stats`
-5. **`src/hooks/useWithdrawals.ts`** - إضافة cache invalidation لـ `withdrawals`
-6. **Migration SQL** - إضافة `support_tickets` و `disputes` إلى Realtime
-
-### تفصيل التعديلات:
-
-**useMyDisputes.ts:**
-```text
-// قبل
-filter: raised_by === user.id || assigned_provider_id === user.id
-
-// بعد  
-filter: raised_by === user.id || assigned_provider_id === user.id || association_id === user.id
-```
-
-**MyDisputes.tsx:**
-```text
-// إضافة useAuth للتحقق من الدور
-// إذا youth_association: جلب المشاريع بحالات in_progress أو completed
-// إذا service_provider: استخدام useMyAssignedProjects كما هو
-```
-
-**useEscrow.ts - useReleaseEscrow:**
-```text
-onSuccess: () => {
-  qc.invalidateQueries({ queryKey: ["escrow"] });
-  qc.invalidateQueries({ queryKey: ["earnings"] });
-  qc.invalidateQueries({ queryKey: ["provider-stats"] });
-}
-```
-
-**useInvoices.ts - useGenerateInvoice:**
-```text
-onSuccess: () => {
-  qc.invalidateQueries({ queryKey: ["invoices"] });
-  qc.invalidateQueries({ queryKey: ["my-invoices"] });
-}
-```
-
-**useWithdrawals.ts - useUpdateWithdrawalStatus:**
-```text
-onSuccess: () => {
-  qc.invalidateQueries({ queryKey: ["admin-withdrawals"] });
-  qc.invalidateQueries({ queryKey: ["withdrawals"] });
-}
-```
-
-**Migration:**
-```text
-ALTER PUBLICATION supabase_realtime ADD TABLE public.support_tickets;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.disputes;
-```
+### سلوك الصفحة:
+- عند الدخول: تظهر بطاقات الصفحات المتاحة
+- عند النقر على بطاقة: تظهر أقسام تلك الصفحة مع زر رجوع في الأعلى
+- قالب الفاتورة يستخدم المكون الموجود `InvoiceTemplateManager` كما هو
+- باقي الأقسام تستخدم `SectionEditor` الموجود حالياً
