@@ -1,6 +1,10 @@
+import LandingHeader from "@/components/landing/LandingHeader";
+import LandingFooter from "@/components/landing/LandingFooter";
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
+      <LandingHeader />
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-8">
         <h1 className="text-3xl font-bold">سياسة الخصوصية وحماية البيانات الشخصية</h1>
         <p className="text-sm text-muted-foreground">آخر تحديث: فبراير 2026 | الإصدار 1.0</p>
@@ -97,6 +101,7 @@ export default function PrivacyPolicy() {
           </section>
         </div>
       </div>
+      <LandingFooter />
     </div>
   );
 }
