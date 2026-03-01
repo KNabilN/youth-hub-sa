@@ -9,7 +9,36 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { FileEdit, Save, Plus, Trash2, LayoutTemplate } from "lucide-react";
+import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight } from "lucide-react";
+import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
+
+/* ═══════════ Page Groups ═══════════ */
+
+const pageGroups = {
+  landing: {
+    label: "الصفحة الرئيسية",
+    description: "Hero، الإحصائيات، المميزات، لماذا المنصة، CTA",
+    icon: Globe,
+    keys: ["hero", "stats", "features", "trust", "cta"],
+    count: 5,
+  },
+  layout: {
+    label: "الهيدر والفوتر",
+    description: "اسم الموقع، القوائم، حقوق النشر",
+    icon: Layout,
+    keys: ["header", "footer"],
+    count: 2,
+  },
+  invoice: {
+    label: "قالب الفاتورة",
+    description: "بيانات الشركة والرقم الضريبي",
+    icon: FileText,
+    keys: ["invoice_template"],
+    count: 1,
+  },
+} as const;
+
+type PageKey = keyof typeof pageGroups;
 
 const sectionLabels: Record<string, string> = {
   hero: "القسم الرئيسي (Hero)",
@@ -21,17 +50,9 @@ const sectionLabels: Record<string, string> = {
   footer: "الفوتر",
 };
 
-function JsonFieldEditor({
-  label,
-  value,
-  onChange,
-  multiline = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  multiline?: boolean;
-}) {
+/* ═══════════ Field Editors ═══════════ */
+
+function JsonFieldEditor({ label, value, onChange, multiline = false }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-sm font-medium">{label}</Label>
@@ -44,167 +65,54 @@ function JsonFieldEditor({
   );
 }
 
-function ArrayEditor({
-  label,
-  items,
-  onChange,
-}: {
-  label: string;
-  items: string[];
-  onChange: (items: string[]) => void;
-}) {
+function ArrayEditor({ label, items, onChange }: { label: string; items: string[]; onChange: (items: string[]) => void }) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
       {items.map((item, i) => (
         <div key={i} className="flex gap-2">
-          <Input
-            value={item}
-            onChange={(e) => {
-              const next = [...items];
-              next[i] = e.target.value;
-              onChange(next);
-            }}
-            dir="rtl"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onChange(items.filter((_, j) => j !== i))}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <Input value={item} onChange={(e) => { const next = [...items]; next[i] = e.target.value; onChange(next); }} dir="rtl" />
+          <Button variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))} className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
         </div>
       ))}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...items, ""])}
-      >
-        <Plus className="h-4 w-4 me-1" />
-        إضافة عنصر
-      </Button>
+      <Button variant="outline" size="sm" onClick={() => onChange([...items, ""])}><Plus className="h-4 w-4 me-1" />إضافة عنصر</Button>
     </div>
   );
 }
 
-function FooterLinksEditor({
-  links,
-  onChange,
-}: {
-  links: { label: string; url: string }[];
-  onChange: (links: { label: string; url: string }[]) => void;
-}) {
+function FooterLinksEditor({ links, onChange }: { links: { label: string; url: string }[]; onChange: (links: { label: string; url: string }[]) => void }) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">روابط الفوتر</Label>
       {links.map((link, i) => (
         <div key={i} className="flex gap-2">
-          <Input
-            value={link.label}
-            onChange={(e) => {
-              const next = [...links];
-              next[i] = { ...next[i], label: e.target.value };
-              onChange(next);
-            }}
-            placeholder="العنوان"
-            dir="rtl"
-          />
-          <Input
-            value={link.url}
-            onChange={(e) => {
-              const next = [...links];
-              next[i] = { ...next[i], url: e.target.value };
-              onChange(next);
-            }}
-            placeholder="الرابط"
-            dir="ltr"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onChange(links.filter((_, j) => j !== i))}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <Input value={link.label} onChange={(e) => { const next = [...links]; next[i] = { ...next[i], label: e.target.value }; onChange(next); }} placeholder="العنوان" dir="rtl" />
+          <Input value={link.url} onChange={(e) => { const next = [...links]; next[i] = { ...next[i], url: e.target.value }; onChange(next); }} placeholder="الرابط" dir="ltr" />
+          <Button variant="ghost" size="icon" onClick={() => onChange(links.filter((_, j) => j !== i))} className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
         </div>
       ))}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...links, { label: "", url: "#" }])}
-      >
-        <Plus className="h-4 w-4 me-1" />
-        إضافة رابط
-      </Button>
+      <Button variant="outline" size="sm" onClick={() => onChange([...links, { label: "", url: "#" }])}><Plus className="h-4 w-4 me-1" />إضافة رابط</Button>
     </div>
   );
 }
 
-function StatsEditor({
-  items,
-  onChange,
-}: {
-  items: { value: string; label: string }[];
-  onChange: (items: { value: string; label: string }[]) => void;
-}) {
+function StatsEditor({ items, onChange }: { items: { value: string; label: string }[]; onChange: (items: { value: string; label: string }[]) => void }) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">الإحصائيات</Label>
       {items.map((item, i) => (
         <div key={i} className="flex gap-2">
-          <Input
-            value={item.value}
-            onChange={(e) => {
-              const next = [...items];
-              next[i] = { ...next[i], value: e.target.value };
-              onChange(next);
-            }}
-            placeholder="القيمة"
-            dir="rtl"
-            className="w-32"
-          />
-          <Input
-            value={item.label}
-            onChange={(e) => {
-              const next = [...items];
-              next[i] = { ...next[i], label: e.target.value };
-              onChange(next);
-            }}
-            placeholder="التسمية"
-            dir="rtl"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onChange(items.filter((_, j) => j !== i))}
-            className="shrink-0 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <Input value={item.value} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], value: e.target.value }; onChange(next); }} placeholder="القيمة" dir="rtl" className="w-32" />
+          <Input value={item.label} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], label: e.target.value }; onChange(next); }} placeholder="التسمية" dir="rtl" />
+          <Button variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))} className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
         </div>
       ))}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...items, { value: "", label: "" }])}
-      >
-        <Plus className="h-4 w-4 me-1" />
-        إضافة إحصائية
-      </Button>
+      <Button variant="outline" size="sm" onClick={() => onChange([...items, { value: "", label: "" }])}><Plus className="h-4 w-4 me-1" />إضافة إحصائية</Button>
     </div>
   );
 }
 
-function FeaturesEditor({
-  items,
-  onChange,
-}: {
-  items: { title: string; desc: string; icon: string }[];
-  onChange: (items: { title: string; desc: string; icon: string }[]) => void;
-}) {
+function FeaturesEditor({ items, onChange }: { items: { title: string; desc: string; icon: string }[]; onChange: (items: { title: string; desc: string; icon: string }[]) => void }) {
   return (
     <div className="space-y-3">
       <Label className="text-sm font-medium">المميزات</Label>
@@ -212,50 +120,19 @@ function FeaturesEditor({
         <Card key={i} className="p-3">
           <div className="space-y-2">
             <div className="flex gap-2">
-              <Input
-                value={item.title}
-                onChange={(e) => {
-                  const next = [...items];
-                  next[i] = { ...next[i], title: e.target.value };
-                  onChange(next);
-                }}
-                placeholder="العنوان"
-                dir="rtl"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onChange(items.filter((_, j) => j !== i))}
-                className="shrink-0 text-muted-foreground hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <Input value={item.title} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], title: e.target.value }; onChange(next); }} placeholder="العنوان" dir="rtl" />
+              <Button variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))} className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
             </div>
-            <Textarea
-              value={item.desc}
-              onChange={(e) => {
-                const next = [...items];
-                next[i] = { ...next[i], desc: e.target.value };
-                onChange(next);
-              }}
-              placeholder="الوصف"
-              dir="rtl"
-              className="min-h-[60px]"
-            />
+            <Textarea value={item.desc} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], desc: e.target.value }; onChange(next); }} placeholder="الوصف" dir="rtl" className="min-h-[60px]" />
           </div>
         </Card>
       ))}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...items, { title: "", desc: "", icon: "users" }])}
-      >
-        <Plus className="h-4 w-4 me-1" />
-        إضافة ميزة
-      </Button>
+      <Button variant="outline" size="sm" onClick={() => onChange([...items, { title: "", desc: "", icon: "users" }])}><Plus className="h-4 w-4 me-1" />إضافة ميزة</Button>
     </div>
   );
 }
+
+/* ═══════════ Section Editor ═══════════ */
 
 function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; content: Record<string, any> }) {
   const [content, setContent] = useState(initial);
@@ -330,9 +207,7 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
         return (
           <Textarea
             value={JSON.stringify(content, null, 2)}
-            onChange={(e) => {
-              try { setContent(JSON.parse(e.target.value)); } catch {}
-            }}
+            onChange={(e) => { try { setContent(JSON.parse(e.target.value)); } catch {} }}
             className="min-h-[200px] font-mono text-xs"
             dir="ltr"
           />
@@ -356,30 +231,86 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
   );
 }
 
+/* ═══════════ Page Selection Cards ═══════════ */
+
+function PageSelectionGrid({ onSelect }: { onSelect: (key: PageKey) => void }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {(Object.entries(pageGroups) as [PageKey, typeof pageGroups[PageKey]][]).map(([key, group]) => {
+        const Icon = group.icon;
+        return (
+          <Card
+            key={key}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 group"
+            onClick={() => onSelect(key)}
+          >
+            <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Icon className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{group.label}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{group.description}</p>
+              </div>
+              <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                {group.count} {group.count > 2 ? "أقسام" : "قسم"}
+              </span>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ═══════════ Main Page ═══════════ */
+
 export default function AdminCMS() {
   const { data: sections, isLoading } = useAllSiteContent();
+  const [selectedPage, setSelectedPage] = useState<PageKey | null>(null);
+
+  const selectedGroup = selectedPage ? pageGroups[selectedPage] : null;
+
+  const filteredSections = selectedGroup
+    ? (sections ?? []).filter((s: any) => (selectedGroup.keys as readonly string[]).includes(s.section_key))
+    : [];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center gap-3">
           <div className="bg-primary/10 p-2.5 rounded-xl">
             <LayoutTemplate className="h-6 w-6 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-bold">إدارة المحتوى</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">تعديل محتوى الصفحة الرئيسية والهيدر والفوتر</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {selectedGroup ? selectedGroup.label : "اختر الصفحة أو القالب الذي تريد تعديله"}
+            </p>
           </div>
         </div>
         <Separator />
+
+        {/* Back button when inside a group */}
+        {selectedPage && (
+          <Button variant="outline" size="sm" onClick={() => setSelectedPage(null)}>
+            <ArrowRight className="h-4 w-4 me-1" />
+            رجوع للقائمة
+          </Button>
+        )}
 
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
           </div>
+        ) : !selectedPage ? (
+          <PageSelectionGrid onSelect={setSelectedPage} />
+        ) : selectedPage === "invoice" ? (
+          <InvoiceTemplateManager />
         ) : (
           <div className="space-y-4">
-            {(sections ?? []).map((section: any) => (
+            {filteredSections.map((section: any) => (
               <SectionEditor
                 key={section.section_key}
                 sectionKey={section.section_key}
