@@ -762,12 +762,18 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string
+          faq: Json | null
+          gallery: Json | null
           id: string
           image_url: string | null
+          long_description: string | null
+          packages: Json | null
           price: number
           provider_id: string
           region_id: string | null
+          sales_count: number | null
           service_type: Database["public"]["Enums"]["service_type"]
+          service_views: number | null
           title: string
           updated_at: string
         }
@@ -776,12 +782,18 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string
+          faq?: Json | null
+          gallery?: Json | null
           id?: string
           image_url?: string | null
+          long_description?: string | null
+          packages?: Json | null
           price: number
           provider_id: string
           region_id?: string | null
+          sales_count?: number | null
           service_type?: Database["public"]["Enums"]["service_type"]
+          service_views?: number | null
           title: string
           updated_at?: string
         }
@@ -790,12 +802,18 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string
+          faq?: Json | null
+          gallery?: Json | null
           id?: string
           image_url?: string | null
+          long_description?: string | null
+          packages?: Json | null
           price?: number
           provider_id?: string
           region_id?: string | null
+          sales_count?: number | null
           service_type?: Database["public"]["Enums"]["service_type"]
+          service_views?: number | null
           title?: string
           updated_at?: string
         }
@@ -1387,6 +1405,7 @@ export type Database = {
         Returns: boolean
       }
       increment_profile_views: { Args: { p_id: string }; Returns: undefined }
+      increment_service_views: { Args: { s_id: string }; Returns: undefined }
       is_not_suspended: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
