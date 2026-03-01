@@ -13,7 +13,8 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { FileEdit } from "lucide-react";
+import { FileEdit, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -123,7 +124,7 @@ export default function AdminServices() {
                 <TableBody>
                   {paged.map((s: any) => (
                     <TableRow key={s.id}>
-                      <TableCell className="font-medium">{s.title}</TableCell>
+                      <TableCell className="font-medium"><Link to={`/admin/services/${s.id}`} className="hover:underline hover:text-primary transition-colors">{s.title}</Link></TableCell>
                       <TableCell>{s.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={approvalColors[s.approval]}>{approvalLabels[s.approval]}</Badge></TableCell>
@@ -137,7 +138,10 @@ export default function AdminServices() {
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/admin/services/${s.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditService(s)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
                         </Button>
