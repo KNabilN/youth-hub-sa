@@ -938,6 +938,35 @@ export type Database = {
           },
         ]
       }
+      profile_saves: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_saves_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -946,6 +975,7 @@ export type Database = {
           contact_officer_name: string | null
           contact_officer_phone: string | null
           contact_officer_title: string | null
+          cover_image_url: string | null
           created_at: string
           full_name: string
           hourly_rate: number | null
@@ -957,6 +987,9 @@ export type Database = {
           pdpl_consent_at: string | null
           pdpl_consent_version: string | null
           phone: string | null
+          profile_views: number | null
+          qualifications: Json | null
+          skills: string[] | null
           suspension_reason: string | null
           updated_at: string
         }
@@ -967,6 +1000,7 @@ export type Database = {
           contact_officer_name?: string | null
           contact_officer_phone?: string | null
           contact_officer_title?: string | null
+          cover_image_url?: string | null
           created_at?: string
           full_name?: string
           hourly_rate?: number | null
@@ -978,6 +1012,9 @@ export type Database = {
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
           phone?: string | null
+          profile_views?: number | null
+          qualifications?: Json | null
+          skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
         }
@@ -988,6 +1025,7 @@ export type Database = {
           contact_officer_name?: string | null
           contact_officer_phone?: string | null
           contact_officer_title?: string | null
+          cover_image_url?: string | null
           created_at?: string
           full_name?: string
           hourly_rate?: number | null
@@ -999,6 +1037,9 @@ export type Database = {
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
           phone?: string | null
+          profile_views?: number | null
+          qualifications?: Json | null
+          skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
         }
@@ -1345,6 +1386,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_profile_views: { Args: { p_id: string }; Returns: undefined }
       is_not_suspended: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
