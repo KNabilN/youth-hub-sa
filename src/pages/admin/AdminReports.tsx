@@ -38,7 +38,7 @@ function CustomChartTooltip({ active, payload, label }: any) {
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 text-xs">
           <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-muted-foreground">{entry.name ?? entry.dataKey}:</span>
+          <span className="text-muted-foreground">{(entry.name === "value" ? "القيمة" : entry.name) ?? entry.dataKey}:</span>
           <span className="font-semibold tabular-nums text-foreground">
             {typeof entry.value === "number" ? entry.value.toLocaleString() : entry.value}
           </span>
