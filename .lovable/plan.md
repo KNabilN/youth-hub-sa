@@ -1,35 +1,25 @@
 
 
-# إزالة نظام طلبات التعديل بالكامل
+# اصلاح خطأ حفظ الملف الشخصي
 
-الأدمن سيقوم بالتعديل المباشر على أي شيء دون الحاجة لإرسال طلبات تعديل للمستخدمين.
+## المشكلة
+عند الضغط على "حفظ التغييرات" في صفحة الملف الشخصي، يظهر خطأ لأن الكود يحاول حفظ حقل `email_notifications` في جدول `profiles`، لكن هذا العمود غير موجود في قاعدة البيانات.
 
-## الملفات التي سيتم تعديلها
+## الحل
 
-### 1. إزالة رابط "طلبات التعديل" من القائمة الجانبية
-**`src/components/AppSidebar.tsx`**
-- حذف استيراد `usePendingEditRequestsCount`
-- حذف متغير `pendingEditCount` و `showEditRequests`
-- حذف عنصر القائمة "طلبات التعديل" بالكامل
-- إبقاء "تذاكر الدعم" و "الملف الشخصي" كما هي (تحت قسم "عام") مع إظهارها لجميع الأدوار غير الأدمن
+### 1. إضافة عمود `email_notifications` لجدول `profiles`
+إنشاء migration لإضافة العمود المفقود:
 
-### 2. إزالة صفحة طلبات التعديل والمسار
-**`src/App.tsx`**
-- حذف استيراد `EditRequests` و المسار `/edit-requests`
+```sql
+ALTER TABLE public.profiles 
+ADD COLUMN email_notifications boolean NOT NULL DEFAULT true;
+```
 
-### 3. إزالة تبويب "طلبات التعديل" من تفاصيل المستخدم (Admin)
-**`src/pages/admin/AdminUserDetail.tsx`**
-- حذف استيراد واستخدام `useAdminUserEditRequests`
-- حذف تبويب "طلبات التعديل" وعرضه
+### 2. تعديل `src/pages/Profile.tsx`
+التأكد من أن حقل `email_notifications` يُقرأ ويُحفظ بشكل صحيح بدون استخدام `as any`.
 
-**`src/components/admin/UserDetailSheet.tsx`**
-- نفس التغييرات
-
-### 4. ملفات يمكن حذفها (لم تعد مستخدمة)
-- `src/pages/EditRequests.tsx`
-- `src/components/edit-requests/EditRequestCard.tsx`
-- `src/components/admin/EditRequestDialog.tsx`
-- `src/hooks/useEditRequests.ts`
-
-> ملاحظة: جدول `edit_requests` في قاعدة البيانات سيبقى كما هو (لا حذف بيانات). الأدمن يستخدم بالفعل `AdminDirectEditDialog` للتعديل المباشر.
+### التفاصيل التقنية
+- العمود الجديد: `email_notifications` من نوع `boolean` مع قيمة افتراضية `true`
+- لا حاجة لسياسات RLS إضافية لأن سياسات جدول `profiles` الحالية تغطي القراءة والتحديث
+- الملف الوحيد الذي يحتاج تعديل هو `Profile.tsx` لإزالة `as any` من قراءة هذا الحقل
 
