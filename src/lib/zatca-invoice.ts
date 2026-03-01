@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import QRCode from "qrcode";
 
 function encodeTLV(tag: number, value: string): Uint8Array {
@@ -64,9 +65,53 @@ export interface InvoiceData {
   recipientName: string;
 }
 
+const BASE_FONT = `'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
+
+let fontLoaded = false;
+async function loadArabicFont(): Promise<void> {
+  if (fontLoaded) return;
+  try {
+    const font = new FontFace(
+      "Cairo",
+      "url(https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLKoN-at6p1N2aQ.woff2)",
+      { weight: "400 900", style: "normal" }
+    );
+    const loaded = await font.load();
+    document.fonts.add(loaded);
+    await document.fonts.ready;
+    fontLoaded = true;
+  } catch {
+    console.warn("Failed to load Cairo font for invoice");
+  }
+}
+
+async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanvasElement> {
+  const container = document.createElement("div");
+  container.style.cssText = `
+    position: fixed; top: -99999px; left: -99999px;
+    width: ${width}px; background: #ffffff; color: #1a1a2e;
+    font-family: ${BASE_FONT};
+    direction: rtl; unicode-bidi: embed; padding: 0;
+  `;
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  const canvas = await html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    width,
+    windowWidth: width,
+  });
+
+  document.body.removeChild(container);
+  return canvas;
+}
+
 export async function generateInvoicePDF(invoice: InvoiceData, template?: InvoiceTemplateConfig) {
+  await loadArabicFont();
+
   const t = template ?? DEFAULT_TEMPLATE;
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   const netAmount = invoice.amount - invoice.commissionAmount;
   const vatRate = 0.15;
@@ -94,117 +139,94 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
     errorCorrectionLevel: "M",
   });
 
-  const pageWidth = 210;
-  const margin = 15;
-  const rightX = pageWidth - margin;
-  let y = 20;
+  const fmt = (n: number) => n.toLocaleString("en-SA", { minimumFractionDigits: 2 });
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text("Tax Invoice", pageWidth / 2, y, { align: "center" });
-  y += 8;
-  doc.setFontSize(12);
-  doc.text("فاتورة ضريبية", pageWidth / 2, y, { align: "center" });
-  y += 12;
+  const invoiceHtml = `
+    <div style="padding: 40px 50px; font-family: ${BASE_FONT}; direction: rtl; color: #1a1a2e;">
+      <!-- Header -->
+      <div style="text-align: center; margin-bottom: 10px;">
+        <h1 style="font-size: 28px; font-weight: 700; margin: 0; direction: ltr;">Tax Invoice</h1>
+        <p style="font-size: 16px; color: #555; margin: 5px 0 0;">فاتورة ضريبية</p>
+      </div>
 
-  doc.setDrawColor(0, 128, 128);
-  doc.setLineWidth(0.8);
-  doc.line(margin, y, rightX, y);
-  y += 10;
+      <hr style="border: none; border-top: 3px solid #008080; margin: 15px 0 20px;" />
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.text("Seller / البائع", margin, y);
-  y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.text(`Name: ${t.company_name_en}`, margin, y);
-  y += 5;
-  doc.text(`VAT No: ${t.vat_number}`, margin, y);
-  y += 5;
-  doc.text(`CR: ${t.cr_number}`, margin, y);
-  y += 5;
-  doc.text(`Address: ${t.address}`, margin, y);
-  y += 10;
+      <!-- Seller Info -->
+      <div style="margin-bottom: 20px;">
+        <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">البائع / Seller</p>
+        <p style="margin: 2px 0; font-size: 12px;">الاسم: ${t.company_name_en} / ${t.company_name}</p>
+        <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">VAT No: ${t.vat_number}</p>
+        <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">CR: ${t.cr_number}</p>
+        <p style="margin: 2px 0; font-size: 12px;">العنوان: ${t.address}</p>
+      </div>
 
-  doc.setFont("helvetica", "bold");
-  doc.text("Invoice Details", margin, y);
-  y += 6;
-  doc.setFont("helvetica", "normal");
+      <!-- Invoice Details -->
+      <div style="margin-bottom: 20px;">
+        <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">تفاصيل الفاتورة</p>
+        <table style="font-size: 12px; border-collapse: collapse;">
+          <tr><td style="padding: 2px 0; font-weight: 600; width: 120px;">رقم الفاتورة:</td><td style="direction: ltr;">${invoice.invoiceNumber}</td></tr>
+          <tr><td style="padding: 2px 0; font-weight: 600;">التاريخ:</td><td>${formattedDate}</td></tr>
+          <tr><td style="padding: 2px 0; font-weight: 600;">صادرة إلى:</td><td>${invoice.recipientName}</td></tr>
+          <tr><td style="padding: 2px 0; font-weight: 600;">المشروع/الخدمة:</td><td>${invoice.projectTitle}</td></tr>
+        </table>
+      </div>
 
-  const details = [
-    ["Invoice No:", invoice.invoiceNumber],
-    ["Date:", formattedDate],
-    ["Issued To:", invoice.recipientName],
-    ["Project:", invoice.projectTitle],
-  ];
+      <!-- Items Table -->
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px;">
+        <thead>
+          <tr style="background: #f0f0f0;">
+            <th style="padding: 8px 6px; text-align: right; border: 1px solid #ddd;">الوصف</th>
+            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">المبلغ (ر.س)</th>
+            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">العمولة (ر.س)</th>
+            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">الصافي (ر.س)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px 6px; border: 1px solid #ddd;">${invoice.projectTitle}</td>
+            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(invoice.amount)}</td>
+            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(invoice.commissionAmount)}</td>
+            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(netAmount)}</td>
+          </tr>
+        </tbody>
+      </table>
 
-  for (const [label, value] of details) {
-    doc.setFont("helvetica", "bold");
-    doc.text(label, margin, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(value, margin + 35, y);
-    y += 6;
-  }
-  y += 5;
+      <hr style="border: none; border-top: 3px solid #008080; margin: 10px 0 15px;" />
 
-  doc.setDrawColor(200, 200, 200);
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("Description", margin + 2, y + 5.5);
-  doc.text("Amount (SAR)", margin + 80, y + 5.5);
-  doc.text("Commission", margin + 115, y + 5.5);
-  doc.text("Net (SAR)", margin + 150, y + 5.5);
-  y += 10;
+      <!-- Totals -->
+      <div style="display: flex; justify-content: flex-start; margin-bottom: 20px;">
+        <table style="font-size: 12px; border-collapse: collapse;">
+          <tr><td style="padding: 3px 15px 3px 0;">الصافي:</td><td style="direction: ltr; text-align: left;">${fmt(netAmount)} SAR</td></tr>
+          <tr><td style="padding: 3px 15px 3px 0;">ضريبة القيمة المضافة (${(vatRate * 100).toFixed(0)}%):</td><td style="direction: ltr; text-align: left;">${fmt(vatAmount)} SAR</td></tr>
+          <tr style="font-weight: 700; font-size: 14px;"><td style="padding: 5px 15px 3px 0;">الإجمالي شامل الضريبة:</td><td style="direction: ltr; text-align: left;">${fmt(totalWithVat)} SAR</td></tr>
+        </table>
+      </div>
 
-  doc.setFont("helvetica", "normal");
-  doc.text(invoice.projectTitle.substring(0, 40), margin + 2, y + 4);
-  doc.text(invoice.amount.toLocaleString("en-SA", { minimumFractionDigits: 2 }), margin + 80, y + 4);
-  doc.text(invoice.commissionAmount.toLocaleString("en-SA", { minimumFractionDigits: 2 }), margin + 115, y + 4);
-  doc.text(netAmount.toLocaleString("en-SA", { minimumFractionDigits: 2 }), margin + 150, y + 4);
-  y += 10;
+      <!-- QR Code -->
+      <div style="margin-bottom: 15px;">
+        <p style="font-weight: 700; font-size: 11px; margin-bottom: 5px;">رمز ZATCA:</p>
+        <img src="${qrDataUrl}" style="width: 100px; height: 100px;" />
+      </div>
 
-  doc.line(margin, y, rightX, y);
-  y += 8;
+      <hr style="border: none; border-top: 3px solid #008080; margin: 10px 0;" />
 
-  const totals = [
-    ["Subtotal (Net):", `${netAmount.toFixed(2)} SAR`],
-    [`VAT (${(vatRate * 100).toFixed(0)}%):`, `${vatAmount.toFixed(2)} SAR`],
-    ["Total with VAT:", `${totalWithVat.toFixed(2)} SAR`],
-  ];
+      <!-- Footer -->
+      <div style="text-align: center; font-size: 9px; color: #888; direction: ltr;">
+        <p style="margin: 2px 0;">${t.footer_text}</p>
+        <p style="margin: 2px 0;">Generated on ${new Date().toISOString().slice(0, 10)}</p>
+      </div>
+    </div>
+  `;
 
-  for (let i = 0; i < totals.length; i++) {
-    const isTotal = i === totals.length - 1;
-    doc.setFont("helvetica", isTotal ? "bold" : "normal");
-    doc.setFontSize(isTotal ? 11 : 10);
-    doc.text(totals[i][0], margin + 110, y);
-    doc.text(totals[i][1], rightX, y, { align: "right" });
-    y += 7;
-  }
-  y += 5;
+  const canvas = await renderHtmlToImage(invoiceHtml, 800);
+  const imgData = canvas.toDataURL("image/png");
 
-  doc.setDrawColor(0, 128, 128);
-  doc.line(margin, y, rightX, y);
-  y += 10;
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pdfWidth = 210;
+  const pdfMargin = 5;
+  const usable = pdfWidth - 2 * pdfMargin;
+  const imgHeight = (canvas.height / canvas.width) * usable;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("ZATCA QR Code:", margin, y);
-  y += 3;
-  doc.addImage(qrDataUrl, "PNG", margin, y, 35, 35);
-
-  const footerY = 280;
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(128, 128, 128);
-  doc.text(t.footer_text, pageWidth / 2, footerY, { align: "center" });
-  doc.text(
-    `Generated on ${new Date().toISOString().slice(0, 10)}`,
-    pageWidth / 2,
-    footerY + 4,
-    { align: "center" }
-  );
-
-  doc.save(`invoice-${invoice.invoiceNumber}.pdf`);
+  pdf.addImage(imgData, "PNG", pdfMargin, pdfMargin, usable, imgHeight);
+  pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
 }
