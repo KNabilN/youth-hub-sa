@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminDisputes } from "@/hooks/useAdminDisputes";
@@ -66,7 +67,11 @@ export default function AdminDisputes() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {filtered.map((d: any) => <DisputeCard key={d.id} dispute={d} />)}
+            {filtered.map((d: any) => (
+              <Link key={d.id} to={`/admin/disputes/${d.id}`} className="block transition-opacity hover:opacity-80">
+                <DisputeCard dispute={d} />
+              </Link>
+            ))}
             {filtered.length === 0 && <p className="text-muted-foreground col-span-2 text-center py-8">لا توجد شكاوى</p>}
           </div>
         )}
