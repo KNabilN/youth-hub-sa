@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { sendNotification } from "@/lib/notifications";
 
 export function useBids(projectId: string | undefined) {
   return useQuery({
@@ -47,8 +46,7 @@ export function useAcceptBid() {
       }).eq("id", projectId);
       if (projectError) throw projectError;
 
-      // 5. Notify the provider with link to contracts page
-      await sendNotification(providerId, "تم قبول عرضك على الطلب! يمكنك الآن توقيع العقد. [عرض العقود](/contracts)", "bid_accepted");
+      // DB triggers handle all notifications (bid status change + contract creation + project status)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });
@@ -62,14 +60,9 @@ export function useRejectBid() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (bidId: string) => {
-      // Get bid details for notification
-      const { data: bid } = await supabase.from("bids").select("provider_id").eq("id", bidId).single();
       const { error } = await supabase.from("bids").update({ status: "rejected" }).eq("id", bidId);
       if (error) throw error;
-      // Notify provider
-      if (bid?.provider_id) {
-        await sendNotification(bid.provider_id, "تم رفض عرضك على الطلب.", "bid_rejected");
-      }
+      // DB trigger notify_on_bid_change handles notification to provider
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bids"] }),
   });

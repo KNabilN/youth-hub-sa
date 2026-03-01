@@ -15,7 +15,6 @@ export function useCreateEscrow() {
       payeeId: string;
       amount: number;
     }) => {
-      // Check if escrow already exists
       const { data: existing } = await supabase
         .from("escrow_transactions")
         .select("id")
@@ -54,7 +53,7 @@ export function useReleaseEscrow() {
       if (fetchErr) throw fetchErr;
       if (!escrow) throw new Error("No held escrow found");
 
-      // Get active commission rate to calculate net amount
+      // Get active commission rate
       const { data: config } = await supabase
         .from("commission_config")
         .select("rate")
@@ -67,13 +66,14 @@ export function useReleaseEscrow() {
       const commissionAmount = Number(escrow.amount) * Number(rate);
       const netAmount = Number(escrow.amount) - commissionAmount;
 
+      // Keep original amount intact — only update status
       const { error } = await supabase
         .from("escrow_transactions")
-        .update({ status: "released", amount: netAmount } as any)
+        .update({ status: "released" } as any)
         .eq("id", escrow.id);
       if (error) throw error;
 
-      // Return original amount info for invoice generation
+      // Return amounts for invoice generation
       return { ...escrow, net_amount: netAmount, commission_amount: commissionAmount };
     },
     onSuccess: () => {

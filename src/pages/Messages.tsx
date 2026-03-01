@@ -3,8 +3,9 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatThread } from "@/components/messages/ChatThread";
 import { useConversations } from "@/hooks/useMessages";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export default function Messages() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
@@ -30,7 +31,7 @@ export default function Messages() {
           <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] h-full">
             {/* Conversation List */}
             <div className={cn(
-              "border-l overflow-y-auto",
+              "border-s overflow-y-auto",
               selectedProjectId && "hidden md:block"
             )}>
               <div className="p-3 border-b">
@@ -48,10 +49,26 @@ export default function Messages() {
               !selectedProjectId && "hidden md:flex"
             )}>
               {selectedProjectId && selectedConv ? (
-                <ChatThread
-                  projectId={selectedProjectId}
-                  projectTitle={selectedConv.project_title}
-                />
+                <div className="flex flex-col h-full">
+                  {/* Mobile back button */}
+                  <div className="md:hidden p-2 border-b">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedProjectId(undefined)}
+                      className="gap-1"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                      العودة للمحادثات
+                    </Button>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <ChatThread
+                      projectId={selectedProjectId}
+                      projectTitle={selectedConv.project_title}
+                    />
+                  </div>
+                </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">

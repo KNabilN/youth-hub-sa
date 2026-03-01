@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { sendNotification } from "@/lib/notifications";
 
 export function useCreateDispute() {
   const qc = useQueryClient();
@@ -26,22 +25,7 @@ export function useCreateDispute() {
         .eq("project_id", project_id)
         .eq("status", "held");
 
-      // Notify the other party
-      const { data: project } = await supabase
-        .from("projects")
-        .select("association_id, assigned_provider_id")
-        .eq("id", project_id)
-        .single();
-
-      if (project) {
-        const otherPartyId =
-          user!.id === project.association_id
-            ? project.assigned_provider_id
-            : project.association_id;
-        if (otherPartyId) {
-          await sendNotification(otherPartyId, "تم رفع شكوى على الطلب", "dispute_raised");
-        }
-      }
+      // DB triggers handle notifications (notify_on_dispute_change + notify_on_project_status_change + notify_on_escrow_change)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["disputes"] });
@@ -57,7 +41,6 @@ export function useReopenDispute() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ disputeId, reason }: { disputeId: string; reason: string }) => {
-      // Fetch the dispute to check eligibility
       const { data: dispute, error: fetchErr } = await supabase
         .from("disputes")
         .select("id, status, updated_at, project_id, raised_by")
@@ -69,7 +52,6 @@ export function useReopenDispute() {
         throw new Error("لا يمكن إعادة فتح شكوى بهذه الحالة");
       }
 
-      // Check 7-day grace period
       const closedAt = new Date(dispute.updated_at);
       const now = new Date();
       const daysDiff = (now.getTime() - closedAt.getTime()) / (1000 * 60 * 60 * 24);
@@ -77,21 +59,18 @@ export function useReopenDispute() {
         throw new Error("انتهت مهلة إعادة فتح الشكوى (7 أيام)");
       }
 
-      // Re-open the dispute
       const { error } = await supabase
         .from("disputes")
         .update({ status: "open", resolution_notes: `إعادة فتح: ${reason}` })
         .eq("id", disputeId);
       if (error) throw error;
 
-      // Re-freeze escrow
       await supabase
         .from("escrow_transactions")
         .update({ status: "frozen" })
         .eq("project_id", dispute.project_id)
         .in("status", ["held", "released"]);
 
-      // Update project status
       await supabase
         .from("projects")
         .update({ status: "disputed" })

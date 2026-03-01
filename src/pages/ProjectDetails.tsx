@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
@@ -21,7 +22,7 @@ import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
 import { useCreateEscrow, useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
-import { sendNotification } from "@/lib/notifications";
+// Notifications are handled by database triggers — no client-side sendNotification needed
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
@@ -122,25 +123,23 @@ export default function ProjectDetails() {
       await supabase.from("projects").update({ status: "completed" }).eq("id", id);
 
       // 2. Release escrow and generate invoice
-      const escrow = await releaseEscrow.mutateAsync(id);
+      const escrowResult = await releaseEscrow.mutateAsync(id);
       await generateInvoice.mutateAsync({
-        escrowId: escrow.id,
-        amount: escrow.amount,
+        escrowId: escrowResult.id,
+        amount: escrowResult.amount,
         issuedTo: project.assigned_provider_id!,
       });
 
-      // 3. Notify provider
-      if (project.assigned_provider_id) {
-        await sendNotification(
-          project.assigned_provider_id,
-          "تم إتمام الطلب وتحرير المستحقات المالية",
-          "project_completed"
-        );
-      }
+      // DB triggers handle notifications (project status + escrow release)
 
       toast({ title: "تم إتمام الطلب وتحرير المستحقات" });
-      // Refresh
-      window.location.reload();
+      // Invalidate all relevant queries instead of full reload
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
+      queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
+      queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] });
+      queryClient.invalidateQueries({ queryKey: ["project-disputes", id] });
+      queryClient.invalidateQueries({ queryKey: ["contract", id] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     } catch (err) {
       console.error(err);
       toast({ title: "حدث خطأ أثناء إتمام الطلب", variant: "destructive" });
@@ -162,17 +161,12 @@ export default function ProjectDetails() {
         // No escrow to refund, that's fine
       }
 
-      // Notify provider
-      if (project.assigned_provider_id) {
-        await sendNotification(
-          project.assigned_provider_id,
-          "تم إلغاء الطلب",
-          "project_cancelled"
-        );
-      }
+      // DB triggers handle notifications (project status + escrow refund)
 
       toast({ title: "تم إلغاء الطلب" });
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
+      queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     } catch (err) {
       console.error(err);
       toast({ title: "حدث خطأ", variant: "destructive" });

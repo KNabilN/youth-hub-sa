@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ServiceCard } from "@/components/marketplace/ServiceCard";
 import { ServiceFilters } from "@/components/marketplace/ServiceFilters";
@@ -22,16 +22,17 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState("newest");
   const pagination = usePagination();
 
-  // Debounced search for query key
+  // Debounced search using useRef
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const handleSearchChange = (v: string) => {
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const handleSearchChange = useCallback((v: string) => {
     setSearchQuery(v);
-    clearTimeout((window as any).__searchTimeout);
-    (window as any).__searchTimeout = setTimeout(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearch(v);
       pagination.resetPage();
     }, 400);
-  };
+  }, [pagination]);
 
   const { data: services, isLoading } = useQuery({
     queryKey: ["marketplace", category, region, serviceType, debouncedSearch, priceMin, priceMax, pagination.from, pagination.to],
