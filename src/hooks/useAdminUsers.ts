@@ -1,23 +1,33 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useAdminUsers(from = 0, to = 19) {
+export function useAdminUsers(from = 0, to = 19, roleFilter?: string) {
   return useQuery({
-    queryKey: ["admin-users", from, to],
+    queryKey: ["admin-users", from, to, roleFilter],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(from, to);
-      if (profilesError) throw profilesError;
-
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
+      // First get role data, optionally filtered
+      let rolesQuery = supabase.from("user_roles").select("user_id, role");
+      if (roleFilter && roleFilter !== "all") {
+        rolesQuery = rolesQuery.eq("role", roleFilter as any);
+      }
+      const { data: roles, error: rolesError } = await rolesQuery;
       if (rolesError) throw rolesError;
 
       const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) ?? []);
+
+      // If filtering by role, only fetch those specific profiles
+      let profilesQuery = supabase.from("profiles").select("*").order("created_at", { ascending: false });
+
+      if (roleFilter && roleFilter !== "all") {
+        const userIds = roles?.map((r) => r.user_id) ?? [];
+        if (userIds.length === 0) return [];
+        profilesQuery = profilesQuery.in("id", userIds);
+      }
+
+      profilesQuery = profilesQuery.range(from, to);
+      const { data: profiles, error: profilesError } = await profilesQuery;
+      if (profilesError) throw profilesError;
+
       return (profiles ?? []).map((p) => ({
         ...p,
         user_roles: roleMap.has(p.id) ? [{ role: roleMap.get(p.id)! }] : [],

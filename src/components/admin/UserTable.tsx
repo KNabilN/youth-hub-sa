@@ -58,7 +58,6 @@ export function UserTable({ pagination }: UserTableProps) {
   const navigate = useNavigate();
   const from = pagination?.from ?? 0;
   const to = pagination?.to ?? 19;
-  const { data: users, isLoading } = useAdminUsers(from, to);
   const { user: authUser } = useAuth();
   const toggleVerify = useToggleVerification();
   const toggleSuspend = useToggleSuspension();
@@ -71,14 +70,15 @@ export function UserTable({ pagination }: UserTableProps) {
   
   const [createOpen, setCreateOpen] = useState(false);
 
+  // Pass roleFilter to hook for server-side filtering
+  const { data: users, isLoading } = useAdminUsers(from, to, roleFilter);
+
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [suspensionReason, setSuspensionReason] = useState("");
 
   const filtered = (users ?? []).filter((u: any) => {
     if (search && !u.full_name?.toLowerCase().includes(search.toLowerCase())) return false;
-    const userRole = u.user_roles?.[0]?.role;
-    if (roleFilter !== "all" && userRole !== roleFilter) return false;
     if (verifiedFilter === "verified" && !u.is_verified) return false;
     if (verifiedFilter === "unverified" && u.is_verified) return false;
     return true;
