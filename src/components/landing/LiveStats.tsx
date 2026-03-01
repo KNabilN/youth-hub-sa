@@ -49,11 +49,7 @@ function AnimatedCounter({ target, duration = 1500 }: { target: number; duration
   return <div ref={ref} className="text-2xl md:text-3xl font-bold gradient-text">{count}+</div>;
 }
 
-const fixedStats: StatItem[] = [
-  { key: "rating", label: "متوسط التقييم", icon: Star, value: "4.91/5" },
-  { key: "contracts", label: "عقد منجز", icon: FileText, value: "211K+" },
-  { key: "skills", label: "مهارة مدعومة", icon: Award, value: "1,665" },
-];
+const fixedStats: StatItem[] = [];
 
 const liveStatItems: { key: keyof LiveStatsProps["stats"] & string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "providers", label: "مقدم خدمة", icon: Users },
@@ -68,7 +64,7 @@ export default function LiveStats({ stats, loading }: LiveStatsProps) {
   return (
     <section className="py-14 px-4 border-y border-border bg-card/50">
       <div className="container mx-auto max-w-5xl">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {/* Fixed stats */}
           {fixedStats.map((item) => {
             const Icon = item.icon;
