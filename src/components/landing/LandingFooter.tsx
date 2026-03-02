@@ -62,11 +62,11 @@ export default function LandingFooter() {
             <div className="space-y-2">
               <a href="mailto:sspf.scy@gmail.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <Mail className="h-4 w-4 shrink-0" />
-                sspf.scy@gmail.com
+                <span dir="ltr">sspf.scy@gmail.com</span>
               </a>
-              <a href="tel:0554648475" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors" dir="ltr">
+              <a href="tel:0554648475" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="h-4 w-4 shrink-0" />
-                0554648475
+                <span dir="ltr">0554648475</span>
               </a>
             </div>
           </div>
