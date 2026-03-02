@@ -1,149 +1,105 @@
 
+# سلة المحذوفات (Soft Delete + Recycle Bin)
 
-# مراجعة شاملة للموقع - النتائج والخطة
-
-## ملخص تنفيذي
-
-بعد مراجعة شاملة للكود والقاعدة والتدفقات، المنصة في حالة جيدة بشكل عام مع بعض المشاكل التي تحتاج إلى إصلاح.
+## الفكرة
+بدلاً من الحذف النهائي، يتم نقل السجلات إلى "سلة محذوفات" لمدة 30 يوماً مع إمكانية الاسترجاع، ثم تُحذف نهائياً بعد انتهاء المدة.
 
 ---
 
-## 1. اتصال قاعدة البيانات (Database Connectivity)
+## التغييرات المطلوبة
 
-### ما يعمل بشكل صحيح:
-- جميع الـ hooks تستخدم Supabase client بشكل موحد من `@/integrations/supabase/client`
-- TanStack Query مُعد بشكل جيد مع `staleTime: 2min` و `retry: 1`
-- الـ Realtime subscriptions تعمل للإشعارات والرسائل مع cleanup مناسب
-- جميع الـ mutations تُبطل الكاش المناسب بعد النجاح
+### 1. تعديل قاعدة البيانات (Migration)
 
-### مشاكل تحتاج إصلاح:
+اضافة عمود `deleted_at` للجداول الرئيسية التي يمكن حذفها:
+- `micro_services` (الخدمات)
+- `projects` (الطلبات)
+- `support_tickets` (التذاكر)
+- `portfolio_items` (أعمال المعرض)
+- `disputes` (الشكاوى)
 
-**مشكلة 1: استعلام nested غير فعّال في `useProjectStats`**
-- في `src/hooks/useProjects.ts` (السطر 99-101): يُنفذ استعلام داخلي لجلب IDs المشاريع ثم يستخدمها في فلتر `in()` - هذا يُنتج طلبين بدلاً من واحد
-- الحل: استخدام `rpc` function أو join مباشر
+```text
+ALTER TABLE micro_services ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE projects ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE support_tickets ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE portfolio_items ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE disputes ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+```
 
-**مشكلة 2: `as any` كثيرة في التعامل مع الأنواع**
-- ملفات مثل `useBankTransfer.ts` (السطور 37, 47, 48, 54) و `useContracts.ts` (السطر 53) تستخدم `as any` مما يُخفي أخطاء محتملة في البيانات
-- ليست مشكلة وظيفية لكن تُقلل من أمان الأنواع
+اضافة دالة للحذف النهائي التلقائي بعد 30 يوماً (تُستدعى يدوياً أو عبر cron):
 
-**مشكلة 3: `pending_payment` و `failed` ليسا في enum `escrow_status`**
-- في `useBankTransfer.ts` السطر 37: `status: "pending_payment" as any` - هذا يعني أن القيمة قد لا تكون مدعومة في الـ enum الفعلي
-- يحتاج تأكيد من schema الحالي
+```text
+CREATE FUNCTION purge_soft_deleted_records()
+  -- يحذف نهائياً السجلات التي مضى عليها 30 يوماً
+```
 
----
+اضافة extension `pg_cron` وجدولة التنظيف التلقائي اليومي.
 
-## 2. تناسق واجهة المستخدم (UI/UX Consistency)
+تحديث سياسات RLS لتصفية السجلات المحذوفة تلقائياً من الاستعلامات العادية + السماح بقراءتها في صفحة سلة المحذوفات.
 
-### ما يعمل بشكل صحيح:
-- نمط "الهيدر الموحد" مع أيقونة + عنوان + وصف مُطبق في معظم الصفحات
-- الـ Sidebar متسق لجميع الأدوار مع تنقل واضح
-- نظام الإشعارات موحد (Popover للمستخدمين، صفحة كاملة للمدير)
-- RTL مدعوم بشكل صحيح في كل مكان
-- الـ Loading states تستخدم Skeleton بشكل موحد
-- الـ Empty states تستخدم مكون `EmptyState` موحد
+### 2. إنشاء Hook للمحذوفات (`src/hooks/useTrash.ts`)
 
-### مشاكل تحتاج إصلاح:
+- `useTrashItems()` - جلب جميع العناصر المحذوفة للمستخدم الحالي من كل الجداول
+- `useRestoreItem()` - استرجاع عنصر (UPDATE deleted_at = NULL)
+- `usePermanentDelete()` - حذف نهائي (DELETE فعلي)
+- `useSoftDelete()` - حذف ناعم (UPDATE deleted_at = now())
 
-**مشكلة 4: صفحة Auth تعرض خلفية فارغة**
-- في `src/pages/Auth.tsx`: عندما يُغلق المستخدم الـ modal يُعاد توجيهه لـ `/` لكن إذا كان الـ modal مفتوح فقط تظهر صفحة فارغة `bg-background` بدون أي محتوى خلف الـ modal
-- الحل: إضافة محتوى خلفية أو إعادة التوجيه مباشرة
+### 3. تعديل hooks الحذف الحالية
 
-**مشكلة 5: شريط التدرج اللوني غير متسق**
-- بعض الصفحات مثل `Donations.tsx` و `Messages.tsx` تستخدم شريط التدرج `h-1 rounded-full bg-gradient-to-l` تحت الهيدر، لكن صفحات أخرى مثل `Marketplace.tsx` لا تستخدمه
-- الحل: توحيد الاستخدام في جميع الصفحات أو إزالته من الكل
+تحويل جميع عمليات الحذف من `DELETE` إلى `UPDATE deleted_at = now()`:
 
-**مشكلة 6: الـ `ProviderProfile` page مفقودة من الـ routes**
-- يوجد ملف `src/pages/ProviderProfile.tsx` لكنه غير مُسجل في أي route
-- يبدو أن `/providers/:id` يُوجه لـ `PublicProfile` بدلاً منه
+- `src/hooks/useMyServices.ts` - `useDeleteService`
+- `src/hooks/useAdminServices.ts` - `useAdminDeleteService`
+- `src/hooks/usePortfolio.ts` - `useDeletePortfolioItem`
 
----
+### 4. تعديل hooks الاستعلام
 
-## 3. كفاءة الوظائف (Function Efficiency)
+اضافة فلتر `.is("deleted_at", null)` لجميع الاستعلامات:
 
-### ما يعمل بشكل صحيح:
-- الـ database triggers تتعامل مع الإشعارات تلقائياً (bid changes, contract signing, escrow, disputes, etc.)
-- نظام الضمان المالي (Escrow) متكامل مع العقود والمشتريات
-- نظام العمولات ديناميكي عبر جدول `commission_config`
-- الأرقام التسلسلية (request_number, ticket_number, etc.) تُولد تلقائياً عبر triggers
+- `src/hooks/useMyServices.ts` - `useMyServices`
+- `src/hooks/useProjects.ts` - `useProjects`, `useProject`
+- `src/hooks/useSupportTickets.ts` - `useSupportTickets`
+- `src/hooks/usePortfolio.ts` - `usePortfolio`
+- `src/hooks/useAdminServices.ts` - `useAdminServices`
+- وباقي hooks الاستعلام المرتبطة
 
-### مشاكل تحتاج إصلاح:
+### 5. إنشاء صفحة سلة المحذوفات (`src/pages/Trash.tsx`)
 
-**مشكلة 7: إشعارات مزدوجة في `usePurchaseService`**
-- في `src/hooks/usePurchaseService.ts` السطور 41-43: يُرسل إشعارات يدوياً عبر `sendNotification()` بينما يوجد أيضاً trigger `notify_on_service_purchase` و `notify_on_escrow_change` في قاعدة البيانات
-- هذا يُنتج إشعارات مكررة للمستخدم
-- الحل: إزالة استدعاءات `sendNotification()` اليدوية والاعتماد على الـ triggers فقط
+صفحة جديدة تعرض:
+- تبويبات حسب نوع العنصر (خدمات، طلبات، تذاكر، أعمال)
+- لكل عنصر: الاسم، تاريخ الحذف، المدة المتبقية قبل الحذف النهائي
+- أزرار: استرجاع / حذف نهائي
+- زر "تفريغ سلة المحذوفات" لحذف الكل نهائياً
 
-**مشكلة 8: `useBankTransfer` يُرسل إشعارات يدوياً للمدراء**
-- في `src/hooks/useBankTransfer.ts` السطور 69-79: يجلب جميع المدراء ويُرسل إشعارات يدوياً
-- بينما يوجد trigger `notify_on_bank_transfer_change` - لكن هذا الـ trigger يعمل فقط عند UPDATE لا INSERT
-- الحل: إضافة حالة INSERT في الـ trigger أو إبقاء الإشعار اليدوي مع إزالة التكرار
+### 6. تعديل واجهة الحذف
 
-**مشكلة 9: الـ Checkout يعيد التوجيه فوراً عند عدم وجود عناصر**
-- في `src/pages/Checkout.tsx` السطور 108-111: `navigate("/cart")` يُستدعى أثناء الـ render مما قد يُسبب تحذير React
-- الحل: نقل الـ navigation إلى `useEffect`
+تحديث رسائل التأكيد في جميع dialogs الحذف:
+- تغيير "سيتم حذف هذه الخدمة نهائياً" الى "سيتم نقل هذه الخدمة إلى سلة المحذوفات لمدة 30 يوماً"
+- الملفات: `src/pages/MyServices.tsx`, `src/components/admin/ServiceApprovalCard.tsx`, `src/components/portfolio/PortfolioManager.tsx`
 
----
+### 7. إضافة رابط سلة المحذوفات في القائمة الجانبية
 
-## 4. تدفقات المستخدم (User Flows)
+تعديل `src/components/AppSidebar.tsx` لإضافة رابط "سلة المحذوفات" مع عداد للعناصر المحذوفة.
 
-### ما يعمل بشكل صحيح:
-- **تدفق التسجيل**: التسجيل --> تأكيد البريد --> تسجيل دخول --> لوحة التحكم
-- **تدفق المشروع**: إنشاء --> إرسال للموافقة --> نشر --> استقبال عروض --> قبول عرض --> إنشاء عقد تلقائي --> توقيع --> ضمان مالي --> إتمام
-- **تدفق الشراء**: تصفح السوق --> إضافة للسلة --> الدفع (إلكتروني/بنكي) --> تأكيد
-- **تدفق الشكاوى**: رفع شكوى --> تجميد الضمان --> ردود --> حل/إغلاق --> إعادة فتح (خلال 7 أيام)
-- **تدفق المانح**: تصفح الجمعيات --> تقديم منحة --> متابعة الأثر
-- **استعادة كلمة المرور**: طلب رابط --> بريد إلكتروني --> إعادة تعيين
+### 8. تسجيل Route جديد
 
-### مشاكل تحتاج إصلاح:
-
-**مشكلة 10: عدم وجود تأكيد بصري بعد التسجيل**
-- عند التسجيل يظهر toast ثم يُغلق الـ modal - لكن لا يُوجه المستخدم لأي صفحة تأكيد
-- المستخدم يبقى في الصفحة الرئيسية بدون إرشاد واضح للخطوة التالية
-- الحل: إضافة صفحة/رسالة تأكيد واضحة تطلب فتح البريد الإلكتروني
-
-**مشكلة 11: cart_items لا يوجد constraint فريد على `(user_id, service_id)` في الكود**
-- في `useAddToCart` السطر 53: يستخدم `upsert` مع `onConflict: "user_id,service_id"` لكن يجب التأكد من وجود هذا الـ unique constraint في قاعدة البيانات
-- إذا لم يكن موجوداً سيفشل الـ upsert
+تعديل `src/App.tsx` لإضافة `/trash` route محمي.
 
 ---
 
-## 5. الأمان (Security)
+## الملفات المتأثرة
 
-### ما يعمل بشكل صحيح:
-- RLS مفعّل على جميع الجداول
-- الأدوار مخزنة في جدول منفصل `user_roles` (ممارسة أمنية صحيحة)
-- دالة `has_role()` مع `SECURITY DEFINER` تمنع الـ recursive RLS
-- فحص التعليق `is_not_suspended()` في سياسات INSERT
-- `AdminRoute` يتحقق من الدور عبر قاعدة البيانات لا عبر client storage
-
-### تحذيرات من الـ Linter:
-- **WARN**: سياسة RLS تستخدم `true` (للقراءة العامة) - مقبول للجداول العامة مثل categories, regions, ratings
-- **WARN**: حماية كلمات المرور المسربة معطلة - يُنصح بتفعيلها
-
----
-
-## خطة الإصلاح المقترحة (بالأولوية)
-
-### عاجل (يؤثر على الوظائف):
-1. إزالة الإشعارات المزدوجة في `usePurchaseService.ts` (حذف استدعاءات `sendNotification` اليدوية)
-2. إصلاح تحذير React في `Checkout.tsx` (نقل navigate إلى useEffect)
-
-### مهم (يؤثر على التجربة):
-3. توحيد شريط التدرج في هيدرات الصفحات الداخلية
-4. تحسين صفحة Auth بإضافة خلفية أو إعادة توجيه أفضل
-5. إضافة رسالة تأكيد واضحة بعد التسجيل
-
-### تحسينات (للكفاءة):
-6. تحسين `useProjectStats` لتقليل عدد الاستعلامات
-7. تقليل استخدام `as any` في hooks البنكية
-
----
-
-## الملفات المتأثرة:
-- `src/hooks/usePurchaseService.ts` - إزالة إشعارات مزدوجة
-- `src/pages/Checkout.tsx` - إصلاح navigate أثناء render
-- `src/pages/Auth.tsx` - تحسين تجربة الخلفية
-- `src/pages/Marketplace.tsx` + صفحات أخرى - توحيد شريط التدرج
-- `src/hooks/useProjects.ts` - تحسين استعلام الإحصائيات
-- `src/hooks/useBankTransfer.ts` - تنظيف الأنواع
-
+| ملف | نوع التغيير |
+|-----|-------------|
+| Migration SQL | جديد - اضافة اعمدة + دوال + cron |
+| `src/hooks/useTrash.ts` | جديد |
+| `src/pages/Trash.tsx` | جديد |
+| `src/hooks/useMyServices.ts` | تعديل - soft delete + فلتر |
+| `src/hooks/useAdminServices.ts` | تعديل - soft delete + فلتر |
+| `src/hooks/useProjects.ts` | تعديل - فلتر |
+| `src/hooks/useSupportTickets.ts` | تعديل - فلتر |
+| `src/hooks/usePortfolio.ts` | تعديل - soft delete + فلتر |
+| `src/pages/MyServices.tsx` | تعديل - رسائل التأكيد |
+| `src/components/admin/ServiceApprovalCard.tsx` | تعديل - رسائل التأكيد |
+| `src/components/portfolio/PortfolioManager.tsx` | تعديل - رسائل التأكيد |
+| `src/components/AppSidebar.tsx` | تعديل - رابط سلة المحذوفات |
+| `src/App.tsx` | تعديل - route جديد |
