@@ -117,14 +117,14 @@ export default function AdminFinance() {
         </div>
         <FinanceSummary />
         <Tabs defaultValue="escrow">
-          <TabsList>
+          <TabsList className="ms-auto">
             <TabsTrigger value="escrow">الضمان</TabsTrigger>
             <TabsTrigger value="invoices">الفواتير</TabsTrigger>
             <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
             <TabsTrigger value="bank-transfers">التحويلات البنكية</TabsTrigger>
           </TabsList>
           <TabsContent value="escrow">
-            <div className="flex flex-wrap gap-3 items-end mb-4">
+            <div className="flex flex-wrap gap-3 items-end mb-4 justify-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">الحالة</Label>
                 <Select value={escrowFilter} onValueChange={setEscrowFilter}>
@@ -253,7 +253,7 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="invoices">
-            <div className="flex flex-wrap gap-3 items-end mb-4">
+            <div className="flex flex-wrap gap-3 items-end mb-4 justify-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">الحالة</Label>
                 <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
@@ -344,7 +344,7 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="withdrawals">
-            <div className="flex gap-3 items-center mb-4">
+            <div className="flex gap-3 items-center mb-4 justify-end">
               <Button
                 variant="outline"
                 size="sm"
@@ -400,7 +400,7 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="bank-transfers">
-            <div className="flex gap-3 items-center mb-4">
+            <div className="flex gap-3 items-center mb-4 justify-end">
               <Button
                 variant="outline"
                 size="sm"
