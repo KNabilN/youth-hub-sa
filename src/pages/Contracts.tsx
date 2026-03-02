@@ -6,43 +6,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { ScrollText, Info } from "lucide-react";
-
-const MOCK_CONTRACTS = [
-  {
-    id: "demo-1",
-    project_id: "demo-p1",
-    projects: { title: "تطوير موقع إلكتروني", status: "in_progress" },
-    profiles: { full_name: "أحمد محمد" },
-    terms: "تطوير موقع إلكتروني متكامل يشمل التصميم والبرمجة والاستضافة لمدة سنة. المبلغ: 15,000 ر.س",
-    association_signed_at: "2025-12-01T10:00:00Z",
-    provider_signed_at: "2025-12-02T14:30:00Z",
-    created_at: "2025-11-28T08:00:00Z",
-  },
-  {
-    id: "demo-2",
-    project_id: "demo-p2",
-    projects: { title: "تصميم هوية بصرية", status: "in_progress" },
-    profiles: { full_name: "سارة العلي" },
-    terms: "تصميم هوية بصرية كاملة تشمل الشعار والألوان والخطوط والقرطاسية. المبلغ: 8,000 ر.س",
-    association_signed_at: "2026-01-15T09:00:00Z",
-    provider_signed_at: null,
-    created_at: "2026-01-10T12:00:00Z",
-  },
-  {
-    id: "demo-3",
-    project_id: "demo-p3",
-    projects: { title: "إدارة حسابات التواصل الاجتماعي", status: "open" },
-    profiles: { full_name: "خالد الشمري" },
-    terms: "إدارة حسابات التواصل الاجتماعي لمدة 3 أشهر تشمل إنشاء المحتوى والنشر والتفاعل. المبلغ: 5,000 ر.س",
-    association_signed_at: null,
-    provider_signed_at: null,
-    created_at: "2026-02-20T10:00:00Z",
-  },
-];
+import { ScrollText } from "lucide-react";
 
 export default function Contracts() {
   const [filter, setFilter] = useState("all");
@@ -64,9 +31,6 @@ export default function Contracts() {
     return false;
   };
 
-  const isDemo = !isLoading && !contracts?.length;
-  const displayContracts = isDemo ? MOCK_CONTRACTS : contracts;
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -83,15 +47,6 @@ export default function Contracts() {
 
         {/* Gradient Divider */}
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
-
-        {isDemo && (
-          <Alert className="border-primary/30 bg-primary/5">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-sm text-muted-foreground">
-              هذه بيانات تجريبية للعرض فقط. ستظهر عقودك الحقيقية هنا بمجرد قبول العروض وإنشاء العقود.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* Filter Card */}
         <Card className="border-dashed">
@@ -111,13 +66,15 @@ export default function Contracts() {
 
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
+        ) : !contracts?.length ? (
+          <EmptyState icon={ScrollText} title="لا توجد عقود بعد" description="ستظهر عقودك هنا بمجرد قبول العروض وإنشاء العقود" />
         ) : (
           <div className="space-y-3">
-            {displayContracts?.map((contract: any) => (
+            {contracts.map((contract: any) => (
               <ContractCard
                 key={contract.id}
                 contract={contract}
-                canSign={isDemo ? false : canSign(contract)}
+                canSign={canSign(contract)}
                 onSign={handleSign}
                 isSignPending={signContract.isPending}
               />

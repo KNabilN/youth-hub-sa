@@ -15,12 +15,13 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
-const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض" };
-const statusBorders: Record<string, string> = { pending: "border-e-4 border-yellow-500", approved: "border-e-4 border-emerald-500", rejected: "border-e-4 border-red-500" };
+const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض", processed: "تم التحويل" };
+const statusBorders: Record<string, string> = { pending: "border-e-4 border-yellow-500", approved: "border-e-4 border-emerald-500", rejected: "border-e-4 border-red-500", processed: "border-e-4 border-blue-500" };
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-600",
   approved: "bg-emerald-500/10 text-emerald-600",
-  rejected: "bg-red-500/10 text-red-600"
+  rejected: "bg-red-500/10 text-red-600",
+  processed: "bg-blue-500/10 text-blue-600"
 };
 
 export default function Earnings() {
