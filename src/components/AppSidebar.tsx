@@ -40,7 +40,7 @@ const menuByRole = {
     { title: "عروضي", url: "/my-bids", icon: FileText },
     { title: "العقود", url: "/contracts", icon: ScrollText },
     { title: "تسجيل الساعات", url: "/time-tracking", icon: ClipboardList },
-    { title: "الأرباح", url: "/earnings", icon: Receipt },
+    { title: "المعاملات المادية", url: "/earnings", icon: Receipt },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
     { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
