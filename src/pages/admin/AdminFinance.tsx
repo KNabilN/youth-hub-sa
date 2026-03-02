@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,6 +156,23 @@ export default function AdminFinance() {
                 إعادة تعيين
               </Button>
               <span className="text-sm text-muted-foreground self-center">{filteredEscrows.length} معاملة</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-1"
+                onClick={() => {
+                  toast.info("جارٍ تصدير الضمان...");
+                  downloadCSV("escrow.csv",
+                    ["الطلب", "الدافع", "المستفيد", "المبلغ", "الحالة", "التاريخ"],
+                    (escrows ?? []).map((e: any) => [
+                      e.projects?.title || "", e.profiles?.full_name || "", "",
+                      String(e.amount), escrowStatusLabels[e.status] || e.status, e.created_at?.slice(0, 10) || "",
+                    ])
+                  );
+                }}
+              >
+                <Download className="h-4 w-4" />تصدير CSV
+              </Button>
             </div>
             {loadingEscrow ? (
               <div className="border rounded-lg p-4 space-y-3">
@@ -267,6 +285,24 @@ export default function AdminFinance() {
                 إعادة تعيين
               </Button>
               <span className="text-sm text-muted-foreground self-center">{filteredInvoices.length} فاتورة</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-1"
+                onClick={() => {
+                  toast.info("جارٍ تصدير الفواتير...");
+                  downloadCSV("invoices.csv",
+                    ["رقم الفاتورة", "المستلم", "المبلغ", "العمولة", "الصافي", "الحالة", "التاريخ"],
+                    (invoices ?? []).map((inv: any) => [
+                      inv.invoice_number, inv.profiles?.full_name || "", String(inv.amount),
+                      String(inv.commission_amount), String(Number(inv.amount) - Number(inv.commission_amount)),
+                      inv.status, inv.created_at?.slice(0, 10) || "",
+                    ])
+                  );
+                }}
+              >
+                <Download className="h-4 w-4" />تصدير CSV
+              </Button>
             </div>
             {loadingInvoices ? (
               <div className="border rounded-lg p-4 space-y-3">
@@ -322,6 +358,24 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="withdrawals">
+            <div className="flex gap-3 items-center mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-1"
+                onClick={() => {
+                  toast.info("جارٍ تصدير طلبات السحب...");
+                  downloadCSV("withdrawals.csv",
+                    ["المبلغ", "الحالة", "التاريخ"],
+                    (withdrawals ?? []).map((w: any) => [
+                      String(w.amount), wStatusLabels[w.status] || w.status, w.created_at?.slice(0, 10) || "",
+                    ])
+                  );
+                }}
+              >
+                <Download className="h-4 w-4" />تصدير CSV
+              </Button>
+            </div>
             {loadingW ? (
               <div className="border rounded-lg p-4 space-y-3">
                 {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
@@ -360,6 +414,26 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="bank-transfers">
+            <div className="flex gap-3 items-center mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-1"
+                onClick={() => {
+                  toast.info("جارٍ تصدير التحويلات البنكية...");
+                  downloadCSV("bank-transfers.csv",
+                    ["المستخدم", "المبلغ", "الحالة", "التاريخ"],
+                    (bankTransfers ?? []).map((bt: any) => [
+                      bt.profiles?.full_name || "", String(bt.amount),
+                      bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض",
+                      bt.created_at?.slice(0, 10) || "",
+                    ])
+                  );
+                }}
+              >
+                <Download className="h-4 w-4" />تصدير CSV
+              </Button>
+            </div>
             {loadingBT ? (
               <div className="border rounded-lg p-4 space-y-3">
                 {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}

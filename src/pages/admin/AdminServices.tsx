@@ -13,7 +13,9 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { FileEdit, Eye } from "lucide-react";
+import { FileEdit, Eye, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import type { Database } from "@/integrations/supabase/types";
@@ -99,6 +101,24 @@ export default function AdminServices() {
             onClick={() => { setSearch(""); setApprovalFilter("all"); }}
           >
             إعادة تعيين
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={async () => {
+              toast.info("جارٍ تصدير الخدمات...");
+              const { data } = await supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
+              downloadCSV("services.csv",
+                ["العنوان", "مقدم الخدمة", "التصنيف", "السعر", "الحالة", "التاريخ"],
+                (data ?? []).map((s: any) => [
+                  s.title, (s.profiles as any)?.full_name || "", (s.categories as any)?.name || "",
+                  String(s.price), approvalLabels[s.approval] || s.approval, s.created_at?.slice(0, 10) || "",
+                ])
+              );
+            }}
+          >
+            <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
         {isLoading ? (

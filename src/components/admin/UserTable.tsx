@@ -13,7 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -173,7 +175,29 @@ export function UserTable({ pagination }: UserTableProps) {
         >
           إعادة تعيين
         </Button>
-        <div className="me-auto">
+        <div className="me-auto flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={async () => {
+              toast.info("جارٍ تصدير المستخدمين...");
+              const { data } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, is_suspended, created_at, user_roles(role)");
+              const roleLabelsMap: Record<string, string> = { super_admin: "مدير النظام", youth_association: "جمعية شبابية", service_provider: "مقدم خدمة", donor: "مانح" };
+              downloadCSV("users.csv",
+                ["الاسم", "الهاتف", "المنظمة", "الدور", "موثق", "الحالة", "تاريخ الانضمام"],
+                (data ?? []).map((u: any) => [
+                  u.full_name || "", u.phone || "", u.organization_name || "",
+                  roleLabelsMap[u.user_roles?.[0]?.role] || "",
+                  u.is_verified ? "نعم" : "لا",
+                  u.is_suspended ? "معلّق" : "نشط",
+                  u.created_at?.slice(0, 10) || "",
+                ])
+              );
+            }}
+          >
+            <Download className="h-4 w-4" />تصدير CSV
+          </Button>
           <Button onClick={() => setCreateOpen(true)} className="gap-1">
             <UserPlus className="h-4 w-4" />تسجيل مستخدم
           </Button>

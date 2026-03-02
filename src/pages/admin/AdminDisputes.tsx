@@ -14,7 +14,9 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { Eye, FileEdit } from "lucide-react";
+import { Eye, FileEdit, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
 import type { Database } from "@/integrations/supabase/types";
@@ -84,6 +86,24 @@ export default function AdminDisputes() {
             onClick={() => { setSearch(""); setStatusFilter("all"); }}
           >
             إعادة تعيين
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={async () => {
+              toast.info("جارٍ تصدير الشكاوى...");
+              const { data } = await supabase.from("disputes").select("description, status, created_at, projects(title), profiles!disputes_raised_by_fkey(full_name)");
+              downloadCSV("disputes.csv",
+                ["المشروع", "مقدم الشكوى", "الوصف", "الحالة", "التاريخ"],
+                (data ?? []).map((d: any) => [
+                  (d.projects as any)?.title || "", (d.profiles as any)?.full_name || "",
+                  d.description || "", disputeStatusLabels[d.status] || d.status, d.created_at?.slice(0, 10) || "",
+                ])
+              );
+            }}
+          >
+            <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
 
