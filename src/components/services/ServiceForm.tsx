@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,7 @@ const serviceSchema = z.object({
   long_description: z.string().max(10000).optional(),
   category_id: z.string().min(1, "اختر التصنيف"),
   region_id: z.string().min(1, "اختر المنطقة"),
+  city_id: z.string().optional().nullable(),
   service_type: z.enum(["fixed_price", "hourly"]),
   price: z.coerce.number().positive("يجب أن يكون رقماً موجباً"),
   faq: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).optional(),
@@ -60,6 +62,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
       long_description: "",
       category_id: "",
       region_id: "",
+      city_id: null,
       service_type: "fixed_price",
       price: 0,
       faq: [],
@@ -67,6 +70,17 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
       ...defaultValues,
     },
   });
+
+  const selectedRegionId = form.watch("region_id");
+  const { data: cities } = useCities(selectedRegionId);
+
+  // Reset city when region changes
+  useEffect(() => {
+    const currentCity = form.getValues("city_id");
+    if (currentCity && cities && !cities.find((c: any) => c.id === currentCity)) {
+      form.setValue("city_id", null);
+    }
+  }, [selectedRegionId, cities]);
 
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control: form.control, name: "faq" });
   const { fields: pkgFields, append: appendPkg, remove: removePkg } = useFieldArray({ control: form.control, name: "packages" });
@@ -179,6 +193,20 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
             </FormItem>
           )} />
         </div>
+        {selectedRegionId && (
+          <FormField control={form.control} name="city_id" render={({ field }) => (
+            <FormItem>
+              <FormLabel>المدينة</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                <FormControl><SelectTrigger><SelectValue placeholder="اختر المدينة" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="service_type" render={({ field }) => (
             <FormItem>

@@ -2,17 +2,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
-import { Tag, MapPin, Layers, Search, DollarSign } from "lucide-react";
+import { useCities } from "@/hooks/useCities";
+import { Tag, MapPin, Layers, Search, DollarSign, Building2 } from "lucide-react";
 
 interface Props {
   category: string;
   region: string;
+  city: string;
   serviceType: string;
   searchQuery: string;
   priceMin: string;
   priceMax: string;
   onCategoryChange: (v: string) => void;
   onRegionChange: (v: string) => void;
+  onCityChange: (v: string) => void;
   onServiceTypeChange: (v: string) => void;
   onSearchChange: (v: string) => void;
   onPriceMinChange: (v: string) => void;
@@ -20,11 +23,12 @@ interface Props {
 }
 
 export function ServiceFilters({
-  category, region, serviceType, searchQuery, priceMin, priceMax,
-  onCategoryChange, onRegionChange, onServiceTypeChange, onSearchChange, onPriceMinChange, onPriceMaxChange,
+  category, region, city, serviceType, searchQuery, priceMin, priceMax,
+  onCategoryChange, onRegionChange, onCityChange, onServiceTypeChange, onSearchChange, onPriceMinChange, onPriceMaxChange,
 }: Props) {
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
+  const { data: cities } = useCities(region !== "all" ? region : null);
 
   return (
     <div className="space-y-3 w-full">
@@ -55,7 +59,7 @@ export function ServiceFilters({
         {/* Region */}
         <div className="flex items-center gap-1.5">
           <MapPin className="h-4 w-4 text-muted-foreground" />
-          <Select value={region} onValueChange={onRegionChange}>
+          <Select value={region} onValueChange={(v) => { onRegionChange(v); onCityChange("all"); }}>
             <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المنطقة" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
@@ -63,6 +67,20 @@ export function ServiceFilters({
             </SelectContent>
           </Select>
         </div>
+
+        {/* City - only show when region is selected */}
+        {region !== "all" && (
+          <div className="flex items-center gap-1.5">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Select value={city} onValueChange={onCityChange}>
+              <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المدينة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Type */}
         <div className="flex items-center gap-1.5">

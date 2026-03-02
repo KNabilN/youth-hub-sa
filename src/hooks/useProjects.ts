@@ -11,7 +11,7 @@ export function useProjects(statusFilter?: string) {
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(*), regions(*)")
+        .select("*, categories(*), regions(*), cities(*)")
         .eq("association_id", user!.id)
         .order("created_at", { ascending: false });
       if (statusFilter && statusFilter !== "all") {
@@ -31,7 +31,7 @@ export function useProject(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(*), regions(*)")
+        .select("*, categories(*), regions(*), cities(*)")
         .eq("id", id!)
         .single();
       if (error) throw error;

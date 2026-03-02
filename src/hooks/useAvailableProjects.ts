@@ -10,7 +10,7 @@ export function useAvailableProjects(filters?: { category_id?: string; region_id
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(*), regions(*)")
+        .select("*, categories(*), regions(*), cities(*)")
         .eq("status", "open")
         .eq("is_private", false)
         .order("created_at", { ascending: false })
@@ -31,7 +31,7 @@ export function useAvailableProject(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(*), regions(*)")
+        .select("*, categories(*), regions(*), cities(*)")
         .eq("id", id!)
         .single();
       if (error) throw error;

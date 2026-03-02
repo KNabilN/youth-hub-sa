@@ -10,7 +10,7 @@ export function useAdminProjects(from = 0, to = 19) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(name), regions(name), profiles!projects_association_id_fkey(full_name)")
+        .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name)")
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;

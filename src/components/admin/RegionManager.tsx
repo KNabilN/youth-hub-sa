@@ -10,7 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, MapPin, Pencil, Check, X, Globe, Loader2, Download, Upload } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Trash2, Plus, MapPin, Pencil, Check, X, Globe, Loader2, Download, Upload, ChevronDown, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 function exportCSV(items: any[], filename: string) {
@@ -24,6 +25,101 @@ function exportCSV(items: any[], filename: string) {
   URL.revokeObjectURL(url);
 }
 
+function CityManager({ regionId, regionName }: { regionId: string; regionName: string }) {
+  const qc = useQueryClient();
+  const { data: cities } = useQuery({
+    queryKey: ["cities", regionId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cities").select("*").eq("region_id", regionId).order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const [name, setName] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  const addMut = useMutation({
+    mutationFn: async () => {
+      if (!name.trim()) throw new Error("الاسم مطلوب");
+      const { error } = await supabase.from("cities").insert({ name: name.trim(), region_id: regionId });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cities", regionId] }); qc.invalidateQueries({ queryKey: ["admin-regions-with-cities"] }); setName(""); toast.success("تمت إضافة المدينة"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      if (!name.trim()) throw new Error("الاسم مطلوب");
+      const { error } = await supabase.from("cities").update({ name: name.trim() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cities", regionId] }); setEditId(null); toast.success("تم التحديث"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const delMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("cities").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cities", regionId] }); qc.invalidateQueries({ queryKey: ["admin-regions-with-cities"] }); toast.success("تم حذف المدينة"); },
+    onError: () => toast.error("لا يمكن حذف المدينة"),
+  });
+
+  return (
+    <div className="ps-6 pe-2 py-3 space-y-3 border-s-2 border-primary/20 ms-4">
+      <div className="flex gap-2">
+        <Input placeholder="اسم المدينة" value={name} onChange={(e) => setName(e.target.value)} className="h-8 text-sm" onKeyDown={(e) => { if (e.key === "Enter") addMut.mutate(); }} />
+        <Button size="sm" onClick={() => addMut.mutate()} disabled={addMut.isPending} className="h-8 text-xs">
+          {addMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+          إضافة
+        </Button>
+      </div>
+      {(cities ?? []).length === 0 ? (
+        <p className="text-xs text-muted-foreground py-2">لا توجد مدن بعد</p>
+      ) : (
+        <div className="space-y-1">
+          {(cities ?? []).map((c: any) => (
+            <div key={c.id} className="flex items-center gap-2 py-1 px-2 rounded hover:bg-muted/50 text-sm">
+              {editId === c.id ? (
+                <>
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-7 text-sm flex-1" onKeyDown={(e) => { if (e.key === "Enter") updateMut.mutate({ id: editId, name: editName }); if (e.key === "Escape") setEditId(null); }} />
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateMut.mutate({ id: editId, name: editName })}><Check className="h-3 w-3 text-emerald-600" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditId(null)}><X className="h-3 w-3" /></Button>
+                </>
+              ) : (
+                <>
+                  <Building2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <span className="flex-1">{c.name}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditId(c.id); setEditName(c.name); }}><Pencil className="h-3 w-3" /></Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>حذف المدينة</AlertDialogTitle>
+                        <AlertDialogDescription>هل أنت متأكد من حذف "{c.name}"؟</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => delMut.mutate(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RegionManager() {
   const qc = useQueryClient();
   const { data: regions } = useQuery({
@@ -35,9 +131,30 @@ export function RegionManager() {
     },
   });
 
+  // Fetch city counts per region
+  const { data: cityCounts } = useQuery({
+    queryKey: ["admin-regions-with-cities"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cities").select("region_id");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data?.forEach(c => { counts[c.region_id] = (counts[c.region_id] || 0) + 1; });
+      return counts;
+    },
+  });
+
   const [name, setName] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [openRegions, setOpenRegions] = useState<Set<string>>(new Set());
+
+  const toggleRegion = (id: string) => {
+    setOpenRegions(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const addMut = useMutation({
     mutationFn: async () => {
@@ -80,11 +197,11 @@ export function RegionManager() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">المناطق</CardTitle>
+            <CardTitle className="text-lg">المناطق والمدن</CardTitle>
           </div>
           <Badge variant="secondary">{regions?.length ?? 0}</Badge>
         </div>
-        <CardDescription>المناطق الجغرافية المتاحة لتصنيف المشاريع والخدمات</CardDescription>
+        <CardDescription>المناطق الجغرافية والمدن التابعة لها</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
@@ -127,57 +244,54 @@ export function RegionManager() {
             <p className="text-sm">لا توجد مناطق بعد</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>الاسم</TableHead>
-                <TableHead className="w-24"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(regions ?? []).map((r: any) => (
-                <TableRow key={r.id} className="hover:bg-muted/50">
-                  {editId === r.id ? (
-                    <>
-                      <TableCell>
-                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
-                          <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
-                        </div>
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell className="font-medium">{r.name}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => startEdit(r)}><Pencil className="h-4 w-4" /></Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>حذف المنطقة</AlertDialogTitle>
-                                <AlertDialogDescription>هل أنت متأكد من حذف "{r.name}"؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => delMut.mutate(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-1">
+            {(regions ?? []).map((r: any) => {
+              const cityCount = cityCounts?.[r.id] ?? 0;
+              const isOpen = openRegions.has(r.id);
+              return (
+                <Collapsible key={r.id} open={isOpen} onOpenChange={() => toggleRegion(r.id)}>
+                  <div className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/50 border">
+                    {editId === r.id ? (
+                      <>
+                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 flex-1" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} />
+                        <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
+                        <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
+                      </>
+                    ) : (
+                      <>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <span className="font-medium flex-1">{r.name}</span>
+                        <Badge variant="outline" className="text-xs">{cityCount} مدينة</Badge>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(r)}><Pencil className="h-4 w-4" /></Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>حذف المنطقة</AlertDialogTitle>
+                              <AlertDialogDescription>هل أنت متأكد من حذف "{r.name}"؟ سيتم حذف جميع المدن التابعة لها.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => delMut.mutate(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
+                  </div>
+                  <CollapsibleContent>
+                    <CityManager regionId={r.id} regionName={r.name} />
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </div>
         )}
       </CardContent>
     </Card>

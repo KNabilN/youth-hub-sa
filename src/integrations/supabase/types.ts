@@ -249,6 +249,35 @@ export type Database = {
         }
         Relationships: []
       }
+      cities: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          region_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          region_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          region_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commission_config: {
         Row: {
           created_at: string
@@ -807,6 +836,7 @@ export type Database = {
         Row: {
           approval: Database["public"]["Enums"]["approval_status"]
           category_id: string | null
+          city_id: string | null
           created_at: string
           description: string
           faq: Json | null
@@ -827,6 +857,7 @@ export type Database = {
         Insert: {
           approval?: Database["public"]["Enums"]["approval_status"]
           category_id?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string
           faq?: Json | null
@@ -847,6 +878,7 @@ export type Database = {
         Update: {
           approval?: Database["public"]["Enums"]["approval_status"]
           category_id?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string
           faq?: Json | null
@@ -870,6 +902,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "micro_services_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
             referencedColumns: ["id"]
           },
           {
@@ -1119,6 +1158,7 @@ export type Database = {
           association_id: string
           budget: number | null
           category_id: string | null
+          city_id: string | null
           created_at: string
           description: string
           estimated_hours: number | null
@@ -1136,6 +1176,7 @@ export type Database = {
           association_id: string
           budget?: number | null
           category_id?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string
           estimated_hours?: number | null
@@ -1153,6 +1194,7 @@ export type Database = {
           association_id?: string
           budget?: number | null
           category_id?: string | null
+          city_id?: string | null
           created_at?: string
           description?: string
           estimated_hours?: number | null
@@ -1185,6 +1227,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
             referencedColumns: ["id"]
           },
           {

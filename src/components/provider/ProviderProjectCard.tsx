@@ -13,6 +13,7 @@ interface ProviderProjectCardProps {
     required_skills: string[] | null;
     categories?: { name: string } | null;
     regions?: { name: string } | null;
+    cities?: { name: string } | null;
   };
   onViewDetails: (id: string) => void;
 }
@@ -25,7 +26,7 @@ export function ProviderProjectCard({ project, onViewDetails }: ProviderProjectC
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
           {project.categories?.name && <Badge variant="secondary" className="text-xs">{project.categories.name}</Badge>}
           {project.regions?.name && (
-            <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{project.regions.name}</span>
+            <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{project.regions.name}{project.cities?.name ? ` - ${project.cities.name}` : ""}</span>
           )}
         </div>
       </CardHeader>

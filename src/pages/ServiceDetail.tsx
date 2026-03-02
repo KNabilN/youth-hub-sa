@@ -70,6 +70,7 @@ export default function ServiceDetail() {
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {service.categories && <Badge variant="secondary">{(service.categories as any).name}</Badge>}
           {service.regions && <Badge variant="outline">{(service.regions as any).name}</Badge>}
+          {(service as any).cities && <Badge variant="outline">{(service as any).cities.name}</Badge>}
           {avgRating && (
             <span className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />

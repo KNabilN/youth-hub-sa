@@ -15,7 +15,7 @@ export function useServiceDetail(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("*, categories(*), regions(*), profiles!micro_services_provider_id_fkey(id, full_name, avatar_url, bio, skills, is_verified, profile_views)")
+        .select("*, categories(*), regions(*), cities(*), profiles!micro_services_provider_id_fkey(id, full_name, avatar_url, bio, skills, is_verified, profile_views)")
         .eq("id", id!)
         .single();
       if (error) throw error;
