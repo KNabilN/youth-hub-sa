@@ -36,6 +36,7 @@ const Earnings = lazy(() => import("./pages/Earnings"));
 
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const TicketCreate = lazy(() => import("./pages/TicketCreate"));
+const TicketDetail = lazy(() => import("./pages/TicketDetail"));
 const Associations = lazy(() => import("./pages/Associations"));
 const Donations = lazy(() => import("./pages/Donations"));
 const ImpactReports = lazy(() => import("./pages/ImpactReports"));
@@ -142,6 +143,7 @@ const App = () => (
                 
                 <Route path="/tickets" element={<ProtectedRoute><SuspenseWrap><SupportTickets /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/tickets/new" element={<ProtectedRoute><SuspenseWrap><TicketCreate /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/tickets/:id" element={<ProtectedRoute><SuspenseWrap><TicketDetail /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/associations" element={<ProtectedRoute><SuspenseWrap><Associations /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/associations/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/donations" element={<ProtectedRoute><SuspenseWrap><Donations /></SuspenseWrap></ProtectedRoute>} />

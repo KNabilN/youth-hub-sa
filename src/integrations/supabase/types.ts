@@ -1387,6 +1387,38 @@ export type Database = {
           },
         ]
       }
+      ticket_replies: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          message: string
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          message?: string
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_logs: {
         Row: {
           approval: Database["public"]["Enums"]["approval_status"]
