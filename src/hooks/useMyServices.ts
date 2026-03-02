@@ -13,6 +13,7 @@ export function useMyServices() {
         .from("micro_services")
         .select("*, categories(*), regions(*), cities(*)")
         .eq("provider_id", user!.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -58,7 +59,10 @@ export function useDeleteService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("micro_services").delete().eq("id", id);
+      const { error } = await supabase
+        .from("micro_services")
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-services"] }),

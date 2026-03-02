@@ -11,6 +11,7 @@ export function usePortfolio(providerId?: string) {
         .from("portfolio_items")
         .select("*")
         .eq("provider_id", providerId!)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -47,15 +48,11 @@ export function useDeletePortfolioItem() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, image_url }: { id: string; image_url: string }) => {
-      // Try to delete from storage
-      try {
-        const url = new URL(image_url);
-        const parts = url.pathname.split("/portfolio/");
-        if (parts[1]) {
-          await supabase.storage.from("portfolio").remove([decodeURIComponent(parts[1])]);
-        }
-      } catch { /* ignore storage errors */ }
-      const { error } = await supabase.from("portfolio_items").delete().eq("id", id);
+      // Soft delete - don't remove from storage yet
+      const { error } = await supabase
+        .from("portfolio_items")
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio"] }),

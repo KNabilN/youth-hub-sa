@@ -54,6 +54,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Messages = lazy(() => import("./pages/Messages"));
+const Trash = lazy(() => import("./pages/Trash"));
 const About = lazy(() => import("./pages/About"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -157,6 +158,7 @@ const App = () => (
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/trash" element={<ProtectedRoute><SuspenseWrap><Trash /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />

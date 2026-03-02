@@ -13,6 +13,7 @@ export function useProjects(statusFilter?: string) {
         .from("projects")
         .select("*, categories(*), regions(*), cities(*)")
         .eq("association_id", user!.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter as any);
@@ -94,15 +95,15 @@ export function useProjectStats() {
     queryKey: ["project-stats", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Fetch user's project IDs first, then use them for all queries
       const { data: userProjects } = await supabase
         .from("projects")
         .select("id")
-        .eq("association_id", user!.id);
+        .eq("association_id", user!.id)
+        .is("deleted_at", null);
       const projectIds = userProjects?.map(p => p.id) ?? [];
 
       const [projectsRes, timeLogsRes, contractsRes, ratingsRes] = await Promise.all([
-        supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).eq("status", "in_progress"),
+        supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).is("deleted_at", null).eq("status", "in_progress"),
         projectIds.length
           ? supabase.from("time_logs").select("hours").eq("approval", "pending").in("project_id", projectIds)
           : Promise.resolve({ data: [] as { hours: number }[] }),

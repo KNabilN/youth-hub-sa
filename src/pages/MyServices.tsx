@@ -190,7 +190,7 @@ export default function MyServices() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
-              <AlertDialogDescription>سيتم حذف هذه الخدمة نهائياً.</AlertDialogDescription>
+              <AlertDialogDescription>سيتم نقل هذه الخدمة إلى سلة المحذوفات لمدة 30 يوماً، ويمكنك استرجاعها خلال هذه المدة.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>إلغاء</AlertDialogCancel>
