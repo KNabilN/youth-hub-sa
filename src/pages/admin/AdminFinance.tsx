@@ -117,12 +117,14 @@ export default function AdminFinance() {
         </div>
         <FinanceSummary />
         <Tabs defaultValue="escrow">
-          <TabsList className="ms-auto">
-            <TabsTrigger value="escrow">الضمان</TabsTrigger>
-            <TabsTrigger value="invoices">الفواتير</TabsTrigger>
-            <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
-            <TabsTrigger value="bank-transfers">التحويلات البنكية</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-end">
+            <TabsList>
+              <TabsTrigger value="escrow">الضمان</TabsTrigger>
+              <TabsTrigger value="invoices">الفواتير</TabsTrigger>
+              <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
+              <TabsTrigger value="bank-transfers">التحويلات البنكية</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="escrow">
             <div className="flex flex-wrap gap-3 items-end mb-4 justify-end">
               <div className="space-y-1.5">
