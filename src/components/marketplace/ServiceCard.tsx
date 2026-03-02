@@ -48,7 +48,7 @@ export function ServiceCard({ service }: { service: Service }) {
             <div className="min-w-0">
               <CardTitle className="text-base truncate">{service.title}</CardTitle>
               {(service as any).service_number && (
-                <span className="text-[10px] text-muted-foreground font-mono">{(service as any).service_number}</span>
+                <Link to={`/services/${service.id}`} className="text-xs font-semibold font-mono hover:underline hover:text-primary transition-colors">{(service as any).service_number}</Link>
               )}
             </div>
             <Badge variant="outline" className="shrink-0">{typeLabel[service.service_type] || service.service_type}</Badge>

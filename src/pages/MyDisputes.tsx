@@ -155,7 +155,7 @@ export default function MyDisputes() {
                         شكوى على: {d.projects?.title ?? "طلب محذوف"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
-                        {d.dispute_number && <span className="text-xs font-mono text-muted-foreground">{d.dispute_number}</span>}
+                        {d.dispute_number && <span className="text-sm font-semibold font-mono">{d.dispute_number}</span>}
                         <p className="text-xs text-muted-foreground">بواسطة: {d.profiles?.full_name ?? "—"}</p>
                       </div>
                     </div>
