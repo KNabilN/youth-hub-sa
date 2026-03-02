@@ -36,17 +36,19 @@ const priorityColors: Record<TicketPriority, string> = {
 };
 
 interface TicketCardProps {
+  id: string;
   subject: string;
   description: string;
   status: TicketStatus;
   priority: TicketPriority;
   created_at: string;
   ticket_number?: string;
+  onClick?: () => void;
 }
 
-export function TicketCard({ subject, description, status, priority, created_at, ticket_number }: TicketCardProps) {
+export function TicketCard({ id, subject, description, status, priority, created_at, ticket_number, onClick }: TicketCardProps) {
   return (
-    <Card>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 min-w-0">
