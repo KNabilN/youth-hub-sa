@@ -15,7 +15,7 @@ const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-export type EntityType = "project" | "contract" | "ticket" | "dispute";
+export type EntityType = "project" | "contract" | "ticket" | "dispute" | "bid" | "service";
 
 export interface Attachment {
   id: string;

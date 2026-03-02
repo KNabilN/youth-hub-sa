@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, User } from "lucide-react";
+import { Check, X, User, Paperclip } from "lucide-react";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
+import { useState } from "react";
 
 interface BidCardProps {
   bid: {
@@ -28,6 +30,8 @@ const statusMap: Record<string, { label: string; className: string }> = {
 
 export function BidCard({ bid, onAccept, onReject, isLoading }: BidCardProps) {
   const status = statusMap[bid.status] ?? statusMap.pending;
+  const [showAttachments, setShowAttachments] = useState(false);
+
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
@@ -48,6 +52,21 @@ export function BidCard({ bid, onAccept, onReject, isLoading }: BidCardProps) {
           <span className="font-medium">{bid.price} ر.س</span>
           <span className="text-muted-foreground">{bid.timeline_days} يوم</span>
         </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs gap-1"
+          onClick={() => setShowAttachments(!showAttachments)}
+        >
+          <Paperclip className="h-3.5 w-3.5" />
+          المرفقات
+        </Button>
+
+        {showAttachments && (
+          <AttachmentList entityType="bid" entityId={bid.id} />
+        )}
+
         {bid.status === "pending" && (
           <div className="flex gap-2">
             <Button size="sm" className="flex-1" onClick={() => onAccept?.(bid)} disabled={isLoading}>
