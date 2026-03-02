@@ -83,6 +83,10 @@ export function useAdminUpdateProfile() {
       const { error } = await supabase.from("profiles").update(values).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
+      qc.invalidateQueries({ queryKey: ["public-profile"] });
+    },
   });
 }
