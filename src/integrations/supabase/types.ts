@@ -519,6 +519,7 @@ export type Database = {
       disputes: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string
           dispute_number: string
           id: string
@@ -530,6 +531,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dispute_number?: string
           id?: string
@@ -541,6 +543,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string
           dispute_number?: string
           id?: string
@@ -841,6 +844,7 @@ export type Database = {
           category_id: string | null
           city_id: string | null
           created_at: string
+          deleted_at: string | null
           description: string
           faq: Json | null
           gallery: Json | null
@@ -863,6 +867,7 @@ export type Database = {
           category_id?: string | null
           city_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           faq?: Json | null
           gallery?: Json | null
@@ -885,6 +890,7 @@ export type Database = {
           category_id?: string | null
           city_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           faq?: Json | null
           gallery?: Json | null
@@ -1016,6 +1022,7 @@ export type Database = {
       portfolio_items: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           image_url: string
@@ -1024,6 +1031,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           image_url: string
@@ -1032,6 +1040,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           image_url?: string
@@ -1166,6 +1175,7 @@ export type Database = {
           category_id: string | null
           city_id: string | null
           created_at: string
+          deleted_at: string | null
           description: string
           estimated_hours: number | null
           id: string
@@ -1184,6 +1194,7 @@ export type Database = {
           category_id?: string | null
           city_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           estimated_hours?: number | null
           id?: string
@@ -1202,6 +1213,7 @@ export type Database = {
           category_id?: string | null
           city_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           estimated_hours?: number | null
           id?: string
@@ -1352,6 +1364,7 @@ export type Database = {
       support_tickets: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
@@ -1363,6 +1376,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
@@ -1374,6 +1388,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
@@ -1550,6 +1565,7 @@ export type Database = {
       increment_profile_views: { Args: { p_id: string }; Returns: undefined }
       increment_service_views: { Args: { s_id: string }; Returns: undefined }
       is_not_suspended: { Args: { _user_id: string }; Returns: boolean }
+      purge_soft_deleted_records: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role:

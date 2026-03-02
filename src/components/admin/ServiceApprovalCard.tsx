@@ -129,7 +129,7 @@ export function ServiceApprovalCard({ service }: { service: any }) {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>حذف الخدمة</AlertDialogTitle>
-                  <AlertDialogDescription>هل أنت متأكد من حذف "{service.title}"؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                  <AlertDialogDescription>سيتم نقل "{service.title}" إلى سلة المحذوفات لمدة 30 يوماً.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>إلغاء</AlertDialogCancel>
