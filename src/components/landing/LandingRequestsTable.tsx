@@ -25,7 +25,7 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
 
   return (
     <section className="py-20 px-4 bg-pattern">
-      <div className="container mx-auto max-w-5xl">
+      <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-12 space-y-3">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-sm font-medium mb-2">
             <FolderKanban className="w-4 h-4" />

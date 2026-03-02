@@ -43,7 +43,7 @@ export default function Index() {
           <img src={heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
           <div className="absolute inset-0 bg-[hsl(var(--primary))]/75" />
         </div>
-        <div className="container mx-auto max-w-4xl text-center space-y-8 relative z-10">
+        <div className="container mx-auto max-w-5xl text-center space-y-8 relative z-10">
           {h.badge && (
             <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
               <Zap className="w-4 h-4" />
@@ -75,22 +75,22 @@ export default function Index() {
       {/* 3. المميزات */}
       {feat.items?.length > 0 && (
         <section className="py-20 px-4 bg-pattern">
-          <div className="container mx-auto max-w-5xl">
-            <div className="text-center mb-12">
+            <div className="container mx-auto max-w-7xl">
+            <div className="text-center mb-14">
               <h2 className="text-3xl font-bold mb-3">{feat.title}</h2>
               <p className="text-muted-foreground">{feat.subtitle}</p>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-8">
               {feat.items.map((f: any, idx: number) => {
                 const Icon = featureIcons[f.icon] || Users;
                 const colors = featureColors[idx % featureColors.length];
                 return (
-                  <div key={f.title} className="bg-card rounded-2xl p-8 min-h-[240px] border border-border space-y-4 card-hover flex flex-col items-center text-center">
-                    <div className={`w-16 h-16 ${colors.iconBg} rounded-2xl flex items-center justify-center`}>
-                      <Icon className="w-8 h-8" />
+                  <div key={f.title} className="bg-muted/40 rounded-2xl p-10 min-h-[280px] border border-border/50 space-y-5 card-hover flex flex-col items-center text-center justify-center">
+                    <div className={`w-20 h-20 ${colors.iconBg} rounded-full flex items-center justify-center`}>
+                      <Icon className="w-9 h-9" />
                     </div>
-                    <h3 className="font-bold text-lg">{f.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
+                    <h3 className="font-bold text-xl">{f.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px]">{f.desc}</p>
                   </div>
                 );
               })}
@@ -108,7 +108,7 @@ export default function Index() {
       {/* 6. الثقة والأمان */}
       {tr.items?.length > 0 && (
         <section className="py-20 px-4 bg-card/50">
-          <div className="container mx-auto max-w-3xl text-center space-y-8">
+          <div className="container mx-auto max-w-6xl text-center space-y-8">
             <div>
               {tr.badge && (
                 <div className="inline-flex items-center gap-2 bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] text-sm font-medium px-4 py-2 rounded-full mb-4">
@@ -137,7 +137,7 @@ export default function Index() {
 
       {/* 8. CTA نهائي */}
       <section className="py-16 px-4 bg-[#2381C0]">
-        <div className="container mx-auto max-w-5xl">
+        <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="text-right space-y-4 flex-1">
               <span className="text-white/90 text-sm font-medium">تواصل معنا</span>
@@ -162,7 +162,7 @@ export default function Index() {
 
       {/* 9. نموذج التواصل */}
       <section className="bg-muted/30 py-16 px-4 text-center">
-        <div className="container mx-auto max-w-3xl space-y-3">
+        <div className="container mx-auto max-w-5xl space-y-3">
           <h2 className="text-3xl font-bold text-foreground">نحن هنا لمساعدتك</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية</p>
         </div>
