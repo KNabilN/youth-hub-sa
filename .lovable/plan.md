@@ -1,62 +1,75 @@
 
-# اضافة تصدير CSV لجميع صفحات الادارة
+# نظام الردود على تذاكر الدعم
 
 ## الفكرة
-استخراج دالة `downloadCSV` الموجودة في صفحة التقارير كأداة مشتركة، ثم اضافة زر "تصدير CSV" في كل صفحة ادارية تعرض بيانات جدولية.
+تمكين مدير النظام من الرد على تذاكر الدعم، وتمكين المستخدم من رؤية الردود والتفاعل معها في محادثة مشابهة لنظام الشكاوى.
+
+## قاعدة البيانات
+
+### جدول جديد: `ticket_replies`
+| العمود | النوع | الوصف |
+|--------|-------|-------|
+| id | uuid | المعرف |
+| ticket_id | uuid (FK -> support_tickets.id ON DELETE CASCADE) | التذكرة |
+| author_id | uuid | كاتب الرد |
+| message | text | نص الرد |
+| created_at | timestamptz | تاريخ الإنشاء |
+
+### سياسات الأمان (RLS)
+- **الأدمن**: تحكم كامل (ALL)
+- **المستخدم صاحب التذكرة**: قراءة + إضافة ردود على تذاكره فقط
+- منع المستخدمين الموقوفين من الرد
 
 ## التغييرات المطلوبة
 
-### 1. استخراج دالة downloadCSV كأداة مشتركة
-- **ملف جديد**: `src/lib/csv-export.ts`
-- نقل دالة `downloadCSV` من `AdminReports.tsx` اليه
-- تحديث `AdminReports.tsx` لاستيرادها من الملف الجديد بدل التعريف المحلي
+### 1. Hook جديد: `useTicketReplies.ts`
+- `useTicketReplies(ticketId)` - جلب الردود مع اسم الكاتب
+- `useCreateTicketReply()` - إنشاء رد جديد
 
-### 2. صفحة المستخدمين - `AdminUsers.tsx` / `UserTable.tsx`
-- اضافة زر "تصدير CSV" بجانب زر "تسجيل مستخدم"
-- الأعمدة: الاسم، الهاتف، المنظمة، الدور، موثق، الحالة، تاريخ الانضمام
-- يتم تصدير جميع المستخدمين من قاعدة البيانات (وليس فقط الصفحة الحالية)
+### 2. مكون جديد: `TicketReplyThread.tsx`
+- محادثة تشبه `DisputeResponseThread`
+- عرض الردود بفقاعات: رسائل المستخدم الحالي على اليسار، الآخرين على اليمين (RTL)
+- حقل إدخال + زر إرسال
+- دعم المرفقات عبر `FileUploader` و `AttachmentList`
 
-### 3. صفحة الخدمات - `AdminServices.tsx`
-- اضافة زر "تصدير CSV" بجانب فلاتر البحث
-- الأعمدة: العنوان، مقدم الخدمة، التصنيف، السعر، الحالة، التاريخ
+### 3. تعديل `AdminTicketDetail.tsx`
+- إضافة مكون `TicketReplyThread` بعد وصف التذكرة
+- عرض المرفقات الخاصة بالتذكرة
 
-### 4. صفحة الطلبات - `AdminProjects.tsx`
-- اضافة زر "تصدير CSV"
-- الأعمدة: رقم الطلب، العنوان، الجمعية، التصنيف، المنطقة، المدينة، الحالة، الميزانية، التاريخ
+### 4. صفحة جديدة: `TicketDetail.tsx` (للمستخدم)
+- عرض تفاصيل التذكرة (الموضوع، الحالة، الأولوية، الوصف)
+- مكون `TicketReplyThread` للمحادثة مع الدعم
+- المرفقات
 
-### 5. صفحة التذاكر - `AdminTickets.tsx`
-- اضافة زر "تصدير CSV"
-- الأعمدة: رقم التذكرة، الموضوع، المستخدم، الأولوية، الحالة، التاريخ
+### 5. تعديل `TicketCard.tsx`
+- جعل البطاقة قابلة للنقر (تنقل لصفحة تفاصيل التذكرة)
+- إضافة `id` و `onClick`/Link
 
-### 6. صفحة الشكاوى - `AdminDisputes.tsx`
-- اضافة زر "تصدير CSV"
-- الأعمدة: المشروع، مقدم الشكوى، الوصف، الحالة، التاريخ
+### 6. تعديل `App.tsx`
+- إضافة route: `/tickets/:id` -> `TicketDetail`
 
-### 7. صفحة المالية - `AdminFinance.tsx`
-- اضافة زر "تصدير CSV" لكل تاب (الضمان، الفواتير، طلبات السحب، التحويلات البنكية)
-- كل تاب يصدر أعمدته الخاصة
+### 7. تعديل `SupportTickets.tsx`
+- تمرير `id` لكل `TicketCard` وجعلها قابلة للنقر
 
 ## التفاصيل التقنية
 
-### دالة التصدير المشتركة
+### سير المحادثة
 ```text
-// src/lib/csv-export.ts
-downloadCSV(filename, headers[], rows[][])
-- يضيف BOM للتوافق مع Excel العربي
-- ينشئ blob ويحمل الملف تلقائياً
+المستخدم يفتح تذكرة
+  |
+  +-- الأدمن يرى التذكرة في /admin/tickets/:id
+  +-- الأدمن يكتب رد -> يُحفظ في ticket_replies
+  +-- المستخدم يرى الرد في /tickets/:id
+  +-- المستخدم يرد -> يُحفظ في ticket_replies
+  +-- (محادثة مستمرة حتى الإغلاق)
 ```
 
-### نمط زر التصدير
-- زر `variant="outline"` مع ايقونة `Download`
-- يقوم بجلب البيانات مباشرة من Supabase (وليس فقط البيانات المعروضة)
-- يعرض toast عند بدء التحميل
-
 ### الملفات المتأثرة
-- **جديد**: `src/lib/csv-export.ts`
-- **تعديل**: `src/pages/admin/AdminReports.tsx` - استيراد من الملف المشترك
-- **تعديل**: `src/components/admin/UserTable.tsx` - زر تصدير المستخدمين
-- **تعديل**: `src/pages/admin/AdminServices.tsx` - زر تصدير الخدمات
-- **تعديل**: `src/pages/admin/AdminProjects.tsx` - زر تصدير الطلبات
-- **تعديل**: `src/pages/admin/AdminTickets.tsx` - زر تصدير التذاكر
-- **تعديل**: `src/pages/admin/AdminDisputes.tsx` - زر تصدير الشكاوى
-- **تعديل**: `src/pages/admin/AdminFinance.tsx` - أزرار تصدير لكل تاب
+- **Migration**: جدول `ticket_replies` مع RLS
+- **جديد**: `src/hooks/useTicketReplies.ts`
+- **جديد**: `src/components/tickets/TicketReplyThread.tsx`
+- **جديد**: `src/pages/TicketDetail.tsx` (صفحة المستخدم)
+- **تعديل**: `src/pages/admin/AdminTicketDetail.tsx` - إضافة سجل المحادثة
+- **تعديل**: `src/components/tickets/TicketCard.tsx` - جعلها قابلة للنقر
+- **تعديل**: `src/pages/SupportTickets.tsx` - تمرير id
+- **تعديل**: `src/App.tsx` - إضافة route جديد
