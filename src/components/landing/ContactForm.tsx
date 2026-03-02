@@ -72,31 +72,31 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="w-full max-w-5xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl text-center">أرسل لنا رسالة</CardTitle>
+    <Card className="w-full max-w-5xl mx-auto shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-2xl text-center">أرسل لنا رسالة</CardTitle>
         <p className="text-sm text-muted-foreground text-center">املأ النموذج أدناه وسنقوم بالرد عليك في أقرب وقت ممكن</p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="contact-name">الاسم الكامل</Label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-name" className="text-sm font-medium">الاسم الكامل</Label>
             <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="أدخل اسمك الكامل" maxLength={100} />
             <CharCounter current={name.length} max={100} />
-            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
-          <div>
-            <Label htmlFor="contact-email">البريد الإلكتروني</Label>
-            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" dir="ltr" />
-            {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-email" className="text-sm font-medium">البريد الإلكتروني</Label>
+            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" dir="ltr" className="text-start" />
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
           </div>
-          <div>
-            <Label htmlFor="contact-message">الرسالة</Label>
-            <Textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={4} maxLength={1000} />
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-message" className="text-sm font-medium">الرسالة</Label>
+            <Textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={5} maxLength={1000} />
             <CharCounter current={message.length} max={1000} />
-            {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
+            {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
           </div>
-          <Button type="submit" className="w-full" disabled={sending}>
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={sending}>
             <Mail className="h-4 w-4 me-2" />
             {sending ? "جارٍ الإرسال..." : "إرسال الرسالة"}
           </Button>
