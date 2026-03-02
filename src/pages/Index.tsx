@@ -85,9 +85,9 @@ export default function Index() {
                 const Icon = featureIcons[f.icon] || Users;
                 const colors = featureColors[idx % featureColors.length];
                 return (
-                  <div key={f.title} className={`bg-gradient-to-b ${colors.color} rounded-2xl p-6 border border-border space-y-4 card-hover`}>
-                    <div className={`w-14 h-14 ${colors.iconBg} rounded-2xl flex items-center justify-center`}>
-                      <Icon className="w-7 h-7" />
+                  <div key={f.title} className="bg-card rounded-2xl p-8 min-h-[240px] border border-border space-y-4 card-hover flex flex-col items-center text-center">
+                    <div className={`w-16 h-16 ${colors.iconBg} rounded-2xl flex items-center justify-center`}>
+                      <Icon className="w-8 h-8" />
                     </div>
                     <h3 className="font-bold text-lg">{f.title}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
