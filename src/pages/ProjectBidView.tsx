@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAvailableProject } from "@/hooks/useAvailableProjects";
@@ -7,8 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, MapPin, Clock, DollarSign } from "lucide-react";
+import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FileUploader } from "@/components/attachments/FileUploader";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 export default function ProjectBidView() {
   const { id } = useParams<{ id: string }>();
@@ -16,11 +19,15 @@ export default function ProjectBidView() {
   const { data: project, isLoading } = useAvailableProject(id);
   const submitBid = useSubmitBid();
   const { toast } = useToast();
+  const [createdBidId, setCreatedBidId] = useState<string | null>(null);
 
   const handleSubmit = (values: BidFormValues) => {
     if (!id) return;
     submitBid.mutate({ project_id: id, price: values.price, timeline_days: values.timeline_days, cover_letter: values.cover_letter }, {
-      onSuccess: () => { toast({ title: "تم تقديم العرض بنجاح" }); navigate("/my-bids"); },
+      onSuccess: (data) => {
+        toast({ title: "تم تقديم العرض بنجاح" });
+        setCreatedBidId(data.id);
+      },
       onError: (err: any) => toast({ title: err?.message?.includes("duplicate") ? "لقد قدمت عرضاً على هذا الطلب مسبقاً" : "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -74,12 +81,34 @@ export default function ProjectBidView() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
-          <CardContent>
-            <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending} />
-          </CardContent>
-        </Card>
+        {createdBidId ? (
+          <>
+            <div className="flex items-center gap-3 text-success">
+              <CheckCircle className="h-6 w-6" />
+              <h2 className="text-xl font-bold">تم تقديم العرض بنجاح</h2>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">إرفاق ملفات</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FileUploader entityType="bid" entityId={createdBidId} />
+                <AttachmentList entityType="bid" entityId={createdBidId} />
+              </CardContent>
+            </Card>
+            <Button onClick={() => navigate("/my-bids")}>
+              <ArrowRight className="h-4 w-4 me-2" />
+              الانتقال لعروضي
+            </Button>
+          </>
+        ) : (
+          <Card>
+            <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
+            <CardContent>
+              <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

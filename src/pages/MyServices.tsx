@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Layers, AlertTriangle } from "lucide-react";
+import { Plus, Layers, AlertTriangle, CheckCircle, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileUploader } from "@/components/attachments/FileUploader";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 export default function MyServices() {
   const { data: services, isLoading } = useMyServices();
@@ -23,19 +26,28 @@ export default function MyServices() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
   const handleCreate = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
     createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
-      onSuccess: () => { toast({ title: "تم إنشاء الخدمة بنجاح" }); setFormOpen(false); },
+      onSuccess: (data) => {
+        toast({ title: "تم إنشاء الخدمة بنجاح" });
+        setFormOpen(false);
+        setCreatedServiceId(data.id);
+      },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
   const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
     createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
-      onSuccess: () => { toast({ title: "تم حفظ الخدمة كمسودة" }); setFormOpen(false); },
+      onSuccess: (data) => {
+        toast({ title: "تم حفظ الخدمة كمسودة" });
+        setFormOpen(false);
+        setCreatedServiceId(data.id);
+      },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -55,6 +67,32 @@ export default function MyServices() {
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
+
+  if (createdServiceId) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="flex items-center gap-3 text-success">
+            <CheckCircle className="h-6 w-6" />
+            <h2 className="text-xl font-bold">تم إنشاء الخدمة بنجاح</h2>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">إرفاق ملفات</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FileUploader entityType="service" entityId={createdServiceId} />
+              <AttachmentList entityType="service" entityId={createdServiceId} />
+            </CardContent>
+          </Card>
+          <Button onClick={() => setCreatedServiceId(null)}>
+            <ArrowLeft className="h-4 w-4 me-2" />
+            العودة لخدماتي
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

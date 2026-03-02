@@ -6,11 +6,12 @@ import { ServiceProviderCard } from "@/components/services/ServiceProviderCard";
 import { ServiceFAQ } from "@/components/services/ServiceFAQ";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, ShoppingBag, Star } from "lucide-react";
+import { Eye, ShoppingBag, Star, Paperclip } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -127,6 +128,15 @@ export default function ServiceDetail() {
 
       {/* FAQ */}
       <ServiceFAQ items={faq} />
+
+      {/* Attachments */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Paperclip className="h-5 w-5" />
+          المرفقات
+        </h2>
+        <AttachmentList entityType="service" entityId={id} />
+      </div>
 
       {/* Ratings */}
       {ratings.length > 0 && (
