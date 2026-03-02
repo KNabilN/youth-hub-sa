@@ -72,7 +72,7 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="max-w-3xl mx-auto">
+    <Card className="w-full max-w-5xl mx-auto">
       <CardHeader>
         <CardTitle className="text-xl text-center">أرسل لنا رسالة</CardTitle>
         <p className="text-sm text-muted-foreground text-center">املأ النموذج أدناه وسنقوم بالرد عليك في أقرب وقت ممكن</p>
