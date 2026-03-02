@@ -1,57 +1,51 @@
 
-# مراجعة تنفيذ سلة المحذوفات - العناصر المفقودة
 
-## ما تم تنفيذه بنجاح:
-- قاعدة البيانات: اعمدة `deleted_at` + دالة `purge_soft_deleted_records`
-- Hook سلة المحذوفات (`useTrash.ts`) مع جميع العمليات
-- صفحة سلة المحذوفات (`Trash.tsx`) مع التبويبات والتأكيدات
-- Soft delete في: `useMyServices`, `useAdminServices`, `usePortfolio`
-- فلتر `deleted_at` في: `useMyServices`, `useProjects`, `useSupportTickets`, `usePortfolio`, `useAdminServices`, `useProjectStats`
-- رسائل التأكيد المحدثة في: `MyServices.tsx`, `ServiceApprovalCard.tsx`
-- رابط سلة المحذوفات في الـ Sidebar
-- Route `/trash` مسجل في `App.tsx`
+# حذف زر ووظيفة الأرشفة من جميع الصفحات
+
+## الملخص
+إزالة جميع أزرار الأرشفة والدوال المرتبطة بها من المنصة بالكامل، مع الحفاظ على عرض الحالة "مؤرشف" كتسمية فقط (للسجلات الموجودة مسبقاً).
 
 ---
 
-## العناصر المفقودة التي تحتاج إصلاح:
+## التغييرات المطلوبة
 
-### 1. فلتر `deleted_at` مفقود من عدة hooks استعلام
+### 1. `src/components/services/MyServiceCard.tsx`
+- حذف `Archive` من imports
+- حذف prop `onArchive` من الواجهة والمكوّن
+- حذف زر الأرشفة من JSX
 
-هذه الـ hooks تعرض سجلات محذوفة (soft-deleted) للمستخدمين لأنها لا تحتوي على فلتر `.is("deleted_at", null)`:
+### 2. `src/components/projects/ProjectCard.tsx`
+- حذف `Archive` من imports
+- حذف prop `onArchive` من الواجهة والمكوّن
+- حذف زر الأرشفة من JSX
 
-- **`src/hooks/useMyDisputes.ts`** - يعرض شكاوى محذوفة للمستخدم
-- **`src/hooks/useAdminDisputes.ts`** - يعرض شكاوى محذوفة للمدير
-- **`src/hooks/useAdminTickets.ts`** - يعرض تذاكر محذوفة للمدير
-- **`src/hooks/useAdminProjects.ts`** - يعرض طلبات محذوفة للمدير
-- **`src/hooks/useAvailableProjects.ts`** - يعرض طلبات محذوفة لمقدمي الخدمات
-- **`src/hooks/useMyAssignedProjects.ts`** - يعرض طلبات محذوفة للمقدم المعيّن
-- **`src/hooks/useLandingStats.ts`** - يعرض خدمات/طلبات محذوفة في الصفحة الرئيسية (الاستعلامات المميزة)
-- **`src/hooks/useServiceDetail.ts`** - قد يعرض خدمة محذوفة في صفحة التفصيل
+### 3. `src/pages/MyServices.tsx`
+- حذف `onArchive` من استدعاء `MyServiceCard`
 
-### 2. رسالة التأكيد في PortfolioManager لم تُحدّث
+### 4. `src/pages/Projects.tsx`
+- حذف `onArchive` من استدعاء `ProjectCard`
+- حذف `"archived"` من labels في `handleStatusChange`
+- حذف خيار "مؤرشف" من فلتر الحالة (SelectItem)
 
-`src/components/portfolio/PortfolioManager.tsx` - عند حذف عمل من المعرض، يتم الحذف بدون أي رسالة تأكيد أصلاً (لا dialog). الـ toast يقول فقط "تم حذف العمل" بدون ذكر أنه نُقل للسلة.
+### 5. `src/pages/Invoices.tsx`
+- حذف دالتي `handleArchive` و `handleUnarchive`
+- حذف `Archive`, `RotateCcw` من imports
+- حذف زر الأرشفة/إلغاء الأرشفة من جدول الفواتير
+- حذف خيار "مؤرشفة" من فلتر الحالة
+- حذف `archived` من قاموس التسميات
 
-### 3. لا يوجد delete button/action لبعض الكيانات
+### 6. `src/pages/admin/AdminFinance.tsx`
+- حذف دالة `handleArchiveInvoice`
+- حذف `Archive` من imports
+- حذف زر الأرشفة من جدول الفواتير
+- حذف خيار "مؤرشفة" من فلتر الحالة
 
-الخطة تشمل soft delete للطلبات والتذاكر والشكاوى، لكن لا يوجد في الواجهة أزرار حذف لهذه الكيانات حالياً. هذا يعني أن المستخدم لا يستطيع حذفها أصلاً (soft أو hard). هذه ليست مشكلة وظيفية لكن تعني أن سلة المحذوفات ستكون فارغة لهذه الأنواع.
+### 7. `src/components/admin/ServiceApprovalCard.tsx`
+- تعديل شرط إعادة التفعيل ليشمل `suspended` فقط بدلاً من `suspended || archived`
 
 ---
 
-## خطة الإصلاح
+## ملاحظة
+- سيتم الاحتفاظ بتسميات وألوان حالة "مؤرشف/مؤرشفة" في الجداول الإدارية (AdminProjects, AdminServiceDetail) كعرض فقط، لأن سجلات قديمة قد تحمل هذه الحالة.
+- لن يتم تعديل قاعدة البيانات - فقط إزالة الأزرار والدوال من الواجهة.
 
-### الملفات المتأثرة:
-
-| ملف | التغيير |
-|-----|---------|
-| `src/hooks/useMyDisputes.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useAdminDisputes.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useAdminTickets.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useAdminProjects.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useAvailableProjects.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useMyAssignedProjects.ts` | اضافة `.is("deleted_at", null)` |
-| `src/hooks/useLandingStats.ts` | اضافة `.is("deleted_at", null)` للاستعلامات المميزة |
-| `src/hooks/useServiceDetail.ts` | اضافة فحص `deleted_at` اختياري |
-| `src/components/portfolio/PortfolioManager.tsx` | تحديث toast ليذكر سلة المحذوفات |
-
-كل التغييرات بسيطة - اضافة سطر `.is("deleted_at", null)` في كل استعلام.
