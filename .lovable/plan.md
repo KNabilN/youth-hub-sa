@@ -1,36 +1,53 @@
 
-# تحسين خط الأرقام وجعلها قابلة للنقر في كل الصفحات
+# اظهار اسم الجمعية وتفاصيل المشروع في صفحة المعاملات المادية
 
-## الملفات والتغييرات
+## التغييرات المطلوبة
 
-### 1. `src/pages/admin/AdminDisputes.tsx` (سطر 134)
-- تغيير من `text-xs text-muted-foreground` إلى `text-sm font-semibold`
-- نقل الرابط (`Link`) من عمود المشروع إلى عمود الرقم (مثل ما تم في AdminServices)
-- عمود المشروع يصبح نص عادي
+### 1. تحديث `src/hooks/useEarnings.ts`
+- توسيع الـ select ليشمل بيانات المشروع الاضافية: عنوان المشروع، رقم الطلب، الميزانية، التصنيف، والمنطقة
+- جلب اسم الجمعية (صاحبة المشروع) عبر `profiles` من خلال `projects.association_id`
+- الـ select الجديد:
+```
+escrow_transactions.*, projects(title, request_number, budget, association_id, categories(name), regions(name), profiles!projects_association_id_fkey(full_name, organization_name))
+```
+- ملاحظة: بما أن لا يوجد foreign key صريح بين projects و profiles، سنجلب بيانات الجمعية بشكل منفصل أو نستخدم payer_id من escrow مباشرة لجلب اسم الجمعية
 
-### 2. `src/pages/admin/AdminTickets.tsx` (سطر 138)
-- تغيير من `text-xs text-muted-foreground` إلى `text-sm font-semibold`
-- جعل رقم التذكرة هو الرابط القابل للنقر بدلا من الصف كامل
-- إزالة `cursor-pointer` و `onClick` من `TableRow` ونقل الرابط للرقم فقط
+### 2. تحديث `src/components/provider/EarningsSummary.tsx`
+- تحديث الـ interface ليشمل الحقول الجديدة (اسم الجمعية، رقم الطلب، التصنيف، المنطقة)
+- اظهار اسم الجمعية تحت عنوان المشروع
+- اظهار رقم الطلب بخط mono واضح
+- اظهار التصنيف والمنطقة كـ Badges صغيرة
+- تحسين تصميم كل صف في سجل المعاملات ليعرض المعلومات الاضافية بشكل منظم
 
-### 3. `src/components/services/MyServiceCard.tsx` (سطر 52)
-- تغيير من `text-xs` إلى `text-sm font-semibold`
-- لف الرقم بـ `Link` يوجه لصفحة تفاصيل الخدمة
+## التفاصيل التقنية
 
-### 4. `src/components/marketplace/ServiceCard.tsx` (سطر 51)
-- تغيير من `text-[10px]` إلى `text-xs font-semibold`
-- لف الرقم بـ `Link` يوجه لصفحة تفاصيل الخدمة
+بما أن جدول `escrow_transactions` يحتوي على `payer_id` (الجمعية) و `project_id`، سنجلب:
+- من `projects`: العنوان، رقم الطلب، التصنيف، المنطقة
+- نجلب اسم الجمعية عبر الـ `payer_id` مباشرة من جدول `profiles`
 
-### 5. `src/pages/ServiceDetail.tsx` (سطر 70-72)
-- تغيير من `text-sm text-muted-foreground` إلى `text-sm font-semibold text-primary`
+الـ query النهائي:
+```sql
+select *, projects(title, request_number, categories(name), regions(name))
+from escrow_transactions
+where payee_id = user_id
+```
 
-### 6. `src/pages/MyDisputes.tsx` (سطر 158)
-- تغيير من `text-xs` إلى `text-sm font-semibold`
+ثم نجلب أسماء الجمعيات بشكل منفصل باستخدام `payer_id` ← `profiles(full_name, organization_name)`
 
-### 7. `src/pages/admin/AdminDisputeDetail.tsx` (سطر 131)
-- تغيير إلى `text-sm font-semibold text-primary`
+او الأسهل: نضيف select للـ profiles مباشرة عبر payer_id:
+```
+escrow_transactions select: "*, projects(title, request_number, categories(name), regions(name)), profiles!escrow_transactions_payer_id_fkey(full_name, organization_name)"
+```
 
-## النمط الموحد
-- جميع الأرقام: `font-mono text-sm font-semibold`
-- الأرقام القابلة للنقر: اضافة `hover:underline hover:text-primary transition-colors`
-- في صفحات الادارة: الرقم هو الرابط الرئيسي وليس العنوان
+بما أنه لا يوجد foreign key صريح بين escrow_transactions و profiles، سنستخدم طريقة بديلة: نجلب payer_id مع البيانات ثم نعمل query ثاني لجلب أسماء الجمعيات، أو نضيف الاسم مباشرة في الـ select عبر inner query.
+
+الحل الأبسط: توسيع select المشروع ليشمل `association_id` ثم عمل query منفصل لجلب الأسماء، أو استخدام profiles مباشرة كـ join hint.
+
+### الشكل النهائي لكل معاملة:
+```text
++--------------------------------------------------+
+| [RQ-20260301-0001]  عنوان المشروع                |
+| جمعية الشباب السعودي                              |
+| [تقنية معلومات] [الرياض]          محتجز  500 ر.س |
++--------------------------------------------------+
+```
