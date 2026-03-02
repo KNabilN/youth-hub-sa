@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import QRCode from "qrcode";
+import { BRAND, BASE_FONT, loadArabicFont, getLogoBase64 } from "./pdf-utils";
 
 function encodeTLV(tag: number, value: string): Uint8Array {
   const encoder = new TextEncoder();
@@ -65,36 +66,27 @@ export interface InvoiceData {
   recipientName: string;
 }
 
-const BASE_FONT = `'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
-
-let fontLoaded = false;
-async function loadArabicFont(): Promise<void> {
-  if (fontLoaded) return;
-  try {
-    const font = new FontFace(
-      "Cairo",
-      "url(https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLKoN-at6p1N2aQ.woff2)",
-      { weight: "400 900", style: "normal" }
-    );
-    const loaded = await font.load();
-    document.fonts.add(loaded);
-    await document.fonts.ready;
-    fontLoaded = true;
-  } catch {
-    console.warn("Failed to load Cairo font for invoice");
-  }
-}
-
 async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanvasElement> {
   const container = document.createElement("div");
   container.style.cssText = `
     position: fixed; top: -99999px; left: -99999px;
-    width: ${width}px; background: #ffffff; color: #1a1a2e;
+    width: ${width}px; background: #ffffff; color: ${BRAND.text};
     font-family: ${BASE_FONT};
     direction: rtl; unicode-bidi: embed; padding: 0;
   `;
   container.innerHTML = html;
   document.body.appendChild(container);
+
+  const images = container.querySelectorAll("img");
+  await Promise.all(
+    Array.from(images).map(
+      (img) =>
+        new Promise<void>((r) => {
+          if (img.complete) r();
+          else { img.onload = () => r(); img.onerror = () => r(); }
+        })
+    )
+  );
 
   const canvas = await html2canvas(container, {
     scale: 2,
@@ -112,6 +104,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
   await loadArabicFont();
 
   const t = template ?? DEFAULT_TEMPLATE;
+  const logoBase64 = await getLogoBase64(t.logo_url || undefined);
 
   const netAmount = invoice.amount - invoice.commissionAmount;
   const vatRate = 0.15;
@@ -141,19 +134,32 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
 
   const fmt = (n: number) => n.toLocaleString("en-SA", { minimumFractionDigits: 2 });
 
+  const logoImgTag = logoBase64
+    ? `<img src="${logoBase64}" style="height:50px;width:auto;object-fit:contain;" />`
+    : "";
+
   const invoiceHtml = `
-    <div style="padding: 40px 50px; font-family: ${BASE_FONT}; direction: rtl; color: #1a1a2e;">
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 10px;">
-        <h1 style="font-size: 28px; font-weight: 700; margin: 0; direction: ltr;">Tax Invoice</h1>
-        <p style="font-size: 16px; color: #555; margin: 5px 0 0;">فاتورة ضريبية</p>
+    <div style="padding: 40px 50px; font-family: ${BASE_FONT}; direction: rtl; color: ${BRAND.text};">
+      <!-- Header with Logo -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;margin-bottom:10px;background:linear-gradient(135deg, ${BRAND.headerBg} 0%, ${BRAND.white} 100%);border-radius:10px;padding:24px 30px;">
+        <div style="text-align:right;flex:1;">
+          <h1 style="font-size: 26px; font-weight: 800; margin: 0; color:${BRAND.primary};font-family:${BASE_FONT};">فاتورة ضريبية</h1>
+          <p style="font-size: 14px; color: ${BRAND.textMuted}; margin: 4px 0 0;direction:ltr;text-align:right;">Tax Invoice</p>
+        </div>
+        <div style="text-align:left;direction:ltr;display:flex;align-items:center;gap:12px;">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:${BRAND.primary};letter-spacing:0.5px;">${t.company_name_en}</div>
+            <div style="font-size:10px;color:${BRAND.textMuted};">${t.company_name}</div>
+          </div>
+          ${logoImgTag}
+        </div>
       </div>
 
-      <hr style="border: none; border-top: 3px solid #008080; margin: 15px 0 20px;" />
+      <hr style="border: none; border-top: 3px solid ${BRAND.primary}; margin: 15px 0 20px;" />
 
       <!-- Seller Info -->
-      <div style="margin-bottom: 20px;">
-        <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">البائع / Seller</p>
+      <div style="margin-bottom: 20px;background:${BRAND.rowAlt};border-radius:8px;padding:16px 20px;border:1px solid ${BRAND.border};">
+        <p style="font-weight: 700; font-size: 13px; margin-bottom: 8px;color:${BRAND.primary};">البائع / Seller</p>
         <p style="margin: 2px 0; font-size: 12px;">الاسم: ${t.company_name_en} / ${t.company_name}</p>
         <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">VAT No: ${t.vat_number}</p>
         <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">CR: ${t.cr_number}</p>
@@ -162,58 +168,61 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
 
       <!-- Invoice Details -->
       <div style="margin-bottom: 20px;">
-        <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">تفاصيل الفاتورة</p>
+        <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;color:${BRAND.primary};">تفاصيل الفاتورة</p>
         <table style="font-size: 12px; border-collapse: collapse;">
-          <tr><td style="padding: 2px 0; font-weight: 600; width: 120px;">رقم الفاتورة:</td><td style="direction: ltr;">${invoice.invoiceNumber}</td></tr>
-          <tr><td style="padding: 2px 0; font-weight: 600;">التاريخ:</td><td>${formattedDate}</td></tr>
-          <tr><td style="padding: 2px 0; font-weight: 600;">صادرة إلى:</td><td>${invoice.recipientName}</td></tr>
-          <tr><td style="padding: 2px 0; font-weight: 600;">المشروع/الخدمة:</td><td>${invoice.projectTitle}</td></tr>
+          <tr><td style="padding: 3px 0; font-weight: 600; width: 130px;">رقم الفاتورة:</td><td style="direction: ltr;">${invoice.invoiceNumber}</td></tr>
+          <tr><td style="padding: 3px 0; font-weight: 600;">التاريخ:</td><td>${formattedDate}</td></tr>
+          <tr><td style="padding: 3px 0; font-weight: 600;">صادرة إلى:</td><td>${invoice.recipientName}</td></tr>
+          <tr><td style="padding: 3px 0; font-weight: 600;">المشروع/الخدمة:</td><td>${invoice.projectTitle}</td></tr>
         </table>
       </div>
 
       <!-- Items Table -->
       <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px;">
         <thead>
-          <tr style="background: #f0f0f0;">
-            <th style="padding: 8px 6px; text-align: right; border: 1px solid #ddd;">الوصف</th>
-            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">المبلغ (ر.س)</th>
-            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">العمولة (ر.س)</th>
-            <th style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; width: 100px;">الصافي (ر.س)</th>
+          <tr style="background: ${BRAND.headerBg};">
+            <th style="padding: 10px 8px; text-align: right; border: 1px solid ${BRAND.primaryMid};color:${BRAND.primary};font-weight:700;">الوصف</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 100px;color:${BRAND.primary};font-weight:700;">المبلغ (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 100px;color:${BRAND.primary};font-weight:700;">العمولة (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 100px;color:${BRAND.primary};font-weight:700;">الصافي (ر.س)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding: 8px 6px; border: 1px solid #ddd;">${invoice.projectTitle}</td>
-            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(invoice.amount)}</td>
-            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(invoice.commissionAmount)}</td>
-            <td style="padding: 8px 6px; text-align: center; border: 1px solid #ddd; direction: ltr;">${fmt(netAmount)}</td>
+            <td style="padding: 10px 8px; border: 1px solid ${BRAND.border};">${invoice.projectTitle}</td>
+            <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(invoice.amount)}</td>
+            <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(invoice.commissionAmount)}</td>
+            <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:700;color:${BRAND.primary};">${fmt(netAmount)}</td>
           </tr>
         </tbody>
       </table>
 
-      <hr style="border: none; border-top: 3px solid #008080; margin: 10px 0 15px;" />
+      <hr style="border: none; border-top: 3px solid ${BRAND.primary}; margin: 10px 0 15px;" />
 
       <!-- Totals -->
       <div style="display: flex; justify-content: flex-start; margin-bottom: 20px;">
-        <table style="font-size: 12px; border-collapse: collapse;">
-          <tr><td style="padding: 3px 15px 3px 0;">الصافي:</td><td style="direction: ltr; text-align: left;">${fmt(netAmount)} SAR</td></tr>
-          <tr><td style="padding: 3px 15px 3px 0;">ضريبة القيمة المضافة (${(vatRate * 100).toFixed(0)}%):</td><td style="direction: ltr; text-align: left;">${fmt(vatAmount)} SAR</td></tr>
-          <tr style="font-weight: 700; font-size: 14px;"><td style="padding: 5px 15px 3px 0;">الإجمالي شامل الضريبة:</td><td style="direction: ltr; text-align: left;">${fmt(totalWithVat)} SAR</td></tr>
+        <table style="font-size: 12px; border-collapse: collapse;background:${BRAND.headerBg};border-radius:8px;padding:12px 20px;">
+          <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">الصافي:</td><td style="direction: ltr; text-align: left;">${fmt(netAmount)} SAR</td></tr>
+          <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">ضريبة القيمة المضافة (${(vatRate * 100).toFixed(0)}%):</td><td style="direction: ltr; text-align: left;">${fmt(vatAmount)} SAR</td></tr>
+          <tr style="font-weight: 700; font-size: 14px;color:${BRAND.primary};"><td style="padding: 6px 18px 4px 0;">الإجمالي شامل الضريبة:</td><td style="direction: ltr; text-align: left;">${fmt(totalWithVat)} SAR</td></tr>
         </table>
       </div>
 
       <!-- QR Code -->
       <div style="margin-bottom: 15px;">
-        <p style="font-weight: 700; font-size: 11px; margin-bottom: 5px;">رمز ZATCA:</p>
+        <p style="font-weight: 700; font-size: 11px; margin-bottom: 5px;color:${BRAND.primary};">رمز ZATCA:</p>
         <img src="${qrDataUrl}" style="width: 100px; height: 100px;" />
       </div>
 
-      <hr style="border: none; border-top: 3px solid #008080; margin: 10px 0;" />
+      <hr style="border: none; border-top: 3px solid ${BRAND.primary}; margin: 10px 0;" />
 
       <!-- Footer -->
-      <div style="text-align: center; font-size: 9px; color: #888; direction: ltr;">
+      <div style="text-align: center; font-size: 9px; color: ${BRAND.textMuted}; direction: ltr;display:flex;justify-content:space-between;align-items:center;">
         <p style="margin: 2px 0;">${t.footer_text}</p>
-        <p style="margin: 2px 0;">Generated on ${new Date().toISOString().slice(0, 10)}</p>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${logoBase64 ? `<img src="${logoBase64}" style="height:18px;width:auto;opacity:0.6;" />` : ""}
+          <span style="font-weight:700;color:${BRAND.primary};font-size:10px;">${t.company_name_en}</span>
+        </div>
       </div>
     </div>
   `;
