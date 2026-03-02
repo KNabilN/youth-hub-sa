@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, CheckCircle } from "lucide-react";
+import { Mail, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -72,21 +72,22 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="max-w-lg mx-auto">
+    <Card className="max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-center">تواصل معنا</CardTitle>
+        <CardTitle className="text-xl text-center">أرسل لنا رسالة</CardTitle>
+        <p className="text-sm text-muted-foreground text-center">املأ النموذج أدناه وسنقوم بالرد عليك في أقرب وقت ممكن</p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="contact-name">الاسم</Label>
-            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" maxLength={100} />
+            <Label htmlFor="contact-name">الاسم الكامل</Label>
+            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="أدخل اسمك الكامل" maxLength={100} />
             <CharCounter current={name.length} max={100} />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
           </div>
           <div>
             <Label htmlFor="contact-email">البريد الإلكتروني</Label>
-            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" dir="ltr" />
+            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" dir="ltr" />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
           </div>
           <div>
@@ -96,8 +97,8 @@ export function ContactForm() {
             {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
           </div>
           <Button type="submit" className="w-full" disabled={sending}>
-            <Send className="h-4 w-4 me-2" />
-            {sending ? "جارٍ الإرسال..." : "إرسال"}
+            <Mail className="h-4 w-4 me-2" />
+            {sending ? "جارٍ الإرسال..." : "إرسال الرسالة"}
           </Button>
         </form>
       </CardContent>
