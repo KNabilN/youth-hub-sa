@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { BRAND, BASE_FONT, loadArabicFont, getLogoBase64 } from "./pdf-utils";
 
 interface ReportSection {
   title: string;
@@ -17,40 +18,6 @@ const PAGE_WIDTH_MM = 210;
 const PAGE_HEIGHT_MM = 297;
 const PADDING_MM = 5;
 const CONTAINER_WIDTH = 1100;
-
-/* ── Brand palette ── */
-const BRAND = {
-  primary: "#0f766e",        // teal-700
-  primaryLight: "#ccfbf1",   // teal-50
-  primaryMid: "#99f6e4",     // teal-200
-  accent: "#b59535",         // royal gold
-  text: "#1e293b",           // slate-800
-  textMuted: "#64748b",      // slate-500
-  border: "#e2e8f0",         // slate-200
-  headerBg: "#f0fdfa",       // teal-50
-  rowAlt: "#f8fafc",         // slate-50
-  white: "#ffffff",
-};
-
-const BASE_FONT = `'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
-
-let fontLoaded = false;
-async function loadArabicFont(): Promise<void> {
-  if (fontLoaded) return;
-  try {
-    const font = new FontFace(
-      "Cairo",
-      "url(https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLKoN-at6p1N2aQ.woff2)",
-      { weight: "400 900", style: "normal" }
-    );
-    const loaded = await font.load();
-    document.fonts.add(loaded);
-    await document.fonts.ready;
-    fontLoaded = true;
-  } catch {
-    console.warn("Failed to load Cairo font, falling back to system fonts");
-  }
-}
 
 function createOffscreenContainer(): HTMLDivElement {
   const el = document.createElement("div");
@@ -118,7 +85,6 @@ async function addSectionToPdf(
 
 /* ── Helpers for formatted currency ── */
 function formatCell(cell: string): string {
-  // Bold currency values like "9500" next to headers containing "ر.س"
   const num = Number(cell);
   if (!isNaN(num) && cell.trim() !== "") {
     return `<span style="font-weight:700;letter-spacing:0.3px;">${num.toLocaleString("ar-SA")}</span>`;
@@ -128,7 +94,6 @@ function formatCell(cell: string): string {
 
 /**
  * Generate a professional PDF report and trigger download.
- * Each logical section is captured independently to prevent clipping at page boundaries.
  */
 export async function generateReportPDF(
   title: string,
@@ -142,21 +107,29 @@ export async function generateReportPDF(
   const dateOnly = format(new Date(), "yyyy/MM/dd");
 
   await loadArabicFont();
+  const logoBase64 = await getLogoBase64();
 
   const pdf = new jsPDF("p", "mm", "a4");
   const cursor = { y: 0 };
 
-  // ─── 1. Professional Header ───
+  // ─── 1. Header with Logo ───
+  const logoImgTag = logoBase64
+    ? `<img src="${logoBase64}" style="height:50px;width:auto;object-fit:contain;" />`
+    : "";
+
   const headerHTML = `
-    <div dir="rtl" style="padding:40px 50px 28px;border-bottom:3px solid ${BRAND.primary};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <div style="text-align:right;">
-          <h1 style="font-size:30px;font-weight:800;color:${BRAND.primary};margin:0 0 6px;font-family:${BASE_FONT};">${title}</h1>
+    <div dir="rtl" style="padding:30px 50px 24px;background:linear-gradient(135deg, ${BRAND.headerBg} 0%, ${BRAND.white} 100%);border-bottom:3px solid ${BRAND.primary};border-radius:0 0 12px 12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="text-align:right;flex:1;">
+          <h1 style="font-size:28px;font-weight:800;color:${BRAND.primary};margin:0 0 6px;font-family:${BASE_FONT};">${title}</h1>
           <div style="font-size:13px;color:${BRAND.textMuted};font-weight:500;">الفترة: ${dateStr}</div>
         </div>
-        <div style="text-align:left;direction:ltr;">
-          <div style="font-size:22px;font-weight:800;color:${BRAND.primary};letter-spacing:1px;">YouthHubSA</div>
-          <div style="font-size:11px;color:${BRAND.textMuted};margin-top:2px;">${dateOnly}</div>
+        <div style="text-align:left;direction:ltr;display:flex;align-items:center;gap:14px;">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:${BRAND.primary};letter-spacing:0.5px;">YouthHubSA</div>
+            <div style="font-size:10px;color:${BRAND.textMuted};margin-top:2px;">${dateOnly}</div>
+          </div>
+          ${logoImgTag}
         </div>
       </div>
     </div>`;
@@ -202,7 +175,7 @@ export async function generateReportPDF(
     }
   }
 
-  // ─── 4. Tables – professional clean style ───
+  // ─── 4. Tables ───
   for (const section of sections) {
     const isCurrencyTable = section.headers.some((h) => h.includes("ر.س"));
     const tableHTML = `<div dir="rtl" style="padding:12px 50px;">
@@ -238,11 +211,16 @@ export async function generateReportPDF(
     await addSectionToPdf(pdf, await renderSectionToImage(tableHTML), cursor);
   }
 
-  // ─── 5. Professional Footer ───
+  // ─── 5. Footer with Logo ───
+  const smallLogoTag = logoBase64
+    ? `<img src="${logoBase64}" style="height:22px;width:auto;object-fit:contain;opacity:0.7;" />`
+    : "";
+
   const footerHTML = `<div dir="rtl" style="padding:24px 50px 16px;">
     <div style="padding-top:16px;border-top:2px solid ${BRAND.border};display:flex;justify-content:space-between;align-items:center;">
       <div style="font-size:11px;color:${BRAND.textMuted};font-weight:500;">تاريخ الإصدار: ${generatedAt}</div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;direction:ltr;">
+        ${smallLogoTag}
         <span style="font-size:11px;color:${BRAND.textMuted};">تقرير صادر من</span>
         <span style="font-size:13px;font-weight:800;color:${BRAND.primary};letter-spacing:0.5px;">YouthHubSA</span>
       </div>
@@ -266,7 +244,7 @@ export async function generateReportPDF(
 }
 
 /**
- * Capture a chart container (Card element containing a Recharts chart) as a base64 PNG.
+ * Capture a chart container as a base64 PNG.
  */
 export async function captureChartAsImage(
   container: HTMLElement
