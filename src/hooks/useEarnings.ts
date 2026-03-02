@@ -10,7 +10,7 @@ export function useEarnings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escrow_transactions")
-        .select("*, projects(title)")
+        .select("*, projects(title, request_number, categories(name), regions(name)), payer:profiles!escrow_transactions_payer_id_fkey(full_name, organization_name)")
         .eq("payee_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
