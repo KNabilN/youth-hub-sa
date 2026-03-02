@@ -7,12 +7,12 @@ export function useCreateDispute() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ project_id, description }: { project_id: string; description: string }) => {
-      const { error } = await supabase.from("disputes").insert({
+      const { data, error } = await supabase.from("disputes").insert({
         project_id,
         description,
         raised_by: user!.id,
         status: "open",
-      });
+      }).select("id").single();
       if (error) throw error;
 
       // Update project status to disputed
@@ -25,7 +25,8 @@ export function useCreateDispute() {
         .eq("project_id", project_id)
         .eq("status", "held");
 
-      // DB triggers handle notifications (notify_on_dispute_change + notify_on_project_status_change + notify_on_escrow_change)
+      // DB triggers handle notifications
+      return data.id;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["disputes"] });
