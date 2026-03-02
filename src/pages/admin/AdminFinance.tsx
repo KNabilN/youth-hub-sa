@@ -173,24 +173,18 @@ export default function AdminFinance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>الطلب</TableHead>
-                      <TableHead>الدافع</TableHead>
-                      <TableHead>المستفيد</TableHead>
-                      <TableHead>المبلغ</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>التاريخ</TableHead>
                       <TableHead>إجراءات</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>المبلغ</TableHead>
+                      <TableHead>المستفيد</TableHead>
+                      <TableHead>الدافع</TableHead>
+                      <TableHead>الطلب</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredEscrows.map((e: any) => (
                       <TableRow key={e.id}>
-                        <TableCell>{e.projects?.title ?? "—"}</TableCell>
-                        <TableCell>{e.profiles?.full_name ?? "—"}</TableCell>
-                        <TableCell>{(e as any)["profiles"]?.full_name ?? "—"}</TableCell>
-                        <TableCell className="font-medium">{Number(e.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status] ?? e.status}</Badge></TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                         <TableCell>
                           <div className="flex gap-1 flex-wrap">
                             {e.status === "held" && (
@@ -244,6 +238,12 @@ export default function AdminFinance() {
                             )}
                           </div>
                         </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                        <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status] ?? e.status}</Badge></TableCell>
+                        <TableCell className="font-medium">{Number(e.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell>{(e as any)["profiles"]?.full_name ?? "—"}</TableCell>
+                        <TableCell>{e.profiles?.full_name ?? "—"}</TableCell>
+                        <TableCell>{e.projects?.title ?? "—"}</TableCell>
                       </TableRow>
                     ))}
                     {filteredEscrows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد معاملات</TableCell></TableRow>}
@@ -302,15 +302,15 @@ export default function AdminFinance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>رقم الفاتورة</TableHead>
-                      <TableHead>المستلم</TableHead>
-                      <TableHead>المبلغ</TableHead>
-                      <TableHead>العمولة</TableHead>
-                      <TableHead>الصافي</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>ملاحظات</TableHead>
-                      <TableHead>التاريخ</TableHead>
                       <TableHead>إجراءات</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>ملاحظات</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>الصافي</TableHead>
+                      <TableHead>العمولة</TableHead>
+                      <TableHead>المبلغ</TableHead>
+                      <TableHead>المستلم</TableHead>
+                      <TableHead>رقم الفاتورة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -319,14 +319,6 @@ export default function AdminFinance() {
                       const statusVariant = inv.status === "issued" ? "default" : inv.status === "viewed" ? "secondary" : "outline";
                       return (
                         <TableRow key={inv.id}>
-                          <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
-                          <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
-                          <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell className="font-semibold">{(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
-                          <TableCell><Badge variant={statusVariant}>{statusLabel}</Badge></TableCell>
-                          <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{inv.notes || "—"}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" onClick={() => handleDownloadInvoice(inv)} title="تحميل PDF">
@@ -334,6 +326,14 @@ export default function AdminFinance() {
                               </Button>
                             </div>
                           </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{inv.notes || "—"}</TableCell>
+                          <TableCell><Badge variant={statusVariant}>{statusLabel}</Badge></TableCell>
+                          <TableCell className="font-semibold">{(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -429,12 +429,12 @@ export default function AdminFinance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>المستخدم</TableHead>
-                      <TableHead>المبلغ</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>التاريخ</TableHead>
-                      <TableHead>الإيصال</TableHead>
                       <TableHead>إجراءات</TableHead>
+                      <TableHead>الإيصال</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>المبلغ</TableHead>
+                      <TableHead>المستخدم</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -443,23 +443,6 @@ export default function AdminFinance() {
                       const statusColor = bt.status === "pending" ? "bg-orange-500/10 text-orange-600" : bt.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
                       return (
                         <TableRow key={bt.id}>
-                          <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
-                          <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{format(new Date(bt.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={async () => {
-                                const { data } = await supabase.storage.from("transfer-receipts").createSignedUrl(bt.receipt_url, 300);
-                                if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                                else toast.error("تعذر فتح الإيصال");
-                              }}
-                            >
-                              <ExternalLink className="h-3.5 w-3.5 me-1" />عرض
-                            </Button>
-                          </TableCell>
                           <TableCell>
                             {bt.status === "pending" ? (
                               <div className="flex gap-2">
@@ -492,6 +475,23 @@ export default function AdminFinance() {
                               <span className="text-xs text-muted-foreground">{bt.admin_note || "—"}</span>
                             )}
                           </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                const { data } = await supabase.storage.from("transfer-receipts").createSignedUrl(bt.receipt_url, 300);
+                                if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                else toast.error("تعذر فتح الإيصال");
+                              }}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 me-1" />عرض
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(bt.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
+                          <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
                         </TableRow>
                       );
                     })}
