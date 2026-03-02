@@ -58,7 +58,10 @@ export default function AdminServices() {
   const [editService, setEditService] = useState<any>(null);
 
   const filtered = (services ?? []).filter((s: any) => {
-    if (search && !s.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!s.title.toLowerCase().includes(q) && !(s.service_number || "").toLowerCase().includes(q)) return false;
+    }
     if (approvalFilter !== "all" && s.approval !== approvalFilter) return false;
     return true;
   });
@@ -131,6 +134,7 @@ export default function AdminServices() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>الرقم</TableHead>
                     <TableHead>العنوان</TableHead>
                     <TableHead>مقدم الخدمة</TableHead>
                     <TableHead>التصنيف</TableHead>
@@ -144,6 +148,7 @@ export default function AdminServices() {
                 <TableBody>
                   {paged.map((s: any) => (
                     <TableRow key={s.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{s.service_number || "—"}</TableCell>
                       <TableCell className="font-medium"><Link to={`/admin/services/${s.id}`} className="hover:underline hover:text-primary transition-colors">{s.title}</Link></TableCell>
                       <TableCell>{s.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
@@ -168,7 +173,7 @@ export default function AdminServices() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paged.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
+                  {paged.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>

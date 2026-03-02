@@ -40,7 +40,8 @@ export default function AdminDisputes() {
       const q = search.toLowerCase();
       const title = d.projects?.title?.toLowerCase() ?? "";
       const name = d.profiles?.full_name?.toLowerCase() ?? "";
-      if (!title.includes(q) && !name.includes(q)) return false;
+      const dn = (d.dispute_number || "").toLowerCase();
+      if (!title.includes(q) && !name.includes(q) && !dn.includes(q)) return false;
     }
     if (statusFilter !== "all" && d.status !== statusFilter) return false;
     return true;
@@ -117,7 +118,8 @@ export default function AdminDisputes() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>المشروع</TableHead>
+                     <TableHead>الرقم</TableHead>
+                     <TableHead>المشروع</TableHead>
                     <TableHead>مقدم الشكوى</TableHead>
                     <TableHead>الوصف</TableHead>
                     <TableHead>الحالة</TableHead>
@@ -129,6 +131,7 @@ export default function AdminDisputes() {
                 <TableBody>
                   {paged.map((d: any) => (
                     <TableRow key={d.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{d.dispute_number || "—"}</TableCell>
                       <TableCell className="font-medium">
                         <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
                           {d.projects?.title ?? "—"}
@@ -168,7 +171,7 @@ export default function AdminDisputes() {
                   ))}
                   {paged.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد شكاوى</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد شكاوى</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

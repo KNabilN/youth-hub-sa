@@ -520,6 +520,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          dispute_number: string
           id: string
           project_id: string
           raised_by: string
@@ -530,6 +531,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string
+          dispute_number?: string
           id?: string
           project_id: string
           raised_by: string
@@ -540,6 +542,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string
+          dispute_number?: string
           id?: string
           project_id?: string
           raised_by?: string
@@ -849,6 +852,7 @@ export type Database = {
           provider_id: string
           region_id: string | null
           sales_count: number | null
+          service_number: string
           service_type: Database["public"]["Enums"]["service_type"]
           service_views: number | null
           title: string
@@ -870,6 +874,7 @@ export type Database = {
           provider_id: string
           region_id?: string | null
           sales_count?: number | null
+          service_number?: string
           service_type?: Database["public"]["Enums"]["service_type"]
           service_views?: number | null
           title: string
@@ -891,6 +896,7 @@ export type Database = {
           provider_id?: string
           region_id?: string | null
           sales_count?: number | null
+          service_number?: string
           service_type?: Database["public"]["Enums"]["service_type"]
           service_views?: number | null
           title?: string

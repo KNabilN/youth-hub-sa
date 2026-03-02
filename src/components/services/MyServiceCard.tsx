@@ -48,6 +48,9 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="flex-1 min-w-0">
           <CardTitle className="text-base truncate">{service.title}</CardTitle>
+          {(service as any).service_number && (
+            <span className="text-xs text-muted-foreground font-mono">{(service as any).service_number}</span>
+          )}
           <div className="flex items-center gap-2 mt-1.5">
             <Badge variant={status.variant}>{status.label}</Badge>
             <span className="text-xs text-muted-foreground">{serviceTypeLabels[service.service_type]}</span>
