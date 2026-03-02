@@ -1,89 +1,63 @@
 
-# اضافة خيار التحويل البنكي في صفحة الدفع
+# اضافة نظام ترقيم فريد للتذاكر والطلبات (المشاريع)
 
 ## الفكرة
-عند الدفع، يختار المستخدم بين طريقتين:
-1. **دفع إلكتروني** - يتم مباشرة كما هو الآن
-2. **تحويل بنكي** - يعرض بيانات الحساب البنكي، ثم يرفع المستخدم إيصال التحويل، والأدمن يراجعه ويوافق
+اضافة رقم فريد مقروء لكل تذكرة دعم ولكل طلب (مشروع) لتسهيل التواصل والمتابعة، بنفس نمط رقم الفاتورة الموجود حالياً.
 
-## قاعدة البيانات
+## التغييرات المطلوبة
 
-### جدول جديد: `bank_transfers`
-| العمود | النوع | الوصف |
-|--------|-------|-------|
-| id | uuid | المعرف |
-| escrow_id | uuid | ربط بمعاملة الضمان |
-| user_id | uuid | المستخدم الدافع |
-| receipt_url | text | رابط صورة الإيصال |
-| amount | numeric | المبلغ |
-| status | text | pending / approved / rejected |
-| admin_note | text | ملاحظة الأدمن |
-| created_at | timestamp | تاريخ الإنشاء |
-| reviewed_at | timestamp | تاريخ المراجعة |
-| reviewed_by | uuid | المراجع |
+### 1. قاعدة البيانات (Migration)
 
-### سياسات الأمان (RLS)
-- المستخدم يرى ويُنشئ سجلاته فقط
-- الأدمن يدير الكل
+اضافة عمودين جديدين مع تعبئة تلقائية:
 
-### باكت تخزين جديد: `transfer-receipts`
-- خاص (private) مع سياسات RLS للرفع والقراءة
+- **support_tickets**: اضافة عمود `ticket_number` (text, unique, not null)
+  - يُعبأ تلقائياً عبر trigger بصيغة: `TK-20260302-0001`
+  - رقم تسلسلي يومي يبدأ من 1 كل يوم
 
-## تعديلات الواجهة
+- **projects**: اضافة عمود `request_number` (text, unique, not null)
+  - يُعبأ تلقائياً عبر trigger بصيغة: `RQ-20260302-0001`
+  - رقم تسلسلي يومي يبدأ من 1 كل يوم
 
-### 1. صفحة Checkout.tsx
-- إضافة اختيار طريقة الدفع (Radio buttons): "دفع إلكتروني" أو "تحويل بنكي"
-- عند اختيار التحويل البنكي:
-  - عرض بيانات الحساب البنكي (مصرف الراجحي، اسم الشركة، رقم الحساب)
-  - حقل رفع صورة الإيصال
-  - زر "إرسال إيصال التحويل"
-- عند الإرسال: إنشاء escrow بحالة `pending_payment` + سجل في `bank_transfers`
+- انشاء دالتين (functions) للتوليد التلقائي:
+  - `generate_ticket_number()` - trigger على INSERT
+  - `generate_request_number()` - trigger على INSERT
 
-### 2. صفحة AdminFinance.tsx
-- إضافة تبويب جديد "التحويلات البنكية"
-- عرض جدول بالتحويلات المعلقة مع:
-  - اسم المستخدم، المبلغ، التاريخ
-  - زر عرض الإيصال
-  - أزرار موافقة/رفض
-- عند الموافقة: تحديث حالة الضمان من `pending_payment` الى `held` + تحديث حالة التحويل الى `approved`
-- عند الرفض: تحديث حالة الضمان الى `failed` + تحديث حالة التحويل الى `rejected`
+- تعبئة الأرقام للسجلات الموجودة حالياً (backfill)
 
-### 3. Hook جديد: `useBankTransfer.ts`
-- إنشاء تحويل بنكي (رفع الإيصال + إنشاء السجل)
-- جلب التحويلات للأدمن
-- موافقة/رفض التحويل
+### 2. تعديلات الواجهة
 
-### 4. صفحة نجاح التحويل البنكي
-- بعد رفع الإيصال، توجيه لصفحة تأكيد تخبر المستخدم أن التحويل قيد المراجعة
+**التذاكر:**
+- `TicketCard.tsx`: عرض رقم التذكرة بجانب الموضوع
+- `AdminTickets.tsx`: اضافة عمود "رقم التذكرة" في الجدول + البحث بالرقم
+- `AdminTicketDetail.tsx`: عرض رقم التذكرة في الـ Hero Section
+- `SupportTickets.tsx`: تمرير `ticket_number` للـ TicketCard
 
-## التفاصيل التقنية
+**الطلبات (المشاريع):**
+- `ProjectCard.tsx`: عرض رقم الطلب
+- `ProjectDetails.tsx`: عرض رقم الطلب في الرأس
+- `AdminProjects.tsx`: عرض رقم الطلب في الجدول
+- `AdminProjectDetail.tsx`: عرض رقم الطلب
 
-### بيانات الحساب البنكي (ثابتة في الكود)
-- البنك: مصرف الراجحي
-- اسم الحساب: شركة معين التنموية لحلول الاعمال
-- رقم الحساب: 161000010006080221187
+### 3. التفاصيل التقنية
 
-### سير العمل
 ```text
-المستخدم يختار "تحويل بنكي"
-  |
-  +-- يرى بيانات الحساب
-  +-- يحول المبلغ خارجياً
-  +-- يرفع صورة الإيصال
-  |
-  +-- إنشاء escrow (status: pending_payment)
-  +-- إنشاء bank_transfer (status: pending)
-  +-- إشعار للأدمن
-  |
-  +-- الأدمن يراجع الإيصال
-      |
-      +-- موافقة: escrow -> held, bank_transfer -> approved
-      +-- رفض: escrow -> failed, bank_transfer -> rejected + إشعار المستخدم
+صيغة الأرقام:
+  تذاكر: TK-YYYYMMDD-NNNN  (مثال: TK-20260302-0001)
+  طلبات: RQ-YYYYMMDD-NNNN  (مثال: RQ-20260302-0012)
+
+Trigger Logic:
+  1. يحسب عدد السجلات المُنشأة في نفس اليوم
+  2. يضيف 1 للحصول على الرقم التسلسلي
+  3. يدمج البادئة + التاريخ + الرقم (4 خانات)
 ```
 
 ### الملفات المتأثرة
-- **جديد**: `src/hooks/useBankTransfer.ts`
-- **تعديل**: `src/pages/Checkout.tsx` - إضافة اختيار طريقة الدفع وعرض بيانات البنك
-- **تعديل**: `src/pages/admin/AdminFinance.tsx` - إضافة تبويب التحويلات البنكية
-- **تعديل**: `src/pages/PaymentSuccess.tsx` - دعم حالة "قيد المراجعة"
-- **Migration**: جدول `bank_transfers` + باكت `transfer-receipts` + سياسات RLS
+- **Migration**: جدول support_tickets + projects (اضافة أعمدة + triggers)
+- **تعديل**: `src/components/tickets/TicketCard.tsx`
+- **تعديل**: `src/pages/SupportTickets.tsx`
+- **تعديل**: `src/pages/admin/AdminTickets.tsx`
+- **تعديل**: `src/pages/admin/AdminTicketDetail.tsx`
+- **تعديل**: `src/components/projects/ProjectCard.tsx`
+- **تعديل**: `src/pages/ProjectDetails.tsx`
+- **تعديل**: `src/pages/admin/AdminProjects.tsx`
+- **تعديل**: `src/pages/admin/AdminProjectDetail.tsx`
