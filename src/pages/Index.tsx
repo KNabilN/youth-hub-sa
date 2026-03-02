@@ -161,7 +161,7 @@ export default function Index() {
       </section>
 
       {/* 9. نموذج التواصل */}
-      <section className="bg-background py-16 px-4 text-center">
+      <section className="bg-muted/30 py-16 px-4 text-center">
         <div className="container mx-auto max-w-3xl space-y-3">
           <h2 className="text-3xl font-bold text-foreground">نحن هنا لمساعدتك</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية</p>
