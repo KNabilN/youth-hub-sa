@@ -1,75 +1,49 @@
 
-# نظام الردود على تذاكر الدعم
+# إضافة عداد الحروف مع الحد الأقصى لجميع حقول الإدخال النصية
 
 ## الفكرة
-تمكين مدير النظام من الرد على تذاكر الدعم، وتمكين المستخدم من رؤية الردود والتفاعل معها في محادثة مشابهة لنظام الشكاوى.
+إضافة عداد يظهر عدد الحروف الحالية / الحد الأقصى أسفل كل حقل نصي (Input و Textarea) في جميع النماذج، مع تطبيق `maxLength` على عنصر HTML لمنع تجاوز الحد.
 
-## قاعدة البيانات
+## الحل: مكون مساعد `CharCounter`
 
-### جدول جديد: `ticket_replies`
-| العمود | النوع | الوصف |
-|--------|-------|-------|
-| id | uuid | المعرف |
-| ticket_id | uuid (FK -> support_tickets.id ON DELETE CASCADE) | التذكرة |
-| author_id | uuid | كاتب الرد |
-| message | text | نص الرد |
-| created_at | timestamptz | تاريخ الإنشاء |
+إنشاء مكون صغير قابل لإعادة الاستخدام يعرض عداد الحروف، ثم استخدامه في جميع النماذج.
 
-### سياسات الأمان (RLS)
-- **الأدمن**: تحكم كامل (ALL)
-- **المستخدم صاحب التذكرة**: قراءة + إضافة ردود على تذاكره فقط
-- منع المستخدمين الموقوفين من الرد
+## النماذج المتأثرة
 
-## التغييرات المطلوبة
-
-### 1. Hook جديد: `useTicketReplies.ts`
-- `useTicketReplies(ticketId)` - جلب الردود مع اسم الكاتب
-- `useCreateTicketReply()` - إنشاء رد جديد
-
-### 2. مكون جديد: `TicketReplyThread.tsx`
-- محادثة تشبه `DisputeResponseThread`
-- عرض الردود بفقاعات: رسائل المستخدم الحالي على اليسار، الآخرين على اليمين (RTL)
-- حقل إدخال + زر إرسال
-- دعم المرفقات عبر `FileUploader` و `AttachmentList`
-
-### 3. تعديل `AdminTicketDetail.tsx`
-- إضافة مكون `TicketReplyThread` بعد وصف التذكرة
-- عرض المرفقات الخاصة بالتذكرة
-
-### 4. صفحة جديدة: `TicketDetail.tsx` (للمستخدم)
-- عرض تفاصيل التذكرة (الموضوع، الحالة، الأولوية، الوصف)
-- مكون `TicketReplyThread` للمحادثة مع الدعم
-- المرفقات
-
-### 5. تعديل `TicketCard.tsx`
-- جعل البطاقة قابلة للنقر (تنقل لصفحة تفاصيل التذكرة)
-- إضافة `id` و `onClick`/Link
-
-### 6. تعديل `App.tsx`
-- إضافة route: `/tickets/:id` -> `TicketDetail`
-
-### 7. تعديل `SupportTickets.tsx`
-- تمرير `id` لكل `TicketCard` وجعلها قابلة للنقر
+| النموذج | الحقول | الحد الأقصى |
+|---------|--------|-------------|
+| ServiceForm | title, description, long_description | 200, 5000, 10000 |
+| ProjectForm | title, description | 200, 5000 |
+| TicketForm | subject, description | 200, 2000 |
+| BidForm | cover_letter | 5000 |
+| ContactForm | name, message | 100, 1000 |
+| TicketReplyThread | message input | (يُضاف حد) |
+| AdminDirectEditDialog | text/textarea fields | (حسب الحقل) |
 
 ## التفاصيل التقنية
 
-### سير المحادثة
+### 1. مكون جديد: `src/components/ui/char-counter.tsx`
+- يستقبل `current` (عدد الحروف الحالي) و `max` (الحد الأقصى)
+- يعرض نص مثل: `15 / 200`
+- يتحول للون الأحمر عند الاقتراب من الحد (أكثر من 90%)
+
+### 2. تعديل كل نموذج
+- إضافة خاصية `maxLength` على عناصر `Input` و `Textarea`
+- إضافة مكون `CharCounter` أسفل كل حقل نصي يحتوي على حد أقصى
+- العداد يظهر بين `FormControl` و `FormMessage`
+
+### مثال على الشكل النهائي
 ```text
-المستخدم يفتح تذكرة
-  |
-  +-- الأدمن يرى التذكرة في /admin/tickets/:id
-  +-- الأدمن يكتب رد -> يُحفظ في ticket_replies
-  +-- المستخدم يرى الرد في /tickets/:id
-  +-- المستخدم يرد -> يُحفظ في ticket_replies
-  +-- (محادثة مستمرة حتى الإغلاق)
+عنوان الخدمة
+[أدخل عنوان الخدمة_____________]
+                          15 / 200
 ```
 
 ### الملفات المتأثرة
-- **Migration**: جدول `ticket_replies` مع RLS
-- **جديد**: `src/hooks/useTicketReplies.ts`
-- **جديد**: `src/components/tickets/TicketReplyThread.tsx`
-- **جديد**: `src/pages/TicketDetail.tsx` (صفحة المستخدم)
-- **تعديل**: `src/pages/admin/AdminTicketDetail.tsx` - إضافة سجل المحادثة
-- **تعديل**: `src/components/tickets/TicketCard.tsx` - جعلها قابلة للنقر
-- **تعديل**: `src/pages/SupportTickets.tsx` - تمرير id
-- **تعديل**: `src/App.tsx` - إضافة route جديد
+- **جديد**: `src/components/ui/char-counter.tsx`
+- **تعديل**: `src/components/services/ServiceForm.tsx`
+- **تعديل**: `src/components/projects/ProjectForm.tsx`
+- **تعديل**: `src/components/tickets/TicketForm.tsx`
+- **تعديل**: `src/components/provider/BidForm.tsx`
+- **تعديل**: `src/components/landing/ContactForm.tsx`
+- **تعديل**: `src/components/tickets/TicketReplyThread.tsx`
