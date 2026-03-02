@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { sendNotification } from "@/lib/notifications";
 
 export function useCreateBankTransfer() {
   const qc = useQueryClient();
@@ -65,18 +64,7 @@ export function useCreateBankTransfer() {
         });
       }
 
-      // Notify admins
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "super_admin");
-      for (const admin of admins ?? []) {
-        await sendNotification(
-          admin.user_id,
-          `تحويل بنكي جديد بمبلغ ${amount} ر.س بانتظار المراجعة`,
-          "bank_transfer_pending"
-        );
-      }
+      // Admin notifications are handled by the database trigger automatically
 
       return { escrowIds };
     },
