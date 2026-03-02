@@ -1,51 +1,80 @@
 
 
-# حذف زر ووظيفة الأرشفة من جميع الصفحات
+# تعزيز صلاحيات الأدمن لتعديل جميع بيانات المستخدمين
 
 ## الملخص
-إزالة جميع أزرار الأرشفة والدوال المرتبطة بها من المنصة بالكامل، مع الحفاظ على عرض الحالة "مؤرشف" كتسمية فقط (للسجلات الموجودة مسبقاً).
+تمكين المدير من تعديل جميع بيانات المستخدم بما في ذلك الصورة الشخصية وصورة الغلاف والمهارات والمؤهلات وسعر الساعة، مباشرة من صفحة تفاصيل المستخدم.
 
 ---
 
 ## التغييرات المطلوبة
 
-### 1. `src/components/services/MyServiceCard.tsx`
-- حذف `Archive` من imports
-- حذف prop `onArchive` من الواجهة والمكوّن
-- حذف زر الأرشفة من JSX
+### 1. إنشاء hooks للرفع الإداري (`src/hooks/useAdminUpload.ts`)
 
-### 2. `src/components/projects/ProjectCard.tsx`
-- حذف `Archive` من imports
-- حذف prop `onArchive` من الواجهة والمكوّن
-- حذف زر الأرشفة من JSX
+إنشاء hook جديد يسمح للأدمن برفع صورة شخصية وصورة غلاف لأي مستخدم (وليس فقط للمستخدم الحالي):
 
-### 3. `src/pages/MyServices.tsx`
-- حذف `onArchive` من استدعاء `MyServiceCard`
+- `useAdminUploadAvatar(userId)` - رفع صورة شخصية لمستخدم محدد إلى bucket `avatars`
+- `useAdminUploadCover(userId)` - رفع صورة غلاف لمستخدم محدد إلى bucket `cover-images`
 
-### 4. `src/pages/Projects.tsx`
-- حذف `onArchive` من استدعاء `ProjectCard`
-- حذف `"archived"` من labels في `handleStatusChange`
-- حذف خيار "مؤرشف" من فلتر الحالة (SelectItem)
+كلاهما يقوم بـ:
+1. رفع الملف إلى Storage
+2. تحديث عمود `avatar_url` أو `cover_image_url` في profiles
+3. إبطال cache الاستعلامات
 
-### 5. `src/pages/Invoices.tsx`
-- حذف دالتي `handleArchive` و `handleUnarchive`
-- حذف `Archive`, `RotateCcw` من imports
-- حذف زر الأرشفة/إلغاء الأرشفة من جدول الفواتير
-- حذف خيار "مؤرشفة" من فلتر الحالة
-- حذف `archived` من قاموس التسميات
+### 2. تطوير `AdminDirectEditDialog` لدعم أنواع حقول إضافية
 
-### 6. `src/pages/admin/AdminFinance.tsx`
-- حذف دالة `handleArchiveInvoice`
-- حذف `Archive` من imports
-- حذف زر الأرشفة من جدول الفواتير
-- حذف خيار "مؤرشفة" من فلتر الحالة
+تحديث `src/components/admin/AdminDirectEditDialog.tsx`:
 
-### 7. `src/components/admin/ServiceApprovalCard.tsx`
-- تعديل شرط إعادة التفعيل ليشمل `suspended` فقط بدلاً من `suspended || archived`
+- إضافة نوع حقل `"avatar"` - يعرض الصورة الحالية مع زر رفع صورة جديدة
+- إضافة نوع حقل `"cover"` - يعرض صورة الغلاف الحالية مع زر رفع
+- إضافة نوع حقل `"skills"` - يعرض المهارات كـ badges مع إمكانية الإضافة والحذف
+- إضافة نوع حقل `"qualifications"` - يعرض المؤهلات مع إمكانية الإضافة والحذف
+
+تحديث `DirectEditFieldConfig`:
+```text
+type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications"
+```
+
+### 3. تحديث حقول التعديل في `AdminUserDetail.tsx`
+
+تعديل دالة `getProfileFieldsForRole` لتشمل جميع الحقول:
+
+**لجميع الأدوار:**
+- الصورة الشخصية (avatar)
+- صورة الغلاف (cover)
+- الاسم، الهاتف، النبذة
+- المهارات (skills)
+- المؤهلات (qualifications)
+
+**لمقدمي الخدمات:**
+- سعر الساعة (hourly_rate) - موجود حالياً
+
+**للجمعيات:**
+- اسم المنظمة، رقم الترخيص، بيانات ضابط الاتصال - موجودة حالياً
+
+**للمانحين:**
+- اسم المنظمة - موجود حالياً
+
+### 4. تمرير `userId` إلى `AdminDirectEditDialog`
+
+تعديل `AdminDirectEditDialog` ليقبل prop `userId` اختياري، يُستخدم لتحديد المستخدم المستهدف عند رفع الصور (بدلاً من المستخدم المسجّل حالياً).
 
 ---
 
-## ملاحظة
-- سيتم الاحتفاظ بتسميات وألوان حالة "مؤرشف/مؤرشفة" في الجداول الإدارية (AdminProjects, AdminServiceDetail) كعرض فقط، لأن سجلات قديمة قد تحمل هذه الحالة.
-- لن يتم تعديل قاعدة البيانات - فقط إزالة الأزرار والدوال من الواجهة.
+## الملفات المتأثرة
+
+| ملف | نوع التغيير |
+|-----|-------------|
+| `src/hooks/useAdminUpload.ts` | جديد - hooks رفع الصور للأدمن |
+| `src/components/admin/AdminDirectEditDialog.tsx` | تعديل - دعم حقول avatar, cover, skills, qualifications |
+| `src/pages/admin/AdminUserDetail.tsx` | تعديل - إضافة حقول الصور والمهارات والمؤهلات لـ getProfileFieldsForRole |
+
+---
+
+## ملاحظات تقنية
+
+- رفع الصور يتم عبر Supabase Storage مباشرة (نفس آلية صفحة Profile الشخصية)
+- يتم استخدام `upsert: true` لاستبدال الصورة القديمة تلقائياً
+- يتم إضافة `?t=timestamp` لكسر cache المتصفح بعد رفع صورة جديدة
+- المهارات والمؤهلات تُحفظ كـ JSON arrays في أعمدة `skills` و `qualifications`
 
