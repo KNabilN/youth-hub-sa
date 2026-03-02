@@ -52,7 +52,8 @@ export default function AdminProjects() {
   const [editProject, setEditProject] = useState<any>(null);
 
   const filtered = (projects ?? []).filter((p: any) => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+    const q = search.toLowerCase();
+    if (search && !p.title.toLowerCase().includes(q) && !(p.request_number ?? '').toLowerCase().includes(q)) return false;
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     return true;
   });
@@ -101,20 +102,22 @@ export default function AdminProjects() {
             <div className="border rounded-lg">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>العنوان</TableHead>
-                    <TableHead>الجمعية</TableHead>
-                    <TableHead>التصنيف</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>التاريخ</TableHead>
-                    <TableHead>تغيير الحالة</TableHead>
-                    <TableHead>إجراءات</TableHead>
-                  </TableRow>
+                 <TableRow>
+                     <TableHead>رقم الطلب</TableHead>
+                     <TableHead>العنوان</TableHead>
+                     <TableHead>الجمعية</TableHead>
+                     <TableHead>التصنيف</TableHead>
+                     <TableHead>الحالة</TableHead>
+                     <TableHead>التاريخ</TableHead>
+                     <TableHead>تغيير الحالة</TableHead>
+                     <TableHead>إجراءات</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((p: any) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium"><Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.title}</Link></TableCell>
+                   <TableRow key={p.id}>
+                       <TableCell className="font-mono text-xs text-muted-foreground">{p.request_number}</TableCell>
+                       <TableCell className="font-medium"><Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.title}</Link></TableCell>
                       <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{p.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
@@ -137,7 +140,7 @@ export default function AdminProjects() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>

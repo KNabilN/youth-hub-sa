@@ -1125,6 +1125,7 @@ export type Database = {
           id: string
           is_private: boolean
           region_id: string | null
+          request_number: string
           required_skills: string[] | null
           status: Database["public"]["Enums"]["project_status"]
           title: string
@@ -1141,6 +1142,7 @@ export type Database = {
           id?: string
           is_private?: boolean
           region_id?: string | null
+          request_number?: string
           required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"]
           title: string
@@ -1157,6 +1159,7 @@ export type Database = {
           id?: string
           is_private?: boolean
           region_id?: string | null
+          request_number?: string
           required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"]
           title?: string
@@ -1299,6 +1302,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["ticket_priority"]
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
+          ticket_number: string
           updated_at: string
           user_id: string
         }
@@ -1309,6 +1313,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["ticket_priority"]
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
+          ticket_number?: string
           updated_at?: string
           user_id: string
         }
@@ -1319,6 +1324,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["ticket_priority"]
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
+          ticket_number?: string
           updated_at?: string
           user_id?: string
         }

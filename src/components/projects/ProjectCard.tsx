@@ -37,8 +37,9 @@ export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSub
   return (
     <Card className={`card-hover border-t-4 ${borderColor}`}>
       <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
-        <div className="space-y-1 min-w-0">
-          <CardTitle className="text-base truncate">{project.title}</CardTitle>
+         <div className="space-y-1 min-w-0">
+           {(project as any).request_number && <span className="text-xs font-mono text-muted-foreground">{(project as any).request_number}</span>}
+           <CardTitle className="text-base truncate">{project.title}</CardTitle>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {project.categories?.name && <span>{project.categories.name}</span>}
             {project.regions?.name && <span>• {project.regions.name}</span>}

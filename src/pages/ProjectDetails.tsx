@@ -186,10 +186,13 @@ export default function ProjectDetails() {
       <div className="space-y-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{project.title}</h1>
-              <ProjectStatusBadge status={project.status} />
-            </div>
+             {(project as any).request_number && (
+               <span className="text-sm font-mono text-muted-foreground">{(project as any).request_number}</span>
+             )}
+             <div className="flex items-center gap-3">
+               <h1 className="text-2xl font-bold">{project.title}</h1>
+               <ProjectStatusBadge status={project.status} />
+             </div>
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">

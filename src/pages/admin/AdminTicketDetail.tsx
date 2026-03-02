@@ -144,8 +144,11 @@ export default function AdminTicketDetail() {
             <div className="p-4 rounded-xl bg-primary/10">
               <Ticket className="h-8 w-8 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-3">{ticket.subject}</h1>
+             <div>
+               {(ticket as any).ticket_number && (
+                 <span className="text-sm font-mono text-muted-foreground mb-1 block">{(ticket as any).ticket_number}</span>
+               )}
+               <h1 className="text-2xl font-bold text-foreground mb-3">{ticket.subject}</h1>
               <div className="flex flex-wrap justify-center gap-2">
                 <Badge className={`${statusColors[ticket.status]} text-sm px-3 py-1`}>
                   {statusLabels[ticket.status]}
