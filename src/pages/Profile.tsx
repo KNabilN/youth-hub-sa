@@ -272,75 +272,79 @@ export default function Profile() {
               </Card>
             </div>
 
-            {/* Skills */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Award className="h-5 w-5 text-primary" /> المهارات
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    placeholder="أضف مهارة..."
-                    className="h-10"
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={addSkill} className="shrink-0">
-                    <Plus className="h-4 w-4 me-1" /> إضافة
-                  </Button>
-                </div>
-                {skills.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill, i) => (
-                      <Badge key={i} variant="secondary" className="gap-1 px-3 py-1.5">
-                        {skill}
-                        <button type="button" onClick={() => removeSkill(i)} className="hover:text-destructive">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Qualifications */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary" /> المؤهلات والشهادات
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {qualifications.map((q, i) => (
-                  <div key={i} className="flex gap-2 items-start border rounded-lg p-3">
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="عنوان المؤهل"
-                        value={q.title}
-                        onChange={(e) => updateQualification(i, "title", e.target.value)}
-                        className="h-9"
-                      />
-                      <Input
-                        placeholder="وصف اختياري"
-                        value={q.description}
-                        onChange={(e) => updateQualification(i, "description", e.target.value)}
-                        className="h-9"
-                      />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeQualification(i)} className="shrink-0 text-destructive hover:text-destructive">
-                      <X className="h-4 w-4" />
+            {/* Skills - hidden for super_admin */}
+            {role !== "super_admin" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Award className="h-5 w-5 text-primary" /> المهارات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      placeholder="أضف مهارة..."
+                      className="h-10"
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={addSkill} className="shrink-0">
+                      <Plus className="h-4 w-4 me-1" /> إضافة
                     </Button>
                   </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={addQualification}>
-                  <Plus className="h-4 w-4 me-1" /> إضافة مؤهل
-                </Button>
-              </CardContent>
-            </Card>
+                  {skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill, i) => (
+                        <Badge key={i} variant="secondary" className="gap-1 px-3 py-1.5">
+                          {skill}
+                          <button type="button" onClick={() => removeSkill(i)} className="hover:text-destructive">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Qualifications - hidden for super_admin */}
+            {role !== "super_admin" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-primary" /> المؤهلات والشهادات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {qualifications.map((q, i) => (
+                    <div key={i} className="flex gap-2 items-start border rounded-lg p-3">
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          placeholder="عنوان المؤهل"
+                          value={q.title}
+                          onChange={(e) => updateQualification(i, "title", e.target.value)}
+                          className="h-9"
+                        />
+                        <Input
+                          placeholder="وصف اختياري"
+                          value={q.description}
+                          onChange={(e) => updateQualification(i, "description", e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeQualification(i)} className="shrink-0 text-destructive hover:text-destructive">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={addQualification}>
+                    <Plus className="h-4 w-4 me-1" /> إضافة مؤهل
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {role === "youth_association" && (
               <Card>
