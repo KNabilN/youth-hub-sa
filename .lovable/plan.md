@@ -1,45 +1,67 @@
 
-# تحسين بطاقات المميزات بتأثيرات ديناميكية وحجم أكبر
+# تحسين تصميم الصفحة الرئيسية بناءً على موقع قادرون
+
+## الهدف
+تعديل تصميم الصفحة الرئيسية ليتطابق مع نمط موقع recruitment.qaderoon.sa: بطاقات بتصميم نظيف مع أيقونات دائرية ملونة، وجعل جميع الأقسام بالعرض الكامل للصفحة.
 
 ## التغييرات المطلوبة
 
-### 1. تحسين تأثير card-hover في `src/index.css`
-- إضافة تأثير scale خفيف عند التمرير
-- زيادة ارتفاع الظل (shadow) عند hover
-- إضافة transition سلس للحدود
+### 1. توسيع جميع الأقسام للعرض الكامل (`src/pages/Index.tsx`)
+- تغيير `max-w-4xl` في Hero إلى `max-w-5xl`
+- تغيير `max-w-5xl` في المميزات إلى `max-w-7xl`
+- تغيير `max-w-3xl` في قسم الثقة إلى `max-w-6xl`
+- تغيير `max-w-5xl` في CTA إلى `max-w-7xl`
+- تغيير `max-w-3xl` في هيدر التواصل إلى `max-w-5xl`
 
-### 2. تعديل بطاقات المميزات في `src/pages/Index.tsx` (السطور 83-97)
-- زيادة الحشو (padding) من `p-6` إلى `p-8`
-- توسيط الأيقونة والعنوان والوصف (مثل الصورة المرجعية)
-- تكبير حجم الأيقونة من `w-14 h-14` إلى `w-16 h-16`
-- إضافة `rounded-2xl` مع خلفية بيضاء نظيفة بدلا من التدرج
-- إضافة حد خفيف يتغير لونه عند hover
-- زيادة المسافة الداخلية `min-h-[220px]` لجعل البطاقات أطول
+### 2. تحسين بطاقات المميزات بنمط قادرون (`src/pages/Index.tsx`)
+- أيقونات داخل دوائر ملونة كبيرة (w-20 h-20) بدلا من مربعات
+- خلفية رمادية فاتحة (bg-muted/40) مع حدود خفيفة
+- زيادة padding إلى p-10 والارتفاع min-h-[280px]
+- نص عنوان أكبر (text-xl font-bold)
 
-### 3. تحسين بطاقات آراء العملاء في `src/components/landing/Testimonials.tsx`
-- توسيط المحتوى داخل البطاقة
-- تكبير الحشو الداخلي
+### 3. توسيع بطاقات الخدمات (`src/components/landing/LandingServicesGrid.tsx`)
+- تغيير `max-w-5xl` إلى `max-w-7xl`
+- زيادة padding البطاقات وتحسين التباعد
+
+### 4. توسيع بطاقات الطلبات (`src/components/landing/LandingRequestsTable.tsx`)
+- تغيير `max-w-5xl` إلى `max-w-7xl`
+
+### 5. توسيع الإحصائيات (`src/components/landing/LiveStats.tsx`)
+- تغيير `max-w-5xl` إلى `max-w-7xl`
+- تكبير الأيقونات والأرقام
+
+### 6. توسيع آراء العملاء (`src/components/landing/Testimonials.tsx`)
+- تغيير `max-w-6xl` إلى `max-w-7xl`
+
+### 7. توسيع نموذج التواصل (`src/components/landing/ContactForm.tsx`)
+- تغيير `max-w-5xl` إلى `max-w-6xl`
 
 ### التفاصيل التقنية
 
-**index.css** - تحديث `.card-hover`:
-```css
-.card-hover {
-  @apply transition-all duration-300 ease-out;
-}
-.card-hover:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 30px -5px hsl(var(--foreground) / 0.1), 0 6px 15px -4px hsl(var(--foreground) / 0.06);
-  border-color: hsl(var(--primary) / 0.3);
-}
+**بطاقات المميزات (الأهم)** - تقليد نمط قادرون:
+```text
++----------------------------------+
+|                                  |
+|         ( Icon Circle )          |
+|          w-20 h-20               |
+|     bg-primary/10 rounded-full   |
+|                                  |
+|        العنوان (text-xl)          |
+|                                  |
+|     الوصف (text-muted)           |
+|                                  |
++----------------------------------+
+  bg-muted/40  rounded-2xl  p-10
+  border border-border/50
+  min-h-[280px]
 ```
 
-**Index.tsx** - بطاقات المميزات:
-- تغيير الخلفية من gradient إلى `bg-card` (أبيض نظيف)
-- توسيط المحتوى: `text-center items-center`
-- زيادة `p-8 min-h-[240px]`
-- الأيقونة بمركز البطاقة أعلاها
+**الأقسام**: جميعها تستخدم `max-w-7xl` لتأخذ العرض الكامل تقريبا مع هوامش مناسبة.
 
-**Testimonials.tsx** - بطاقات الآراء:
-- توسيط الأيقونة (Quote) والنص
-- زيادة padding إلى `p-8`
+**الملفات المتأثرة:**
+- `src/pages/Index.tsx` (المميزات + الثقة + CTA + التواصل)
+- `src/components/landing/LandingServicesGrid.tsx`
+- `src/components/landing/LandingRequestsTable.tsx`
+- `src/components/landing/LiveStats.tsx`
+- `src/components/landing/Testimonials.tsx`
+- `src/components/landing/ContactForm.tsx`
