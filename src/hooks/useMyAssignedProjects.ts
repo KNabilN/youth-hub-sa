@@ -12,6 +12,7 @@ export function useMyAssignedProjects(statusFilter?: string) {
         .from("projects")
         .select("*, categories(name), regions(name)")
         .eq("assigned_provider_id", user!.id)
+        .is("deleted_at", null)
         .order("updated_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {

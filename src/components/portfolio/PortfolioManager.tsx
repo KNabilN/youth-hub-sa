@@ -54,7 +54,7 @@ export function PortfolioManager() {
     deleteItem.mutate(
       { id, image_url },
       {
-        onSuccess: () => toast({ title: "تم حذف العمل" }),
+        onSuccess: () => toast({ title: "تم نقل العمل إلى سلة المحذوفات" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
     );

@@ -17,6 +17,7 @@ export function useServiceDetail(id: string | undefined) {
         .from("micro_services")
         .select("*, categories(*), regions(*), cities(*), profiles!micro_services_provider_id_fkey(id, full_name, avatar_url, bio, skills, is_verified, profile_views)")
         .eq("id", id!)
+        .is("deleted_at", null)
         .single();
       if (error) throw error;
       return data;
