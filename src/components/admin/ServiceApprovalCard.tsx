@@ -111,7 +111,7 @@ export function ServiceApprovalCard({ service }: { service: any }) {
                 <Pause className="h-4 w-4 me-1" />تعليق
               </Button>
             )}
-            {(service.approval === "suspended" || service.approval === "archived") && (
+            {service.approval === "suspended" && (
               <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => openReasonDialog("approved")} disabled={update.isPending}>
                 <Play className="h-4 w-4 me-1" />إعادة تفعيل
               </Button>

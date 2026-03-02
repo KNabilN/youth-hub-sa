@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, Archive, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { downloadCSV } from "@/lib/csv-export";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
@@ -106,16 +106,6 @@ export default function AdminFinance() {
     } catch {
       toast.error("حدث خطأ أثناء التحميل");
     }
-  };
-
-  const handleArchiveInvoice = async (inv: any) => {
-    const newStatus = inv.status === "archived" ? "issued" : "archived";
-    await supabase.from("invoices").update({
-      status: newStatus,
-      archived_at: newStatus === "archived" ? new Date().toISOString() : null,
-    }).eq("id", inv.id);
-    queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });
-    toast.success(newStatus === "archived" ? "تم أرشفة الفاتورة" : "تم إلغاء الأرشفة");
   };
 
   return (
@@ -272,7 +262,6 @@ export default function AdminFinance() {
                     <SelectItem value="all">جميع الحالات</SelectItem>
                     <SelectItem value="issued">صادرة</SelectItem>
                     <SelectItem value="viewed">تم الاطلاع</SelectItem>
-                    <SelectItem value="archived">مؤرشفة</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -342,9 +331,6 @@ export default function AdminFinance() {
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" onClick={() => handleDownloadInvoice(inv)} title="تحميل PDF">
                                 <Download className="h-4 w-4" />
-                              </Button>
-                              <Button size="icon" variant="ghost" onClick={() => handleArchiveInvoice(inv)} title={inv.status === "archived" ? "إلغاء الأرشفة" : "أرشفة"}>
-                                {inv.status === "archived" ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                               </Button>
                             </div>
                           </TableCell>

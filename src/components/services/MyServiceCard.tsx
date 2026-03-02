@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Pause, Play, Archive } from "lucide-react";
+import { Pencil, Trash2, Pause, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
@@ -33,10 +33,9 @@ interface MyServiceCardProps {
   onDelete: (id: string) => void;
   onSuspend?: (id: string) => void;
   onReactivate?: (id: string) => void;
-  onArchive?: (id: string) => void;
 }
 
-export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactivate, onArchive }: MyServiceCardProps) {
+export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactivate }: MyServiceCardProps) {
   const status = approvalLabels[service.approval] ?? approvalLabels.pending;
 
   return (
@@ -63,9 +62,6 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
           )}
           {(service.approval === "suspended" || service.approval === "draft") && onReactivate && (
             <Button variant="ghost" size="icon" className="hover:bg-emerald-500/10" title="إعادة نشر" onClick={() => onReactivate(service.id)}><Play className="h-4 w-4 text-emerald-500" /></Button>
-          )}
-          {service.approval !== "archived" && onArchive && (
-            <Button variant="ghost" size="icon" className="hover:bg-muted" title="أرشفة" onClick={() => onArchive(service.id)}><Archive className="h-4 w-4 text-muted-foreground" /></Button>
           )}
           <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => onEdit(service.id)}><Pencil className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="hover:bg-destructive/10" onClick={() => onDelete(service.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>

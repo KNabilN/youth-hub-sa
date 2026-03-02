@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Receipt, Download, Archive, RotateCcw, StickyNote } from "lucide-react";
+import { Receipt, Download, StickyNote } from "lucide-react";
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,6 @@ import { toast } from "sonner";
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   issued: { label: "صادرة", variant: "default" },
   viewed: { label: "تم الاطلاع", variant: "secondary" },
-  archived: { label: "مؤرشفة", variant: "outline" },
 };
 
 export default function Invoices() {
@@ -109,7 +108,6 @@ export default function Invoices() {
               <SelectItem value="all">الكل</SelectItem>
               <SelectItem value="issued">صادرة</SelectItem>
               <SelectItem value="viewed">تم الاطلاع</SelectItem>
-              <SelectItem value="archived">مؤرشفة</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -161,15 +159,6 @@ export default function Invoices() {
                             <Button size="icon" variant="ghost" onClick={() => openNotesDialog(inv)} title="ملاحظات">
                               <StickyNote className="h-4 w-4" />
                             </Button>
-                            {invStatus !== "archived" ? (
-                              <Button size="icon" variant="ghost" onClick={() => handleArchive(inv)} title="أرشفة">
-                                <Archive className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button size="icon" variant="ghost" onClick={() => handleUnarchive(inv)} title="إلغاء الأرشفة">
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            )}
                           </div>
                         </TableCell>
                       </TableRow>

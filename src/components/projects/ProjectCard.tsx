@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Pause, Play, Archive, Send } from "lucide-react";
+import { Eye, Pencil, Pause, Play, Send } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects"> & {
@@ -26,11 +26,10 @@ interface ProjectCardProps {
   project: Project;
   onSuspend?: (id: string) => void;
   onReactivate?: (id: string) => void;
-  onArchive?: (id: string) => void;
   onSubmitForApproval?: (id: string) => void;
 }
 
-export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSubmitForApproval }: ProjectCardProps) {
+export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForApproval }: ProjectCardProps) {
   const navigate = useNavigate();
   const borderColor = statusBorderColors[project.status] || "border-t-border";
 
@@ -85,12 +84,6 @@ export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSub
             <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => onReactivate(project.id)}>
               <Play className="h-3.5 w-3.5 me-1" />
               إعادة تقديم
-            </Button>
-          )}
-          {project.status !== "archived" && project.status !== "completed" && onArchive && (
-            <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => onArchive(project.id)}>
-              <Archive className="h-3.5 w-3.5 me-1" />
-              أرشفة
             </Button>
           )}
         </div>
