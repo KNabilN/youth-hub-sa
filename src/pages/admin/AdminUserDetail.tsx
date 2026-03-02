@@ -82,9 +82,13 @@ const disputeStatusLabels: Record<string, string> = {
 
 function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
   const common: DirectEditFieldConfig[] = [
+    { key: "avatar_url", label: "الصورة الشخصية", type: "avatar" },
+    { key: "cover_image_url", label: "صورة الغلاف", type: "cover" },
     { key: "full_name", label: "الاسم" },
     { key: "phone", label: "الهاتف" },
     { key: "bio", label: "نبذة", type: "textarea" },
+    { key: "skills", label: "المهارات", type: "skills" },
+    { key: "qualifications", label: "المؤهلات", type: "qualifications" },
   ];
 
   if (role === "service_provider") {
@@ -605,6 +609,7 @@ export default function AdminUserDetail() {
             await updateProfile.mutateAsync({ id: user.id, ...updates });
           }}
           isPending={updateProfile.isPending}
+          userId={user.id}
         />
       )}
 
