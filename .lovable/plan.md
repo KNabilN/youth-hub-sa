@@ -1,67 +1,149 @@
 
-# تحسين تصميم الصفحة الرئيسية بناءً على موقع قادرون
 
-## الهدف
-تعديل تصميم الصفحة الرئيسية ليتطابق مع نمط موقع recruitment.qaderoon.sa: بطاقات بتصميم نظيف مع أيقونات دائرية ملونة، وجعل جميع الأقسام بالعرض الكامل للصفحة.
+# مراجعة شاملة للموقع - النتائج والخطة
 
-## التغييرات المطلوبة
+## ملخص تنفيذي
 
-### 1. توسيع جميع الأقسام للعرض الكامل (`src/pages/Index.tsx`)
-- تغيير `max-w-4xl` في Hero إلى `max-w-5xl`
-- تغيير `max-w-5xl` في المميزات إلى `max-w-7xl`
-- تغيير `max-w-3xl` في قسم الثقة إلى `max-w-6xl`
-- تغيير `max-w-5xl` في CTA إلى `max-w-7xl`
-- تغيير `max-w-3xl` في هيدر التواصل إلى `max-w-5xl`
+بعد مراجعة شاملة للكود والقاعدة والتدفقات، المنصة في حالة جيدة بشكل عام مع بعض المشاكل التي تحتاج إلى إصلاح.
 
-### 2. تحسين بطاقات المميزات بنمط قادرون (`src/pages/Index.tsx`)
-- أيقونات داخل دوائر ملونة كبيرة (w-20 h-20) بدلا من مربعات
-- خلفية رمادية فاتحة (bg-muted/40) مع حدود خفيفة
-- زيادة padding إلى p-10 والارتفاع min-h-[280px]
-- نص عنوان أكبر (text-xl font-bold)
+---
 
-### 3. توسيع بطاقات الخدمات (`src/components/landing/LandingServicesGrid.tsx`)
-- تغيير `max-w-5xl` إلى `max-w-7xl`
-- زيادة padding البطاقات وتحسين التباعد
+## 1. اتصال قاعدة البيانات (Database Connectivity)
 
-### 4. توسيع بطاقات الطلبات (`src/components/landing/LandingRequestsTable.tsx`)
-- تغيير `max-w-5xl` إلى `max-w-7xl`
+### ما يعمل بشكل صحيح:
+- جميع الـ hooks تستخدم Supabase client بشكل موحد من `@/integrations/supabase/client`
+- TanStack Query مُعد بشكل جيد مع `staleTime: 2min` و `retry: 1`
+- الـ Realtime subscriptions تعمل للإشعارات والرسائل مع cleanup مناسب
+- جميع الـ mutations تُبطل الكاش المناسب بعد النجاح
 
-### 5. توسيع الإحصائيات (`src/components/landing/LiveStats.tsx`)
-- تغيير `max-w-5xl` إلى `max-w-7xl`
-- تكبير الأيقونات والأرقام
+### مشاكل تحتاج إصلاح:
 
-### 6. توسيع آراء العملاء (`src/components/landing/Testimonials.tsx`)
-- تغيير `max-w-6xl` إلى `max-w-7xl`
+**مشكلة 1: استعلام nested غير فعّال في `useProjectStats`**
+- في `src/hooks/useProjects.ts` (السطر 99-101): يُنفذ استعلام داخلي لجلب IDs المشاريع ثم يستخدمها في فلتر `in()` - هذا يُنتج طلبين بدلاً من واحد
+- الحل: استخدام `rpc` function أو join مباشر
 
-### 7. توسيع نموذج التواصل (`src/components/landing/ContactForm.tsx`)
-- تغيير `max-w-5xl` إلى `max-w-6xl`
+**مشكلة 2: `as any` كثيرة في التعامل مع الأنواع**
+- ملفات مثل `useBankTransfer.ts` (السطور 37, 47, 48, 54) و `useContracts.ts` (السطر 53) تستخدم `as any` مما يُخفي أخطاء محتملة في البيانات
+- ليست مشكلة وظيفية لكن تُقلل من أمان الأنواع
 
-### التفاصيل التقنية
+**مشكلة 3: `pending_payment` و `failed` ليسا في enum `escrow_status`**
+- في `useBankTransfer.ts` السطر 37: `status: "pending_payment" as any` - هذا يعني أن القيمة قد لا تكون مدعومة في الـ enum الفعلي
+- يحتاج تأكيد من schema الحالي
 
-**بطاقات المميزات (الأهم)** - تقليد نمط قادرون:
-```text
-+----------------------------------+
-|                                  |
-|         ( Icon Circle )          |
-|          w-20 h-20               |
-|     bg-primary/10 rounded-full   |
-|                                  |
-|        العنوان (text-xl)          |
-|                                  |
-|     الوصف (text-muted)           |
-|                                  |
-+----------------------------------+
-  bg-muted/40  rounded-2xl  p-10
-  border border-border/50
-  min-h-[280px]
-```
+---
 
-**الأقسام**: جميعها تستخدم `max-w-7xl` لتأخذ العرض الكامل تقريبا مع هوامش مناسبة.
+## 2. تناسق واجهة المستخدم (UI/UX Consistency)
 
-**الملفات المتأثرة:**
-- `src/pages/Index.tsx` (المميزات + الثقة + CTA + التواصل)
-- `src/components/landing/LandingServicesGrid.tsx`
-- `src/components/landing/LandingRequestsTable.tsx`
-- `src/components/landing/LiveStats.tsx`
-- `src/components/landing/Testimonials.tsx`
-- `src/components/landing/ContactForm.tsx`
+### ما يعمل بشكل صحيح:
+- نمط "الهيدر الموحد" مع أيقونة + عنوان + وصف مُطبق في معظم الصفحات
+- الـ Sidebar متسق لجميع الأدوار مع تنقل واضح
+- نظام الإشعارات موحد (Popover للمستخدمين، صفحة كاملة للمدير)
+- RTL مدعوم بشكل صحيح في كل مكان
+- الـ Loading states تستخدم Skeleton بشكل موحد
+- الـ Empty states تستخدم مكون `EmptyState` موحد
+
+### مشاكل تحتاج إصلاح:
+
+**مشكلة 4: صفحة Auth تعرض خلفية فارغة**
+- في `src/pages/Auth.tsx`: عندما يُغلق المستخدم الـ modal يُعاد توجيهه لـ `/` لكن إذا كان الـ modal مفتوح فقط تظهر صفحة فارغة `bg-background` بدون أي محتوى خلف الـ modal
+- الحل: إضافة محتوى خلفية أو إعادة التوجيه مباشرة
+
+**مشكلة 5: شريط التدرج اللوني غير متسق**
+- بعض الصفحات مثل `Donations.tsx` و `Messages.tsx` تستخدم شريط التدرج `h-1 rounded-full bg-gradient-to-l` تحت الهيدر، لكن صفحات أخرى مثل `Marketplace.tsx` لا تستخدمه
+- الحل: توحيد الاستخدام في جميع الصفحات أو إزالته من الكل
+
+**مشكلة 6: الـ `ProviderProfile` page مفقودة من الـ routes**
+- يوجد ملف `src/pages/ProviderProfile.tsx` لكنه غير مُسجل في أي route
+- يبدو أن `/providers/:id` يُوجه لـ `PublicProfile` بدلاً منه
+
+---
+
+## 3. كفاءة الوظائف (Function Efficiency)
+
+### ما يعمل بشكل صحيح:
+- الـ database triggers تتعامل مع الإشعارات تلقائياً (bid changes, contract signing, escrow, disputes, etc.)
+- نظام الضمان المالي (Escrow) متكامل مع العقود والمشتريات
+- نظام العمولات ديناميكي عبر جدول `commission_config`
+- الأرقام التسلسلية (request_number, ticket_number, etc.) تُولد تلقائياً عبر triggers
+
+### مشاكل تحتاج إصلاح:
+
+**مشكلة 7: إشعارات مزدوجة في `usePurchaseService`**
+- في `src/hooks/usePurchaseService.ts` السطور 41-43: يُرسل إشعارات يدوياً عبر `sendNotification()` بينما يوجد أيضاً trigger `notify_on_service_purchase` و `notify_on_escrow_change` في قاعدة البيانات
+- هذا يُنتج إشعارات مكررة للمستخدم
+- الحل: إزالة استدعاءات `sendNotification()` اليدوية والاعتماد على الـ triggers فقط
+
+**مشكلة 8: `useBankTransfer` يُرسل إشعارات يدوياً للمدراء**
+- في `src/hooks/useBankTransfer.ts` السطور 69-79: يجلب جميع المدراء ويُرسل إشعارات يدوياً
+- بينما يوجد trigger `notify_on_bank_transfer_change` - لكن هذا الـ trigger يعمل فقط عند UPDATE لا INSERT
+- الحل: إضافة حالة INSERT في الـ trigger أو إبقاء الإشعار اليدوي مع إزالة التكرار
+
+**مشكلة 9: الـ Checkout يعيد التوجيه فوراً عند عدم وجود عناصر**
+- في `src/pages/Checkout.tsx` السطور 108-111: `navigate("/cart")` يُستدعى أثناء الـ render مما قد يُسبب تحذير React
+- الحل: نقل الـ navigation إلى `useEffect`
+
+---
+
+## 4. تدفقات المستخدم (User Flows)
+
+### ما يعمل بشكل صحيح:
+- **تدفق التسجيل**: التسجيل --> تأكيد البريد --> تسجيل دخول --> لوحة التحكم
+- **تدفق المشروع**: إنشاء --> إرسال للموافقة --> نشر --> استقبال عروض --> قبول عرض --> إنشاء عقد تلقائي --> توقيع --> ضمان مالي --> إتمام
+- **تدفق الشراء**: تصفح السوق --> إضافة للسلة --> الدفع (إلكتروني/بنكي) --> تأكيد
+- **تدفق الشكاوى**: رفع شكوى --> تجميد الضمان --> ردود --> حل/إغلاق --> إعادة فتح (خلال 7 أيام)
+- **تدفق المانح**: تصفح الجمعيات --> تقديم منحة --> متابعة الأثر
+- **استعادة كلمة المرور**: طلب رابط --> بريد إلكتروني --> إعادة تعيين
+
+### مشاكل تحتاج إصلاح:
+
+**مشكلة 10: عدم وجود تأكيد بصري بعد التسجيل**
+- عند التسجيل يظهر toast ثم يُغلق الـ modal - لكن لا يُوجه المستخدم لأي صفحة تأكيد
+- المستخدم يبقى في الصفحة الرئيسية بدون إرشاد واضح للخطوة التالية
+- الحل: إضافة صفحة/رسالة تأكيد واضحة تطلب فتح البريد الإلكتروني
+
+**مشكلة 11: cart_items لا يوجد constraint فريد على `(user_id, service_id)` في الكود**
+- في `useAddToCart` السطر 53: يستخدم `upsert` مع `onConflict: "user_id,service_id"` لكن يجب التأكد من وجود هذا الـ unique constraint في قاعدة البيانات
+- إذا لم يكن موجوداً سيفشل الـ upsert
+
+---
+
+## 5. الأمان (Security)
+
+### ما يعمل بشكل صحيح:
+- RLS مفعّل على جميع الجداول
+- الأدوار مخزنة في جدول منفصل `user_roles` (ممارسة أمنية صحيحة)
+- دالة `has_role()` مع `SECURITY DEFINER` تمنع الـ recursive RLS
+- فحص التعليق `is_not_suspended()` في سياسات INSERT
+- `AdminRoute` يتحقق من الدور عبر قاعدة البيانات لا عبر client storage
+
+### تحذيرات من الـ Linter:
+- **WARN**: سياسة RLS تستخدم `true` (للقراءة العامة) - مقبول للجداول العامة مثل categories, regions, ratings
+- **WARN**: حماية كلمات المرور المسربة معطلة - يُنصح بتفعيلها
+
+---
+
+## خطة الإصلاح المقترحة (بالأولوية)
+
+### عاجل (يؤثر على الوظائف):
+1. إزالة الإشعارات المزدوجة في `usePurchaseService.ts` (حذف استدعاءات `sendNotification` اليدوية)
+2. إصلاح تحذير React في `Checkout.tsx` (نقل navigate إلى useEffect)
+
+### مهم (يؤثر على التجربة):
+3. توحيد شريط التدرج في هيدرات الصفحات الداخلية
+4. تحسين صفحة Auth بإضافة خلفية أو إعادة توجيه أفضل
+5. إضافة رسالة تأكيد واضحة بعد التسجيل
+
+### تحسينات (للكفاءة):
+6. تحسين `useProjectStats` لتقليل عدد الاستعلامات
+7. تقليل استخدام `as any` في hooks البنكية
+
+---
+
+## الملفات المتأثرة:
+- `src/hooks/usePurchaseService.ts` - إزالة إشعارات مزدوجة
+- `src/pages/Checkout.tsx` - إصلاح navigate أثناء render
+- `src/pages/Auth.tsx` - تحسين تجربة الخلفية
+- `src/pages/Marketplace.tsx` + صفحات أخرى - توحيد شريط التدرج
+- `src/hooks/useProjects.ts` - تحسين استعلام الإحصائيات
+- `src/hooks/useBankTransfer.ts` - تنظيف الأنواع
+
