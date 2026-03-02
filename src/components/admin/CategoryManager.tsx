@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, Tag, Pencil, Check, X, FolderOpen, Loader2, Download, Upload } from "lucide-react";
+import { Trash2, Plus, Tag, Pencil, Check, X, FolderOpen, Loader2, Download, Upload, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 
 function exportCSV(items: any[], filename: string) {
@@ -33,6 +34,58 @@ export function CategoryManager() {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Pending suggestions
+  const { data: pending } = useQuery({
+    queryKey: ["pending-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pending_categories" as any)
+        .select("*, profiles:suggested_by(full_name)")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false }) as any;
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+  const pendingCount = pending?.length ?? 0;
+
+  const approveMut = useMutation({
+    mutationFn: async (item: any) => {
+      const { error: catErr } = await supabase.from("categories").insert({
+        name: item.name,
+        description: item.description || null,
+      });
+      if (catErr) throw catErr;
+      const { error: updErr } = await supabase
+        .from("pending_categories" as any)
+        .update({ status: "approved", reviewed_at: new Date().toISOString() } as any)
+        .eq("id", item.id) as any;
+      if (updErr) throw updErr;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-categories"] });
+      qc.invalidateQueries({ queryKey: ["admin-categories"] });
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("تمت الموافقة وإضافة التصنيف");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const rejectMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("pending_categories" as any)
+        .update({ status: "rejected", reviewed_at: new Date().toISOString() } as any)
+        .eq("id", id) as any;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-categories"] });
+      toast.success("تم رفض الاقتراح");
+    },
+    onError: () => toast.error("حدث خطأ"),
   });
 
   const [name, setName] = useState("");
@@ -84,7 +137,10 @@ export function CategoryManager() {
             <Tag className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">التصنيفات</CardTitle>
           </div>
-          <Badge variant="secondary">{categories?.length ?? 0}</Badge>
+          <div className="flex items-center gap-2">
+            {pendingCount > 0 && <Badge variant="destructive">{pendingCount} مقترح</Badge>}
+            <Badge variant="secondary">{categories?.length ?? 0}</Badge>
+          </div>
         </div>
         <CardDescription>تصنيفات الطلبات والخدمات المتاحة على المنصة</CardDescription>
       </CardHeader>
@@ -186,6 +242,54 @@ export function CategoryManager() {
               ))}
             </TableBody>
           </Table>
+        )}
+
+        {/* Pending Suggestions Section */}
+        {pendingCount > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                <h3 className="text-sm font-semibold">تصنيفات مقترحة ({pendingCount})</h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>الاسم</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>مقترح من</TableHead>
+                    <TableHead className="w-24"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pending?.map((item: any) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {item.entity_type === "service" ? "خدمة" : "مشروع"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.profiles?.full_name || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(item)} disabled={approveMut.isPending} title="موافقة">
+                            <Check className="h-4 w-4 text-emerald-600" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => rejectMut.mutate(item.id)} disabled={rejectMut.isPending} title="رفض">
+                            <X className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
