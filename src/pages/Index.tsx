@@ -136,31 +136,25 @@ export default function Index() {
       <Testimonials />
 
       {/* 8. CTA نهائي */}
-      <section className="py-16 px-4 bg-muted/30">
+      <section className="py-16 px-4 bg-[#2381C0]">
         <div className="container mx-auto max-w-5xl">
-          <div className="relative rounded-2xl bg-[#1C1E24] p-10 md:p-14 overflow-hidden">
-            <div className="absolute inset-0 rounded-2xl border border-primary/30" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/8 rounded-full blur-3xl" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-right space-y-4 flex-1">
+              <span className="text-white/90 text-sm font-medium">تواصل معنا</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                نلتزم بتوفير فرص متساوية للجميع، دائمًا وفي كل مرة.
+              </h2>
+              <p className="text-white/70 text-sm leading-relaxed max-w-xl">
+                انضم إلى المنصة وابدأ في تحقيق أهدافك مع شبكة واسعة من الشركاء
+              </p>
+            </div>
             
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="text-right space-y-4 flex-1">
-                <span className="text-primary text-sm font-medium">تواصل معنا</span>
-                <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
-                  نلتزم بتوفير فرص متساوية للجميع، دائمًا وفي كل مرة.
-                </h2>
-                <p className="text-white/60 text-sm leading-relaxed max-w-xl">
-                  انضم إلى المنصة وابدأ في تحقيق أهدافك مع شبكة واسعة من الشركاء
-                </p>
-              </div>
-              
-              <div className="shrink-0 flex flex-col items-center gap-3">
-                <Button size="lg" className="shadow-lg text-base px-10 py-6 text-lg" onClick={() => window.location.href = '/auth'}>
-                  سجّل مجاناً
-                  <ArrowLeft className="me-2 h-5 w-5" />
-                </Button>
-                <p className="text-white/40 text-xs text-center">جرّبه بدون مخاطر – ضمان استرجاع<br/>الأموال خلال 14 يومًا!</p>
-              </div>
+            <div className="shrink-0 flex flex-col items-center gap-3">
+              <Button size="lg" className="bg-white text-[#2381C0] hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold" onClick={() => window.location.href = '/auth'}>
+                سجّل مجاناً
+                <ArrowLeft className="me-2 h-5 w-5" />
+              </Button>
+              <p className="text-white/70 text-xs text-center">جرّبه بدون مخاطر – ضمان استرجاع<br/>الأموال خلال 14 يومًا!</p>
             </div>
           </div>
         </div>
