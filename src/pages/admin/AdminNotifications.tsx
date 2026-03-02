@@ -117,7 +117,7 @@ export default function AdminNotifications() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1" />
+          <div className="w-3" />
           <Button
             variant="ghost"
             size="sm"
