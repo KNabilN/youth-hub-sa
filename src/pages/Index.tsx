@@ -161,10 +161,10 @@ export default function Index() {
       </section>
 
       {/* 9. نموذج التواصل */}
-      <section className="bg-[#1C1E24] py-16 px-4 text-center">
+      <section className="bg-background py-16 px-4 text-center">
         <div className="container mx-auto max-w-3xl space-y-3">
-          <h2 className="text-3xl font-bold text-white">نحن هنا لمساعدتك</h2>
-          <p className="text-white/60 text-sm leading-relaxed">فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية</p>
+          <h2 className="text-3xl font-bold text-foreground">نحن هنا لمساعدتك</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية</p>
         </div>
       </section>
       <section className="py-16 px-4 bg-muted/30">
