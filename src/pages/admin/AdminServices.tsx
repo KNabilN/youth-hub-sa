@@ -148,7 +148,7 @@ export default function AdminServices() {
                 <TableBody>
                   {paged.map((s: any) => (
                     <TableRow key={s.id}>
-                      <TableCell className="font-mono text-xs"><Link to={`/admin/services/${s.id}`} className="hover:underline hover:text-primary transition-colors text-muted-foreground">{s.service_number || "—"}</Link></TableCell>
+                      <TableCell className="font-mono text-sm font-semibold"><Link to={`/admin/services/${s.id}`} className="hover:underline hover:text-primary transition-colors">{s.service_number || "—"}</Link></TableCell>
                       <TableCell className="font-medium">{s.title}</TableCell>
                       <TableCell>{s.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
