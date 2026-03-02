@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CharCounter } from "@/components/ui/char-counter";
 
 const ticketSchema = z.object({
   subject: z.string().trim().min(5, "الموضوع يجب أن يكون 5 أحرف على الأقل").max(200),
@@ -32,14 +33,16 @@ export function TicketForm({ onSubmit, isLoading }: TicketFormProps) {
         <FormField control={form.control} name="subject" render={({ field }) => (
           <FormItem>
             <FormLabel>الموضوع</FormLabel>
-            <FormControl><Input placeholder="أدخل موضوع التذكرة" {...field} /></FormControl>
+            <FormControl><Input placeholder="أدخل موضوع التذكرة" maxLength={200} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={200} />
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
             <FormLabel>الوصف</FormLabel>
-            <FormControl><Textarea placeholder="اشرح المشكلة بالتفصيل" rows={5} {...field} /></FormControl>
+            <FormControl><Textarea placeholder="اشرح المشكلة بالتفصيل" rows={5} maxLength={2000} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={2000} />
             <FormMessage />
           </FormItem>
         )} />

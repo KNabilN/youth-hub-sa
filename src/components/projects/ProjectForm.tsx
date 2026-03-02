@@ -15,6 +15,7 @@ import { useCities } from "@/hooks/useCities";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { CharCounter } from "@/components/ui/char-counter";
 
 const projectSchema = z.object({
   title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
@@ -120,14 +121,16 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
                   <FormLabel>عنوان المشروع</FormLabel>
-                  <FormControl><Input placeholder="أدخل عنوان المشروع" {...field} /></FormControl>
+                  <FormControl><Input placeholder="أدخل عنوان المشروع" maxLength={200} {...field} /></FormControl>
+                  <CharCounter current={field.value?.length ?? 0} max={200} />
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
                   <FormLabel>وصف المشروع</FormLabel>
-                  <FormControl><Textarea placeholder="اكتب وصفاً تفصيلياً للمشروع" rows={5} {...field} /></FormControl>
+                  <FormControl><Textarea placeholder="اكتب وصفاً تفصيلياً للمشروع" rows={5} maxLength={5000} {...field} /></FormControl>
+                  <CharCounter current={field.value?.length ?? 0} max={5000} />
                   <FormMessage />
                 </FormItem>
               )} />

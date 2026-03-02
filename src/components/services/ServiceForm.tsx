@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ImagePlus, X, Plus, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { CharCounter } from "@/components/ui/char-counter";
 
 const serviceSchema = z.object({
   title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
@@ -152,21 +153,24 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
             <FormLabel>عنوان الخدمة</FormLabel>
-            <FormControl><Input placeholder="أدخل عنوان الخدمة" {...field} /></FormControl>
+            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={200} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={200} />
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
             <FormLabel>وصف مختصر</FormLabel>
-            <FormControl><Textarea placeholder="وصف مختصر يظهر في بطاقة الخدمة" rows={3} {...field} /></FormControl>
+            <FormControl><Textarea placeholder="وصف مختصر يظهر في بطاقة الخدمة" rows={3} maxLength={5000} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={5000} />
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="long_description" render={({ field }) => (
           <FormItem>
             <FormLabel>وصف تفصيلي</FormLabel>
-            <FormControl><Textarea placeholder="وصف تفصيلي يظهر في صفحة الخدمة الكاملة" rows={6} {...field} /></FormControl>
+            <FormControl><Textarea placeholder="وصف تفصيلي يظهر في صفحة الخدمة الكاملة" rows={6} maxLength={10000} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={10000} />
             <FormMessage />
           </FormItem>
         )} />

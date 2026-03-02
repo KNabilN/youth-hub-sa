@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DollarSign, CalendarDays, FileText } from "lucide-react";
+import { CharCounter } from "@/components/ui/char-counter";
 
 const bidSchema = z.object({
   price: z.coerce.number().positive("يجب أن يكون رقماً موجباً"),
@@ -48,7 +49,8 @@ export function BidForm({ onSubmit, isLoading }: BidFormProps) {
         <FormField control={form.control} name="cover_letter" render={({ field }) => (
           <FormItem>
             <FormLabel className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />خطاب التقديم</FormLabel>
-            <FormControl><Textarea placeholder="اكتب خطاب التقديم الخاص بك..." rows={5} {...field} /></FormControl>
+            <FormControl><Textarea placeholder="اكتب خطاب التقديم الخاص بك..." rows={5} maxLength={5000} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={5000} />
             <FormMessage />
           </FormItem>
         )} />
