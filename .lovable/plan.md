@@ -1,96 +1,62 @@
 
-# اضافة المدن لكل منطقة
+# اضافة تصدير CSV لجميع صفحات الادارة
 
 ## الفكرة
-انشاء جدول مدن مرتبط بالمناطق، بحيث كل منطقة تحتوي على عدة مدن. يتم استخدام المدينة في المشاريع والخدمات بجانب المنطقة، مع ربط الفلاتر بحيث اختيار المنطقة يُظهر مدنها فقط.
+استخراج دالة `downloadCSV` الموجودة في صفحة التقارير كأداة مشتركة، ثم اضافة زر "تصدير CSV" في كل صفحة ادارية تعرض بيانات جدولية.
 
-## قاعدة البيانات
+## التغييرات المطلوبة
 
-### جدول جديد: `cities`
-| العمود | النوع | الوصف |
-|--------|-------|-------|
-| id | uuid | المعرف |
-| region_id | uuid (FK -> regions.id) | المنطقة التابعة لها |
-| name | text | اسم المدينة |
-| created_at | timestamp | تاريخ الانشاء |
+### 1. استخراج دالة downloadCSV كأداة مشتركة
+- **ملف جديد**: `src/lib/csv-export.ts`
+- نقل دالة `downloadCSV` من `AdminReports.tsx` اليه
+- تحديث `AdminReports.tsx` لاستيرادها من الملف الجديد بدل التعريف المحلي
 
-### سياسات الأمان (RLS)
-- القراءة عامة للجميع (مثل المناطق)
-- الادارة للأدمن فقط
+### 2. صفحة المستخدمين - `AdminUsers.tsx` / `UserTable.tsx`
+- اضافة زر "تصدير CSV" بجانب زر "تسجيل مستخدم"
+- الأعمدة: الاسم، الهاتف، المنظمة، الدور، موثق، الحالة، تاريخ الانضمام
+- يتم تصدير جميع المستخدمين من قاعدة البيانات (وليس فقط الصفحة الحالية)
 
-### تعديل الجداول الموجودة
-- **micro_services**: اضافة عمود `city_id` (uuid, nullable, FK -> cities.id)
-- **projects**: اضافة عمود `city_id` (uuid, nullable, FK -> cities.id)
+### 3. صفحة الخدمات - `AdminServices.tsx`
+- اضافة زر "تصدير CSV" بجانب فلاتر البحث
+- الأعمدة: العنوان، مقدم الخدمة، التصنيف، السعر، الحالة، التاريخ
 
-## تعديلات الواجهة
+### 4. صفحة الطلبات - `AdminProjects.tsx`
+- اضافة زر "تصدير CSV"
+- الأعمدة: رقم الطلب، العنوان، الجمعية، التصنيف، المنطقة، المدينة، الحالة، الميزانية، التاريخ
 
-### 1. RegionManager.tsx - ادارة المدن داخل كل منطقة
-- اضافة زر توسيع (Collapsible) لكل منطقة لعرض مدنها
-- امكانية اضافة/تعديل/حذف مدن لكل منطقة
-- عرض عدد المدن بجانب كل منطقة
+### 5. صفحة التذاكر - `AdminTickets.tsx`
+- اضافة زر "تصدير CSV"
+- الأعمدة: رقم التذكرة، الموضوع، المستخدم، الأولوية، الحالة، التاريخ
 
-### 2. ProjectForm.tsx - اضافة اختيار المدينة
-- اضافة حقل "المدينة" بعد حقل المنطقة
-- الحقل يعتمد على المنطقة المختارة (تتغير الخيارات عند تغيير المنطقة)
-- اضافة `city_id` في الـ schema
+### 6. صفحة الشكاوى - `AdminDisputes.tsx`
+- اضافة زر "تصدير CSV"
+- الأعمدة: المشروع، مقدم الشكوى، الوصف، الحالة، التاريخ
 
-### 3. ServiceForm.tsx - اضافة اختيار المدينة
-- نفس المنطق: حقل مدينة يعتمد على المنطقة المختارة
-- اضافة `city_id` في الـ schema
-
-### 4. ServiceFilters.tsx - فلتر المدينة
-- اضافة فلتر مدينة جديد يظهر بعد فلتر المنطقة
-- يتحدث الفلتر تلقائياً عند تغيير المنطقة
-
-### 5. عرض المدينة في البطاقات والصفحات
-- **ServiceCard.tsx**: عرض اسم المدينة بجانب المنطقة
-- **ProjectCard.tsx**: عرض المدينة
-- **ProviderProjectCard.tsx**: عرض المدينة
-- **ServiceDetail page**: عرض المدينة
-- **ProjectDetails page**: عرض المدينة
-
-### 6. Hook جديد: useCities.ts
-- جلب جميع المدن أو المدن حسب منطقة محددة
-
-### 7. صفحات الادمن
-- **AdminReports.tsx**: اضافة فلتر مدينة + تعديل الاستعلامات
-- **AdminServices.tsx**: عرض المدينة + دعم التعديل المباشر
-- **AdminProjects.tsx**: عرض المدينة
+### 7. صفحة المالية - `AdminFinance.tsx`
+- اضافة زر "تصدير CSV" لكل تاب (الضمان، الفواتير، طلبات السحب، التحويلات البنكية)
+- كل تاب يصدر أعمدته الخاصة
 
 ## التفاصيل التقنية
 
-### سير العمل في الفورم
+### دالة التصدير المشتركة
 ```text
-المستخدم يختار المنطقة
-  |
-  +-- يتم جلب مدن هذه المنطقة فقط
-  +-- يظهر حقل المدينة بالخيارات المفلترة
-  +-- عند تغيير المنطقة يتم مسح المدينة المختارة
+// src/lib/csv-export.ts
+downloadCSV(filename, headers[], rows[][])
+- يضيف BOM للتوافق مع Excel العربي
+- ينشئ blob ويحمل الملف تلقائياً
 ```
 
-### استعلام المدن
-```text
--- جلب مدن منطقة محددة
-SELECT * FROM cities WHERE region_id = ? ORDER BY name
-
--- جلب خدمة مع المدينة
-SELECT *, cities(*), regions(*) FROM micro_services WHERE ...
-```
+### نمط زر التصدير
+- زر `variant="outline"` مع ايقونة `Download`
+- يقوم بجلب البيانات مباشرة من Supabase (وليس فقط البيانات المعروضة)
+- يعرض toast عند بدء التحميل
 
 ### الملفات المتأثرة
-- **Migration**: جدول cities + أعمدة city_id في micro_services و projects
-- **جديد**: `src/hooks/useCities.ts`
-- **تعديل**: `src/components/admin/RegionManager.tsx` - ادارة المدن
-- **تعديل**: `src/components/projects/ProjectForm.tsx` - حقل المدينة
-- **تعديل**: `src/components/services/ServiceForm.tsx` - حقل المدينة
-- **تعديل**: `src/components/marketplace/ServiceFilters.tsx` - فلتر المدينة
-- **تعديل**: `src/components/marketplace/ServiceCard.tsx` - عرض المدينة
-- **تعديل**: `src/components/projects/ProjectCard.tsx` - عرض المدينة
-- **تعديل**: `src/components/provider/ProviderProjectCard.tsx` - عرض المدينة
-- **تعديل**: `src/hooks/useServiceDetail.ts` - جلب المدينة
-- **تعديل**: `src/hooks/useRegions.ts` - جلب المدن مع المناطق (اختياري)
-- **تعديل**: `src/pages/ProjectDetails.tsx` - عرض المدينة
-- **تعديل**: `src/pages/ProjectEdit.tsx` - تمرير city_id
-- **تعديل**: `src/pages/admin/AdminReports.tsx` - فلتر مدينة
-- **تعديل**: `src/pages/admin/AdminServices.tsx` - عرض المدينة
-- **تعديل**: `src/pages/admin/AdminProjects.tsx` - عرض المدينة
+- **جديد**: `src/lib/csv-export.ts`
+- **تعديل**: `src/pages/admin/AdminReports.tsx` - استيراد من الملف المشترك
+- **تعديل**: `src/components/admin/UserTable.tsx` - زر تصدير المستخدمين
+- **تعديل**: `src/pages/admin/AdminServices.tsx` - زر تصدير الخدمات
+- **تعديل**: `src/pages/admin/AdminProjects.tsx` - زر تصدير الطلبات
+- **تعديل**: `src/pages/admin/AdminTickets.tsx` - زر تصدير التذاكر
+- **تعديل**: `src/pages/admin/AdminDisputes.tsx` - زر تصدير الشكاوى
+- **تعديل**: `src/pages/admin/AdminFinance.tsx` - أزرار تصدير لكل تاب
