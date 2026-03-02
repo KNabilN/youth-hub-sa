@@ -128,6 +128,8 @@ export default function AdminDisputeDetail() {
                   <CardTitle className="text-xl">شكوى على مشروع: {dispute.projects?.title ?? "غير معروف"}</CardTitle>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  {(dispute as any).dispute_number && <span className="font-mono">{(dispute as any).dispute_number}</span>}
+                  <span>·</span>
                   <span>بواسطة: {dispute.profiles?.full_name ?? "—"}</span>
                   <span>·</span>
                   <span>{format(new Date(dispute.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}</span>
