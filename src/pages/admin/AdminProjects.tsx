@@ -137,8 +137,10 @@ export default function AdminProjects() {
                 <TableBody>
                   {filtered.map((p: any) => (
                    <TableRow key={p.id}>
-                       <TableCell className="font-mono text-xs text-muted-foreground">{p.request_number}</TableCell>
-                       <TableCell className="font-medium"><Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.title}</Link></TableCell>
+                        <TableCell className="font-mono text-sm font-semibold">
+                          <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
+                        </TableCell>
+                        <TableCell className="font-medium">{p.title}</TableCell>
                       <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{p.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
