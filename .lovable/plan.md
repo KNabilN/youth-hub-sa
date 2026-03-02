@@ -1,25 +1,36 @@
 
-# جعل الرقم هو الرابط القابل للنقر بدلاً من العنوان
+# تحسين خط الأرقام وجعلها قابلة للنقر في كل الصفحات
 
-## التغيير
-في صفحة إدارة الخدمات (`AdminServices.tsx`)، نقل الرابط (`Link`) من عمود العنوان إلى عمود الرقم، بحيث يصبح رقم الخدمة هو العنصر القابل للنقر.
+## الملفات والتغييرات
 
-## التفاصيل التقنية
+### 1. `src/pages/admin/AdminDisputes.tsx` (سطر 134)
+- تغيير من `text-xs text-muted-foreground` إلى `text-sm font-semibold`
+- نقل الرابط (`Link`) من عمود المشروع إلى عمود الرقم (مثل ما تم في AdminServices)
+- عمود المشروع يصبح نص عادي
 
-**ملف واحد يتأثر:** `src/pages/admin/AdminServices.tsx`
+### 2. `src/pages/admin/AdminTickets.tsx` (سطر 138)
+- تغيير من `text-xs text-muted-foreground` إلى `text-sm font-semibold`
+- جعل رقم التذكرة هو الرابط القابل للنقر بدلا من الصف كامل
+- إزالة `cursor-pointer` و `onClick` من `TableRow` ونقل الرابط للرقم فقط
 
-**التعديل في السطرين 151-152:**
-- **السطر 151 (الرقم):** تحويل النص العادي إلى `Link` مع تنسيق `hover:underline hover:text-primary`
-- **السطر 152 (العنوان):** إزالة `Link` وإبقاء النص العادي فقط
+### 3. `src/components/services/MyServiceCard.tsx` (سطر 52)
+- تغيير من `text-xs` إلى `text-sm font-semibold`
+- لف الرقم بـ `Link` يوجه لصفحة تفاصيل الخدمة
 
-**قبل:**
-```
-الرقم: نص عادي
-العنوان: رابط قابل للنقر
-```
+### 4. `src/components/marketplace/ServiceCard.tsx` (سطر 51)
+- تغيير من `text-[10px]` إلى `text-xs font-semibold`
+- لف الرقم بـ `Link` يوجه لصفحة تفاصيل الخدمة
 
-**بعد:**
-```
-الرقم: رابط قابل للنقر
-العنوان: نص عادي
-```
+### 5. `src/pages/ServiceDetail.tsx` (سطر 70-72)
+- تغيير من `text-sm text-muted-foreground` إلى `text-sm font-semibold text-primary`
+
+### 6. `src/pages/MyDisputes.tsx` (سطر 158)
+- تغيير من `text-xs` إلى `text-sm font-semibold`
+
+### 7. `src/pages/admin/AdminDisputeDetail.tsx` (سطر 131)
+- تغيير إلى `text-sm font-semibold text-primary`
+
+## النمط الموحد
+- جميع الأرقام: `font-mono text-sm font-semibold`
+- الأرقام القابلة للنقر: اضافة `hover:underline hover:text-primary transition-colors`
+- في صفحات الادارة: الرقم هو الرابط الرئيسي وليس العنوان
