@@ -135,10 +135,6 @@ export default function MyServices() {
                   onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة" }),
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
-                onArchive={(id) => updateStatus.mutate({ id, approval: "archived" }, {
-                  onSuccess: () => toast({ title: "تم أرشفة الخدمة" }),
-                  onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                })}
               />
             ))}
           </div>

@@ -16,11 +16,10 @@ export default function Projects() {
   const updateStatus = useUpdateProjectStatusByAssociation();
   const navigate = useNavigate();
 
-  const handleStatusChange = (id: string, status: "draft" | "pending_approval" | "suspended" | "archived" | "cancelled") => {
+  const handleStatusChange = (id: string, status: "draft" | "pending_approval" | "suspended" | "cancelled") => {
     const labels: Record<string, string> = {
       pending_approval: "تم تقديم المشروع للموافقة",
       suspended: "تم إيقاف المشروع مؤقتاً",
-      archived: "تم أرشفة المشروع",
     };
     updateStatus.mutate({ id, status }, {
       onSuccess: () => toast({ title: labels[status] || "تم تحديث الحالة" }),
@@ -63,7 +62,6 @@ export default function Projects() {
                 <SelectItem value="disputed">متنازع</SelectItem>
                 <SelectItem value="cancelled">ملغي</SelectItem>
                 <SelectItem value="suspended">معلق</SelectItem>
-                <SelectItem value="archived">مؤرشف</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -87,7 +85,6 @@ export default function Projects() {
                 onSubmitForApproval={(id) => handleStatusChange(id, "pending_approval")}
                 onSuspend={(id) => handleStatusChange(id, "suspended")}
                 onReactivate={(id) => handleStatusChange(id, "pending_approval")}
-                onArchive={(id) => handleStatusChange(id, "archived")}
               />
             ))}
           </div>
