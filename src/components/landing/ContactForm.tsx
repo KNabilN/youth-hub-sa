@@ -8,6 +8,7 @@ import { Send, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { CharCounter } from "@/components/ui/char-counter";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم مطلوب").max(100),
@@ -79,7 +80,8 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="contact-name">الاسم</Label>
-            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" />
+            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" maxLength={100} />
+            <CharCounter current={name.length} max={100} />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
           </div>
           <div>
@@ -89,7 +91,8 @@ export function ContactForm() {
           </div>
           <div>
             <Label htmlFor="contact-message">الرسالة</Label>
-            <Textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={4} />
+            <Textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={4} maxLength={1000} />
+            <CharCounter current={message.length} max={1000} />
             {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
           </div>
           <Button type="submit" className="w-full" disabled={sending}>

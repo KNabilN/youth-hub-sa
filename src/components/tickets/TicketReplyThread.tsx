@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CharCounter } from "@/components/ui/char-counter";
 
 interface TicketReplyThreadProps {
   ticketId: string;
@@ -102,13 +103,16 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
         {/* Reply Input */}
         {canRespond && (
           <div className="flex gap-2 border-t pt-3">
-            <Textarea
-              placeholder="اكتب ردك..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={2}
-              className="flex-1"
-            />
+            <div className="flex-1 space-y-1">
+              <Textarea
+                placeholder="اكتب ردك..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={2}
+                maxLength={2000}
+              />
+              <CharCounter current={message.length} max={2000} />
+            </div>
             <Button
               size="icon"
               onClick={handleSubmit}
