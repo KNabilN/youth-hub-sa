@@ -135,6 +135,30 @@ export default function Index() {
       {/* 7. آراء العملاء */}
       <Testimonials />
 
+      {/* 7.5 قسم اشتراك بريدي */}
+      <section className="py-16 px-4 bg-[#2381C0]">
+        <div className="container mx-auto max-w-3xl text-center space-y-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">ابدأ رحلتك المهنية اليوم</h2>
+          <p className="text-white/70 text-sm md:text-base">اشترك في قائمتنا البريدية ليصلك كل جديد</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
+            <input
+              type="email"
+              placeholder="أدخل بريدك الإلكتروني"
+              className="flex-1 h-12 rounded-lg px-4 text-sm bg-white text-gray-800 placeholder:text-gray-400 outline-none"
+              readOnly
+            />
+            <Button
+              size="lg"
+              className="bg-white text-[#2381C0] hover:bg-white/90 font-bold h-12 px-8 shrink-0"
+              onClick={() => window.location.href = '/auth'}
+            >
+              ابدأ الآن
+              <ArrowLeft className="me-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* 8. CTA نهائي - dark style with glowing border */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-5xl">
