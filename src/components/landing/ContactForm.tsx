@@ -87,7 +87,7 @@ export function ContactForm() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="contact-email" className="text-sm font-medium">البريد الإلكتروني</Label>
-            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" dir="ltr" className="text-start" />
+            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" />
             {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
           </div>
           <div className="space-y-1.5">
