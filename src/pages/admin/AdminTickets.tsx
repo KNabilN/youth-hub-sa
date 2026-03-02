@@ -52,7 +52,8 @@ export default function AdminTickets() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = (tickets ?? []).filter((t: any) => {
-    if (search && !t.subject.toLowerCase().includes(search.toLowerCase())) return false;
+    const q = search.toLowerCase();
+    if (search && !t.subject.toLowerCase().includes(q) && !(t.ticket_number ?? '').toLowerCase().includes(q)) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
     return true;
   });
@@ -71,7 +72,7 @@ export default function AdminTickets() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
-            <Input placeholder="بحث بالموضوع..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+            <Input placeholder="بحث بالموضوع أو الرقم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-56" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
@@ -101,18 +102,20 @@ export default function AdminTickets() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>الموضوع</TableHead>
-                  <TableHead>المستخدم</TableHead>
-                  <TableHead>الأولوية</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>التاريخ</TableHead>
-                  <TableHead>تغيير الحالة</TableHead>
-                </TableRow>
+                   <TableHead>رقم التذكرة</TableHead>
+                   <TableHead>الموضوع</TableHead>
+                   <TableHead>المستخدم</TableHead>
+                   <TableHead>الأولوية</TableHead>
+                   <TableHead>الحالة</TableHead>
+                   <TableHead>التاريخ</TableHead>
+                   <TableHead>تغيير الحالة</TableHead>
+                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((t: any) => (
                   <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/tickets/${t.id}`)}>
-                    <TableCell className="font-medium">{t.subject}</TableCell>
+                     <TableCell className="font-mono text-xs text-muted-foreground">{t.ticket_number}</TableCell>
+                     <TableCell className="font-medium">{t.subject}</TableCell>
                     <TableCell>{t.profiles?.full_name ?? "—"}</TableCell>
                     <TableCell><Badge className={priorityColors[t.priority]}>{priorityLabels[t.priority]}</Badge></TableCell>
                     <TableCell><Badge className={statusColors[t.status]}>{statusLabels[t.status]}</Badge></TableCell>
@@ -127,7 +130,7 @@ export default function AdminTickets() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
+                {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>

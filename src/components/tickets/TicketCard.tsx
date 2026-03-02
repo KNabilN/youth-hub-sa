@@ -41,14 +41,18 @@ interface TicketCardProps {
   status: TicketStatus;
   priority: TicketPriority;
   created_at: string;
+  ticket_number?: string;
 }
 
-export function TicketCard({ subject, description, status, priority, created_at }: TicketCardProps) {
+export function TicketCard({ subject, description, status, priority, created_at, ticket_number }: TicketCardProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">{subject}</CardTitle>
+          <div className="space-y-1 min-w-0">
+            {ticket_number && <span className="text-xs font-mono text-muted-foreground">{ticket_number}</span>}
+            <CardTitle className="text-base">{subject}</CardTitle>
+          </div>
           <div className="flex gap-2 shrink-0">
             <Badge variant="outline" className={priorityColors[priority]}>{priorityLabels[priority]}</Badge>
             <Badge variant="outline" className={statusColors[status]}>{statusLabels[status]}</Badge>

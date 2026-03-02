@@ -159,9 +159,12 @@ export default function AdminProjectDetail() {
 
         {/* Title & Status */}
         <div className="space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold">{project.title}</h1>
-            <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+           {(project as any).request_number && (
+             <span className="text-sm font-mono text-muted-foreground">{(project as any).request_number}</span>
+           )}
+           <div className="flex items-center gap-3 flex-wrap">
+             <h1 className="text-2xl font-bold">{project.title}</h1>
+             <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
             {project.is_private && (
               <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />خاص</Badge>
             )}

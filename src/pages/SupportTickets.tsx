@@ -45,6 +45,7 @@ export default function SupportTickets() {
                 status={t.status}
                 priority={t.priority}
                 created_at={t.created_at}
+                ticket_number={(t as any).ticket_number}
               />
             ))}
           </div>
