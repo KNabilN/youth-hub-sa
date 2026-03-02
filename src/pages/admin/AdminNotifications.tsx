@@ -92,36 +92,39 @@ export default function AdminNotifications() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
+        <div className="flex flex-wrap gap-3 items-end mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 text-muted-foreground hover:text-foreground"
+            className="h-9 text-muted-foreground hover:text-foreground self-end"
             onClick={() => { setFilter("all"); setTypeFilter("all"); setPage(0); }}
           >
             <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
           </Button>
-          <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[180px] h-9 bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">الكل</SelectItem>
-              <SelectItem value="delivered">تم التوصيل</SelectItem>
-              <SelectItem value="failed">فشل</SelectItem>
-              <SelectItem value="pending">قيد الإرسال</SelectItem>
-            </SelectContent>
-          </Select>
-          <Label className="text-xs font-medium text-muted-foreground">حالة التوصيل</Label>
-          <div className="w-px h-6 bg-border mx-1" />
-          <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[200px] h-9 bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الأنواع</SelectItem>
-              {Object.entries(typeLabels).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label className="text-xs font-medium text-muted-foreground">النوع</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">حالة التوصيل</Label>
+            <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[180px] h-9 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                <SelectItem value="delivered">تم التوصيل</SelectItem>
+                <SelectItem value="failed">فشل</SelectItem>
+                <SelectItem value="pending">قيد الإرسال</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">النوع</Label>
+            <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[200px] h-9 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الأنواع</SelectItem>
+                {Object.entries(typeLabels).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <Card>
