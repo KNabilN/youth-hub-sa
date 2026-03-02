@@ -111,10 +111,16 @@ export default function AdminFinance() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">النظرة المالية</h1>
-          <p className="text-sm text-muted-foreground mt-1">إدارة الضمان المالي والفواتير وطلبات السحب</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <FileText className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">النظرة المالية</h1>
+            <p className="text-sm text-muted-foreground">إدارة الضمان المالي والفواتير وطلبات السحب</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
         <FinanceSummary />
         <Tabs defaultValue="escrow">
           <div className="flex justify-end">
@@ -136,7 +142,7 @@ export default function AdminFinance() {
                   downloadCSV("escrow.csv",
                     ["الطلب", "الدافع", "المستفيد", "المبلغ", "الحالة", "التاريخ"],
                     (escrows ?? []).map((e: any) => [
-                      e.projects?.title || "", e.profiles?.full_name || "", "",
+                      e.projects?.title || "", (e as any).payer?.full_name || "", (e as any).payee?.full_name || "",
                       String(e.amount), escrowStatusLabels[e.status] || e.status, e.created_at?.slice(0, 10) || "",
                     ])
                   );
@@ -241,8 +247,8 @@ export default function AdminFinance() {
                         <TableCell className="text-sm text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                         <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status] ?? e.status}</Badge></TableCell>
                         <TableCell className="font-medium">{Number(e.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>{(e as any)["profiles"]?.full_name ?? "—"}</TableCell>
-                        <TableCell>{e.profiles?.full_name ?? "—"}</TableCell>
+                        <TableCell>{(e as any).payee?.full_name ?? "—"}</TableCell>
+                        <TableCell>{(e as any).payer?.full_name ?? "—"}</TableCell>
                         <TableCell>{e.projects?.title ?? "—"}</TableCell>
                       </TableRow>
                     ))}

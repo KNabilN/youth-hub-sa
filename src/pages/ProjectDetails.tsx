@@ -119,8 +119,16 @@ export default function ProjectDetails() {
     if (!id || !project) return;
     setCompleting(true);
     try {
+      // 0. Verify escrow exists and is held
+      if (!escrow || escrow.status !== "held") {
+        toast({ title: "لا يمكن إتمام الطلب بدون ضمان مالي محتجز", variant: "destructive" });
+        setCompleting(false);
+        return;
+      }
+
       // 1. Update project status
-      await supabase.from("projects").update({ status: "completed" }).eq("id", id);
+      const { error: updateErr } = await supabase.from("projects").update({ status: "completed" }).eq("id", id);
+      if (updateErr) throw updateErr;
 
       // 2. Release escrow and generate invoice
       const escrowResult = await releaseEscrow.mutateAsync(id);
