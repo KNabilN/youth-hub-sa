@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
@@ -95,6 +95,12 @@ export default function Checkout() {
     }
   };
 
+  useEffect(() => {
+    if (!isLoading && !items?.length) {
+      navigate("/cart");
+    }
+  }, [isLoading, items, navigate]);
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -106,7 +112,6 @@ export default function Checkout() {
   }
 
   if (!items?.length) {
-    navigate("/cart");
     return null;
   }
 

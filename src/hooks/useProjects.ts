@@ -94,16 +94,23 @@ export function useProjectStats() {
     queryKey: ["project-stats", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      // Fetch user's project IDs first, then use them for all queries
+      const { data: userProjects } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("association_id", user!.id);
+      const projectIds = userProjects?.map(p => p.id) ?? [];
+
       const [projectsRes, timeLogsRes, contractsRes, ratingsRes] = await Promise.all([
         supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).eq("status", "in_progress"),
-        supabase.from("time_logs").select("hours").eq("approval", "pending").in("project_id",
-          (await supabase.from("projects").select("id").eq("association_id", user!.id)).data?.map(p => p.id) ?? []
-        ),
+        projectIds.length
+          ? supabase.from("time_logs").select("hours").eq("approval", "pending").in("project_id", projectIds)
+          : Promise.resolve({ data: [] as { hours: number }[] }),
         supabase.from("contracts").select("id", { count: "exact", head: true }).eq("association_id", user!.id),
         supabase.from("ratings").select("quality_score, timing_score, communication_score").eq("rater_id", user!.id),
       ]);
 
-      const pendingHours = timeLogsRes.data?.reduce((sum, t) => sum + Number(t.hours), 0) ?? 0;
+      const pendingHours = (timeLogsRes.data as { hours: number }[] | null)?.reduce((sum, t) => sum + Number(t.hours), 0) ?? 0;
       const ratings = ratingsRes.data ?? [];
       const avgRating = ratings.length
         ? (ratings.reduce((s, r) => s + (r.quality_score + r.timing_score + r.communication_score) / 3, 0) / ratings.length).toFixed(1)
