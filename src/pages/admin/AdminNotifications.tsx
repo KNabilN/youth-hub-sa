@@ -14,6 +14,29 @@ import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
+const typeLabels: Record<string, string> = {
+  bid_received: "عرض سعر مستلم",
+  bid_accepted: "عرض سعر مقبول",
+  service_approval: "طلب اعتماد خدمة",
+  service_approved: "خدمة مُعتمدة",
+  message_received: "رسالة جديدة",
+  contract_created: "عقد جديد",
+  contract_signed: "توقيع عقد",
+  dispute_opened: "شكوى جديدة",
+  escrow_created: "ضمان جديد",
+  escrow_released: "تحرير ضمان",
+  project_pending_approval: "طلب بانتظار الاعتماد",
+  project_open: "طلب مفتوح",
+  project_in_progress: "طلب قيد التنفيذ",
+  project_completed: "طلب مكتمل",
+  purchase: "عملية شراء",
+  purchase_confirmation: "تأكيد شراء",
+  service_purchased: "خدمة مُشتراة",
+  edit_request: "طلب تعديل",
+  time_log_approval: "اعتماد سجل وقت",
+  timelog_approved: "سجل وقت مُعتمد",
+};
+
 const statusMap: Record<string, { label: string; icon: typeof CheckCircle; className: string }> = {
   delivered: { label: "تم التوصيل", icon: CheckCircle, className: "bg-success/15 text-success border-success/30" },
   failed: { label: "فشل", icon: XCircle, className: "bg-destructive/15 text-destructive border-destructive/30" },
@@ -23,7 +46,8 @@ const statusMap: Record<string, { label: string; icon: typeof CheckCircle; class
 export default function AdminNotifications() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
-  const { data: notifications, isLoading } = useAdminNotifications(filter, page);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const { data: notifications, isLoading } = useAdminNotifications(filter, typeFilter, page);
   const { data: stats } = useAdminNotificationStats();
   const resend = useResendNotification();
 
@@ -69,11 +93,19 @@ export default function AdminNotifications() {
         </div>
 
         <Card className="border-dashed bg-muted/30">
-          <CardContent className="py-3 px-4 flex items-end flex-wrap gap-3">
+          <CardContent className="py-3 px-4 flex items-end flex-wrap gap-3 justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 text-muted-foreground hover:text-foreground"
+              onClick={() => { setFilter("all"); setTypeFilter("all"); setPage(0); }}
+            >
+              <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
+            </Button>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">حالة التوصيل</Label>
               <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
-                <SelectTrigger className="w-[180px] bg-background"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[180px] h-9 bg-background"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">الكل</SelectItem>
                   <SelectItem value="delivered">تم التوصيل</SelectItem>
@@ -82,14 +114,18 @@ export default function AdminNotifications() {
                 </SelectContent>
               </Select>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10"
-              onClick={() => { setFilter("all"); setPage(0); }}
-            >
-              إعادة تعيين
-            </Button>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">النوع</Label>
+              <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(0); }}>
+                <SelectTrigger className="w-[200px] h-9 bg-background"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الأنواع</SelectItem>
+                  {Object.entries(typeLabels).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
@@ -122,7 +158,7 @@ export default function AdminNotifications() {
                           <TableRow key={n.id}>
                             <TableCell className="font-medium text-sm">{n.profiles?.full_name || "—"}</TableCell>
                             <TableCell className="max-w-[250px] truncate text-sm">{n.message}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{n.type}</Badge></TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{typeLabels[n.type] || n.type}</Badge></TableCell>
                             <TableCell>
                               <Badge variant="outline" className={st.className}>
                                 <StIcon className="h-3 w-3 me-1" />{st.label}
