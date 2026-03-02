@@ -286,7 +286,10 @@ export default function AdminFinance() {
                 <SelectContent>
                   <SelectItem value="all">جميع الحالات</SelectItem>
                   <SelectItem value="issued">صادرة</SelectItem>
+                  <SelectItem value="paid">مدفوعة</SelectItem>
                   <SelectItem value="viewed">تم الاطلاع</SelectItem>
+                  <SelectItem value="cancelled">ملغاة</SelectItem>
+                  <SelectItem value="archived">مؤرشفة</SelectItem>
                 </SelectContent>
               </Select>
               <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
@@ -313,8 +316,8 @@ export default function AdminFinance() {
                   </TableHeader>
                   <TableBody>
                     {filteredInvoices.map((inv: any) => {
-                      const statusLabel = inv.status === "issued" ? "صادرة" : inv.status === "viewed" ? "تم الاطلاع" : inv.status === "archived" ? "مؤرشفة" : inv.status;
-                      const statusVariant = inv.status === "issued" ? "default" : inv.status === "viewed" ? "secondary" : "outline";
+                      const statusLabel = inv.status === "issued" ? "صادرة" : inv.status === "paid" ? "مدفوعة" : inv.status === "viewed" ? "تم الاطلاع" : inv.status === "cancelled" ? "ملغاة" : inv.status === "archived" ? "مؤرشفة" : inv.status;
+                      const statusVariant = inv.status === "issued" ? "default" : inv.status === "paid" ? "default" : inv.status === "viewed" ? "secondary" : inv.status === "cancelled" ? "destructive" : "outline";
                       return (
                         <TableRow key={inv.id}>
                           <TableCell>
