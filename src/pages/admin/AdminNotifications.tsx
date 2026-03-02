@@ -92,7 +92,7 @@ export default function AdminNotifications() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-3 items-end mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
+        <div className="flex flex-wrap gap-3 items-end mb-5 bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
           <Button
             variant="ghost"
             size="sm"
