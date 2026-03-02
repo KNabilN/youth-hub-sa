@@ -93,14 +93,6 @@ export default function AdminNotifications() {
         </div>
 
         <div className="flex flex-wrap gap-3 items-end mb-5 bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 text-muted-foreground hover:text-foreground self-end"
-            onClick={() => { setFilter("all"); setTypeFilter("all"); setPage(0); }}
-          >
-            <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
-          </Button>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">حالة التوصيل</Label>
             <Select value={filter} onValueChange={(v) => { setFilter(v); setPage(0); }}>
@@ -125,6 +117,15 @@ export default function AdminNotifications() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 text-muted-foreground hover:text-foreground"
+            onClick={() => { setFilter("all"); setTypeFilter("all"); setPage(0); }}
+          >
+            <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
+          </Button>
         </div>
 
         <Card>
