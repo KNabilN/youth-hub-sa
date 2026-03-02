@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyDisputes } from "@/hooks/useMyDisputes";
 import { useMyAssignedProjects } from "@/hooks/useMyAssignedProjects";
 import { useProjects } from "@/hooks/useProjects";
 import { useCreateDispute, useReopenDispute } from "@/hooks/useDisputes";
+import { useUploadAttachment } from "@/hooks/useAttachments";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { DisputeFinancialImpact } from "@/components/disputes/DisputeFinancialImpact";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
@@ -13,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Gavel, ExternalLink, Plus, RotateCcw } from "lucide-react";
+import { Gavel, ExternalLink, Plus, RotateCcw, Paperclip, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,29 +41,47 @@ export default function MyDisputes() {
     : assignedProjects;
   const createDispute = useCreateDispute();
   const reopenDispute = useReopenDispute();
+  const uploadAttachment = useUploadAttachment();
   const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
   const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [reopenDialogId, setReopenDialogId] = useState<string | null>(null);
   const [reopenReason, setReopenReason] = useState("");
 
-  const handleCreateDispute = () => {
+  const handleCreateDispute = async () => {
     if (!selectedProject || !description.trim()) return;
     createDispute.mutate(
       { project_id: selectedProject, description: description.trim() },
       {
-        onSuccess: () => {
+        onSuccess: async (disputeId: string) => {
+          // Upload files
+          for (const file of files) {
+            await uploadAttachment.mutateAsync({
+              file,
+              entityType: "dispute",
+              entityId: disputeId,
+            });
+          }
           toast({ title: "تم رفع الشكوى بنجاح" });
           setDialogOpen(false);
           setSelectedProject("");
           setDescription("");
+          setFiles([]);
         },
         onError: () => toast({ title: "حدث خطأ أثناء رفع الشكوى", variant: "destructive" }),
       }
     );
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    setFiles(prev => [...prev, ...selected]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleReopen = () => {
@@ -125,6 +144,33 @@ export default function MyDisputes() {
                     placeholder="اشرح سبب الشكوى بالتفصيل..."
                     rows={4}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>المرفقات (اختياري)</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Paperclip className="h-4 w-4 me-1" />
+                    إضافة ملف
+                  </Button>
+                  {files.length > 0 && (
+                    <div className="space-y-1.5 mt-2">
+                      {files.map((f, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs bg-muted rounded-md px-3 py-1.5">
+                          <span className="truncate max-w-[200px]">{f.name}</span>
+                          <button type="button" onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-destructive">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <Button
                   onClick={handleCreateDispute}
