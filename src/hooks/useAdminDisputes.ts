@@ -11,6 +11,7 @@ export function useAdminDisputes() {
       const { data, error } = await supabase
         .from("disputes")
         .select("*, projects(title), profiles!disputes_raised_by_fkey(full_name)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

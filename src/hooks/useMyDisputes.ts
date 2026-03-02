@@ -11,6 +11,7 @@ export function useMyDisputes() {
       const { data, error } = await supabase
         .from("disputes")
         .select("*, projects(title, assigned_provider_id, association_id), profiles:raised_by(full_name)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       // Filter client-side: disputes where user is raiser or assigned provider

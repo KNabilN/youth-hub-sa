@@ -11,6 +11,7 @@ export function useAdminProjects(from = 0, to = 19) {
       const { data, error } = await supabase
         .from("projects")
         .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;

@@ -13,6 +13,7 @@ export function useAvailableProjects(filters?: { category_id?: string; region_id
         .select("*, categories(*), regions(*), cities(*)")
         .eq("status", "open")
         .eq("is_private", false)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .range(from, to);
       if (filters?.category_id) query = query.eq("category_id", filters.category_id);
