@@ -80,14 +80,7 @@ const xAxisProps = { fontSize: 12, stroke: "hsl(var(--muted-foreground))", tickL
 const yAxisProps = { ...xAxisProps } as const;
 const chartCardCls = "rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border/50 overflow-hidden";
 
-function downloadCSV(filename: string, headers: string[], rows: string[][]) {
-  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
+import { downloadCSV } from "@/lib/csv-export";
 
 export default function AdminReports() {
   const [filters, setFilters] = useState<ReportFilterValues>(getDefaultFilters);

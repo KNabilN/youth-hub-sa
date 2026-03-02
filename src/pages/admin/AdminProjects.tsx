@@ -13,7 +13,9 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { FileEdit, Eye } from "lucide-react";
+import { FileEdit, Eye, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import type { Database } from "@/integrations/supabase/types";
@@ -91,6 +93,25 @@ export default function AdminProjects() {
             onClick={() => { setSearch(""); setStatusFilter("all"); }}
           >
             إعادة تعيين
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={async () => {
+              toast.info("جارٍ تصدير الطلبات...");
+              const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name), categories(name), regions(name), cities(name)");
+              downloadCSV("projects.csv",
+                ["رقم الطلب", "العنوان", "الجمعية", "التصنيف", "المنطقة", "المدينة", "الحالة", "الميزانية", "التاريخ"],
+                (data ?? []).map((p: any) => [
+                  p.request_number || "", p.title, (p.profiles as any)?.full_name || "",
+                  (p.categories as any)?.name || "", (p.regions as any)?.name || "", (p.cities as any)?.name || "",
+                  statusLabels[p.status] || p.status, p.budget != null ? String(p.budget) : "", p.created_at?.slice(0, 10) || "",
+                ])
+              );
+            }}
+          >
+            <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
         {isLoading ? (

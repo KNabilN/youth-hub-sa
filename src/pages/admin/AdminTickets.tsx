@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { downloadCSV } from "@/lib/csv-export";
+import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -91,6 +94,24 @@ export default function AdminTickets() {
             onClick={() => { setSearch(""); setStatusFilter("all"); }}
           >
             إعادة تعيين
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={async () => {
+              toast.info("جارٍ تصدير التذاكر...");
+              const { data } = await supabase.from("support_tickets").select("ticket_number, subject, priority, status, created_at, profiles!support_tickets_user_id_fkey(full_name)");
+              downloadCSV("tickets.csv",
+                ["رقم التذكرة", "الموضوع", "المستخدم", "الأولوية", "الحالة", "التاريخ"],
+                (data ?? []).map((t: any) => [
+                  t.ticket_number || "", t.subject, (t.profiles as any)?.full_name || "",
+                  priorityLabels[t.priority] || t.priority, statusLabels[t.status] || t.status, t.created_at?.slice(0, 10) || "",
+                ])
+              );
+            }}
+          >
+            <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
         {isLoading ? (
