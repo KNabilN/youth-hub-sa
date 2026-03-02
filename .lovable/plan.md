@@ -1,49 +1,50 @@
 
-# إضافة عداد الحروف مع الحد الأقصى لجميع حقول الإدخال النصية
+# إضافة أرقام فريدة للخدمات والشكاوى
 
-## الفكرة
-إضافة عداد يظهر عدد الحروف الحالية / الحد الأقصى أسفل كل حقل نصي (Input و Textarea) في جميع النماذج، مع تطبيق `maxLength` على عنصر HTML لمنع تجاوز الحد.
+## الوضع الحالي
+- **طلبات الجمعيات (Projects)**: لديها رقم فريد `request_number` بتنسيق `RQ-YYYYMMDD-NNNN`
+- **تذاكر الدعم (Support Tickets)**: لديها رقم فريد `ticket_number` بتنسيق `TK-YYYYMMDD-NNNN`
+- **الفواتير (Invoices)**: لديها `invoice_number`
+- **الخدمات (Services)**: لا يوجد رقم فريد
+- **الشكاوى (Disputes)**: لا يوجد رقم فريد
 
-## الحل: مكون مساعد `CharCounter`
+## التغييرات المطلوبة
 
-إنشاء مكون صغير قابل لإعادة الاستخدام يعرض عداد الحروف، ثم استخدامه في جميع النماذج.
+### 1. قاعدة البيانات (Migration)
 
-## النماذج المتأثرة
+اضافة عمودين جديدين مع مشغلات تلقائية:
 
-| النموذج | الحقول | الحد الأقصى |
-|---------|--------|-------------|
-| ServiceForm | title, description, long_description | 200, 5000, 10000 |
-| ProjectForm | title, description | 200, 5000 |
-| TicketForm | subject, description | 200, 2000 |
-| BidForm | cover_letter | 5000 |
-| ContactForm | name, message | 100, 1000 |
-| TicketReplyThread | message input | (يُضاف حد) |
-| AdminDirectEditDialog | text/textarea fields | (حسب الحقل) |
+| الجدول | العمود | التنسيق | مثال |
+|--------|--------|---------|------|
+| `micro_services` | `service_number` | `SV-YYYYMMDD-NNNN` | SV-20260302-0001 |
+| `disputes` | `dispute_number` | `DS-YYYYMMDD-NNNN` | DS-20260302-0001 |
 
-## التفاصيل التقنية
+- اضافة عمود `service_number` (text, NOT NULL, default '') لجدول `micro_services`
+- اضافة عمود `dispute_number` (text, NOT NULL, default '') لجدول `disputes`
+- انشاء trigger function `generate_service_number()` بنفس نمط `generate_ticket_number()`
+- انشاء trigger function `generate_dispute_number()` بنفس النمط
+- ربط المشغلات بالجداول (BEFORE INSERT)
+- تعبئة الأرقام للسجلات الموجودة مسبقا
 
-### 1. مكون جديد: `src/components/ui/char-counter.tsx`
-- يستقبل `current` (عدد الحروف الحالي) و `max` (الحد الأقصى)
-- يعرض نص مثل: `15 / 200`
-- يتحول للون الأحمر عند الاقتراب من الحد (أكثر من 90%)
+### 2. عرض الأرقام في الواجهة
 
-### 2. تعديل كل نموذج
-- إضافة خاصية `maxLength` على عناصر `Input` و `Textarea`
-- إضافة مكون `CharCounter` أسفل كل حقل نصي يحتوي على حد أقصى
-- العداد يظهر بين `FormControl` و `FormMessage`
+#### الخدمات:
+- **`MyServiceCard.tsx`**: عرض `service_number` أسفل عنوان الخدمة
+- **`ServiceDetail.tsx`**: عرض الرقم في تفاصيل الخدمة
+- **صفحة ادارة الخدمات (`AdminServices.tsx`)**: اضافة عمود رقم الخدمة في الجدول
+- **`ServiceCard.tsx` (السوق)**: عرض الرقم
 
-### مثال على الشكل النهائي
-```text
-عنوان الخدمة
-[أدخل عنوان الخدمة_____________]
-                          15 / 200
-```
+#### الشكاوى:
+- **`MyDisputes.tsx`**: عرض `dispute_number` في بطاقة الشكوى
+- **`AdminDisputes.tsx`**: اضافة عمود رقم الشكوى في الجدول + البحث بالرقم
+- **`AdminDisputeDetail.tsx`**: عرض الرقم في صفحة التفاصيل
 
 ### الملفات المتأثرة
-- **جديد**: `src/components/ui/char-counter.tsx`
-- **تعديل**: `src/components/services/ServiceForm.tsx`
-- **تعديل**: `src/components/projects/ProjectForm.tsx`
-- **تعديل**: `src/components/tickets/TicketForm.tsx`
-- **تعديل**: `src/components/provider/BidForm.tsx`
-- **تعديل**: `src/components/landing/ContactForm.tsx`
-- **تعديل**: `src/components/tickets/TicketReplyThread.tsx`
+- **Migration**: جدول `micro_services` و `disputes` (اعمدة + triggers)
+- **تعديل**: `src/components/services/MyServiceCard.tsx` - عرض الرقم
+- **تعديل**: `src/pages/ServiceDetail.tsx` - عرض الرقم
+- **تعديل**: `src/pages/admin/AdminServices.tsx` - عمود الرقم
+- **تعديل**: `src/components/marketplace/ServiceCard.tsx` - عرض الرقم
+- **تعديل**: `src/pages/MyDisputes.tsx` - عرض الرقم
+- **تعديل**: `src/pages/admin/AdminDisputes.tsx` - عمود الرقم + بحث
+- **تعديل**: `src/pages/admin/AdminDisputeDetail.tsx` - عرض الرقم
