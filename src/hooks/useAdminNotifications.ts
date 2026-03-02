@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useAdminNotifications(filter?: string, page = 0, pageSize = 50) {
+export function useAdminNotifications(statusFilter?: string, typeFilter?: string, page = 0, pageSize = 50) {
   return useQuery({
-    queryKey: ["admin-notifications", filter, page],
+    queryKey: ["admin-notifications", statusFilter, typeFilter, page],
     queryFn: async () => {
       let query = supabase
         .from("notifications")
@@ -11,8 +11,11 @@ export function useAdminNotifications(filter?: string, page = 0, pageSize = 50) 
         .order("created_at", { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
 
-      if (filter && filter !== "all") {
-        query = query.eq("delivery_status", filter);
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("delivery_status", statusFilter);
+      }
+      if (typeFilter && typeFilter !== "all") {
+        query = query.eq("type", typeFilter);
       }
 
       const { data, error } = await query;
