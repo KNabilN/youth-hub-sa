@@ -25,7 +25,7 @@ export function useLandingStats() {
         .select("id, title, description, price, service_type, image_url, approval, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
         .eq("approval", "approved")
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(9);
       if (error) throw error;
       return data;
     },
@@ -41,7 +41,7 @@ export function useLandingStats() {
         .eq("status", "open")
         .eq("is_private", false)
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(9);
       if (error) throw error;
       return data;
     },

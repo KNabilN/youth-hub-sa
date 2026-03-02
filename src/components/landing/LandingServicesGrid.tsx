@@ -1,6 +1,5 @@
-import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { Store, User, Tag, Banknote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,14 +23,6 @@ interface LandingServicesGridProps {
 }
 
 export default function LandingServicesGrid({ services, loading }: LandingServicesGridProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (dir: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = 340;
-    scrollRef.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
-  };
-
   if (!loading && services.length === 0) return null;
 
   return (
@@ -48,70 +39,52 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
           </p>
         </div>
 
-        <div className="relative group/scroll">
-          {/* Scroll buttons */}
-          <button
-            onClick={() => scroll("right")}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-            aria-label="التمرير لليمين"
-          >
-            <ChevronRight className="w-5 h-5 text-foreground" />
-          </button>
-          <button
-            onClick={() => scroll("left")}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-accent transition-colors"
-            aria-label="التمرير لليسار"
-          >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
-          </button>
-
-          {loading ? (
-            <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-52 min-w-[320px] w-[320px] shrink-0 rounded-2xl" />
-              ))}
-            </div>
-          ) : (
-            <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-              {services.map((s) => (
-                <Link
-                  to={`/services/${s.id}`}
-                  key={s.id}
-                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 min-w-[320px] w-[320px] shrink-0 snap-start block"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    {s.category && (
-                      <Badge variant="secondary" className="gap-1 font-medium">
-                        <Tag className="w-3 h-3" />
-                        {s.category.name}
-                      </Badge>
-                    )}
-                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/8 rounded-full px-3 py-1">
-                      <Banknote className="w-4 h-4" />
-                      {s.price.toLocaleString("ar-SA")} ر.س
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Skeleton key={i} className="h-52 rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {services.map((s) => (
+              <Link
+                to={`/services/${s.id}`}
+                key={s.id}
+                className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 block"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  {s.category && (
+                    <Badge variant="secondary" className="gap-1 font-medium">
+                      <Tag className="w-3 h-3" />
+                      {s.category.name}
+                    </Badge>
+                  )}
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/8 rounded-full px-3 py-1">
+                    <Banknote className="w-4 h-4" />
+                    {s.price.toLocaleString("ar-SA")} ر.س
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors">
+                    {s.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                    {s.description}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+                  {s.provider && (
+                    <span className="flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      {s.provider.full_name}
                     </span>
-                  </div>
-                  <div className="space-y-1.5">
-                    <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors">
-                      {s.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                      {s.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4 pt-2 border-t border-border/60 text-xs text-muted-foreground">
-                    {s.provider && (
-                      <span className="flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5" />
-                        {s.provider.full_name}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
