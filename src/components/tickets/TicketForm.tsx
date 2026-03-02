@@ -19,9 +19,10 @@ type TicketFormValues = z.infer<typeof ticketSchema>;
 interface TicketFormProps {
   onSubmit: (values: TicketFormValues) => void;
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
-export function TicketForm({ onSubmit, isLoading }: TicketFormProps) {
+export function TicketForm({ onSubmit, isLoading, children }: TicketFormProps) {
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
     defaultValues: { subject: "", description: "", priority: "medium" },
@@ -61,6 +62,7 @@ export function TicketForm({ onSubmit, isLoading }: TicketFormProps) {
             <FormMessage />
           </FormItem>
         )} />
+        {children}
         <Button type="submit" disabled={isLoading}>{isLoading ? "جاري الإرسال..." : "إرسال التذكرة"}</Button>
       </form>
     </Form>
