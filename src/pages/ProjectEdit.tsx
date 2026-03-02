@@ -38,6 +38,7 @@ export default function ProjectEdit() {
             description: project.description,
             category_id: project.category_id,
             region_id: project.region_id,
+            city_id: (project as any).city_id,
             required_skills: project.required_skills ?? [],
             estimated_hours: project.estimated_hours,
             budget: project.budget,

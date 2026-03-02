@@ -297,6 +297,7 @@ export default function ProjectDetails() {
           {project.estimated_hours && <span><strong>الساعات المقدرة:</strong> {project.estimated_hours}</span>}
           {(project as any).categories?.name && <Badge variant="secondary">{(project as any).categories.name}</Badge>}
           {(project as any).regions?.name && <Badge variant="secondary">{(project as any).regions.name}</Badge>}
+          {(project as any).cities?.name && <Badge variant="outline">{(project as any).cities.name}</Badge>}
           {project.required_skills?.map(s => <Badge key={s} variant="outline">{s}</Badge>)}
         </div>
 

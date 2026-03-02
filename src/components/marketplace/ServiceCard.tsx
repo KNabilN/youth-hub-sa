@@ -12,6 +12,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Service = Tables<"micro_services"> & {
   categories: Tables<"categories"> | null;
   regions: Tables<"regions"> | null;
+  cities: { name: string } | null;
   profiles: { full_name: string } | null;
 };
 
@@ -65,6 +66,7 @@ export function ServiceCard({ service }: { service: Service }) {
             <div className="flex gap-1.5">
               {service.categories?.name && <Badge variant="secondary" className="text-xs">{service.categories.name}</Badge>}
               {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
+              {service.cities?.name && <Badge variant="outline" className="text-xs">{service.cities.name}</Badge>}
             </div>
           </div>
           <div className="flex gap-2">

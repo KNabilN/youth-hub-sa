@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
@@ -20,6 +21,7 @@ const projectSchema = z.object({
   description: z.string().min(20, "الوصف يجب أن يكون 20 حرفاً على الأقل").max(5000),
   category_id: z.string().optional().nullable(),
   region_id: z.string().optional().nullable(),
+  city_id: z.string().optional().nullable(),
   required_skills: z.array(z.string()).default([]),
   estimated_hours: z.coerce.number().positive("يجب أن يكون رقماً موجباً").optional().nullable(),
   budget: z.coerce.number().positive("يجب أن يكون رقماً موجباً").optional().nullable(),
@@ -49,6 +51,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
       description: "",
       category_id: null,
       region_id: null,
+      city_id: null,
       required_skills: [],
       estimated_hours: null,
       budget: null,
@@ -58,6 +61,17 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
   });
 
   const values = form.watch();
+  const selectedRegionId = values.region_id;
+  const { data: cities } = useCities(selectedRegionId);
+
+  // Reset city when region changes
+  useEffect(() => {
+    const currentCity = form.getValues("city_id");
+    if (currentCity && cities && !cities.find((c: any) => c.id === currentCity)) {
+      form.setValue("city_id", null);
+    }
+  }, [selectedRegionId, cities]);
+
   const steps = ["المعلومات الأساسية", "التفاصيل", "المراجعة"];
 
   const addSkill = () => {
@@ -145,6 +159,20 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
                   </FormItem>
                 )} />
               </div>
+              {selectedRegionId && (
+                <FormField control={form.control} name="city_id" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المدينة</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="اختر المدينة" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              )}
             </CardContent>
           </Card>
         )}

@@ -11,7 +11,7 @@ export function useMyServices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("*, categories(*), regions(*)")
+        .select("*, categories(*), regions(*), cities(*)")
         .eq("provider_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;

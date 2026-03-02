@@ -43,6 +43,7 @@ export function ProjectCard({ project, onSuspend, onReactivate, onArchive, onSub
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {project.categories?.name && <span>{project.categories.name}</span>}
             {project.regions?.name && <span>• {project.regions.name}</span>}
+            {(project as any).cities?.name && <span>• {(project as any).cities.name}</span>}
           </div>
         </div>
         <ProjectStatusBadge status={project.status} />

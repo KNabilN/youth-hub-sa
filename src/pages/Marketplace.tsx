@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 export default function Marketplace() {
   const [category, setCategory] = useState("all");
   const [region, setRegion] = useState("all");
+  const [city, setCity] = useState("all");
   const [serviceType, setServiceType] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceMin, setPriceMin] = useState("");
@@ -35,16 +36,17 @@ export default function Marketplace() {
   }, [pagination]);
 
   const { data: services, isLoading } = useQuery({
-    queryKey: ["marketplace", category, region, serviceType, debouncedSearch, priceMin, priceMax, pagination.from, pagination.to],
+    queryKey: ["marketplace", category, region, city, serviceType, debouncedSearch, priceMin, priceMax, pagination.from, pagination.to],
     queryFn: async () => {
       let query = supabase
         .from("micro_services")
-        .select("*, categories(*), regions(*), profiles:provider_id(full_name)")
+        .select("*, categories(*), regions(*), cities(*), profiles:provider_id(full_name)")
         .eq("approval", "approved")
         .order("created_at", { ascending: false })
         .range(pagination.from, pagination.to);
       if (category !== "all") query = query.eq("category_id", category);
       if (region !== "all") query = query.eq("region_id", region);
+      if (city !== "all") query = query.eq("city_id", city);
       if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
       if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
       if (priceMin) query = query.gte("price", Number(priceMin));
@@ -92,10 +94,11 @@ export default function Marketplace() {
   }, [services, sortBy, ratingsMap]);
 
   const handleCategoryChange = (v: string) => { setCategory(v); pagination.resetPage(); };
-  const handleRegionChange = (v: string) => { setRegion(v); pagination.resetPage(); };
+  const handleRegionChange = (v: string) => { setRegion(v); setCity("all"); pagination.resetPage(); };
+  const handleCityChange = (v: string) => { setCity(v); pagination.resetPage(); };
   const handleServiceTypeChange = (v: string) => { setServiceType(v); pagination.resetPage(); };
 
-  const activeFiltersCount = [category !== "all", region !== "all", serviceType !== "all", !!priceMin, !!priceMax, !!debouncedSearch].filter(Boolean).length;
+  const activeFiltersCount = [category !== "all", region !== "all", city !== "all", serviceType !== "all", !!priceMin, !!priceMax, !!debouncedSearch].filter(Boolean).length;
 
   return (
     <DashboardLayout>
@@ -121,9 +124,10 @@ export default function Marketplace() {
           <CardContent className="py-3 px-4">
             <div className="flex items-end justify-between flex-wrap gap-3">
               <ServiceFilters
-                category={category} region={region} serviceType={serviceType}
+                category={category} region={region} city={city} serviceType={serviceType}
                 searchQuery={searchQuery} priceMin={priceMin} priceMax={priceMax}
                 onCategoryChange={handleCategoryChange} onRegionChange={handleRegionChange}
+                onCityChange={handleCityChange}
                 onServiceTypeChange={handleServiceTypeChange} onSearchChange={handleSearchChange}
                 onPriceMinChange={(v) => { setPriceMin(v); pagination.resetPage(); }}
                 onPriceMaxChange={(v) => { setPriceMax(v); pagination.resetPage(); }}
