@@ -126,32 +126,11 @@ export default function AdminFinance() {
             </TabsList>
           </div>
           <TabsContent value="escrow">
-            <div className="flex flex-wrap gap-3 items-end mb-4 justify-end">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">الحالة</Label>
-                <Select value={escrowFilter} onValueChange={setEscrowFilter}>
-                  <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الحالات</SelectItem>
-                    {Object.entries(escrowStatusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-wrap gap-2 items-center mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-10"
-                onClick={() => setEscrowFilter("all")}
-              >
-                إعادة تعيين
-              </Button>
-              <span className="text-sm text-muted-foreground self-center">{filteredEscrows.length} معاملة</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-10 gap-1"
+                className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => {
                   toast.info("جارٍ تصدير الضمان...");
                   downloadCSV("escrow.csv",
@@ -165,6 +144,25 @@ export default function AdminFinance() {
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
+              <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{filteredEscrows.length} معاملة</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-muted-foreground hover:text-foreground"
+                onClick={() => setEscrowFilter("all")}
+              >
+                <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
+              </Button>
+              <Select value={escrowFilter} onValueChange={setEscrowFilter}>
+                <SelectTrigger className="w-44 h-9 bg-background"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  {Object.entries(escrowStatusLabels).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
             </div>
             {loadingEscrow ? (
               <div className="border rounded-lg p-4 space-y-3">
@@ -255,31 +253,11 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="invoices">
-            <div className="flex flex-wrap gap-3 items-end mb-4 justify-end">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">الحالة</Label>
-                <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
-                  <SelectTrigger className="w-44"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الحالات</SelectItem>
-                    <SelectItem value="issued">صادرة</SelectItem>
-                    <SelectItem value="viewed">تم الاطلاع</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-wrap gap-2 items-center mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-10"
-                onClick={() => setInvoiceFilter("all")}
-              >
-                إعادة تعيين
-              </Button>
-              <span className="text-sm text-muted-foreground self-center">{filteredInvoices.length} فاتورة</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-10 gap-1"
+                className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => {
                   toast.info("جارٍ تصدير الفواتير...");
                   downloadCSV("invoices.csv",
@@ -294,6 +272,24 @@ export default function AdminFinance() {
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
+              <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{filteredInvoices.length} فاتورة</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-muted-foreground hover:text-foreground"
+                onClick={() => setInvoiceFilter("all")}
+              >
+                <RotateCcw className="h-3.5 w-3.5 me-1" />إعادة تعيين
+              </Button>
+              <Select value={invoiceFilter} onValueChange={setInvoiceFilter}>
+                <SelectTrigger className="w-44 h-9 bg-background"><SelectValue placeholder="تصفية الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="issued">صادرة</SelectItem>
+                  <SelectItem value="viewed">تم الاطلاع</SelectItem>
+                </SelectContent>
+              </Select>
+              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
             </div>
             {loadingInvoices ? (
               <div className="border rounded-lg p-4 space-y-3">
@@ -346,11 +342,11 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="withdrawals">
-            <div className="flex gap-3 items-center mb-4 justify-end">
+            <div className="flex gap-2 items-center mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-10 gap-1"
+                className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => {
                   toast.info("جارٍ تصدير طلبات السحب...");
                   downloadCSV("withdrawals.csv",
@@ -402,11 +398,11 @@ export default function AdminFinance() {
             )}
           </TabsContent>
           <TabsContent value="bank-transfers">
-            <div className="flex gap-3 items-center mb-4 justify-end">
+            <div className="flex gap-2 items-center mb-5 justify-end bg-muted/50 rounded-xl px-4 py-3 border border-border/50">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-10 gap-1"
+                className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => {
                   toast.info("جارٍ تصدير التحويلات البنكية...");
                   downloadCSV("bank-transfers.csv",
