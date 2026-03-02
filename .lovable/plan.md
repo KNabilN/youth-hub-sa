@@ -1,63 +1,96 @@
 
-# اضافة نظام ترقيم فريد للتذاكر والطلبات (المشاريع)
+# اضافة المدن لكل منطقة
 
 ## الفكرة
-اضافة رقم فريد مقروء لكل تذكرة دعم ولكل طلب (مشروع) لتسهيل التواصل والمتابعة، بنفس نمط رقم الفاتورة الموجود حالياً.
+انشاء جدول مدن مرتبط بالمناطق، بحيث كل منطقة تحتوي على عدة مدن. يتم استخدام المدينة في المشاريع والخدمات بجانب المنطقة، مع ربط الفلاتر بحيث اختيار المنطقة يُظهر مدنها فقط.
 
-## التغييرات المطلوبة
+## قاعدة البيانات
 
-### 1. قاعدة البيانات (Migration)
+### جدول جديد: `cities`
+| العمود | النوع | الوصف |
+|--------|-------|-------|
+| id | uuid | المعرف |
+| region_id | uuid (FK -> regions.id) | المنطقة التابعة لها |
+| name | text | اسم المدينة |
+| created_at | timestamp | تاريخ الانشاء |
 
-اضافة عمودين جديدين مع تعبئة تلقائية:
+### سياسات الأمان (RLS)
+- القراءة عامة للجميع (مثل المناطق)
+- الادارة للأدمن فقط
 
-- **support_tickets**: اضافة عمود `ticket_number` (text, unique, not null)
-  - يُعبأ تلقائياً عبر trigger بصيغة: `TK-20260302-0001`
-  - رقم تسلسلي يومي يبدأ من 1 كل يوم
+### تعديل الجداول الموجودة
+- **micro_services**: اضافة عمود `city_id` (uuid, nullable, FK -> cities.id)
+- **projects**: اضافة عمود `city_id` (uuid, nullable, FK -> cities.id)
 
-- **projects**: اضافة عمود `request_number` (text, unique, not null)
-  - يُعبأ تلقائياً عبر trigger بصيغة: `RQ-20260302-0001`
-  - رقم تسلسلي يومي يبدأ من 1 كل يوم
+## تعديلات الواجهة
 
-- انشاء دالتين (functions) للتوليد التلقائي:
-  - `generate_ticket_number()` - trigger على INSERT
-  - `generate_request_number()` - trigger على INSERT
+### 1. RegionManager.tsx - ادارة المدن داخل كل منطقة
+- اضافة زر توسيع (Collapsible) لكل منطقة لعرض مدنها
+- امكانية اضافة/تعديل/حذف مدن لكل منطقة
+- عرض عدد المدن بجانب كل منطقة
 
-- تعبئة الأرقام للسجلات الموجودة حالياً (backfill)
+### 2. ProjectForm.tsx - اضافة اختيار المدينة
+- اضافة حقل "المدينة" بعد حقل المنطقة
+- الحقل يعتمد على المنطقة المختارة (تتغير الخيارات عند تغيير المنطقة)
+- اضافة `city_id` في الـ schema
 
-### 2. تعديلات الواجهة
+### 3. ServiceForm.tsx - اضافة اختيار المدينة
+- نفس المنطق: حقل مدينة يعتمد على المنطقة المختارة
+- اضافة `city_id` في الـ schema
 
-**التذاكر:**
-- `TicketCard.tsx`: عرض رقم التذكرة بجانب الموضوع
-- `AdminTickets.tsx`: اضافة عمود "رقم التذكرة" في الجدول + البحث بالرقم
-- `AdminTicketDetail.tsx`: عرض رقم التذكرة في الـ Hero Section
-- `SupportTickets.tsx`: تمرير `ticket_number` للـ TicketCard
+### 4. ServiceFilters.tsx - فلتر المدينة
+- اضافة فلتر مدينة جديد يظهر بعد فلتر المنطقة
+- يتحدث الفلتر تلقائياً عند تغيير المنطقة
 
-**الطلبات (المشاريع):**
-- `ProjectCard.tsx`: عرض رقم الطلب
-- `ProjectDetails.tsx`: عرض رقم الطلب في الرأس
-- `AdminProjects.tsx`: عرض رقم الطلب في الجدول
-- `AdminProjectDetail.tsx`: عرض رقم الطلب
+### 5. عرض المدينة في البطاقات والصفحات
+- **ServiceCard.tsx**: عرض اسم المدينة بجانب المنطقة
+- **ProjectCard.tsx**: عرض المدينة
+- **ProviderProjectCard.tsx**: عرض المدينة
+- **ServiceDetail page**: عرض المدينة
+- **ProjectDetails page**: عرض المدينة
 
-### 3. التفاصيل التقنية
+### 6. Hook جديد: useCities.ts
+- جلب جميع المدن أو المدن حسب منطقة محددة
 
+### 7. صفحات الادمن
+- **AdminReports.tsx**: اضافة فلتر مدينة + تعديل الاستعلامات
+- **AdminServices.tsx**: عرض المدينة + دعم التعديل المباشر
+- **AdminProjects.tsx**: عرض المدينة
+
+## التفاصيل التقنية
+
+### سير العمل في الفورم
 ```text
-صيغة الأرقام:
-  تذاكر: TK-YYYYMMDD-NNNN  (مثال: TK-20260302-0001)
-  طلبات: RQ-YYYYMMDD-NNNN  (مثال: RQ-20260302-0012)
+المستخدم يختار المنطقة
+  |
+  +-- يتم جلب مدن هذه المنطقة فقط
+  +-- يظهر حقل المدينة بالخيارات المفلترة
+  +-- عند تغيير المنطقة يتم مسح المدينة المختارة
+```
 
-Trigger Logic:
-  1. يحسب عدد السجلات المُنشأة في نفس اليوم
-  2. يضيف 1 للحصول على الرقم التسلسلي
-  3. يدمج البادئة + التاريخ + الرقم (4 خانات)
+### استعلام المدن
+```text
+-- جلب مدن منطقة محددة
+SELECT * FROM cities WHERE region_id = ? ORDER BY name
+
+-- جلب خدمة مع المدينة
+SELECT *, cities(*), regions(*) FROM micro_services WHERE ...
 ```
 
 ### الملفات المتأثرة
-- **Migration**: جدول support_tickets + projects (اضافة أعمدة + triggers)
-- **تعديل**: `src/components/tickets/TicketCard.tsx`
-- **تعديل**: `src/pages/SupportTickets.tsx`
-- **تعديل**: `src/pages/admin/AdminTickets.tsx`
-- **تعديل**: `src/pages/admin/AdminTicketDetail.tsx`
-- **تعديل**: `src/components/projects/ProjectCard.tsx`
-- **تعديل**: `src/pages/ProjectDetails.tsx`
-- **تعديل**: `src/pages/admin/AdminProjects.tsx`
-- **تعديل**: `src/pages/admin/AdminProjectDetail.tsx`
+- **Migration**: جدول cities + أعمدة city_id في micro_services و projects
+- **جديد**: `src/hooks/useCities.ts`
+- **تعديل**: `src/components/admin/RegionManager.tsx` - ادارة المدن
+- **تعديل**: `src/components/projects/ProjectForm.tsx` - حقل المدينة
+- **تعديل**: `src/components/services/ServiceForm.tsx` - حقل المدينة
+- **تعديل**: `src/components/marketplace/ServiceFilters.tsx` - فلتر المدينة
+- **تعديل**: `src/components/marketplace/ServiceCard.tsx` - عرض المدينة
+- **تعديل**: `src/components/projects/ProjectCard.tsx` - عرض المدينة
+- **تعديل**: `src/components/provider/ProviderProjectCard.tsx` - عرض المدينة
+- **تعديل**: `src/hooks/useServiceDetail.ts` - جلب المدينة
+- **تعديل**: `src/hooks/useRegions.ts` - جلب المدن مع المناطق (اختياري)
+- **تعديل**: `src/pages/ProjectDetails.tsx` - عرض المدينة
+- **تعديل**: `src/pages/ProjectEdit.tsx` - تمرير city_id
+- **تعديل**: `src/pages/admin/AdminReports.tsx` - فلتر مدينة
+- **تعديل**: `src/pages/admin/AdminServices.tsx` - عرض المدينة
+- **تعديل**: `src/pages/admin/AdminProjects.tsx` - عرض المدينة
