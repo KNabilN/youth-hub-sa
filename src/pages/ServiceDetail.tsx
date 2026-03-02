@@ -68,7 +68,7 @@ export default function ServiceDetail() {
       <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold">{service.title}</h1>
         {(service as any).service_number && (
-          <span className="text-sm text-muted-foreground font-mono">{(service as any).service_number}</span>
+          <span className="text-sm font-semibold font-mono text-primary">{(service as any).service_number}</span>
         )}
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {service.categories && <Badge variant="secondary">{(service.categories as any).name}</Badge>}

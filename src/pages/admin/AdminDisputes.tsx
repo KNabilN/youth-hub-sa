@@ -131,12 +131,12 @@ export default function AdminDisputes() {
                 <TableBody>
                   {paged.map((d: any) => (
                     <TableRow key={d.id}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{d.dispute_number || "—"}</TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-mono text-sm font-semibold">
                         <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
-                          {d.projects?.title ?? "—"}
+                          {d.dispute_number || "—"}
                         </Link>
                       </TableCell>
+                      <TableCell className="font-medium">{d.projects?.title ?? "—"}</TableCell>
                       <TableCell>{d.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground" title={d.description}>
                         {d.description?.length > 60 ? d.description.slice(0, 60) + "…" : d.description || "—"}

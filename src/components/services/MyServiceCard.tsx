@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Pause, Play, Archive } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
   draft: { label: "مسودة", variant: "secondary", border: "border-t-4 border-slate-400" },
@@ -49,7 +50,7 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
         <div className="flex-1 min-w-0">
           <CardTitle className="text-base truncate">{service.title}</CardTitle>
           {(service as any).service_number && (
-            <span className="text-xs text-muted-foreground font-mono">{(service as any).service_number}</span>
+            <Link to={`/services/${service.id}`} className="text-sm font-semibold font-mono hover:underline hover:text-primary transition-colors">{(service as any).service_number}</Link>
           )}
           <div className="flex items-center gap-2 mt-1.5">
             <Badge variant={status.variant}>{status.label}</Badge>
