@@ -19,7 +19,7 @@ export default function Testimonials() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {t.items.map((item: any, idx: number) => (
             <Card key={idx} className="card-hover border-border">
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="pt-8 pb-8 px-8 space-y-4 text-center flex flex-col items-center">
                 <Quote className="h-8 w-8 text-primary/30" />
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.text}</p>
                 <div className="flex items-center gap-1">

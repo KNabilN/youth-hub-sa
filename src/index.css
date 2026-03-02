@@ -208,11 +208,12 @@
 @layer utilities {
   /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-300 ease-out;
+    @apply transition-all duration-300 ease-out border border-transparent;
   }
   .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px hsl(var(--foreground) / 0.08), 0 4px 10px -4px hsl(var(--foreground) / 0.04);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 30px -5px hsl(var(--foreground) / 0.1), 0 6px 15px -4px hsl(var(--foreground) / 0.06);
+    border-color: hsl(var(--primary) / 0.3);
   }
 
   /* Gradient text */
