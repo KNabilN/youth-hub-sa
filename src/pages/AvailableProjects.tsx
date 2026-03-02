@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
@@ -31,10 +31,11 @@ export default function AvailableProjects() {
   const { data: regions } = useRegions();
   const pagination = usePagination();
 
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const handleSearchChange = (v: string) => {
     setSearchQuery(v);
-    clearTimeout((window as any).__projSearchTimeout);
-    (window as any).__projSearchTimeout = setTimeout(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearch(v);
       pagination.resetPage();
     }, 400);
@@ -94,7 +95,7 @@ export default function AvailableProjects() {
             </Badge>
           )}
         </div>
-        <div className="h-1 w-20 rounded-full bg-gradient-to-l from-primary/60 to-primary" />
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <Card className="bg-muted/30 border-dashed">
           <CardContent className="p-4 space-y-3">

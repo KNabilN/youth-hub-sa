@@ -119,6 +119,7 @@ export default function Marketplace() {
             </Badge>
           )}
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <Card className="border-dashed">
           <CardContent className="py-3 px-4">

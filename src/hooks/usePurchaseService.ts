@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { sendNotification } from "@/lib/notifications";
 
 export function usePurchaseService() {
   const qc = useQueryClient();
@@ -16,7 +15,7 @@ export function usePurchaseService() {
       buyerId: string;
       amount: number;
     }) => {
-      // Create escrow transaction
+      // Create escrow transaction (triggers handle notifications automatically)
       const { data: escrow, error: escrowErr } = await supabase
         .from("escrow_transactions")
         .insert({
@@ -36,11 +35,6 @@ export function usePurchaseService() {
         service_id: serviceId,
         amount,
       });
-
-      // Notify provider
-      await sendNotification(providerId, `تم شراء خدمتك بمبلغ ${amount} ر.س`, "purchase");
-      // Notify buyer
-      await sendNotification(buyerId, `تم تأكيد شرائك للخدمة بمبلغ ${amount} ر.س`, "purchase_confirmation");
 
       return escrow;
     },
