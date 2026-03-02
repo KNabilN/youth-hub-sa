@@ -30,7 +30,7 @@ export default function Index() {
   const { stats, statsLoading, services, servicesLoading, projects: featuredProjects, projectsLoading } = useLandingStats();
   const { data: cta } = useSiteContent("cta");
 
-  const h = hero || { badge: "", title: "كل ماتحتاجه في مكان واحد", subtitle: "للجمعيات الشبابية", description: "ازدهر في منظومة مزوّدي الخدمة، حيث التميّز والفرص بلا حدود", cta_text: "ابدأ الآن" };
+  const h = hero || { badge: "🚀 المنصة الأولى لتمكين الجمعيات الشبابية في المملكة", title: "كل ماتحتاجه في مكان واحد", subtitle: "للجمعيات الشبابية", description: "ازدهر في منظومة مزوّدي الخدمة، حيث التميّز والفرص بلا حدود", cta_text: "ابدأ الآن" };
   const feat = features || { title: "", subtitle: "", items: [] };
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
