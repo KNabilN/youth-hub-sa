@@ -45,6 +45,7 @@ const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const MyProjects = lazy(() => import("./pages/MyProjects"));
 const Invoices = lazy(() => import("./pages/Invoices"));
 const MyDisputes = lazy(() => import("./pages/MyDisputes"));
+const DonorPurchases = lazy(() => import("./pages/DonorPurchases"));
 
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
@@ -152,6 +153,7 @@ const App = () => (
                 <Route path="/my-projects" element={<ProtectedRoute><SuspenseWrap><MyProjects /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/invoices" element={<ProtectedRoute><SuspenseWrap><Invoices /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-disputes" element={<ProtectedRoute><SuspenseWrap><MyDisputes /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/donor-purchases" element={<ProtectedRoute><SuspenseWrap><DonorPurchases /></SuspenseWrap></ProtectedRoute>} />
                 
                 <Route path="/cart" element={<ProtectedRoute><SuspenseWrap><Cart /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />

@@ -674,6 +674,7 @@ export type Database = {
       escrow_transactions: {
         Row: {
           amount: number
+          beneficiary_id: string | null
           created_at: string
           id: string
           payee_id: string
@@ -685,6 +686,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          beneficiary_id?: string | null
           created_at?: string
           id?: string
           payee_id: string
@@ -696,6 +698,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          beneficiary_id?: string | null
           created_at?: string
           id?: string
           payee_id?: string
@@ -706,6 +709,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "escrow_transactions_payee_id_fkey"
             columns: ["payee_id"]

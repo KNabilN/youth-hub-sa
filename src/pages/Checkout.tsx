@@ -4,6 +4,7 @@ import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -12,7 +13,8 @@ import { StepProgress } from "@/components/ui/step-progress";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -36,11 +38,13 @@ export default function Checkout() {
   const bankTransfer = useCreateBankTransfer();
   const clearCart = useClearCart();
   const navigate = useNavigate();
+  const { data: associations } = useVerifiedAssociations();
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedAssociation, setSelectedAssociation] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
@@ -65,6 +69,8 @@ export default function Checkout() {
             providerId: item.micro_services.provider_id,
             buyerId: user.id,
             amount: item.micro_services.price,
+            beneficiaryId: selectedAssociation || undefined,
+            serviceTitle: item.micro_services.title,
           });
         }
         await clearCart.mutateAsync();
@@ -79,10 +85,12 @@ export default function Checkout() {
           receiptFile,
           amount: total,
           userId: user.id,
+          beneficiaryId: selectedAssociation || undefined,
           items: items.map((item) => ({
             serviceId: item.micro_services.id,
             providerId: item.micro_services.provider_id,
             price: item.micro_services.price,
+            title: item.micro_services.title,
           })),
         });
         await clearCart.mutateAsync();
@@ -163,6 +171,38 @@ export default function Checkout() {
                     </span>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Beneficiary Association Selector */}
+            <Card className="border-primary/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  الجمعية المستفيدة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  اختر الجمعية الشبابية التي ستستفيد من هذه الخدمة
+                </p>
+                <Select value={selectedAssociation} onValueChange={setSelectedAssociation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الجمعية المستفيدة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {associations?.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.organization_name || a.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!selectedAssociation && (
+                  <p className="text-xs text-amber-600">
+                    يُنصح باختيار جمعية مستفيدة لإنشاء مشروع تلقائي وتتبع التسليم
+                  </p>
+                )}
               </CardContent>
             </Card>
 
