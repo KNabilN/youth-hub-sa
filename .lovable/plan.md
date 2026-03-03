@@ -1,64 +1,44 @@
 
 
-# Fix: Region/City Filters Not Persisting in Reports
+# خطة إضافة بيانات الخدمات الجديدة
 
-## Problem
-When selecting a region or city filter, data appears filtered for a moment then reverts to unfiltered results. This is caused by a **race condition** between queries.
+## البيانات المستخرجة من الصور
 
-## Root Cause
-Several queries (donations, escrow, contracts, donor analytics, insights) depend on `regionProjectIds` - a separate query that fetches project IDs for the selected region/city. When filters change:
+| # | العنوان | الفئة | مقدم الخدمة | تاريخ الإنشاء |
+|---|---------|-------|-------------|---------------|
+| 143 | الدراسات التحليلية | الخدمات البحثية | شركة ثقة الأوقاف | Jan 5, 2026 |
+| 142 | منصة رقمية | الخدمات التقنية | شركة ثقة الأوقاف | Jan 5, 2026 |
+| 141 | استشارات في القطاع الثالث | خدمات الاستثمار | شركة ثقة الأوقاف | Jan 5, 2026 |
+| 140 | بناء مؤسسي | البناء المؤسسي | شركة ثقة الأوقاف | Jan 5, 2026 |
+| 139 | الموازنات المالية | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
+| 138 | السلامة المالية للقطاع الخيري | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
+| 137 | بناء وتطوير اللوائح المالية | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
+| 136 | دراسات الجدوى | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
+| 135 | الرقابة الداخلية على العمليات المالية | الخدمات المالية | تدبير المتخصصة | Dec 30, 2025 |
+| 134 | التحليل المالي | الخدمات المالية | تدبير المتخصصة | Dec 30, 2025 |
 
-1. ALL queries refetch simultaneously
-2. `regionProjectIds` hasn't resolved yet, so dependent queries see `undefined` and skip the filter
-3. They return unfiltered data
-4. When `regionProjectIds` resolves, dependent queries don't refetch because their `queryKey` didn't change
+## ما يحتاج إضافة
 
-## Solution
+### 1. فئات جديدة (غير موجودة في النظام)
+- **الخدمات البحثية**
+- **الخدمات التقنية**
+- **خدمات الاستثمار**
+- **البناء المؤسسي**
+- **الخدمات المالية**
 
-### File: `src/pages/admin/AdminReports.tsx`
+الفئة الموجودة "المحاسبة والمالية" مختلفة عن "الخدمات المالية" المطلوبة، لذا سيتم إنشاؤها كفئة جديدة.
 
-**Change 1: Add `regionProjectIds` to queryKeys of all dependent queries**
+### 2. مقدمو خدمة جديدون (غير موجودين في النظام)
+- **شركة ثقة الأوقاف** — سيتم إنشاء حساب جديد بدور `service_provider`
+- **تدبير المتخصصة** — سيتم إنشاء حساب جديد بدور `service_provider`
 
-Add `regionProjectIds` to the queryKey array of these queries so they automatically refetch when the project IDs resolve:
-- `monthlyDonations` (line 147)
-- `monthlyEscrow` (line 208)
-- `donorAnalytics` (line 244)
-- `insights` (line 288)
+### 3. خطوات التنفيذ
 
-For example, change:
-```typescript
-queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId]
-```
-to:
-```typescript
-queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId, regionProjectIds]
-```
+1. **إضافة 5 فئات جديدة** عبر INSERT في جدول `categories`
+2. **إنشاء حسابين لمقدمي الخدمة** عبر Edge Function `bulk-create-associations` أو مباشرة عبر إنشاء profiles + user_roles
+3. **إضافة 10 خدمات** في جدول `micro_services` بحالة `approved` مع ربطها بالفئات ومقدمي الخدمة الصحيحين
 
-**Change 2: Disable dependent queries while `regionProjectIds` is loading**
-
-Add `enabled` condition to prevent queries from executing with stale data when a region/city filter is active but project IDs haven't loaded yet:
-
-```typescript
-enabled: !(regionId || cityId) || regionProjectIds !== undefined,
-```
-
-This means: run the query if no region filter is active, OR if region filter is active AND project IDs are loaded.
-
-Apply this to: `monthlyDonations`, `monthlyEscrow`, `donorAnalytics`, and `insights`.
-
-### Queries Affected (4 queries)
-| Query | Line | Fix |
-|---|---|---|
-| `monthlyDonations` | 147 | Add to queryKey + enabled |
-| `monthlyEscrow` | 208 | Add to queryKey + enabled |
-| `donorAnalytics` | 244 | Add to queryKey + enabled |
-| `insights` | 288 | Add to queryKey + enabled |
-
-### Queries NOT affected (already filter directly, no dependency on regionProjectIds)
-- `projectsByStatus` - filters by `region_id`/`city_id` directly
-- `servicesByCategory` - filters by `region_id`/`city_id` directly
-- `serviceApprovalStats` - filters by `region_id`/`city_id` directly
-- `usersByRole` - not region-dependent
-- `projectsByRegion` - not region-filtered
-- `hourlyRateData` - not region-dependent
+### ملاحظة تقنية
+- إنشاء حسابات المستخدمين يتطلب إنشاؤها عبر `auth.users` أولاً (عبر Supabase Auth API أو Edge Function)، ثم ربط الأدوار والملفات الشخصية
+- سيتم استخدام الـ Edge Function الموجودة `bulk-create-associations` كمرجع لإنشاء المستخدمين أو إنشاء edge function مخصصة لإضافة مقدمي خدمة
 
