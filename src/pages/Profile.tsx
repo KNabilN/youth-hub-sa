@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProfile, useUpdateProfile, useUploadAvatar } from "@/hooks/useProfile";
 import { useUploadCover } from "@/hooks/useUploadCover";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -25,6 +27,25 @@ const roleLabels: Record<string, string> = {
   donor: "مانح",
 };
 
+// Required field keys per role for visual marking
+const requiredFieldKeys: Record<string, string[]> = {
+  common: ["full_name", "phone"],
+  youth_association: ["organization_name", "license_number", "contact_officer_name", "contact_officer_phone", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
+  service_provider: ["bio", "hourly_rate", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
+  donor: [],
+  super_admin: [],
+};
+
+function isRequired(fieldKey: string, role: string | null): boolean {
+  if (!role) return false;
+  return requiredFieldKeys.common.includes(fieldKey) || (requiredFieldKeys[role] ?? []).includes(fieldKey);
+}
+
+function RequiredMark({ fieldKey, role }: { fieldKey: string; role: string | null }) {
+  if (!isRequired(fieldKey, role)) return null;
+  return <span className="text-destructive text-xs font-bold">*</span>;
+}
+
 export default function Profile() {
   const { role, user } = useAuth();
   const { data: profile, isLoading } = useProfile();
@@ -32,6 +53,7 @@ export default function Profile() {
   const uploadAvatar = useUploadAvatar();
   const uploadCover = useUploadCover();
   const { toast } = useToast();
+  const { isComplete, missingFields, completionPercentage, requiredFields } = useProfileCompleteness();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
@@ -48,6 +70,10 @@ export default function Profile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [qualifications, setQualifications] = useState<{ title: string; description: string }[]>([]);
+  const [bankName, setBankName] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankIban, setBankIban] = useState("");
+  const [bankAccountHolder, setBankAccountHolder] = useState("");
   const [initialized, setInitialized] = useState(false);
 
   if (profile && !initialized) {
@@ -64,10 +90,22 @@ export default function Profile() {
     setEmailNotifications((profile as any).email_notifications ?? true);
     setSkills((profile as any).skills ?? []);
     setQualifications((profile as any).qualifications ?? []);
+    setBankName((profile as any).bank_name ?? "");
+    setBankAccountNumber((profile as any).bank_account_number ?? "");
+    setBankIban((profile as any).bank_iban ?? "");
+    setBankAccountHolder((profile as any).bank_account_holder ?? "");
     setInitialized(true);
   }
 
   const handleSave = () => {
+    // IBAN validation for roles that need bank info
+    if ((role === "service_provider" || role === "youth_association") && bankIban && bankIban.length > 0) {
+      if (!bankIban.startsWith("SA") || bankIban.length !== 24) {
+        toast({ title: "رقم IBAN غير صحيح", description: "يجب أن يبدأ بـ SA ويتكون من 24 حرف", variant: "destructive" });
+        return;
+      }
+    }
+
     updateProfile.mutate(
       {
         full_name: fullName,
@@ -83,9 +121,15 @@ export default function Profile() {
         email_notifications: emailNotifications,
         skills,
         qualifications,
+        bank_name: bankName,
+        bank_account_number: bankAccountNumber,
+        bank_iban: bankIban,
+        bank_account_holder: bankAccountHolder,
       },
       {
-        onSuccess: () => toast({ title: "تم تحديث الملف الشخصي" }),
+        onSuccess: () => {
+          toast({ title: "تم تحديث الملف الشخصي" });
+        },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
     );
@@ -136,6 +180,7 @@ export default function Profile() {
   };
 
   const coverUrl = (profile as any)?.cover_image_url || "";
+  const showBankSection = role === "service_provider" || role === "youth_association";
 
   return (
     <DashboardLayout>
@@ -144,6 +189,30 @@ export default function Profile() {
           <Skeleton className="h-64 w-full rounded-2xl" />
         ) : (
           <>
+            {/* Profile Completion Progress */}
+            {!isComplete && (
+              <Card className="border-warning/30 bg-warning/5">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">اكتمال الملف الشخصي</p>
+                    <span className="text-sm font-bold text-primary">{completionPercentage}%</span>
+                  </div>
+                  <Progress value={completionPercentage} className="h-2" />
+                  <div className="flex flex-wrap gap-2">
+                    {requiredFields.map((f) => {
+                      const isFilled = !missingFields.includes(f.label);
+                      return (
+                        <span key={f.key} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isFilled ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                          {isFilled ? <CircleCheck className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                          {f.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Cover Image */}
             <Card className="overflow-hidden">
               <div
@@ -220,28 +289,32 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">الاسم الكامل</Label>
-                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-11" />
+                    <Label htmlFor="fullName" className="flex items-center gap-1">
+                      الاسم الكامل <RequiredMark fieldKey="full_name" role={role} />
+                    </Label>
+                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} className={`h-11 ${isRequired("full_name", role) && !fullName ? "border-warning" : ""}`} />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5" /> رقم الهاتف
+                      <Phone className="h-3.5 w-3.5" /> رقم الهاتف <RequiredMark fieldKey="phone" role={role} />
                     </Label>
-                    <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="+966..." className="h-11" />
+                    <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="+966..." className={`h-11 ${isRequired("phone", role) && !phone ? "border-warning" : ""}`} />
                   </div>
 
                   {role === "youth_association" && (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="orgName" className="flex items-center gap-1">
-                          <Building className="h-3.5 w-3.5" /> اسم المنظمة
+                          <Building className="h-3.5 w-3.5" /> اسم المنظمة <RequiredMark fieldKey="organization_name" role={role} />
                         </Label>
-                        <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className="h-11" />
+                        <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className={`h-11 ${isRequired("organization_name", role) && !organizationName ? "border-warning" : ""}`} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="licenseNumber">رقم الترخيص</Label>
-                        <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className="h-11" />
+                        <Label htmlFor="licenseNumber" className="flex items-center gap-1">
+                          رقم الترخيص <RequiredMark fieldKey="license_number" role={role} />
+                        </Label>
+                        <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className={`h-11 ${isRequired("license_number", role) && !licenseNumber ? "border-warning" : ""}`} />
                       </div>
                     </>
                   )}
@@ -249,9 +322,9 @@ export default function Profile() {
                   {role === "service_provider" && (
                     <div className="space-y-2">
                       <Label htmlFor="hourlyRate" className="flex items-center gap-1">
-                        <DollarSign className="h-3.5 w-3.5" /> سعر الساعة (ر.س)
+                        <DollarSign className="h-3.5 w-3.5" /> سعر الساعة (ر.س) <RequiredMark fieldKey="hourly_rate" role={role} />
                       </Label>
-                      <Input id="hourlyRate" type="number" min="0" step="0.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} dir="ltr" placeholder="0" className="h-11" />
+                      <Input id="hourlyRate" type="number" min="0" step="0.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} dir="ltr" placeholder="0" className={`h-11 ${isRequired("hourly_rate", role) && !hourlyRate ? "border-warning" : ""}`} />
                     </div>
                   )}
                 </CardContent>
@@ -261,18 +334,59 @@ export default function Profile() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" /> نبذة تعريفية
+                    {isRequired("bio", role) && <RequiredMark fieldKey="bio" role={role} />}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="bio">اكتب نبذة عنك أو عن مؤسستك</Label>
-                    <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={8} className="resize-none" />
+                    <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={8} className={`resize-none ${isRequired("bio", role) && !bio ? "border-warning" : ""}`} />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Skills - hidden for super_admin */}
+            {/* Bank Details */}
+            {showBankSection && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Landmark className="h-5 w-5 text-primary" /> البيانات البنكية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bankName" className="flex items-center gap-1">
+                      اسم البنك <RequiredMark fieldKey="bank_name" role={role} />
+                    </Label>
+                    <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="مثال: البنك الأهلي" className={`h-11 ${!bankName ? "border-warning" : ""}`} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankAccountHolder" className="flex items-center gap-1">
+                      اسم صاحب الحساب <RequiredMark fieldKey="bank_account_holder" role={role} />
+                    </Label>
+                    <Input id="bankAccountHolder" value={bankAccountHolder} onChange={(e) => setBankAccountHolder(e.target.value)} className={`h-11 ${!bankAccountHolder ? "border-warning" : ""}`} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankAccountNumber" className="flex items-center gap-1">
+                      رقم الحساب البنكي <RequiredMark fieldKey="bank_account_number" role={role} />
+                    </Label>
+                    <Input id="bankAccountNumber" value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} dir="ltr" className={`h-11 ${!bankAccountNumber ? "border-warning" : ""}`} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankIban" className="flex items-center gap-1">
+                      رقم IBAN <RequiredMark fieldKey="bank_iban" role={role} />
+                    </Label>
+                    <Input id="bankIban" value={bankIban} onChange={(e) => setBankIban(e.target.value.toUpperCase())} dir="ltr" placeholder="SA0000000000000000000000" maxLength={24} className={`h-11 ${!bankIban ? "border-warning" : ""}`} />
+                    {bankIban && (!bankIban.startsWith("SA") || bankIban.length !== 24) && (
+                      <p className="text-xs text-destructive">يجب أن يبدأ بـ SA ويتكون من 24 حرف ({bankIban.length}/24)</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Skills */}
             {role !== "super_admin" && (
               <Card>
                 <CardHeader>
@@ -309,7 +423,7 @@ export default function Profile() {
               </Card>
             )}
 
-            {/* Qualifications - hidden for super_admin */}
+            {/* Qualifications */}
             {role !== "super_admin" && (
               <Card>
                 <CardHeader>
@@ -321,18 +435,8 @@ export default function Profile() {
                   {qualifications.map((q, i) => (
                     <div key={i} className="flex gap-2 items-start border rounded-lg p-3">
                       <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder="عنوان المؤهل"
-                          value={q.title}
-                          onChange={(e) => updateQualification(i, "title", e.target.value)}
-                          className="h-9"
-                        />
-                        <Input
-                          placeholder="وصف اختياري"
-                          value={q.description}
-                          onChange={(e) => updateQualification(i, "description", e.target.value)}
-                          className="h-9"
-                        />
+                        <Input placeholder="عنوان المؤهل" value={q.title} onChange={(e) => updateQualification(i, "title", e.target.value)} className="h-9" />
+                        <Input placeholder="وصف اختياري" value={q.description} onChange={(e) => updateQualification(i, "description", e.target.value)} className="h-9" />
                       </div>
                       <Button type="button" variant="ghost" size="icon" onClick={() => removeQualification(i)} className="shrink-0 text-destructive hover:text-destructive">
                         <X className="h-4 w-4" />
@@ -355,16 +459,20 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="contactName">اسم ضابط الاتصال</Label>
-                    <Input id="contactName" value={contactOfficerName} onChange={(e) => setContactOfficerName(e.target.value)} className="h-11" />
+                    <Label htmlFor="contactName" className="flex items-center gap-1">
+                      اسم ضابط الاتصال <RequiredMark fieldKey="contact_officer_name" role={role} />
+                    </Label>
+                    <Input id="contactName" value={contactOfficerName} onChange={(e) => setContactOfficerName(e.target.value)} className={`h-11 ${isRequired("contact_officer_name", role) && !contactOfficerName ? "border-warning" : ""}`} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="contactTitle">الصفة</Label>
                     <Input id="contactTitle" value={contactOfficerTitle} onChange={(e) => setContactOfficerTitle(e.target.value)} className="h-11" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contactPhone">رقم ضابط الاتصال</Label>
-                    <Input id="contactPhone" value={contactOfficerPhone} onChange={(e) => setContactOfficerPhone(e.target.value)} dir="ltr" className="h-11" />
+                    <Label htmlFor="contactPhone" className="flex items-center gap-1">
+                      رقم ضابط الاتصال <RequiredMark fieldKey="contact_officer_phone" role={role} />
+                    </Label>
+                    <Input id="contactPhone" value={contactOfficerPhone} onChange={(e) => setContactOfficerPhone(e.target.value)} dir="ltr" className={`h-11 ${isRequired("contact_officer_phone", role) && !contactOfficerPhone ? "border-warning" : ""}`} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="contactEmail">بريد ضابط الاتصال</Label>
