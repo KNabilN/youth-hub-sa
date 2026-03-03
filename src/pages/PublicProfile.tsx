@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { usePublicProfile, useToggleProfileSave } from "@/hooks/usePublicProfile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { StarRating } from "@/components/ratings/StarRating";
 import { RatingDistribution } from "@/components/ratings/RatingDistribution";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import {
-  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon,
+  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon, ArrowRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -24,6 +24,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PublicProfile() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { profile, role, services, portfolio, ratings, savesCount } = usePublicProfile(id);
   const { isSaved, toggle: toggleSave } = useToggleProfileSave(id);
 
@@ -42,6 +43,13 @@ export default function PublicProfile() {
     return (
       <div className="space-y-4 max-w-5xl mx-auto px-4 py-8">
         <Skeleton className="h-64 w-full rounded-2xl" />
+        <div className="flex gap-4 -mt-12 px-6">
+          <Skeleton className="h-28 w-28 rounded-full shrink-0" />
+          <div className="space-y-3 pt-10 flex-1">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
         <Skeleton className="h-32 w-full rounded-xl" />
       </div>
     );
@@ -52,23 +60,35 @@ export default function PublicProfile() {
       <div className="text-center py-20 text-muted-foreground">
         <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-40" />
         <p className="text-lg">لم يتم العثور على هذا الملف الشخصي</p>
+        <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
+          <ArrowRight className="h-4 w-4 me-1" /> العودة
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto" dir="rtl">
+    <div className="max-w-5xl mx-auto pb-12" dir="rtl">
+      {/* Back Button */}
+      <div className="px-4 sm:px-6 pt-4 pb-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowRight className="h-4 w-4" /> رجوع
+        </Button>
+      </div>
+
       {/* Cover Image */}
-      <div className="relative h-48 sm:h-64 md:h-72 bg-gradient-to-l from-primary/20 via-primary/10 to-accent/10 rounded-b-2xl overflow-hidden">
-        {coverUrl && (
+      <div className="relative h-48 sm:h-64 md:h-72 bg-gradient-to-l from-primary/30 via-primary/10 to-accent/10 rounded-2xl mx-4 sm:mx-6 overflow-hidden shadow-sm">
+        {coverUrl ? (
           <img src={coverUrl} alt="غلاف" className="w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent" />
         )}
       </div>
 
       {/* Profile Info */}
-      <div className="px-4 sm:px-6 -mt-16 relative z-10">
+      <div className="px-4 sm:px-8 -mt-16 relative z-10">
         <div className="flex flex-col sm:flex-row items-start gap-4">
-          <Avatar className="h-28 w-28 border-4 border-background shadow-xl">
+          <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/10">
             <AvatarImage src={p.avatar_url || undefined} />
             <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">
               {(p.organization_name || p.full_name)?.[0] ?? "؟"}
@@ -112,7 +132,7 @@ export default function PublicProfile() {
               variant={isSaved ? "default" : "outline"}
               size="sm"
               onClick={toggleSave}
-              className="mt-1"
+              className="mt-1 transition-all"
             >
               {isSaved ? <BookmarkCheck className="h-4 w-4 me-1" /> : <Bookmark className="h-4 w-4 me-1" />}
               {isSaved ? "تم الحفظ" : "حفظ الملف"}
@@ -122,24 +142,24 @@ export default function PublicProfile() {
       </div>
 
       {/* Tabs */}
-      <div className="px-4 sm:px-6 mt-8 pb-12">
+      <div className="px-4 sm:px-8 mt-8">
         <Tabs defaultValue="about" dir="rtl">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50 h-auto p-1 gap-1">
-            <TabsTrigger value="about" className="gap-1"><UserIcon className="h-4 w-4" /> نبذة</TabsTrigger>
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50 h-auto p-1 gap-1 rounded-xl">
+            <TabsTrigger value="about" className="gap-1.5 rounded-lg"><UserIcon className="h-4 w-4" /> نبذة</TabsTrigger>
             {skills.length > 0 && (
-              <TabsTrigger value="skills" className="gap-1"><Award className="h-4 w-4" /> المهارات</TabsTrigger>
+              <TabsTrigger value="skills" className="gap-1.5 rounded-lg"><Award className="h-4 w-4" /> المهارات</TabsTrigger>
             )}
-            <TabsTrigger value="services" className="gap-1"><Briefcase className="h-4 w-4" /> الخدمات</TabsTrigger>
-            <TabsTrigger value="portfolio" className="gap-1"><ImageIcon className="h-4 w-4" /> الأعمال</TabsTrigger>
+            <TabsTrigger value="services" className="gap-1.5 rounded-lg"><Briefcase className="h-4 w-4" /> الخدمات</TabsTrigger>
+            <TabsTrigger value="portfolio" className="gap-1.5 rounded-lg"><ImageIcon className="h-4 w-4" /> الأعمال</TabsTrigger>
             {qualifications.length > 0 && (
-              <TabsTrigger value="qualifications" className="gap-1"><GraduationCap className="h-4 w-4" /> المؤهلات</TabsTrigger>
+              <TabsTrigger value="qualifications" className="gap-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /> المؤهلات</TabsTrigger>
             )}
-            <TabsTrigger value="ratings" className="gap-1"><MessageSquare className="h-4 w-4" /> التقييمات</TabsTrigger>
+            <TabsTrigger value="ratings" className="gap-1.5 rounded-lg"><MessageSquare className="h-4 w-4" /> التقييمات</TabsTrigger>
           </TabsList>
 
           {/* About */}
-          <TabsContent value="about" className="mt-6">
-            <Card>
+          <TabsContent value="about" className="mt-6 animate-in fade-in-50 duration-300">
+            <Card className="shadow-sm">
               <CardContent className="p-6">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{p.bio || "لا يوجد وصف تعريفي بعد."}</p>
               </CardContent>
@@ -147,7 +167,7 @@ export default function PublicProfile() {
           </TabsContent>
 
           {/* Skills */}
-          <TabsContent value="skills" className="mt-6">
+          <TabsContent value="skills" className="mt-6 animate-in fade-in-50 duration-300">
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, i) => (
                 <Badge key={i} variant="secondary" className="text-sm px-3 py-1.5">{skill}</Badge>
@@ -156,14 +176,14 @@ export default function PublicProfile() {
           </TabsContent>
 
           {/* Services */}
-          <TabsContent value="services" className="mt-6">
+          <TabsContent value="services" className="mt-6 animate-in fade-in-50 duration-300">
             {services.data?.length ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {services.data.map((s: any) => (
-                  <Card key={s.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                  <Card key={s.id} className="overflow-hidden hover:shadow-md transition-all duration-200 group">
                     {s.image_url && (
                       <div className="h-40 overflow-hidden">
-                        <img src={s.image_url} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                       </div>
                     )}
                     <CardContent className="p-4 space-y-2">
@@ -182,15 +202,15 @@ export default function PublicProfile() {
           </TabsContent>
 
           {/* Portfolio */}
-          <TabsContent value="portfolio" className="mt-6">
+          <TabsContent value="portfolio" className="mt-6 animate-in fade-in-50 duration-300">
             <PortfolioGrid providerId={id!} />
           </TabsContent>
 
           {/* Qualifications */}
-          <TabsContent value="qualifications" className="mt-6">
+          <TabsContent value="qualifications" className="mt-6 animate-in fade-in-50 duration-300">
             <div className="space-y-3">
               {qualifications.map((q, i) => (
-                <Card key={i}>
+                <Card key={i} className="shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <GraduationCap className="h-5 w-5 text-primary mt-0.5 shrink-0" />
@@ -206,10 +226,10 @@ export default function PublicProfile() {
           </TabsContent>
 
           {/* Ratings */}
-          <TabsContent value="ratings" className="mt-6">
+          <TabsContent value="ratings" className="mt-6 animate-in fade-in-50 duration-300">
             {r.length ? (
               <div className="space-y-4">
-                <Card>
+                <Card className="shadow-sm">
                   <CardContent className="p-5">
                     <RatingDistribution ratings={r} />
                   </CardContent>
@@ -218,7 +238,7 @@ export default function PublicProfile() {
                   {r.map((rt: any) => {
                     const avg = (rt.quality_score + rt.timing_score + rt.communication_score) / 3;
                     return (
-                      <Card key={rt.id}>
+                      <Card key={rt.id} className="shadow-sm">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3 mb-2">
                             <Avatar className="h-9 w-9">
