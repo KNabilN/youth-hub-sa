@@ -336,7 +336,7 @@ export default function ProjectDetails() {
 
         <Tabs defaultValue="bids" dir="rtl">
           <TabsList>
-            <TabsTrigger value="bids">العروض</TabsTrigger>
+            <TabsTrigger value="bids">{role === "service_provider" ? "عرضي" : "العروض"}</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
             <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
@@ -348,7 +348,7 @@ export default function ProjectDetails() {
           </TabsList>
 
           <TabsContent value="bids" className="mt-4">
-            <BidList projectId={project.id} />
+            <BidList projectId={project.id} role={role} userId={user?.id} />
           </TabsContent>
 
           <TabsContent value="contract" className="mt-4">
