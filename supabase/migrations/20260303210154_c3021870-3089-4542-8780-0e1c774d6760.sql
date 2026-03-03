@@ -1,0 +1,1 @@
+ALTER TABLE public.bank_transfers ADD CONSTRAINT bank_transfers_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id);
