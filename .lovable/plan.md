@@ -1,81 +1,40 @@
 
 
-# خطة شاملة: دورة المانح الكاملة
+# المشكلة: صفحة الجمعيات فارغة
 
-## تحليل الوضع الحالي
+## السبب الجذري
 
-بعد مراجعة الكود بالتفصيل، الدورة الحالية للمانح بها ثغرات جوهرية:
+سياسات أمان جدول `user_roles` تسمح فقط للمستخدم بقراءة دوره الخاص:
 
-### ما يعمل حالياً:
-- المانح يتصفح سوق الخدمات ويضيف للسلة
-- Checkout يدعم الدفع الإلكتروني والتحويل البنكي
-- `usePurchaseService` ينشئ escrow (donor=payer, provider=payee) + donor_contribution
-- صفحة المنح تسمح بتقديم منحة لمشروع أو خدمة
-- تقارير الأثر تعرض إحصائيات
+```sql
+USING (user_id = auth.uid())
+```
 
-### الثغرات الحرجة:
+عندما يفتح المانح صفحة الجمعيات، الاستعلام يحاول قراءة أدوار المستخدمين الآخرين (`youth_association`) فيحصل على نتيجة فارغة.
 
-1. **لا يوجد ربط بالجمعية عند الشراء** — عندما يشتري المانح خدمة من مقدم خدمة، لا يحدد أي جمعية ستستفيد منها. الخدمة تُشترى "في الفراغ".
+## الحل
 
-2. **لا يُنشأ مشروع/طلب** — بعد الشراء لا يتم إنشاء مشروع يربط الجمعية بمقدم الخدمة، مما يعني لا عقد ولا تسليمات ولا إتمام.
+إنشاء دالة `security definer` في قاعدة البيانات تُرجع معرفات الجمعيات الموثقة مباشرة، متجاوزة RLS:
 
-3. **لا توجد صفحة "مشترياتي"** — المانح لا يستطيع تتبع حالة الخدمات المشتراة بعد الدفع.
+```sql
+CREATE FUNCTION public.get_verified_association_ids()
+RETURNS SETOF uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT ur.user_id FROM user_roles ur
+  JOIN profiles p ON p.id = ur.user_id
+  WHERE ur.role = 'youth_association' AND p.is_verified = true;
+$$;
+```
 
-4. **الجمعية لا ترى الخدمات الممولة لها** — لا إشعار ولا واجهة تُظهر للجمعية أن مانحاً اشترى لها خدمة.
-
-5. **المنح المباشرة غير مفعّلة** — صفحة المنح تنشئ `donor_contribution` فقط بدون أي أثر فعلي على المشروع.
-
----
-
-## خطة التنفيذ
-
-### 1. إضافة حقل `beneficiary_association_id` في جدول `escrow_transactions`
-- Migration لإضافة عمود `beneficiary_id` (uuid, nullable) يشير للجمعية المستفيدة
-- يُستخدم فقط عند شراء المانح خدمة لجمعية
-
-### 2. تعديل صفحة Checkout لاختيار الجمعية
-- عند الدفع، يظهر للمانح قائمة منسدلة لاختيار الجمعية المستفيدة من كل خدمة
-- يُحمّل قائمة الجمعيات الموثقة (`is_verified = true`)
-
-### 3. إنشاء مشروع تلقائي بعد الشراء
-- تعديل `usePurchaseService` ليُنشئ مشروع (`projects`) تلقائياً:
-  - `association_id` = الجمعية المختارة
-  - `assigned_provider_id` = مقدم الخدمة
-  - `status` = `in_progress`
-  - `title` = عنوان الخدمة
-  - `budget` = سعر الخدمة
-- ربط الـ escrow بالمشروع المُنشأ (`project_id`)
-
-### 4. إنشاء صفحة "مشترياتي" للمانح
-- صفحة جديدة `src/pages/DonorPurchases.tsx`
-- تعرض جميع الخدمات المشتراة مع:
-  - اسم الخدمة ومقدمها
-  - الجمعية المستفيدة
-  - حالة المشروع (قيد التنفيذ / مكتمل)
-  - حالة الضمان المالي
-- إضافتها في القائمة الجانبية للمانح
-
-### 5. إشعار الجمعية بالخدمة الممولة
-- عند إنشاء المشروع التلقائي، يُرسل إشعار للجمعية: "قام مانح بتمويل خدمة [اسم الخدمة] لصالحكم"
-- الجمعية ترى المشروع في قائمة طلباتها وتتابع دورة التسليم العادية
-
-### 6. تحسين صفحة المنح المباشرة
-- عند تقديم منحة لمشروع مفتوح، تحديث `donation_status` إلى `reserved`
-- إشعار الجمعية صاحبة المشروع بالمنحة
-
----
+ثم تعديل الاستعلام في `Associations.tsx` و `useVerifiedAssociations.ts` لاستخدام `supabase.rpc('get_verified_association_ids')` بدلاً من الاستعلام المباشر على `user_roles`.
 
 ## الملفات المتأثرة
 
 | ملف | التغيير |
-|------|---------|
-| Migration جديد | إضافة `beneficiary_id` لـ `escrow_transactions` |
-| `src/pages/Checkout.tsx` | إضافة اختيار الجمعية المستفيدة |
-| `src/hooks/usePurchaseService.ts` | إنشاء مشروع تلقائي + ربط beneficiary |
-| `src/pages/DonorPurchases.tsx` | صفحة جديدة لتتبع المشتريات |
-| `src/hooks/useDonorPurchases.ts` | Hook جديد لجلب مشتريات المانح |
-| `src/components/AppSidebar.tsx` | إضافة "مشترياتي" في قائمة المانح |
-| `src/hooks/useBankTransfer.ts` | تمرير beneficiary_id |
-| `src/App.tsx` | إضافة Route جديد |
-| `src/pages/Donations.tsx` | تحسين تدفق المنح المباشرة |
+|-----|---------|
+| Migration جديد | إنشاء دالة `get_verified_association_ids` |
+| `src/pages/Associations.tsx` | استبدال استعلام `user_roles` بـ `rpc` |
+| `src/hooks/useVerifiedAssociations.ts` | نفس التعديل |
 
