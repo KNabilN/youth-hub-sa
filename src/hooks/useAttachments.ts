@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const DELIVERABLE_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 const ALLOWED_TYPES = [
   "application/pdf",
   "image/png",
@@ -13,6 +14,18 @@ const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/x-rar-compressed",
+  "application/vnd.rar",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-7z-compressed",
+  "application/x-compressed",
+  "text/plain",
+  "text/html",
+  "text/css",
+  "application/javascript",
+  "application/json",
+  "image/svg+xml",
 ];
 
 export type EntityType = "project" | "contract" | "ticket" | "dispute" | "bid" | "service" | "deliverable";
@@ -61,8 +74,9 @@ export function useUploadAttachment() {
       entityId: string;
     }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
-      if (file.size > MAX_FILE_SIZE) throw new Error("حجم الملف يتجاوز 10 ميجابايت");
-      if (!ALLOWED_TYPES.includes(file.type)) throw new Error("نوع الملف غير مسموح");
+      const maxSize = entityType === "deliverable" ? DELIVERABLE_MAX_FILE_SIZE : MAX_FILE_SIZE;
+      if (file.size > maxSize) throw new Error(entityType === "deliverable" ? "حجم الملف يتجاوز 50 ميجابايت" : "حجم الملف يتجاوز 10 ميجابايت");
+      if (entityType !== "deliverable" && !ALLOWED_TYPES.includes(file.type)) throw new Error("نوع الملف غير مسموح");
 
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
