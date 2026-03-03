@@ -1108,6 +1108,7 @@ export type Database = {
           is_suspended: boolean
           is_verified: boolean
           license_number: string | null
+          notification_preferences: Json | null
           organization_name: string | null
           pdpl_consent_at: string | null
           pdpl_consent_version: string | null
@@ -1139,6 +1140,7 @@ export type Database = {
           is_suspended?: boolean
           is_verified?: boolean
           license_number?: string | null
+          notification_preferences?: Json | null
           organization_name?: string | null
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null
@@ -1170,6 +1172,7 @@ export type Database = {
           is_suspended?: boolean
           is_verified?: boolean
           license_number?: string | null
+          notification_preferences?: Json | null
           organization_name?: string | null
           pdpl_consent_at?: string | null
           pdpl_consent_version?: string | null

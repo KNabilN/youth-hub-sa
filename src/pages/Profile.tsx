@@ -18,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
+import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,7 @@ export default function Profile() {
   const [contactOfficerTitle, setContactOfficerTitle] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [notificationPreferences, setNotificationPreferences] = useState<Record<string, boolean>>({});
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [qualifications, setQualifications] = useState<{ title: string; description: string }[]>([]);
@@ -93,6 +95,7 @@ export default function Profile() {
     setContactOfficerTitle((profile as any).contact_officer_title ?? "");
     setHourlyRate(profile.hourly_rate?.toString() ?? "");
     setEmailNotifications((profile as any).email_notifications ?? true);
+    setNotificationPreferences((profile as any).notification_preferences ?? {});
     setSkills((profile as any).skills ?? []);
     setQualifications((profile as any).qualifications ?? []);
     setBankName((profile as any).bank_name ?? "");
@@ -124,6 +127,7 @@ export default function Profile() {
         contact_officer_title: contactOfficerTitle,
         hourly_rate: hourlyRate ? Number(hourlyRate) : null,
         email_notifications: emailNotifications,
+        notification_preferences: notificationPreferences,
         skills,
         qualifications,
         bank_name: bankName,
@@ -582,22 +586,13 @@ export default function Profile() {
             {role === "service_provider" && <PortfolioManager />}
 
             {/* Email Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BellRing className="h-5 w-5 text-primary" /> إعدادات الإشعارات
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">إشعارات البريد الإلكتروني</p>
-                    <p className="text-xs text-muted-foreground">استلام إشعارات عبر البريد عند وجود تحديثات جديدة</p>
-                  </div>
-                  <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
-                </div>
-              </CardContent>
-            </Card>
+            <NotificationPreferences
+              role={role}
+              emailNotifications={emailNotifications}
+              onEmailNotificationsChange={setEmailNotifications}
+              preferences={notificationPreferences}
+              onPreferencesChange={setNotificationPreferences}
+            />
 
             <div className="flex justify-end">
               <Button onClick={handleSave} disabled={updateProfile.isPending} className="px-8 shadow-md">
