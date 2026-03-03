@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export function useAssociationTimeLogs(approvalFilter?: string) {
+export function useAssociationTimeLogs(approvalFilter?: string, projectFilter?: string) {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["time-logs", user?.id, approvalFilter],
+    queryKey: ["time-logs", user?.id, approvalFilter, projectFilter],
     enabled: !!user,
     queryFn: async () => {
       const projectIds = (await supabase.from("projects").select("id").eq("association_id", user!.id)).data?.map(p => p.id) ?? [];
@@ -18,9 +18,47 @@ export function useAssociationTimeLogs(approvalFilter?: string) {
       if (approvalFilter && approvalFilter !== "all") {
         query = query.eq("approval", approvalFilter as any);
       }
+      if (projectFilter && projectFilter !== "all") {
+        query = query.eq("project_id", projectFilter);
+      }
       const { data, error } = await query;
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useAssociationProjects() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["association-projects-list", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title")
+        .eq("association_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useProjectTimeLogs(projectId?: string) {
+  return useQuery({
+    queryKey: ["project-time-logs-summary", projectId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("time_logs")
+        .select("hours, approval")
+        .eq("project_id", projectId!);
+      if (error) throw error;
+      const totalLogged = data.reduce((s, l) => s + Number(l.hours), 0);
+      const approvedHours = data.filter(l => l.approval === "approved").reduce((s, l) => s + Number(l.hours), 0);
+      const pendingHours = data.filter(l => l.approval === "pending").reduce((s, l) => s + Number(l.hours), 0);
+      return { totalLogged, approvedHours, pendingHours, count: data.length };
     },
   });
 }

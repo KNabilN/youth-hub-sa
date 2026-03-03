@@ -12,13 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
-import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
+import { useUpdateTimeLogApproval, useProjectTimeLogs } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
 import { useCreateEscrow, useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
@@ -27,7 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -49,6 +50,7 @@ export default function ProjectDetails() {
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const { data: hoursSummary } = useProjectTimeLogs(id);
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
@@ -308,6 +310,29 @@ export default function ProjectDetails() {
           {(project as any).cities?.name && <Badge variant="outline">{(project as any).cities.name}</Badge>}
           {project.required_skills?.map(s => <Badge key={s} variant="outline">{s}</Badge>)}
         </div>
+
+        {/* Hours Progress Card */}
+        {project.estimated_hours && hoursSummary && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4 pb-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium flex items-center gap-1"><Clock className="h-4 w-4" /> تقدم الساعات</span>
+                <span className="text-muted-foreground">{hoursSummary.approvedHours} / {project.estimated_hours} ساعة معتمدة</span>
+              </div>
+              <Progress value={Math.min((hoursSummary.approvedHours / Number(project.estimated_hours)) * 100, 100)} className="h-2" />
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>إجمالي مسجل: {hoursSummary.totalLogged} ساعة</span>
+                {hoursSummary.pendingHours > 0 && <span>قيد المراجعة: {hoursSummary.pendingHours} ساعة</span>}
+              </div>
+              {hoursSummary.approvedHours >= Number(project.estimated_hours) && (
+                <div className="flex items-center gap-1 text-xs text-destructive"><AlertTriangle className="h-3 w-3" /> تم تجاوز الساعات المقدرة!</div>
+              )}
+              {hoursSummary.approvedHours >= Number(project.estimated_hours) * 0.8 && hoursSummary.approvedHours < Number(project.estimated_hours) && (
+                <div className="flex items-center gap-1 text-xs text-warning"><AlertTriangle className="h-3 w-3" /> تم استهلاك أكثر من 80% من الساعات</div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="bids" dir="rtl">
           <TabsList>
