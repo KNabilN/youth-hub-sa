@@ -136,6 +136,13 @@ export type Database = {
             referencedRelation: "escrow_transactions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bank_transfers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bids: {
