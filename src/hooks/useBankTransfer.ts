@@ -112,11 +112,11 @@ export function useAdminBankTransfers() {
     queryKey: ["admin-bank-transfers"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("bank_transfers" as any)
+        .from("bank_transfers")
         .select("*, profiles:user_id(full_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data;
     },
   });
 }
@@ -127,24 +127,39 @@ export function useApproveBankTransfer() {
     mutationFn: async ({ transferId, escrowId }: { transferId: string; escrowId: string }) => {
       // Update bank_transfer status
       const { error: btErr } = await supabase
-        .from("bank_transfers" as any)
+        .from("bank_transfers")
         .update({
           status: "approved",
           reviewed_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", transferId);
       if (btErr) throw btErr;
 
       // Update escrow to held
       const { error: escErr } = await supabase
         .from("escrow_transactions")
-        .update({ status: "held" } as any)
+        .update({ status: "held" as any })
         .eq("id", escrowId);
       if (escErr) throw escErr;
+
+      // Send notification to the payer
+      const { data: escrow } = await supabase
+        .from("escrow_transactions")
+        .select("payer_id")
+        .eq("id", escrowId)
+        .single();
+      if (escrow?.payer_id) {
+        await supabase.from("notifications").insert({
+          user_id: escrow.payer_id,
+          message: "تمت الموافقة على التحويل البنكي الخاص بك وتم حجز المبلغ في الضمان المالي",
+          type: "bank_transfer_approved",
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-bank-transfers"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["admin-escrow"] });
     },
   });
 }
@@ -162,24 +177,40 @@ export function useRejectBankTransfer() {
       adminNote?: string;
     }) => {
       const { error: btErr } = await supabase
-        .from("bank_transfers" as any)
+        .from("bank_transfers")
         .update({
           status: "rejected",
           admin_note: adminNote || "",
           reviewed_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", transferId);
       if (btErr) throw btErr;
 
       const { error: escErr } = await supabase
         .from("escrow_transactions")
-        .update({ status: "failed" } as any)
+        .update({ status: "failed" as any })
         .eq("id", escrowId);
       if (escErr) throw escErr;
+
+      // Send rejection notification to payer
+      const { data: escrow } = await supabase
+        .from("escrow_transactions")
+        .select("payer_id")
+        .eq("id", escrowId)
+        .single();
+      if (escrow?.payer_id) {
+        const reason = adminNote ? `: ${adminNote}` : "";
+        await supabase.from("notifications").insert({
+          user_id: escrow.payer_id,
+          message: `تم رفض التحويل البنكي الخاص بك${reason}. يرجى التواصل مع الدعم أو إعادة المحاولة.`,
+          type: "bank_transfer_rejected",
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-bank-transfers"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["admin-escrow"] });
     },
   });
 }
