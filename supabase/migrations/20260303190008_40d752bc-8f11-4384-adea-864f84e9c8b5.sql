@@ -1,0 +1,2 @@
+ALTER TABLE public.attachments DROP CONSTRAINT IF EXISTS valid_entity_type;
+ALTER TABLE public.attachments ADD CONSTRAINT valid_entity_type CHECK (entity_type IN ('project', 'contract', 'ticket', 'dispute', 'bid', 'service', 'deliverable'));
