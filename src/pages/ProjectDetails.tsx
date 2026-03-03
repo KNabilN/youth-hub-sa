@@ -161,7 +161,7 @@ export default function ProjectDetails() {
       queryClient.invalidateQueries({ queryKey: ["contract", id] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     } catch (err) {
-      console.error(err);
+      console.error("Project completion failed");
       toast({ title: "حدث خطأ أثناء إتمام الطلب", variant: "destructive" });
     } finally {
       setCompleting(false);
@@ -188,7 +188,7 @@ export default function ProjectDetails() {
       queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     } catch (err) {
-      console.error(err);
+      console.error("Project cancellation failed");
       toast({ title: "حدث خطأ", variant: "destructive" });
     } finally {
       setCancelling(false);

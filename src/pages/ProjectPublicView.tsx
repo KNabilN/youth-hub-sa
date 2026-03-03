@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Banknote, Building2, MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { Tag, Building2, MapPin, Calendar, ArrowLeft } from "lucide-react";
 
 export default function ProjectPublicView() {
   const { id } = useParams<{ id: string }>();
@@ -13,17 +13,19 @@ export default function ProjectPublicView() {
     queryKey: ["project-public", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("projects")
-        .select(`
-          id, title, description, budget, created_at, required_skills, status,
-          category:categories(name),
-          region:regions(name),
-          association:profiles!projects_association_id_fkey(full_name, organization_name, avatar_url, is_name_visible)
-        `)
-        .eq("id", id!)
-        .maybeSingle();
+        .rpc("get_public_project", { p_id: id! } as any);
       if (error) throw error;
-      return data;
+      return data as {
+        id: string;
+        title: string;
+        description: string;
+        status: string;
+        required_skills: string[] | null;
+        created_at: string;
+        category: { name: string } | null;
+        region: { name: string } | null;
+        association: { full_name: string; organization_name: string | null; avatar_url: string | null; is_name_visible: boolean } | null;
+      } | null;
     },
     enabled: !!id,
   });
@@ -81,13 +83,6 @@ export default function ProjectPublicView() {
 
       {/* Details card */}
       <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
-        {project.budget != null && (
-          <div className="flex items-center gap-2 text-lg font-bold text-primary">
-            <Banknote className="w-5 h-5" />
-            {project.budget.toLocaleString("ar-SA")} ر.س
-          </div>
-        )}
-
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Building2 className="w-4 h-4" />
           {assocName}

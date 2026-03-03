@@ -15,12 +15,22 @@ export function usePublicProfile(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url, bio, cover_image_url, company_logo_url, organization_name, skills, qualifications, hourly_rate, is_verified, profile_views, license_number")
-        .eq("id", id!)
-        .single();
+        .rpc("get_public_profile", { p_id: id! } as any);
       if (error) throw error;
-      return data;
+      return data as {
+        id: string;
+        full_name: string;
+        avatar_url: string | null;
+        bio: string | null;
+        cover_image_url: string | null;
+        company_logo_url: string | null;
+        organization_name: string | null;
+        skills: string[] | null;
+        qualifications: any;
+        hourly_rate: number | null;
+        is_verified: boolean;
+        profile_views: number | null;
+      } | null;
     },
   });
 
