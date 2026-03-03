@@ -1,24 +1,31 @@
 
 
-## Fix: Allow .rar and archive file uploads
+## Plan: Allow Multiple Deliverable Submissions
 
 ### Problem
-The `useAttachments.ts` hook still has the original strict MIME type whitelist that doesn't include archive formats (`.rar`, `.zip`, `.7z`). The previous plan to skip MIME validation for deliverables wasn't properly applied — line 65 still blocks any file not in `ALLOWED_TYPES`.
+Currently, the system only allows one deliverable record per project. After acceptance, the provider cannot submit again. The `canSubmit` check on line 34 blocks submission when `deliverable.status === "accepted"`. The hook fetches only the latest single deliverable via `.limit(1).maybeSingle()`.
 
 ### Changes
 
-#### `src/hooks/useAttachments.ts`
-1. Add archive MIME types to `ALLOWED_TYPES`:
-   - `application/x-rar-compressed` and `application/vnd.rar` (for .rar)
-   - `application/zip` and `application/x-zip-compressed` (for .zip)  
-   - `application/x-7z-compressed` (for .7z)
-   - `application/x-compressed` (catch-all)
-2. Also add common code/text types: `text/plain`, `text/html`, `text/css`, `application/javascript`, `application/json`, `image/svg+xml`
-3. For `deliverable` entity type, skip MIME validation entirely (project files can be anything)
-4. Accept the `entityType` parameter in the mutation to check if it's a deliverable before validating
-5. Increase size limit to 50MB for deliverable uploads
+#### 1. `src/hooks/useDeliverables.ts`
+- Change `useDeliverable` to `useDeliverables` — fetch **all** deliverable records for the project (ordered newest first), not just one.
+- Keep the single-deliverable query as well for backward compat, pointing to the latest one.
+- Update `useSubmitDeliverable` to always **insert a new row** instead of updating the existing one. Each submission becomes a new version.
+- Remove the "check existing and update" logic.
 
-#### `src/components/attachments/FileUploader.tsx`
-- Update the `accept` attribute to include `.rar,.zip,.7z` extensions
-- Update the description text to mention archives
+#### 2. `src/components/deliverables/DeliverablePanel.tsx`
+- Allow the provider to submit new deliverables even after acceptance (`canSubmit = isProvider`, always available).
+- Show a history/timeline of all deliverable submissions (version 1, 2, 3...) with their statuses.
+- The latest deliverable is the "active" one for review purposes.
+- Association can only review the latest `pending_review` deliverable.
+- Each deliverable version shows its own attachments (linked by deliverable ID).
+
+#### 3. Attachment display
+- Each deliverable version's files are already scoped by `entityId` (the deliverable row ID), so multiple submissions naturally have separate file lists.
+
+### Files to modify
+| File | Change |
+|------|--------|
+| `src/hooks/useDeliverables.ts` | Fetch all deliverables, always insert new row on submit |
+| `src/components/deliverables/DeliverablePanel.tsx` | Show submission history, allow re-submit after acceptance |
 
