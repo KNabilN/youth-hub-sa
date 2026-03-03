@@ -82,6 +82,7 @@ export function PortfolioManager() {
             <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
               <ImagePlus className="h-4 w-4 me-1" /> اختر صورة
             </Button>
+            <span className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 800×450 بكسل</span>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             {file && <span className="text-xs text-muted-foreground truncate max-w-[200px]">{file.name}</span>}
           </div>
