@@ -18,6 +18,7 @@ import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
@@ -51,10 +52,12 @@ const serviceFields: DirectEditFieldConfig[] = [
 export default function AdminServices() {
   const pagination = usePagination();
   const { data: services, isLoading } = useAdminServices();
+  const { data: categories } = useCategories();
   const updateApproval = useUpdateServiceApproval();
   const updateService = useAdminUpdateService();
   const [search, setSearch] = useState("");
   const [approvalFilter, setApprovalFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [editService, setEditService] = useState<any>(null);
 
   const filtered = (services ?? []).filter((s: any) => {
@@ -63,6 +66,7 @@ export default function AdminServices() {
       if (!s.title.toLowerCase().includes(q) && !(s.service_number || "").toLowerCase().includes(q) && !(s.profiles?.full_name || "").toLowerCase().includes(q)) return false;
     }
     if (approvalFilter !== "all" && s.approval !== approvalFilter) return false;
+    if (categoryFilter !== "all" && s.category_id !== categoryFilter) return false;
     return true;
   });
 
@@ -97,11 +101,21 @@ export default function AdminServices() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">التصنيف</Label>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="التصنيف" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {(categories ?? []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             variant="outline"
             size="sm"
             className="h-10"
-            onClick={() => { setSearch(""); setApprovalFilter("all"); }}
+            onClick={() => { setSearch(""); setApprovalFilter("all"); setCategoryFilter("all"); }}
           >
             إعادة تعيين
           </Button>
