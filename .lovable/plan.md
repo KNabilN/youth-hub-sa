@@ -1,44 +1,43 @@
 
 
-# خطة إضافة بيانات الخدمات الجديدة
+## Plan: Add Image Dimension Guidelines to All Upload Points
 
-## البيانات المستخرجة من الصور
+### Problem
+Users upload images without knowing the recommended dimensions, resulting in unexpected cropping.
 
-| # | العنوان | الفئة | مقدم الخدمة | تاريخ الإنشاء |
-|---|---------|-------|-------------|---------------|
-| 143 | الدراسات التحليلية | الخدمات البحثية | شركة ثقة الأوقاف | Jan 5, 2026 |
-| 142 | منصة رقمية | الخدمات التقنية | شركة ثقة الأوقاف | Jan 5, 2026 |
-| 141 | استشارات في القطاع الثالث | خدمات الاستثمار | شركة ثقة الأوقاف | Jan 5, 2026 |
-| 140 | بناء مؤسسي | البناء المؤسسي | شركة ثقة الأوقاف | Jan 5, 2026 |
-| 139 | الموازنات المالية | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
-| 138 | السلامة المالية للقطاع الخيري | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
-| 137 | بناء وتطوير اللوائح المالية | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
-| 136 | دراسات الجدوى | الخدمات المالية | تدبير المتخصصة | Jan 1, 2026 |
-| 135 | الرقابة الداخلية على العمليات المالية | الخدمات المالية | تدبير المتخصصة | Dec 30, 2025 |
-| 134 | التحليل المالي | الخدمات المالية | تدبير المتخصصة | Dec 30, 2025 |
+### Approach
+Add a small helper text (hint) below or near each image upload area showing the recommended dimensions. This will be done across all upload points in the system.
 
-## ما يحتاج إضافة
+### Recommended Dimensions
 
-### 1. فئات جديدة (غير موجودة في النظام)
-- **الخدمات البحثية**
-- **الخدمات التقنية**
-- **خدمات الاستثمار**
-- **البناء المؤسسي**
-- **الخدمات المالية**
+| Upload Point | Dimensions | Aspect Ratio |
+|---|---|---|
+| Profile Avatar | 200×200 px | 1:1 (مربع) |
+| Cover Image | 1200×400 px | 3:1 |
+| Company Logo (Donor) | 300×300 px | 1:1 (مربع) |
+| Service Main Image | 800×500 px | 16:10 |
+| Service Gallery | 800×500 px | 16:10 |
+| Portfolio Item | 800×450 px | 16:9 |
 
-الفئة الموجودة "المحاسبة والمالية" مختلفة عن "الخدمات المالية" المطلوبة، لذا سيتم إنشاؤها كفئة جديدة.
+### Files to Modify
 
-### 2. مقدمو خدمة جديدون (غير موجودين في النظام)
-- **شركة ثقة الأوقاف** — سيتم إنشاء حساب جديد بدور `service_provider`
-- **تدبير المتخصصة** — سيتم إنشاء حساب جديد بدور `service_provider`
+1. **`src/pages/Profile.tsx`** — Add dimension hints to:
+   - Cover image upload area (line ~265: "تغيير صورة الغلاف" → add "1200×400 بكسل")
+   - Avatar upload hover overlay (line ~286: add "200×200 بكسل")
+   - Company logo upload area (add "300×300 بكسل")
 
-### 3. خطوات التنفيذ
+2. **`src/components/services/ServiceForm.tsx`** — Add hints to:
+   - Main service image upload (line ~126: add "800×500 بكسل")
+   - Gallery images upload (line ~146: add hint)
 
-1. **إضافة 5 فئات جديدة** عبر INSERT في جدول `categories`
-2. **إنشاء حسابين لمقدمي الخدمة** عبر Edge Function `bulk-create-associations` أو مباشرة عبر إنشاء profiles + user_roles
-3. **إضافة 10 خدمات** في جدول `micro_services` بحالة `approved` مع ربطها بالفئات ومقدمي الخدمة الصحيحين
+3. **`src/components/portfolio/PortfolioManager.tsx`** — Add hint near the image select button (line ~76: add "800×450 بكسل")
 
-### ملاحظة تقنية
-- إنشاء حسابات المستخدمين يتطلب إنشاؤها عبر `auth.users` أولاً (عبر Supabase Auth API أو Edge Function)، ثم ربط الأدوار والملفات الشخصية
-- سيتم استخدام الـ Edge Function الموجودة `bulk-create-associations` كمرجع لإنشاء المستخدمين أو إنشاء edge function مخصصة لإضافة مقدمي خدمة
+4. **`src/components/admin/AdminDirectEditDialog.tsx`** — If admin uploads avatar/cover for users, add hints there too.
+
+5. **`src/components/attachments/FileUploader.tsx`** — This is for documents/files, not images specifically, so no dimension hint needed.
+
+### Implementation Details
+- Each hint will be a `<p className="text-xs text-muted-foreground">` element showing the recommended dimensions in Arabic
+- Format: `الأبعاد المُوصى بها: العرض × الارتفاع بكسل`
+- Non-intrusive, placed as helper text below the upload trigger
 
