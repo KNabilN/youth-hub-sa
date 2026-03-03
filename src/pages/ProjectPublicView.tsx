@@ -18,7 +18,7 @@ export default function ProjectPublicView() {
           id, title, description, budget, created_at, required_skills, status,
           category:categories(name),
           region:regions(name),
-          association:profiles!projects_association_id_fkey(full_name, organization_name, avatar_url)
+          association:profiles!projects_association_id_fkey(full_name, organization_name, avatar_url, is_name_visible)
         `)
         .eq("id", id!)
         .maybeSingle();
@@ -49,7 +49,9 @@ export default function ProjectPublicView() {
     );
   }
 
-  const assocName = project.association?.organization_name || project.association?.full_name || "—";
+  const assocName = (project.association?.is_name_visible !== false)
+    ? (project.association?.organization_name || project.association?.full_name || "—")
+    : "جمعية مجهولة";
 
   return (
     <div className="container mx-auto max-w-3xl py-12 px-4 space-y-8">

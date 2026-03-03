@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleAssociationVisibility } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { FileEdit, Eye, Download } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -51,6 +52,7 @@ export default function AdminProjects() {
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
+  const toggleVisibility = useToggleAssociationVisibility();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -137,25 +139,37 @@ export default function AdminProjects() {
             <div className="border rounded-lg">
               <Table>
                 <TableHeader>
-                 <TableRow>
-                     <TableHead>رقم الطلب</TableHead>
-                     <TableHead>العنوان</TableHead>
-                     <TableHead>الجمعية</TableHead>
-                     <TableHead>التصنيف</TableHead>
-                     <TableHead>الحالة</TableHead>
-                     <TableHead>التاريخ</TableHead>
-                     <TableHead>تغيير الحالة</TableHead>
-                     <TableHead>إجراءات</TableHead>
-                   </TableRow>
+                  <TableRow>
+                    <TableHead>رقم الطلب</TableHead>
+                    <TableHead>العنوان</TableHead>
+                    <TableHead>الجمعية</TableHead>
+                    <TableHead>إظهار الاسم</TableHead>
+                    <TableHead>التصنيف</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>التاريخ</TableHead>
+                    <TableHead>تغيير الحالة</TableHead>
+                    <TableHead>إجراءات</TableHead>
+                  </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((p: any) => (
-                   <TableRow key={p.id}>
-                        <TableCell className="font-mono text-sm font-semibold">
-                          <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
-                        </TableCell>
-                        <TableCell className="font-medium">{p.title}</TableCell>
+                    <TableRow key={p.id}>
+                      <TableCell className="font-mono text-sm font-semibold">
+                        <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
+                      </TableCell>
+                      <TableCell className="font-medium">{p.title}</TableCell>
                       <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={p.profiles?.is_name_visible ?? true}
+                          onCheckedChange={(checked) => {
+                            toggleVisibility.mutate({ profileId: p.association_id, visible: checked }, {
+                              onSuccess: () => toast.success(checked ? "تم إظهار اسم الجمعية" : "تم إخفاء اسم الجمعية"),
+                              onError: () => toast.error("حدث خطأ"),
+                            });
+                          }}
+                        />
+                      </TableCell>
                       <TableCell>{p.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
@@ -177,7 +191,7 @@ export default function AdminProjects() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>

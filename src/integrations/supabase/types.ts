@@ -1105,6 +1105,7 @@ export type Database = {
           full_name: string
           hourly_rate: number | null
           id: string
+          is_name_visible: boolean
           is_suspended: boolean
           is_verified: boolean
           license_number: string | null
@@ -1137,6 +1138,7 @@ export type Database = {
           full_name?: string
           hourly_rate?: number | null
           id: string
+          is_name_visible?: boolean
           is_suspended?: boolean
           is_verified?: boolean
           license_number?: string | null
@@ -1169,6 +1171,7 @@ export type Database = {
           full_name?: string
           hourly_rate?: number | null
           id?: string
+          is_name_visible?: boolean
           is_suspended?: boolean
           is_verified?: boolean
           license_number?: string | null
