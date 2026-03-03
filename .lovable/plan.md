@@ -1,40 +1,49 @@
 
 
-# المشكلة: صفحة الجمعيات فارغة
+# خطة: دمج تدفق الدفع الكامل في صفحة المنح
 
-## السبب الجذري
-
-سياسات أمان جدول `user_roles` تسمح فقط للمستخدم بقراءة دوره الخاص:
-
-```sql
-USING (user_id = auth.uid())
-```
-
-عندما يفتح المانح صفحة الجمعيات، الاستعلام يحاول قراءة أدوار المستخدمين الآخرين (`youth_association`) فيحصل على نتيجة فارغة.
+## المشكلة الحالية
+عند تقديم منحة من صفحة المنح (`/donations`)، يتم فقط إنشاء سجل في `donor_contributions` بدون أي عملية دفع فعلية (لا تحويل بنكي ولا دفع إلكتروني). هذا يعني أن المنحة تُسجَّل بدون ضمان مالي.
 
 ## الحل
+بعد أن يملأ المانح نموذج المنحة (المبلغ + نوع الهدف + الهدف)، بدلاً من إنشاء `donor_contribution` مباشرة، ننتقل إلى خطوة دفع تتضمن:
+1. اختيار طريقة الدفع (إلكتروني / تحويل بنكي)
+2. في حالة التحويل البنكي: عرض بيانات الحساب + رفع الإيصال
+3. إنشاء `escrow_transaction` + `donor_contribution` + `bank_transfer` (إن وجد)
 
-إنشاء دالة `security definer` في قاعدة البيانات تُرجع معرفات الجمعيات الموثقة مباشرة، متجاوزة RLS:
+## التغييرات المطلوبة
 
-```sql
-CREATE FUNCTION public.get_verified_association_ids()
-RETURNS SETOF uuid
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT ur.user_id FROM user_roles ur
-  JOIN profiles p ON p.id = ur.user_id
-  WHERE ur.role = 'youth_association' AND p.is_verified = true;
-$$;
+### 1. تعديل `src/pages/Donations.tsx`
+- إضافة state لخطوة الدفع (`step: "form" | "payment"`)
+- عند الضغط على "قدّم المنحة"، بدلاً من إنشاء المنحة مباشرة، ننتقل لخطوة الدفع مع حفظ بيانات النموذج
+- في خطوة الدفع: عرض نفس واجهة الدفع الموجودة في Checkout (اختيار طريقة الدفع + بيانات البنك + رفع الإيصال)
+- عند التأكيد: استخدام `usePurchaseService` (للدفع الإلكتروني) أو `useCreateBankTransfer` (للتحويل البنكي) مع تمرير بيانات المنحة
+
+### 2. تعديل `src/components/donor/DonationForm.tsx`
+- تغيير `onSubmit` ليُرجع بيانات النموذج فقط بدون تنفيذ الدفع
+- إضافة استعلام لجلب بيانات الخدمة/المشروع المحدد (السعر، مقدم الخدمة) لاستخدامها في عملية الدفع
+
+### 3. إنشاء مكوّن `src/components/donor/DonationPaymentStep.tsx`
+- مكوّن مستقل يعرض خطوة الدفع (مستخرج من Checkout لتجنب التكرار)
+- يحتوي على: اختيار طريقة الدفع، بيانات البنك، رفع الإيصال، زر التأكيد
+- يستقبل: المبلغ، بيانات الهدف (مشروع/خدمة)، ويُنفذ عملية الدفع
+
+### 4. تعديل `src/hooks/useDonorContributions.ts`
+- تحديث `useCreateContribution` ليقبل `donation_status` كمعامل (لتعيينه كـ `pending` عند التحويل البنكي)
+
+## التدفق الجديد
+
+```text
+نموذج المنحة → خطوة الدفع → تأكيد
+  (مبلغ + هدف)   (إلكتروني/بنكي)   (escrow + contribution)
 ```
-
-ثم تعديل الاستعلام في `Associations.tsx` و `useVerifiedAssociations.ts` لاستخدام `supabase.rpc('get_verified_association_ids')` بدلاً من الاستعلام المباشر على `user_roles`.
 
 ## الملفات المتأثرة
 
 | ملف | التغيير |
 |-----|---------|
-| Migration جديد | إنشاء دالة `get_verified_association_ids` |
-| `src/pages/Associations.tsx` | استبدال استعلام `user_roles` بـ `rpc` |
-| `src/hooks/useVerifiedAssociations.ts` | نفس التعديل |
+| `src/pages/Donations.tsx` | إضافة خطوة الدفع بعد النموذج |
+| `src/components/donor/DonationForm.tsx` | جلب بيانات المشروع/الخدمة الكاملة |
+| `src/components/donor/DonationPaymentStep.tsx` | مكوّن جديد لخطوة الدفع |
+| `src/hooks/useDonorContributions.ts` | دعم `donation_status` |
 
