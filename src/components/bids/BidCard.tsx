@@ -19,8 +19,8 @@ interface BidCardProps {
   onAccept?: (bid: any) => void;
   onReject?: (bidId: string) => void;
   isLoading?: boolean;
+  showActions?: boolean;
 }
-
 const statusMap: Record<string, { label: string; className: string }> = {
   pending: { label: "قيد المراجعة", className: "bg-warning/15 text-warning border-warning/30" },
   accepted: { label: "مقبول", className: "bg-success/15 text-success border-success/30" },
@@ -28,7 +28,7 @@ const statusMap: Record<string, { label: string; className: string }> = {
   withdrawn: { label: "مسحوب", className: "bg-muted text-muted-foreground" },
 };
 
-export function BidCard({ bid, onAccept, onReject, isLoading }: BidCardProps) {
+export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true }: BidCardProps) {
   const status = statusMap[bid.status] ?? statusMap.pending;
   const [showAttachments, setShowAttachments] = useState(false);
 
@@ -67,7 +67,7 @@ export function BidCard({ bid, onAccept, onReject, isLoading }: BidCardProps) {
           <AttachmentList entityType="bid" entityId={bid.id} />
         )}
 
-        {bid.status === "pending" && (
+        {showActions && bid.status === "pending" && (
           <div className="flex gap-2">
             <Button size="sm" className="flex-1" onClick={() => onAccept?.(bid)} disabled={isLoading}>
               <Check className="h-3.5 w-3.5 me-1" />
