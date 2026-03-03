@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from "recharts";
 import { format, parseISO, startOfMonth } from "date-fns";
-import { Download, ChevronDown, FileText, Printer } from "lucide-react";
+import { Download, ChevronDown, FileText, Printer, Package, CheckCircle2, FileSignature, Shield, HeartHandshake, LifeBuoy } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { generateReportPDF, captureChartAsImage } from "@/lib/report-pdf";
 import { toast } from "sonner";
+import { downloadCSV } from "@/lib/csv-export";
 
 const STATUS_COLORS = ["#0D9488", "#FB923C", "#F59E0B", "#10B981", "#F43F5E", "#64748B"];
 const ROLE_COLORS = ["#0D9488", "#FB923C", "#6366F1", "#8B5CF6"];
@@ -26,14 +27,30 @@ const roleLabels: Record<string, string> = {
   service_provider: "مقدم خدمة", donor: "مانح",
 };
 
+/* ─── Top N + Others helper ─── */
+function topNWithOthers(data: { name: string; value: number }[], n = 5) {
+  if (data.length <= n) return data;
+  const sorted = [...data].sort((a, b) => b.value - a.value);
+  const top = sorted.slice(0, n);
+  const othersValue = sorted.slice(n).reduce((s, d) => s + d.value, 0);
+  if (othersValue > 0) top.push({ name: "أخرى", value: othersValue });
+  return top;
+}
+
+function topNWithOthersAmount(data: { name: string; amount: number }[], n = 5) {
+  if (data.length <= n) return data;
+  const sorted = [...data].sort((a, b) => b.amount - a.amount);
+  const top = sorted.slice(0, n);
+  const othersAmount = sorted.slice(n).reduce((s, d) => s + d.amount, 0);
+  if (othersAmount > 0) top.push({ name: "أخرى", amount: othersAmount });
+  return top;
+}
+
 /* ─── Custom Tooltip ─── */
 function CustomChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div
-      className="rounded-xl border border-border/50 bg-popover px-4 py-3 shadow-lg"
-      style={{ direction: "rtl" }}
-    >
+    <div className="rounded-xl border border-border/50 bg-popover px-4 py-3 shadow-lg" style={{ direction: "rtl" }}>
       {label && <p className="mb-1.5 text-xs font-bold text-foreground">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 text-xs">
@@ -80,32 +97,35 @@ const xAxisProps = { fontSize: 12, stroke: "hsl(var(--muted-foreground))", tickL
 const yAxisProps = { ...xAxisProps } as const;
 const chartCardCls = "rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border/50 overflow-hidden";
 
-import { downloadCSV } from "@/lib/csv-export";
-
 export default function AdminReports() {
   const [filters, setFilters] = useState<ReportFilterValues>(getDefaultFilters);
   const { data: stats } = useAdminStats();
   const dateFrom = filters.dateFrom.toISOString();
   const dateTo = filters.dateTo.toISOString();
   const regionId = filters.regionId;
+  const cityId = filters.cityId;
 
-  // --- Helper: fetch project IDs for selected region (used by related tables) ---
+  // --- Helper: fetch project IDs for selected region/city (used by related tables) ---
   const { data: regionProjectIds } = useQuery({
-    queryKey: ["region-project-ids", regionId],
+    queryKey: ["region-project-ids", regionId, cityId],
     queryFn: async () => {
-      if (!regionId) return null;
-      const { data } = await supabase.from("projects").select("id").eq("region_id", regionId);
+      if (!regionId && !cityId) return null;
+      let q = supabase.from("projects").select("id");
+      if (regionId) q = q.eq("region_id", regionId);
+      if (cityId) q = q.eq("city_id", cityId);
+      const { data } = await q;
       return (data ?? []).map((p: any) => p.id);
     },
-    enabled: !!regionId,
+    enabled: !!regionId || !!cityId,
   });
 
   // --- Filtered queries ---
   const { data: projectsByStatus } = useQuery({
-    queryKey: ["admin-report-projects-status", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-projects-status", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("projects").select("status").gte("created_at", dateFrom).lte("created_at", dateTo);
       if (regionId) q = q.eq("region_id", regionId);
+      if (cityId) q = q.eq("city_id", cityId);
       const { data } = await q;
       const counts: Record<string, number> = {};
       (data ?? []).forEach((p: any) => { counts[p.status] = (counts[p.status] || 0) + 1; });
@@ -124,10 +144,10 @@ export default function AdminReports() {
   });
 
   const { data: monthlyDonations } = useQuery({
-    queryKey: ["admin-report-donations", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("donor_contributions").select("amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
-      if (regionId && regionProjectIds) {
+      if ((regionId || cityId) && regionProjectIds) {
         if (regionProjectIds.length === 0) return [];
         q = q.in("project_id", regionProjectIds);
       }
@@ -142,10 +162,11 @@ export default function AdminReports() {
   });
 
   const { data: servicesByCategory } = useQuery({
-    queryKey: ["admin-report-services-category", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-services-category", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("micro_services").select("category_id, categories(name)").gte("created_at", dateFrom).lte("created_at", dateTo);
       if (regionId) q = q.eq("region_id", regionId);
+      if (cityId) q = q.eq("city_id", cityId);
       const { data } = await q;
       const counts: Record<string, number> = {};
       (data ?? []).forEach((s: any) => {
@@ -170,10 +191,11 @@ export default function AdminReports() {
   });
 
   const { data: serviceApprovalStats } = useQuery({
-    queryKey: ["admin-report-service-approval", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-service-approval", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("micro_services").select("approval").gte("created_at", dateFrom).lte("created_at", dateTo);
       if (regionId) q = q.eq("region_id", regionId);
+      if (cityId) q = q.eq("city_id", cityId);
       const { data } = await q;
       const counts: Record<string, number> = {};
       (data ?? []).forEach((s: any) => { counts[s.approval] = (counts[s.approval] || 0) + 1; });
@@ -183,10 +205,10 @@ export default function AdminReports() {
   });
 
   const { data: monthlyEscrow } = useQuery({
-    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
-      if (regionId && regionProjectIds) {
+      if ((regionId || cityId) && regionProjectIds) {
         if (regionProjectIds.length === 0) return [];
         q = q.in("project_id", regionProjectIds);
       }
@@ -219,10 +241,10 @@ export default function AdminReports() {
   });
 
   const { data: donorAnalytics } = useQuery({
-    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId],
+    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId, cityId],
     queryFn: async () => {
       let q = supabase.from("donor_contributions").select("donor_id, amount, project_id, association_id, projects(title), profiles!donor_contributions_donor_id_fkey(full_name, organization_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
-      if (regionId && regionProjectIds) {
+      if ((regionId || cityId) && regionProjectIds) {
         if (regionProjectIds.length === 0) return { totalDonors: 0, totalGrants: 0, byProject: [], perDonor: [] };
         q = q.in("project_id", regionProjectIds);
       }
@@ -234,8 +256,6 @@ export default function AdminReports() {
         const name = (d.projects as any)?.title || "خدمة";
         byProject[name] = (byProject[name] || 0) + Number(d.amount);
       });
-
-      // Per-donor: charities supported + total amount
       const donorMap: Record<string, { name: string; associations: Set<string>; total: number }> = {};
       (data ?? []).forEach((d: any) => {
         if (!donorMap[d.donor_id]) {
@@ -254,12 +274,62 @@ export default function AdminReports() {
         charities: d.associations.size,
         amount: d.total,
       }));
-
       return {
         totalDonors: donors.size,
         totalGrants,
         byProject: Object.entries(byProject).map(([name, amount]) => ({ name, amount })),
         perDonor,
+      };
+    },
+  });
+
+  // --- New: Additional Insights ---
+  const { data: insights } = useQuery({
+    queryKey: ["admin-report-insights", dateFrom, dateTo, regionId, cityId],
+    queryFn: async () => {
+      // Services count
+      let sQ = supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "approved").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId) sQ = sQ.eq("region_id", regionId);
+      if (cityId) sQ = sQ.eq("city_id", cityId);
+      const { count: servicesCount } = await sQ;
+
+      // Completed projects
+      let pQ = supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "completed").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if (regionId) pQ = pQ.eq("region_id", regionId);
+      if (cityId) pQ = pQ.eq("city_id", cityId);
+      const { count: completedProjects } = await pQ;
+
+      // Contracts count
+      let cQ = supabase.from("contracts").select("id", { count: "exact", head: true }).gte("created_at", dateFrom).lte("created_at", dateTo);
+      if ((regionId || cityId) && regionProjectIds) {
+        if (regionProjectIds.length === 0) return { servicesCount: 0, completedProjects: 0, contractsCount: 0, heldEscrow: 0, activeDonors: 0, ticketsCount: 0 };
+        cQ = cQ.in("project_id", regionProjectIds);
+      }
+      const { count: contractsCount } = await cQ;
+
+      // Held escrow sum
+      let eQ = supabase.from("escrow_transactions").select("amount").eq("status", "held").gte("created_at", dateFrom).lte("created_at", dateTo);
+      if ((regionId || cityId) && regionProjectIds) {
+        if (regionProjectIds.length === 0) return { servicesCount: servicesCount ?? 0, completedProjects: completedProjects ?? 0, contractsCount: contractsCount ?? 0, heldEscrow: 0, activeDonors: 0, ticketsCount: 0 };
+        eQ = eQ.in("project_id", regionProjectIds);
+      }
+      const { data: escrowData } = await eQ;
+      const heldEscrow = (escrowData ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
+
+      // Active donors
+      const { data: donorData } = await supabase.from("donor_contributions").select("donor_id").gte("created_at", dateFrom).lte("created_at", dateTo);
+      const activeDonors = new Set((donorData ?? []).map((d: any) => d.donor_id)).size;
+
+      // Support tickets count
+      const { count: ticketsCount } = await supabase.from("support_tickets").select("id", { count: "exact", head: true }).gte("created_at", dateFrom).lte("created_at", dateTo);
+
+      return {
+        servicesCount: servicesCount ?? 0,
+        completedProjects: completedProjects ?? 0,
+        contractsCount: contractsCount ?? 0,
+        heldEscrow,
+        activeDonors,
+        ticketsCount: ticketsCount ?? 0,
       };
     },
   });
@@ -273,6 +343,7 @@ export default function AdminReports() {
   const exportProjects = async () => {
     let q = supabase.from("projects").select("id, title, status, budget, created_at, regions(name), categories(name)").gte("created_at", dateFrom).lte("created_at", dateTo);
     if (regionId) q = q.eq("region_id", regionId);
+    if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
     downloadCSV("projects.csv", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
       (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
@@ -280,20 +351,21 @@ export default function AdminReports() {
   const exportServices = async () => {
     let q = supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
     if (regionId) q = q.eq("region_id", regionId);
+    if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
     downloadCSV("services.csv", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((s: any) => [s.title, (s.profiles as any)?.full_name ?? "", s.price, (s.categories as any)?.name ?? "", s.approval, s.created_at?.slice(0, 10)]));
   };
   const exportFinancial = async () => {
     let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
-    if (regionId && regionProjectIds?.length) q = q.in("project_id", regionProjectIds);
+    if ((regionId || cityId) && regionProjectIds?.length) q = q.in("project_id", regionProjectIds);
     const { data } = await q;
     downloadCSV("financial.csv", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((e: any) => [e.amount, e.status, e.created_at?.slice(0, 10)]));
   };
   const exportInvoices = async () => {
     let escrowIds: string[] | null = null;
-    if (regionId && regionProjectIds?.length) {
+    if ((regionId || cityId) && regionProjectIds?.length) {
       const { data: escrows } = await supabase.from("escrow_transactions").select("id").in("project_id", regionProjectIds);
       escrowIds = (escrows ?? []).map((e: any) => e.id);
     }
@@ -305,6 +377,23 @@ export default function AdminReports() {
     const { data } = await q;
     downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
       (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
+  };
+
+  const exportComprehensive = () => {
+    const rows: string[][] = [
+      ["المستخدمين", String(stats?.totalUsers ?? 0)],
+      ["طلبات الجمعيات", String(stats?.totalProjects ?? 0)],
+      ["الشكاوى المفتوحة", String(stats?.openDisputes ?? 0)],
+      ["الإيرادات (ر.س)", String(stats?.revenue ?? 0)],
+      ["الخدمات المعتمدة", String(insights?.servicesCount ?? 0)],
+      ["المشاريع المكتملة", String(insights?.completedProjects ?? 0)],
+      ["العقود", String(insights?.contractsCount ?? 0)],
+      ["الضمانات المحتجزة (ر.س)", String(insights?.heldEscrow ?? 0)],
+      ["المانحين النشطين", String(insights?.activeDonors ?? 0)],
+      ["تذاكر الدعم", String(insights?.ticketsCount ?? 0)],
+    ];
+    downloadCSV("comprehensive-report.csv", ["المؤشر", "القيمة"], rows);
+    toast.success("تم تصدير التقرير الشامل");
   };
 
   // Chart refs for PDF capture
@@ -337,16 +426,21 @@ export default function AdminReports() {
       if (monthlyEscrow?.length) {
         sections.push({ title: "المعاملات المالية الشهرية", headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"], rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]) });
       }
+      const allStats = [
+        { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
+        { label: "طلبات الجمعيات", value: String(stats?.totalProjects ?? 0) },
+        { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
+        { label: "الشكاوى المفتوحة", value: String(stats?.openDisputes ?? 0) },
+        { label: "الخدمات المعتمدة", value: String(insights?.servicesCount ?? 0) },
+        { label: "المشاريع المكتملة", value: String(insights?.completedProjects ?? 0) },
+        { label: "العقود", value: String(insights?.contractsCount ?? 0) },
+        { label: "الضمانات المحتجزة", value: `${(insights?.heldEscrow ?? 0).toLocaleString()} ر.س` },
+      ];
       await generateReportPDF(
         "تقرير تحليلات المنصة",
         { from: filters.dateFrom, to: filters.dateTo },
         sections,
-        [
-          { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
-          { label: "طلبات الجمعيات", value: String(stats?.totalProjects ?? 0) },
-          { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
-          { label: "الشكاوى المفتوحة", value: String(stats?.openDisputes ?? 0) },
-        ],
+        allStats,
         chartImages
       );
       toast.success("تم تصدير التقرير بصيغة PDF");
@@ -354,6 +448,21 @@ export default function AdminReports() {
       toast.error("حدث خطأ أثناء تصدير PDF");
     }
   };
+
+  // Prepared chart data with topN
+  const chartServicesByCategory = topNWithOthers(servicesByCategory ?? []);
+  const chartProjectsByRegion = topNWithOthers(projectsByRegion ?? []);
+  const chartDonorByProject = topNWithOthersAmount(donorAnalytics?.byProject ?? []);
+  const chartPerDonor = topNWithOthersAmount(donorAnalytics?.perDonor ?? []);
+
+  const insightCards = [
+    { label: "الخدمات المعتمدة", value: insights?.servicesCount ?? 0, icon: Package, color: "text-blue-600 bg-blue-100" },
+    { label: "المشاريع المكتملة", value: insights?.completedProjects ?? 0, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100" },
+    { label: "العقود", value: insights?.contractsCount ?? 0, icon: FileSignature, color: "text-violet-600 bg-violet-100" },
+    { label: "الضمانات المحتجزة", value: `${(insights?.heldEscrow ?? 0).toLocaleString()} ر.س`, icon: Shield, color: "text-amber-600 bg-amber-100" },
+    { label: "المانحين النشطين", value: insights?.activeDonors ?? 0, icon: HeartHandshake, color: "text-rose-600 bg-rose-100" },
+    { label: "تذاكر الدعم", value: insights?.ticketsCount ?? 0, icon: LifeBuoy, color: "text-cyan-600 bg-cyan-100" },
+  ];
 
   return (
     <DashboardLayout>
@@ -374,6 +483,7 @@ export default function AdminReports() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportComprehensive} className="font-semibold">تصدير التقرير الشامل</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportUsers}>تصدير المستخدمين</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportProjects}>تصدير الطلبات</DropdownMenuItem>
                 <DropdownMenuItem onClick={exportServices}>تصدير الخدمات</DropdownMenuItem>
@@ -391,7 +501,7 @@ export default function AdminReports() {
           </CardContent>
         </Card>
 
-        {/* Summary stats */}
+        {/* Summary stats - Row 1 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">طلبات الجمعيات</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
@@ -399,6 +509,20 @@ export default function AdminReports() {
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
         </div>
 
+        {/* Summary stats - Row 2: New Insights */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {insightCards.map((card) => (
+            <Card key={card.label} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-5 pb-4 flex flex-col items-center text-center gap-2">
+                <div className={`rounded-full p-2 ${card.color}`}>
+                  <card.icon className="h-5 w-5" />
+                </div>
+                <p className="text-xs text-muted-foreground">{card.label}</p>
+                <p className="text-xl font-bold">{typeof card.value === "number" ? card.value.toLocaleString() : card.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
@@ -447,14 +571,14 @@ export default function AdminReports() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Pie: الخدمات حسب التصنيف */}
+          {/* Pie: الخدمات حسب التصنيف (Top 5 + أخرى) */}
           <Card ref={setChartRef(3, "الخدمات حسب التصنيف")} className={chartCardCls}>
             <CardHeader><CardTitle className="text-lg text-center">الخدمات حسب التصنيف</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={servicesByCategory ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
-                    {(servicesByCategory ?? []).map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
+                  <Pie data={chartServicesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+                    {chartServicesByCategory.map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
                   <Legend />
@@ -463,12 +587,12 @@ export default function AdminReports() {
             </CardContent>
           </Card>
 
-          {/* Bar: الطلبات حسب المنطقة */}
+          {/* Bar: الطلبات حسب المنطقة (Top 5 + أخرى) */}
           <Card ref={setChartRef(4, "الطلبات حسب المنطقة")} className={chartCardCls}>
             <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب المنطقة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={projectsByRegion ?? []} margin={{ top: 20 }}>
+                <BarChart data={chartProjectsByRegion} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="regionGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
@@ -609,9 +733,9 @@ export default function AdminReports() {
                 <p className="text-2xl font-bold">{(donorAnalytics?.totalGrants ?? 0).toLocaleString()} ر.س</p>
               </div>
             </div>
-            {donorAnalytics?.byProject?.length ? (
+            {chartDonorByProject.length ? (
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={donorAnalytics.byProject} margin={{ top: 20 }}>
+                <BarChart data={chartDonorByProject} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="donorGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
@@ -631,13 +755,13 @@ export default function AdminReports() {
           </CardContent>
         </Card>
 
-        {/* Per-Donor Contributions Chart */}
-        {donorAnalytics?.perDonor?.length ? (
+        {/* Per-Donor Contributions Chart (Top 5 + أخرى) */}
+        {chartPerDonor.length ? (
           <Card ref={setChartRef(9, "مساهمات المانحين")} className={chartCardCls}>
             <CardHeader><CardTitle className="text-lg text-center">مساهمات المانحين والرعاة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={donorAnalytics.perDonor} barGap={8} margin={{ top: 20 }}>
+                <BarChart data={chartPerDonor} barGap={8} margin={{ top: 20 }}>
                   <defs>
                     <linearGradient id="donorCharitiesGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
