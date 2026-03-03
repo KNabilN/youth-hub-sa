@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAssociationTimeLogs, useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
+import { useAssociationTimeLogs, useUpdateTimeLogApproval, useAssociationProjects } from "@/hooks/useTimeLogs";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,9 @@ import { Clock, CheckCircle } from "lucide-react";
 
 export default function TimeLogs() {
   const [filter, setFilter] = useState("all");
-  const { data: logs, isLoading } = useAssociationTimeLogs(filter);
+  const [projectFilter, setProjectFilter] = useState("all");
+  const { data: logs, isLoading } = useAssociationTimeLogs(filter, projectFilter);
+  const { data: projects } = useAssociationProjects();
   const updateApproval = useUpdateTimeLogApproval();
 
   const pendingHours = logs?.filter(l => l.approval === "pending").reduce((s, l) => s + Number(l.hours), 0) ?? 0;
@@ -43,16 +45,30 @@ export default function TimeLogs() {
 
         <Card className="border-dashed bg-muted/30">
           <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
-            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-[180px] bg-background"><SelectValue placeholder="الحالة" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="pending">قيد المراجعة</SelectItem>
-                <SelectItem value="approved">معتمد</SelectItem>
-                <SelectItem value="rejected">مرفوض</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-[180px] bg-background"><SelectValue placeholder="الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="pending">قيد المراجعة</SelectItem>
+                  <SelectItem value="approved">معتمد</SelectItem>
+                  <SelectItem value="rejected">مرفوض</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm font-medium text-muted-foreground">تصفية حسب الطلب</span>
+              <Select value={projectFilter} onValueChange={setProjectFilter}>
+                <SelectTrigger className="w-[220px] bg-background"><SelectValue placeholder="الطلب" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الطلبات</SelectItem>
+                  {projects?.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 

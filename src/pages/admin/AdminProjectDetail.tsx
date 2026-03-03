@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowRight, FileEdit, Tag, MapPin, Calendar, DollarSign, Clock, Users, Eye, Lock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { ArrowRight, FileEdit, Tag, MapPin, Calendar, DollarSign, Clock, Users, Eye, Lock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -19,6 +20,9 @@ import { BidList } from "@/components/bids/BidList";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
+import { useProjectTimeLogs } from "@/hooks/useTimeLogs";
+import { useUpdateTimeLogApproval } from "@/hooks/useTimeLogs";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
@@ -51,7 +55,9 @@ export default function AdminProjectDetail() {
   const navigate = useNavigate();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
+  const updateTimeLog = useUpdateTimeLogApproval();
   const [editOpen, setEditOpen] = useState(false);
+  const { data: hoursSummary } = useProjectTimeLogs(id);
 
   const { data: project, isLoading, error } = useQuery({
     queryKey: ["admin-project-detail", id],
@@ -102,6 +108,20 @@ export default function AdminProjectDetail() {
         .select("*", { count: "exact", head: true })
         .eq("project_id", id!);
       return count ?? 0;
+    },
+  });
+
+  const { data: projectTimeLogs } = useQuery({
+    queryKey: ["admin-project-time-logs", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("time_logs")
+        .select("*, projects(title), profiles:provider_id(full_name)")
+        .eq("project_id", id!)
+        .order("log_date", { ascending: false });
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -187,11 +207,34 @@ export default function AdminProjectDetail() {
               </div>
             )}
 
-            {/* Tabs: Bids, Contract, Activity */}
+            {/* Hours Progress */}
+            {project.estimated_hours && hoursSummary && (
+              <Card className="border-primary/20">
+                <CardContent className="pt-4 pb-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium flex items-center gap-1"><Clock className="h-4 w-4" /> تقدم الساعات</span>
+                    <span className="text-muted-foreground">{hoursSummary.approvedHours} / {project.estimated_hours} ساعة</span>
+                  </div>
+                  <Progress value={Math.min((hoursSummary.approvedHours / Number(project.estimated_hours)) * 100, 100)} className="h-2" />
+                  {hoursSummary.approvedHours >= Number(project.estimated_hours) && (
+                    <div className="flex items-center gap-1 text-xs text-destructive"><AlertTriangle className="h-3 w-3" /> تم تجاوز الساعات المقدرة!</div>
+                  )}
+                  {hoursSummary.approvedHours >= Number(project.estimated_hours) * 0.8 && hoursSummary.approvedHours < Number(project.estimated_hours) && (
+                    <div className="flex items-center gap-1 text-xs text-warning"><AlertTriangle className="h-3 w-3" /> تم استهلاك أكثر من 80% من الساعات المقدرة</div>
+                  )}
+                  {hoursSummary.pendingHours > 0 && (
+                    <p className="text-xs text-muted-foreground">{hoursSummary.pendingHours} ساعة قيد المراجعة</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Tabs: Bids, Contract, Time Logs, Activity */}
             <Tabs defaultValue="bids" dir="rtl">
               <TabsList>
                 <TabsTrigger value="bids">العروض ({bidsCount ?? 0})</TabsTrigger>
                 <TabsTrigger value="contract">العقد</TabsTrigger>
+                <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
                 <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
               </TabsList>
               <TabsContent value="bids" className="mt-4">
@@ -213,6 +256,20 @@ export default function AdminProjectDetail() {
                 ) : (
                   <p className="text-center text-muted-foreground py-8">لا يوجد عقد بعد</p>
                 )}
+              </TabsContent>
+              <TabsContent value="timelogs" className="mt-4">
+                <TimeLogTable
+                  logs={(projectTimeLogs as any) ?? []}
+                  onApprove={(logId) => {
+                    const log = ((projectTimeLogs as any) ?? []).find((l: any) => l.id === logId);
+                    updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast.success("تم اعتماد السجل") });
+                  }}
+                  onReject={(logId, reason) => {
+                    const log = ((projectTimeLogs as any) ?? []).find((l: any) => l.id === logId);
+                    updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "", rejectionReason: reason }, { onSuccess: () => toast.success("تم رفض السجل") });
+                  }}
+                  isLoading={updateTimeLog.isPending}
+                />
               </TabsContent>
               <TabsContent value="activity" className="mt-4">
                 <EntityActivityLog tableName="projects" recordId={project.id} />
