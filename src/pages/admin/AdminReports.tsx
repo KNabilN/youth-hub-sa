@@ -144,7 +144,8 @@ export default function AdminReports() {
   });
 
   const { data: monthlyDonations } = useQuery({
-    queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId],
+    queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId, regionProjectIds],
+    enabled: !(regionId || cityId) || regionProjectIds !== undefined,
     queryFn: async () => {
       let q = supabase.from("donor_contributions").select("amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
       if ((regionId || cityId) && regionProjectIds) {
@@ -205,7 +206,8 @@ export default function AdminReports() {
   });
 
   const { data: monthlyEscrow } = useQuery({
-    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo, regionId, cityId],
+    queryKey: ["admin-report-monthly-escrow", dateFrom, dateTo, regionId, cityId, regionProjectIds],
+    enabled: !(regionId || cityId) || regionProjectIds !== undefined,
     queryFn: async () => {
       let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
       if ((regionId || cityId) && regionProjectIds) {
@@ -241,7 +243,8 @@ export default function AdminReports() {
   });
 
   const { data: donorAnalytics } = useQuery({
-    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId, cityId],
+    queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId, cityId, regionProjectIds],
+    enabled: !(regionId || cityId) || regionProjectIds !== undefined,
     queryFn: async () => {
       let q = supabase.from("donor_contributions").select("donor_id, amount, project_id, association_id, projects(title), profiles!donor_contributions_donor_id_fkey(full_name, organization_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
       if ((regionId || cityId) && regionProjectIds) {
@@ -285,7 +288,8 @@ export default function AdminReports() {
 
   // --- New: Additional Insights ---
   const { data: insights } = useQuery({
-    queryKey: ["admin-report-insights", dateFrom, dateTo, regionId, cityId],
+    queryKey: ["admin-report-insights", dateFrom, dateTo, regionId, cityId, regionProjectIds],
+    enabled: !(regionId || cityId) || regionProjectIds !== undefined,
     queryFn: async () => {
       // Services count
       let sQ = supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "approved").gte("created_at", dateFrom).lte("created_at", dateTo);
