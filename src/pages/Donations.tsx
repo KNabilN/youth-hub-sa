@@ -59,45 +59,24 @@ export default function Donations() {
     if (!user || !formData) return;
     setProcessing(true);
     try {
-      if (method === "electronic") {
-        if (formData.target_type === "service" && formData.provider_id) {
+      if (formData.target_type === "service" && formData.provider_id) {
+        // Service donation — use existing hooks
+        if (method === "electronic") {
           await purchase.mutateAsync({
             serviceId: formData.target_id,
             providerId: formData.provider_id,
             buyerId: user.id,
             amount: formData.amount,
             serviceTitle: formData.target_title,
+            beneficiaryId: formData.association_id,
           });
         } else {
-          // For projects, create escrow + contribution directly
-          const { data: escrow, error: escrowErr } = await (await import("@/integrations/supabase/client")).supabase
-            .from("escrow_transactions")
-            .insert({
-              payer_id: user.id,
-              payee_id: user.id, // placeholder, admin will manage
-              amount: formData.amount,
-              status: "held" as any,
-              project_id: formData.target_id,
-            } as any)
-            .select()
-            .single();
-          if (escrowErr) throw escrowErr;
-
-          await createContribution.mutateAsync({
-            amount: formData.amount,
-            project_id: formData.target_id,
-            donation_status: "available",
-          });
-        }
-        navigate("/payment-success", { state: { total: formData.amount, count: 1, method: "electronic" } });
-      } else {
-        // Bank transfer
-        if (!receiptFile) return;
-        if (formData.target_type === "service" && formData.provider_id) {
+          if (!receiptFile) return;
           await bankTransfer.mutateAsync({
             receiptFile,
             amount: formData.amount,
             userId: user.id,
+            beneficiaryId: formData.association_id,
             items: [{
               serviceId: formData.target_id,
               providerId: formData.provider_id,
@@ -105,8 +84,29 @@ export default function Donations() {
               title: formData.target_title,
             }],
           });
+        }
+      } else {
+        // Project donation
+        const associationId = formData.association_id || user.id;
+        if (method === "electronic") {
+          const { error: escrowErr } = await (await import("@/integrations/supabase/client")).supabase
+            .from("escrow_transactions")
+            .insert({
+              payer_id: user.id,
+              payee_id: associationId,
+              amount: formData.amount,
+              status: "held" as any,
+              project_id: formData.target_id,
+            } as any);
+          if (escrowErr) throw escrowErr;
+
+          await createContribution.mutateAsync({
+            amount: formData.amount,
+            project_id: formData.target_id,
+            donation_status: "available",
+          });
         } else {
-          // For project bank transfer
+          if (!receiptFile) return;
           const { supabase } = await import("@/integrations/supabase/client");
           const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
           const { error: uploadErr } = await supabase.storage.from("transfer-receipts").upload(filePath, receiptFile);
@@ -116,7 +116,7 @@ export default function Donations() {
             .from("escrow_transactions")
             .insert({
               payer_id: user.id,
-              payee_id: user.id,
+              payee_id: associationId,
               amount: formData.amount,
               status: "pending_payment" as any,
               project_id: formData.target_id,
@@ -138,8 +138,8 @@ export default function Donations() {
             donation_status: "pending",
           });
         }
-        navigate("/payment-success", { state: { total: formData.amount, count: 1, method: "bank_transfer" } });
       }
+      navigate("/payment-success", { state: { total: formData.amount, count: 1, method } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
@@ -183,6 +183,7 @@ export default function Donations() {
               <DonationPaymentStep
                 amount={formData.amount}
                 targetLabel={formData.target_title}
+                associationName={formData.association_name}
                 onConfirm={handlePaymentConfirm}
                 onBack={() => setStep("form")}
                 isProcessing={processing}

@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 
 const donationSchema = z.object({
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
   target_type: z.enum(["project", "service"]),
   target_id: z.string().min(1, "يرجى اختيار المشروع أو الخدمة"),
+  association_id: z.string().optional(),
 });
 
 type DonationFormValues = z.infer<typeof donationSchema>;
@@ -22,6 +24,8 @@ export interface DonationFormData {
   target_id: string;
   target_title: string;
   provider_id?: string;
+  association_id?: string;
+  association_name?: string;
 }
 
 interface DonationFormProps {
@@ -32,7 +36,7 @@ interface DonationFormProps {
 export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
   const form = useForm<DonationFormValues>({
     resolver: zodResolver(donationSchema),
-    defaultValues: { amount: 0, target_type: "project", target_id: "" },
+    defaultValues: { amount: 0, target_type: "project", target_id: "", association_id: "" },
   });
 
   const targetType = form.watch("target_type");
@@ -62,16 +66,31 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
     },
   });
 
+  const { data: associations } = useVerifiedAssociations();
+
   const items = targetType === "project" ? projects : services;
 
   const handleSubmit = (values: DonationFormValues) => {
     const selectedItem = items?.find((i) => i.id === values.target_id);
+    const selectedAssociation = associations?.find((a) => a.id === values.association_id);
+
+    // For projects, get association_id from the project itself
+    const associationId = targetType === "project"
+      ? (selectedItem as any)?.association_id
+      : values.association_id;
+
+    const associationName = targetType === "project"
+      ? associations?.find((a) => a.id === (selectedItem as any)?.association_id)?.organization_name || associations?.find((a) => a.id === (selectedItem as any)?.association_id)?.full_name
+      : selectedAssociation?.organization_name || selectedAssociation?.full_name;
+
     onSubmit({
       amount: values.amount,
       target_type: values.target_type,
       target_id: values.target_id,
       target_title: selectedItem?.title || "",
       provider_id: values.target_type === "service" ? (selectedItem as any)?.provider_id : undefined,
+      association_id: associationId || undefined,
+      association_name: associationName || undefined,
     });
   };
 
@@ -88,7 +107,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         <FormField control={form.control} name="target_type" render={({ field }) => (
           <FormItem>
             <FormLabel>نوع المنحة</FormLabel>
-            <Select onValueChange={(v) => { field.onChange(v); form.setValue("target_id", ""); }} defaultValue={field.value}>
+            <Select onValueChange={(v) => { field.onChange(v); form.setValue("target_id", ""); form.setValue("association_id", ""); }} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
                 <SelectItem value="project">طلب جمعية</SelectItem>
@@ -112,6 +131,27 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
             <FormMessage />
           </FormItem>
         )} />
+
+        {/* Show association selector only for services */}
+        {targetType === "service" && (
+          <FormField control={form.control} name="association_id" render={({ field }) => (
+            <FormItem>
+              <FormLabel>الجمعية المستفيدة (اختياري)</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl><SelectTrigger><SelectValue placeholder="اختر جمعية مستفيدة..." /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {associations?.map((assoc) => (
+                    <SelectItem key={assoc.id} value={assoc.id}>
+                      {assoc.organization_name || assoc.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+        )}
+
         <Button type="submit" disabled={isLoading}>{isLoading ? "جاري التحضير..." : "متابعة للدفع"}</Button>
       </form>
     </Form>

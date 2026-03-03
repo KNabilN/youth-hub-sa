@@ -16,12 +16,13 @@ const BANK_INFO = {
 interface DonationPaymentStepProps {
   amount: number;
   targetLabel: string;
+  associationName?: string;
   onConfirm: (method: "electronic" | "bank_transfer", receiptFile?: File) => Promise<void>;
   onBack: () => void;
   isProcessing: boolean;
 }
 
-export function DonationPaymentStep({ amount, targetLabel, onConfirm, onBack, isProcessing }: DonationPaymentStepProps) {
+export function DonationPaymentStep({ amount, targetLabel, associationName, onConfirm, onBack, isProcessing }: DonationPaymentStepProps) {
   const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
@@ -51,6 +52,9 @@ export function DonationPaymentStep({ amount, targetLabel, onConfirm, onBack, is
             <div>
               <p className="text-sm text-muted-foreground">المنحة</p>
               <p className="font-medium">{targetLabel}</p>
+              {associationName && (
+                <p className="text-xs text-muted-foreground mt-1">الجمعية المستفيدة: <span className="font-medium text-foreground">{associationName}</span></p>
+              )}
             </div>
             <span className="text-xl font-bold text-primary">{amount.toLocaleString()} ر.س</span>
           </div>
