@@ -9,11 +9,13 @@ export function useCreateBankTransfer() {
       amount,
       userId,
       items,
+      beneficiaryId,
     }: {
       receiptFile: File;
       amount: number;
       userId: string;
-      items: Array<{ serviceId: string; providerId: string; price: number }>;
+      items: Array<{ serviceId: string; providerId: string; price: number; title?: string }>;
+      beneficiaryId?: string;
     }) => {
       // Upload receipt
       const filePath = `${userId}/${Date.now()}_${receiptFile.name}`;
@@ -25,6 +27,33 @@ export function useCreateBankTransfer() {
       // Create escrow transactions for each item with pending_payment status
       const escrowIds: string[] = [];
       for (const item of items) {
+        // Create project if beneficiary selected
+        let projectId: string | null = null;
+        if (beneficiaryId) {
+          const title = item.title || "خدمة ممولة من مانح";
+          const { data: project, error: projErr } = await supabase
+            .from("projects")
+            .insert({
+              title,
+              description: `خدمة ممولة تلقائياً من مانح — ${title}`,
+              association_id: beneficiaryId,
+              assigned_provider_id: item.providerId,
+              status: "in_progress" as any,
+              budget: item.price,
+              is_private: true,
+            })
+            .select("id")
+            .single();
+          if (projErr) throw projErr;
+          projectId = project.id;
+
+          await supabase.from("notifications").insert({
+            user_id: beneficiaryId,
+            message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
+            type: "donor_funded_service",
+          });
+        }
+
         const { data: escrow, error: escrowErr } = await supabase
           .from("escrow_transactions")
           .insert({
@@ -33,7 +62,9 @@ export function useCreateBankTransfer() {
             payee_id: item.providerId,
             amount: item.price,
             status: "pending_payment" as any,
-          })
+            project_id: projectId,
+            beneficiary_id: beneficiaryId || null,
+          } as any)
           .select()
           .single();
         if (escrowErr) throw escrowErr;
@@ -59,6 +90,7 @@ export function useCreateBankTransfer() {
         await supabase.from("donor_contributions").insert({
           donor_id: userId,
           service_id: item.serviceId,
+          association_id: beneficiaryId || null,
           amount: item.price,
           donation_status: "pending",
         });

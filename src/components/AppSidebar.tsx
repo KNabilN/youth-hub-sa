@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2,
+  Mail, Trash2, ShoppingBag,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -54,6 +54,7 @@ const menuByRole = {
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
+    { title: "مشترياتي", url: "/donor-purchases", icon: ShoppingBag },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "المنح", url: "/donations", icon: HandCoins },
     { title: "تقارير الأثر", url: "/impact", icon: BarChart3 },
