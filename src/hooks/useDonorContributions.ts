@@ -7,6 +7,7 @@ interface CreateContributionInput {
   project_id?: string;
   service_id?: string;
   association_id?: string;
+  donation_status?: string;
 }
 
 export function useDonorContributions() {
