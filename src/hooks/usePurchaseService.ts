@@ -11,6 +11,7 @@ export function usePurchaseService() {
       amount,
       beneficiaryId,
       serviceTitle,
+      hours,
     }: {
       serviceId: string;
       providerId: string;
@@ -18,17 +19,19 @@ export function usePurchaseService() {
       amount: number;
       beneficiaryId?: string;
       serviceTitle?: string;
+      hours?: number;
     }) => {
       let projectId: string | null = null;
 
       // If a beneficiary association is selected, create a project automatically
       if (beneficiaryId) {
         const title = serviceTitle || "خدمة ممولة من مانح";
+        const hoursNote = hours ? ` (${hours} ساعة)` : "";
         const { data: project, error: projErr } = await supabase
           .from("projects")
           .insert({
-            title,
-            description: `خدمة ممولة تلقائياً من مانح — ${title}`,
+            title: title + hoursNote,
+            description: `خدمة ممولة تلقائياً من مانح — ${title}${hoursNote}`,
             association_id: beneficiaryId,
             assigned_provider_id: providerId,
             status: "in_progress" as any,

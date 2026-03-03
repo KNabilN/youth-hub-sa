@@ -1,21 +1,29 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useCartItems, useRemoveFromCart, useClearCart } from "@/hooks/useCart";
+import { useCartItems, useRemoveFromCart, useClearCart, useUpdateCartQuantity } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
+/** Calculate line total: for hourly services quantity = hours */
+function lineTotal(item: any) {
+  return item.micro_services.price * item.quantity;
+}
 
 export default function Cart() {
   const { data: items, isLoading } = useCartItems();
   const removeItem = useRemoveFromCart();
   const clearCart = useClearCart();
+  const updateQty = useUpdateCartQuantity();
   const navigate = useNavigate();
 
-  const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+  const total = items?.reduce((sum, item) => sum + lineTotal(item), 0) ?? 0;
 
   const handleRemove = (id: string) => {
     removeItem.mutate(id, {
@@ -127,9 +135,32 @@ export default function Cart() {
                           <Badge variant="outline">
                             {item.micro_services.service_type === "fixed_price" ? "سعر ثابت" : "بالساعة"}
                           </Badge>
-                          <span className="font-bold text-primary">
-                            {item.micro_services.price.toLocaleString()} ر.س
-                          </span>
+                          {item.micro_services.service_type === "hourly" ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 bg-muted/60 rounded-lg px-2 py-1">
+                                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={999}
+                                  value={item.quantity}
+                                  onChange={(e) => {
+                                    const val = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
+                                    updateQty.mutate({ cartItemId: item.id, quantity: val });
+                                  }}
+                                  className="h-7 w-16 text-center text-sm border-0 bg-transparent p-0"
+                                />
+                                <span className="text-xs text-muted-foreground">ساعة</span>
+                              </div>
+                              <span className="font-bold text-primary text-sm">
+                                {lineTotal(item).toLocaleString()} ر.س
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-bold text-primary">
+                              {item.micro_services.price.toLocaleString()} ر.س
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -150,8 +181,11 @@ export default function Cart() {
                       <div key={item.id} className="flex justify-between text-sm">
                         <span className="text-muted-foreground truncate max-w-[60%]">
                           {item.micro_services.title}
+                          {item.micro_services.service_type === "hourly" && (
+                            <span className="text-xs"> ({item.quantity} ساعة)</span>
+                          )}
                         </span>
-                        <span>{item.micro_services.price.toLocaleString()} ر.س</span>
+                        <span>{lineTotal(item).toLocaleString()} ر.س</span>
                       </div>
                     ))}
                   </div>
