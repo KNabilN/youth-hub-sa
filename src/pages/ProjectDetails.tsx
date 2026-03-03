@@ -28,10 +28,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
+import { DeliverablePanel } from "@/components/deliverables/DeliverablePanel";
+import { useDeliverable } from "@/hooks/useDeliverables";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +53,7 @@ export default function ProjectDetails() {
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const { data: hoursSummary } = useProjectTimeLogs(id);
+  const { data: deliverable } = useDeliverable(id);
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
@@ -124,6 +127,13 @@ export default function ProjectDetails() {
       // 0. Verify escrow exists and is held
       if (!escrow || escrow.status !== "held") {
         toast({ title: "لا يمكن إتمام الطلب بدون ضمان مالي محتجز", variant: "destructive" });
+        setCompleting(false);
+        return;
+      }
+
+      // 0b. Verify deliverable is accepted
+      if (!deliverable || deliverable.status !== "accepted") {
+        toast({ title: "لا يمكن إتمام الطلب قبل قبول التسليمات", variant: "destructive" });
         setCompleting(false);
         return;
       }
@@ -344,6 +354,12 @@ export default function ProjectDetails() {
               <Paperclip className="h-3.5 w-3.5" />
               المرفقات
             </TabsTrigger>
+            {(project.status === "in_progress" || project.status === "completed") && (
+              <TabsTrigger value="deliverables" className="flex items-center gap-1">
+                <PackageCheck className="h-3.5 w-3.5" />
+                التسليمات
+              </TabsTrigger>
+            )}
             {role === "super_admin" && <TabsTrigger value="activity">سجل النشاط</TabsTrigger>}
           </TabsList>
 
@@ -545,6 +561,16 @@ export default function ProjectDetails() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {(project.status === "in_progress" || project.status === "completed") && (
+            <TabsContent value="deliverables" className="mt-4">
+              <DeliverablePanel
+                projectId={project.id}
+                isProvider={isProvider}
+                isAssociation={isAssociation}
+              />
+            </TabsContent>
+          )}
 
           {role === "super_admin" && (
             <TabsContent value="activity" className="mt-4">

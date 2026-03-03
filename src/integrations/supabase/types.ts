@@ -1188,6 +1188,57 @@ export type Database = {
         }
         Relationships: []
       }
+      project_deliverables: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          project_id: string
+          provider_id: string
+          reviewed_at: string | null
+          revision_note: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          project_id: string
+          provider_id: string
+          reviewed_at?: string | null
+          revision_note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          project_id?: string
+          provider_id?: string
+          reviewed_at?: string | null
+          revision_note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deliverables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           assigned_provider_id: string | null
