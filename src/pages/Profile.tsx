@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProfile, useUpdateProfile, useUploadAvatar } from "@/hooks/useProfile";
 import { useUploadCover } from "@/hooks/useUploadCover";
+import { useUploadCompanyLogo } from "@/hooks/useUploadCompanyLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +16,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -52,10 +54,12 @@ export default function Profile() {
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
   const uploadCover = useUploadCover();
+  const uploadCompanyLogo = useUploadCompanyLogo();
   const { toast } = useToast();
   const { isComplete, missingFields, completionPercentage, requiredFields } = useProfileCompleteness();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
@@ -74,6 +78,7 @@ export default function Profile() {
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [bankIban, setBankIban] = useState("");
   const [bankAccountHolder, setBankAccountHolder] = useState("");
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   if (profile && !initialized) {
@@ -153,6 +158,29 @@ export default function Profile() {
     });
   };
 
+  const handleLogoUpload = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "يرجى اختيار صورة", variant: "destructive" });
+      return;
+    }
+    uploadCompanyLogo.mutate(file, {
+      onSuccess: () => toast({ title: "تم تحديث شعار الجهة المانحة" }),
+      onError: () => toast({ title: "خطأ في رفع الشعار", variant: "destructive" }),
+    });
+  }, [uploadCompanyLogo, toast]);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleLogoUpload(file);
+  };
+
+  const onLogoDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingLogo(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleLogoUpload(file);
+  }, [handleLogoUpload]);
+
   const addSkill = () => {
     const s = newSkill.trim();
     if (s && !skills.includes(s)) {
@@ -180,7 +208,12 @@ export default function Profile() {
   };
 
   const coverUrl = (profile as any)?.cover_image_url || "";
+  const companyLogoUrl = (profile as any)?.company_logo_url || "";
   const showBankSection = role === "service_provider" || role === "youth_association";
+  const showSkillsSection = role === "service_provider" || role === "youth_association";
+  const showQualificationsSection = role === "service_provider" || role === "youth_association";
+  const showOrgNameForDonor = role === "donor";
+  const isDonor = role === "donor";
 
   return (
     <DashboardLayout>
@@ -284,7 +317,8 @@ export default function Profile() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <User className="h-5 w-5 text-primary" /> المعلومات الأساسية
+                    {isDonor ? <Building className="h-5 w-5 text-primary" /> : <User className="h-5 w-5 text-primary" />}
+                    {isDonor ? "معلومات الجهة المانحة" : "المعلومات الأساسية"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -302,21 +336,22 @@ export default function Profile() {
                     <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="+966..." className={`h-11 ${isRequired("phone", role) && !phone ? "border-warning" : ""}`} />
                   </div>
 
+                  {(role === "youth_association" || showOrgNameForDonor) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="orgName" className="flex items-center gap-1">
+                        <Building className="h-3.5 w-3.5" /> {isDonor ? "اسم الشركة / المنظمة" : "اسم المنظمة"} {!isDonor && <RequiredMark fieldKey="organization_name" role={role} />}
+                      </Label>
+                      <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder={isDonor ? "اختياري" : ""} className={`h-11 ${isRequired("organization_name", role) && !organizationName ? "border-warning" : ""}`} />
+                    </div>
+                  )}
+
                   {role === "youth_association" && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="orgName" className="flex items-center gap-1">
-                          <Building className="h-3.5 w-3.5" /> اسم المنظمة <RequiredMark fieldKey="organization_name" role={role} />
-                        </Label>
-                        <Input id="orgName" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className={`h-11 ${isRequired("organization_name", role) && !organizationName ? "border-warning" : ""}`} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="licenseNumber" className="flex items-center gap-1">
-                          رقم الترخيص <RequiredMark fieldKey="license_number" role={role} />
-                        </Label>
-                        <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className={`h-11 ${isRequired("license_number", role) && !licenseNumber ? "border-warning" : ""}`} />
-                      </div>
-                    </>
+                    <div className="space-y-2">
+                      <Label htmlFor="licenseNumber" className="flex items-center gap-1">
+                        رقم الترخيص <RequiredMark fieldKey="license_number" role={role} />
+                      </Label>
+                      <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className={`h-11 ${isRequired("license_number", role) && !licenseNumber ? "border-warning" : ""}`} />
+                    </div>
                   )}
 
                   {role === "service_provider" && (
@@ -339,12 +374,74 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="bio">اكتب نبذة عنك أو عن مؤسستك</Label>
+                    <Label htmlFor="bio">
+                      {isDonor ? "اكتب نبذة عن جهتك المانحة وأهدافك في الدعم" : "اكتب نبذة عنك أو عن مؤسستك"}
+                    </Label>
                     <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={8} className={`resize-none ${isRequired("bio", role) && !bio ? "border-warning" : ""}`} />
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Company Logo - Donor only */}
+            {isDonor && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building className="h-5 w-5 text-primary" /> شعار الجهة المانحة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    {/* Current logo preview */}
+                    {companyLogoUrl && (
+                      <div className="shrink-0">
+                        <img
+                          src={companyLogoUrl}
+                          alt="شعار الجهة"
+                          className="h-24 w-24 rounded-xl object-contain border border-border bg-muted/30 p-2"
+                        />
+                      </div>
+                    )}
+
+                    {/* Upload area */}
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setIsDraggingLogo(true); }}
+                      onDragLeave={() => setIsDraggingLogo(false)}
+                      onDrop={onLogoDrop}
+                      onClick={() => logoInputRef.current?.click()}
+                      className={cn(
+                        "flex-1 w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors",
+                        isDraggingLogo
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      )}
+                    >
+                      <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm font-medium">
+                        {companyLogoUrl ? "تغيير الشعار" : "رفع شعار الجهة المانحة"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        اسحب الصورة وأفلتها هنا أو اضغط لاختيار ملف
+                      </p>
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoChange}
+                      />
+                    </div>
+                  </div>
+                  {uploadCompanyLogo.isPending && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      جارٍ رفع الشعار...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Bank Details */}
             {showBankSection && (
@@ -386,8 +483,8 @@ export default function Profile() {
               </Card>
             )}
 
-            {/* Skills */}
-            {role !== "super_admin" && (
+            {/* Skills - hide for donor and admin */}
+            {showSkillsSection && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -423,8 +520,8 @@ export default function Profile() {
               </Card>
             )}
 
-            {/* Qualifications */}
-            {role !== "super_admin" && (
+            {/* Qualifications - hide for donor and admin */}
+            {showQualificationsSection && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">

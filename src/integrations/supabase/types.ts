@@ -1094,6 +1094,7 @@ export type Database = {
           bank_iban: string | null
           bank_name: string | null
           bio: string | null
+          company_logo_url: string | null
           contact_officer_email: string | null
           contact_officer_name: string | null
           contact_officer_phone: string | null
@@ -1124,6 +1125,7 @@ export type Database = {
           bank_iban?: string | null
           bank_name?: string | null
           bio?: string | null
+          company_logo_url?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null
           contact_officer_phone?: string | null
@@ -1154,6 +1156,7 @@ export type Database = {
           bank_iban?: string | null
           bank_name?: string | null
           bio?: string | null
+          company_logo_url?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null
           contact_officer_phone?: string | null
