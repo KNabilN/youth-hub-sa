@@ -35,10 +35,16 @@ export default function Earnings() {
   filter((t) => t.status === "released").
   reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
 
+  const approvedWithdrawals = withdrawals?.
+  filter((w: any) => w.status === "approved" || w.status === "processed").
+  reduce((sum: number, w: any) => sum + Number(w.amount), 0) ?? 0;
+
+  const availableBalance = totalEarnings - approvedWithdrawals;
+
   const handleWithdraw = () => {
     const num = Number(amount);
     if (!num || num <= 0) {toast.error("أدخل مبلغ صالح");return;}
-    if (num > totalEarnings) {toast.error("المبلغ أكبر من الرصيد المتاح");return;}
+    if (num > availableBalance) {toast.error("المبلغ أكبر من الرصيد المتاح");return;}
     createWithdrawal.mutate(num, {
       onSuccess: () => {toast.success("تم إرسال طلب السحب");setShowDialog(false);setAmount("");},
       onError: () => toast.error("حدث خطأ")
@@ -55,11 +61,11 @@ export default function Earnings() {
               <Wallet className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">​المعاملات المادية </h1>
+              <h1 className="text-2xl font-bold">المعاملات المادية</h1>
               <p className="text-sm text-muted-foreground">تابع أرباحك وطلبات السحب</p>
             </div>
           </div>
-          {totalEarnings > 0 &&
+          {availableBalance > 0 &&
           <Button onClick={() => setShowDialog(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
               <Wallet className="h-4 w-4 me-2" /> طلب سحب
             </Button>
@@ -108,7 +114,7 @@ export default function Earnings() {
             <div className="space-y-3 py-4">
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm text-muted-foreground">الرصيد المتاح</p>
-                <p className="text-2xl font-bold text-primary">{totalEarnings.toLocaleString()} ر.س</p>
+                <p className="text-2xl font-bold text-primary">{availableBalance.toLocaleString()} ر.س</p>
               </div>
               <Input type="number" placeholder="المبلغ" value={amount} onChange={(e) => setAmount(e.target.value)} dir="ltr" />
             </div>

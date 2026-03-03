@@ -111,7 +111,7 @@ export function AppSidebar() {
   });
 
   const getBadge = (url: string) => {
-    if ((url === "/admin/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
+    if ((url === "/admin/notifications" || url === "/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
     return 0;
   };
@@ -185,6 +185,26 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
               {isNonAdmin && (
+                <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/notifications"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-all duration-200 group"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-s-[3px] border-sidebar-ring"
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
+                        <Bell className="h-[17px] w-[17px]" />
+                      </div>
+                      <span className="text-sm flex-1">الإشعارات</span>
+                      {(unreadCount ?? 0) > 0 && (
+                        <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -204,6 +224,7 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                </>
               )}
 
               <SidebarMenuItem>
