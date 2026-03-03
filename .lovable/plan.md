@@ -1,114 +1,64 @@
 
 
-# تطوير قسم التقارير والتحليلات
+# Fix: Region/City Filters Not Persisting in Reports
 
-## ملخص التغييرات
-ثلاث مجالات رئيسية: (1) إضافة فلتر المدن، (2) عرض أعلى 5 عناصر + "أخرى" في المخططات الكثيفة، (3) إضافة مؤشرات إحصائية جديدة مع إمكانية تحميل جميع البيانات.
+## Problem
+When selecting a region or city filter, data appears filtered for a moment then reverts to unfiltered results. This is caused by a **race condition** between queries.
 
----
+## Root Cause
+Several queries (donations, escrow, contracts, donor analytics, insights) depend on `regionProjectIds` - a separate query that fetches project IDs for the selected region/city. When filters change:
 
-## 1. إضافة فلتر المدن (ReportFilters)
+1. ALL queries refetch simultaneously
+2. `regionProjectIds` hasn't resolved yet, so dependent queries see `undefined` and skip the filter
+3. They return unfiltered data
+4. When `regionProjectIds` resolves, dependent queries don't refetch because their `queryKey` didn't change
 
-### تعديل `ReportFilterValues`:
-- إضافة `cityId: string | null` للواجهة
-- تحديث `getDefaultFilters()` بإضافة `cityId: null`
+## Solution
 
-### تعديل `SavedFilter`:
-- إضافة `cityId` للفلاتر المحفوظة
+### File: `src/pages/admin/AdminReports.tsx`
 
-### إضافة عنصر اختيار المدينة:
-- استخدام `useCities(filters.regionId)` لجلب المدن حسب المنطقة المختارة
-- Select جديد بعد فلتر المنطقة مباشرة
-- عند تغيير المنطقة، يتم مسح المدينة المختارة تلقائياً
-- عرض "كل المدن" كخيار افتراضي
+**Change 1: Add `regionProjectIds` to queryKeys of all dependent queries**
 
----
+Add `regionProjectIds` to the queryKey array of these queries so they automatically refetch when the project IDs resolve:
+- `monthlyDonations` (line 147)
+- `monthlyEscrow` (line 208)
+- `donorAnalytics` (line 244)
+- `insights` (line 288)
 
-## 2. تطبيق فلتر المدينة على الاستعلامات (AdminReports.tsx)
-
-### منطق الفلترة:
-- المشاريع: إضافة `.eq("city_id", cityId)` عند وجود مدينة
-- الخدمات: إضافة `.eq("city_id", cityId)` عند وجود مدينة
-- `regionProjectIds`: إضافة فلتر المدينة عند جلب مشاريع المنطقة
-- تمرير `cityId` لـ queryKey في جميع الاستعلامات المتأثرة
-
----
-
-## 3. نظام أعلى 5 + "أخرى" للمخططات الكثيفة
-
-### دالة مساعدة `topNWithOthers(data, n=5)`:
-- ترتيب البيانات تنازلياً حسب `value`
-- أخذ أعلى 5 عناصر
-- تجميع الباقي تحت عنصر "أخرى"
-- تطبيقها على: الخدمات حسب التصنيف، الطلبات حسب المنطقة، المنح حسب المشروع، مساهمات المانحين
-
----
-
-## 4. مؤشرات إحصائية جديدة (Summary Stats)
-
-### استعلام جديد `useReportInsights`:
-يجلب بيانات إضافية مع مراعاة الفلاتر (التاريخ، المنطقة، المدينة):
-
-| المؤشر | المصدر |
-|---|---|
-| عدد الخدمات | `micro_services` (count) |
-| المشاريع المكتملة | `projects` where status=completed |
-| إجمالي العقود | `contracts` (count) |
-| إجمالي الضمانات المحتجزة | `escrow_transactions` where status=held (sum) |
-| عدد المانحين النشطين | `donor_contributions` (distinct donor_id) |
-| عدد تذاكر الدعم | `support_tickets` (count) |
-
-### عرض الإحصائيات:
-- توسيع شبكة البطاقات من 4 إلى صفين (4+4 أو responsive grid)
-- كل بطاقة بأيقونة ملونة ووصف
-- تصميم متوافق مع البطاقات الحالية
-
----
-
-## 5. تحميل جميع البيانات (تقرير شامل)
-
-### زر "تحميل التقرير الشامل":
-- إضافة خيار "تصدير التقرير الشامل CSV" في قائمة CSV الحالية
-- يُصدّر ملف واحد يحتوي على جميع الإحصائيات والمؤشرات
-- يراعي الفلاتر المطبقة (التاريخ، المنطقة، المدينة)
-
-### تحديث PDF Export:
-- إضافة المؤشرات الجديدة لتقرير PDF
-- إضافة معلومات الفلتر (المدينة) في ترويسة التقرير
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|---|---|
-| `src/components/admin/ReportFilters.tsx` | إضافة فلتر المدينة + تحديث الواجهات |
-| `src/pages/admin/AdminReports.tsx` | فلتر المدينة في الاستعلامات + مؤشرات جديدة + topN + تقرير شامل |
-
-لا حاجة لتغييرات في قاعدة البيانات.
-
----
-
-## التصميم المتوقع للمؤشرات الموسعة
-
-```text
-+----------+----------+----------+----------+
-| المستخدمين | طلبات     | الشكاوى   | الإيرادات |
-| 74        | الجمعيات  | المفتوحة  | 1,740     |
-|           | 8         | 1         | ر.س      |
-+----------+----------+----------+----------+
-| الخدمات  | المشاريع  | العقود    | الضمانات  |
-| المعتمدة | المكتملة  | الموقعة  | المحتجزة  |
-| 12       | 3         | 5         | 500 ر.س  |
-+----------+----------+----------+----------+
+For example, change:
+```typescript
+queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId]
+```
+to:
+```typescript
+queryKey: ["admin-report-donations", dateFrom, dateTo, regionId, cityId, regionProjectIds]
 ```
 
-## تصميم فلتر المدينة
+**Change 2: Disable dependent queries while `regionProjectIds` is loading**
 
-```text
-[فلتر] [من: تاريخ] إلى [إلى: تاريخ] [المنطقة v] [المدينة v] [آخر شهر] ...
+Add `enabled` condition to prevent queries from executing with stale data when a region/city filter is active but project IDs haven't loaded yet:
+
+```typescript
+enabled: !(regionId || cityId) || regionProjectIds !== undefined,
 ```
 
-- المدينة معطّلة إذا لم يتم اختيار منطقة
-- تُمسح تلقائياً عند تغيير المنطقة
+This means: run the query if no region filter is active, OR if region filter is active AND project IDs are loaded.
+
+Apply this to: `monthlyDonations`, `monthlyEscrow`, `donorAnalytics`, and `insights`.
+
+### Queries Affected (4 queries)
+| Query | Line | Fix |
+|---|---|---|
+| `monthlyDonations` | 147 | Add to queryKey + enabled |
+| `monthlyEscrow` | 208 | Add to queryKey + enabled |
+| `donorAnalytics` | 244 | Add to queryKey + enabled |
+| `insights` | 288 | Add to queryKey + enabled |
+
+### Queries NOT affected (already filter directly, no dependency on regionProjectIds)
+- `projectsByStatus` - filters by `region_id`/`city_id` directly
+- `servicesByCategory` - filters by `region_id`/`city_id` directly
+- `serviceApprovalStats` - filters by `region_id`/`city_id` directly
+- `usersByRole` - not region-dependent
+- `projectsByRegion` - not region-filtered
+- `hourlyRateData` - not region-dependent
 
