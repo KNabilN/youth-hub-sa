@@ -60,7 +60,7 @@ export default function AdminServices() {
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
       const q = search.toLowerCase();
-      if (!s.title.toLowerCase().includes(q) && !(s.service_number || "").toLowerCase().includes(q)) return false;
+      if (!s.title.toLowerCase().includes(q) && !(s.service_number || "").toLowerCase().includes(q) && !(s.profiles?.full_name || "").toLowerCase().includes(q)) return false;
     }
     if (approvalFilter !== "all" && s.approval !== approvalFilter) return false;
     return true;
@@ -85,7 +85,7 @@ export default function AdminServices() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
-            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+            <Input placeholder="بحث بالعنوان أو مقدم الخدمة..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-56" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
