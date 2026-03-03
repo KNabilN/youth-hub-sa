@@ -359,48 +359,84 @@ export default function AdminFinance() {
                 onClick={() => {
                   toast.info("جارٍ تصدير طلبات السحب...");
                   downloadCSV("withdrawals.csv",
-                    ["المبلغ", "الحالة", "التاريخ"],
-                    (withdrawals ?? []).map((w: any) => [
-                      String(w.amount), wStatusLabels[w.status] || w.status, w.created_at?.slice(0, 10) || "",
+                    ["#", "مقدم الخدمة", "المبلغ", "البنك", "IBAN", "الحالة", "التاريخ"],
+                    (withdrawals ?? []).map((w: any, i: number) => [
+                      String(i + 1),
+                      (w as any).profiles?.full_name || (w as any).profiles?.organization_name || "",
+                      String(w.amount),
+                      (w as any).profiles?.bank_name || "",
+                      (w as any).profiles?.bank_iban || "",
+                      wStatusLabels[w.status] || w.status,
+                      w.created_at?.slice(0, 10) || "",
                     ])
                   );
                 }}
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
+              <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{(withdrawals ?? []).length} طلب</span>
             </div>
             {loadingW ? (
               <div className="border rounded-lg p-4 space-y-3">
                 {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
             ) : (
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>إجراءات</TableHead>
                       <TableHead>التاريخ</TableHead>
                       <TableHead>الحالة</TableHead>
+                      <TableHead>البيانات البنكية</TableHead>
                       <TableHead>المبلغ</TableHead>
+                      <TableHead>مقدم الخدمة</TableHead>
+                      <TableHead className="w-12">#</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(withdrawals ?? []).map((w: any) => (
-                      <TableRow key={w.id}>
-                        <TableCell>
-                          {w.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleWithdrawal(w.id, "approved")}>موافقة</Button>
-                              <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(w.id, "rejected")}>رفض</Button>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                        <TableCell><Badge variant="outline">{wStatusLabels[w.status] ?? w.status}</Badge></TableCell>
-                        <TableCell className="font-medium">{Number(w.amount).toLocaleString()} ر.س</TableCell>
-                      </TableRow>
-                    ))}
-                    {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
+                    {(withdrawals ?? []).map((w: any, idx: number) => {
+                      const profile = (w as any).profiles;
+                      const providerName = profile?.full_name || profile?.organization_name || "—";
+                      const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
+                      return (
+                        <TableRow key={w.id}>
+                          <TableCell>
+                            {w.status === "pending" ? (
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handleWithdrawal(w.id, "approved")} disabled={updateW.isPending}>
+                                  <CheckCircle className="h-3.5 w-3.5 me-1" />موافقة
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(w.id, "rejected")} disabled={updateW.isPending}>
+                                  <XCircle className="h-3.5 w-3.5 me-1" />رفض
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                {w.processed_at ? format(new Date(w.processed_at), "yyyy/MM/dd", { locale: ar }) : "—"}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                          <TableCell><Badge className={statusColor}>{wStatusLabels[w.status] ?? w.status}</Badge></TableCell>
+                          <TableCell>
+                            {profile?.bank_name ? (
+                              <div className="text-xs space-y-0.5">
+                                <p className="font-medium">{profile.bank_name}</p>
+                                {profile.bank_iban && <p className="text-muted-foreground font-mono text-[11px] truncate max-w-[180px]" title={profile.bank_iban}>{profile.bank_iban}</p>}
+                                {profile.bank_account_holder && <p className="text-muted-foreground">{profile.bank_account_holder}</p>}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">لم يُحدد</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-semibold text-base">{Number(w.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-medium">{providerName}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground">{idx + 1}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
