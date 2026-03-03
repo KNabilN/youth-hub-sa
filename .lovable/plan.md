@@ -1,46 +1,81 @@
 
 
-## Test Results: Main User Flows
+# خطة شاملة: دورة المانح الكاملة
 
-### Tested Flows & Results
+## تحليل الوضع الحالي
 
-| Flow | Status | Notes |
-|------|--------|-------|
-| Landing page | ✓ Working | Hero, stats, navigation all render correctly |
-| Login modal | ✓ Working | Opens from header, fields render, forgot password link present |
-| Registration form | ✓ Working | Role selection (3 roles), phone with +966, PDPL consent, email/password |
-| Forgot password | ✓ Working | Dedicated page renders with email input and back-to-login link |
-| Dashboard | ✓ Working | Stats cards, journey board, profile completion banner, pending ratings alert |
-| Marketplace | ✓ Working | Services grid with search, filters (category, region, price range, type), pagination |
-| Available projects | ✓ Working | Project cards with budget, hours, skills, category/region filters |
-| Contracts page | ✓ Working | Contract list with signature status, filter by signing state |
-| My Services | ✓ Working | Service management with approve/suspend status badges |
-| Mobile responsiveness | ✓ Working | Tested at 390x844 - layout adapts properly, sidebar collapses |
+بعد مراجعة الكود بالتفصيل، الدورة الحالية للمانح بها ثغرات جوهرية:
 
-### Console Warnings Found
+### ما يعمل حالياً:
+- المانح يتصفح سوق الخدمات ويضيف للسلة
+- Checkout يدعم الدفع الإلكتروني والتحويل البنكي
+- `usePurchaseService` ينشئ escrow (donor=payer, provider=payee) + donor_contribution
+- صفحة المنح تسمح بتقديم منحة لمشروع أو خدمة
+- تقارير الأثر تعرض إحصائيات
 
-1. **React ref warning on `Index` page**: "Function components cannot be given refs" — this is a non-breaking React dev warning from the `App` component passing a ref to the `Index` page component. Cosmetic only, no functional impact.
+### الثغرات الحرجة:
 
-### No Issues Found
+1. **لا يوجد ربط بالجمعية عند الشراء** — عندما يشتري المانح خدمة من مقدم خدمة، لا يحدد أي جمعية ستستفيد منها. الخدمة تُشترى "في الفراغ".
 
-All tested flows are **functional and complete**:
-- Database queries return data correctly
-- UI/UX is consistent across pages (RTL layout, green theme, consistent card styles)
-- Sidebar navigation works on all pages
-- Profile completion banner shows on all dashboard pages
-- Notification badge (8) displays correctly
-- Filters and search work on marketplace and available projects
+2. **لا يُنشأ مشروع/طلب** — بعد الشراء لا يتم إنشاء مشروع يربط الجمعية بمقدم الخدمة، مما يعني لا عقد ولا تسليمات ولا إتمام.
 
-### Flows Not Testable Without Manual Login
+3. **لا توجد صفحة "مشترياتي"** — المانح لا يستطيع تتبع حالة الخدمات المشتراة بعد الدفع.
 
-The following flows require actual user credentials to test end-to-end (cannot be automated without the user logging in first):
-- Creating a new project (requires association role)
-- Submitting a bid (requires provider role on an open project)
-- Signing a contract
-- Submitting deliverables
-- Completing a project
+4. **الجمعية لا ترى الخدمات الممولة لها** — لا إشعار ولا واجهة تُظهر للجمعية أن مانحاً اشترى لها خدمة.
 
-### Recommendation
+5. **المنح المباشرة غير مفعّلة** — صفحة المنح تنشئ `donor_contribution` فقط بدون أي أثر فعلي على المشروع.
 
-The platform is in good working condition. The only minor issue is the React ref warning which can be fixed by wrapping the `Index` page component with `React.forwardRef`, but this is purely cosmetic and has zero user impact.
+---
+
+## خطة التنفيذ
+
+### 1. إضافة حقل `beneficiary_association_id` في جدول `escrow_transactions`
+- Migration لإضافة عمود `beneficiary_id` (uuid, nullable) يشير للجمعية المستفيدة
+- يُستخدم فقط عند شراء المانح خدمة لجمعية
+
+### 2. تعديل صفحة Checkout لاختيار الجمعية
+- عند الدفع، يظهر للمانح قائمة منسدلة لاختيار الجمعية المستفيدة من كل خدمة
+- يُحمّل قائمة الجمعيات الموثقة (`is_verified = true`)
+
+### 3. إنشاء مشروع تلقائي بعد الشراء
+- تعديل `usePurchaseService` ليُنشئ مشروع (`projects`) تلقائياً:
+  - `association_id` = الجمعية المختارة
+  - `assigned_provider_id` = مقدم الخدمة
+  - `status` = `in_progress`
+  - `title` = عنوان الخدمة
+  - `budget` = سعر الخدمة
+- ربط الـ escrow بالمشروع المُنشأ (`project_id`)
+
+### 4. إنشاء صفحة "مشترياتي" للمانح
+- صفحة جديدة `src/pages/DonorPurchases.tsx`
+- تعرض جميع الخدمات المشتراة مع:
+  - اسم الخدمة ومقدمها
+  - الجمعية المستفيدة
+  - حالة المشروع (قيد التنفيذ / مكتمل)
+  - حالة الضمان المالي
+- إضافتها في القائمة الجانبية للمانح
+
+### 5. إشعار الجمعية بالخدمة الممولة
+- عند إنشاء المشروع التلقائي، يُرسل إشعار للجمعية: "قام مانح بتمويل خدمة [اسم الخدمة] لصالحكم"
+- الجمعية ترى المشروع في قائمة طلباتها وتتابع دورة التسليم العادية
+
+### 6. تحسين صفحة المنح المباشرة
+- عند تقديم منحة لمشروع مفتوح، تحديث `donation_status` إلى `reserved`
+- إشعار الجمعية صاحبة المشروع بالمنحة
+
+---
+
+## الملفات المتأثرة
+
+| ملف | التغيير |
+|------|---------|
+| Migration جديد | إضافة `beneficiary_id` لـ `escrow_transactions` |
+| `src/pages/Checkout.tsx` | إضافة اختيار الجمعية المستفيدة |
+| `src/hooks/usePurchaseService.ts` | إنشاء مشروع تلقائي + ربط beneficiary |
+| `src/pages/DonorPurchases.tsx` | صفحة جديدة لتتبع المشتريات |
+| `src/hooks/useDonorPurchases.ts` | Hook جديد لجلب مشتريات المانح |
+| `src/components/AppSidebar.tsx` | إضافة "مشترياتي" في قائمة المانح |
+| `src/hooks/useBankTransfer.ts` | تمرير beneficiary_id |
+| `src/App.tsx` | إضافة Route جديد |
+| `src/pages/Donations.tsx` | تحسين تدفق المنح المباشرة |
 
