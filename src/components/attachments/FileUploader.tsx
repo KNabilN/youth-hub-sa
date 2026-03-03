@@ -51,14 +51,14 @@ export function FileUploader({ entityType, entityId }: FileUploaderProps) {
         <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
         <p className="text-sm font-medium">اسحب الملفات وأفلتها هنا</p>
         <p className="text-xs text-muted-foreground mt-1">
-          أو اضغط لاختيار ملف (PDF, صور, Word, Excel — حتى 10 MB)
+          أو اضغط لاختيار ملف (PDF, صور, Word, Excel, أرشيف — حتى 10 MB)
         </p>
         <input
           ref={inputRef}
           type="file"
           className="hidden"
           multiple
-          accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.rar,.zip,.7z"
           onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
