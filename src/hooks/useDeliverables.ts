@@ -15,22 +15,30 @@ export interface Deliverable {
   updated_at: string;
 }
 
-export function useDeliverable(projectId: string | undefined) {
+/** Fetch ALL deliverable records for a project, newest first */
+export function useDeliverables(projectId: string | undefined) {
   return useQuery({
-    queryKey: ["deliverable", projectId],
+    queryKey: ["deliverables", projectId],
     enabled: !!projectId,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("project_deliverables")
         .select("*")
         .eq("project_id", projectId!)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Deliverable | null;
+      return (data ?? []) as Deliverable[];
     },
   });
+}
+
+/** Backward-compat: fetch only the latest deliverable */
+export function useDeliverable(projectId: string | undefined) {
+  const query = useDeliverables(projectId);
+  return {
+    ...query,
+    data: query.data?.[0] ?? null,
+  };
 }
 
 export function useSubmitDeliverable() {
@@ -41,41 +49,19 @@ export function useSubmitDeliverable() {
     mutationFn: async ({ projectId, notes }: { projectId: string; notes: string }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
 
-      // Check if there's an existing deliverable to update
-      const { data: existing } = await (supabase as any)
+      // Always insert a new row — each submission is a new version
+      const { error } = await (supabase as any)
         .from("project_deliverables")
-        .select("id")
-        .eq("project_id", projectId)
-        .eq("provider_id", user.id)
-        .maybeSingle();
-
-      if (existing) {
-        // Re-submit after revision
-        const { error } = await (supabase as any)
-          .from("project_deliverables")
-          .update({
-            status: "pending_review",
-            notes,
-            revision_note: "",
-            reviewed_at: null,
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await (supabase as any)
-          .from("project_deliverables")
-          .insert({
-            project_id: projectId,
-            provider_id: user.id,
-            notes,
-            status: "pending_review",
-          } as any);
-        if (error) throw error;
-      }
+        .insert({
+          project_id: projectId,
+          provider_id: user.id,
+          notes,
+          status: "pending_review",
+        } as any);
+      if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["deliverable", variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success("تم تقديم التسليمات للمراجعة");
     },
     onError: (err: Error) => {
@@ -111,7 +97,7 @@ export function useReviewDeliverable() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["deliverable", variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success(variables.action === "accepted" ? "تم قبول التسليمات" : "تم طلب التعديلات");
     },
     onError: () => {
