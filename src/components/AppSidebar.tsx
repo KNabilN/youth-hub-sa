@@ -8,8 +8,12 @@ import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useUnreadCount } from "@/hooks/useNotifications";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader,
@@ -84,6 +88,34 @@ export function AppSidebar() {
   const items = role ? menuByRole[role] : [];
   const isNonAdmin = role && role !== "super_admin";
 
+  // Unread notifications count
+  const { data: unreadCount } = useUnreadCount();
+
+  // In-progress tickets count (admin sees all, non-admin sees own)
+  const { data: activeTicketsCount } = useQuery({
+    queryKey: ["sidebar-active-tickets", user?.id, role],
+    queryFn: async () => {
+      let q = supabase
+        .from("support_tickets")
+        .select("id", { count: "exact", head: true })
+        .is("deleted_at", null)
+        .in("status", ["open", "in_progress"]);
+      if (role !== "super_admin") {
+        q = q.eq("user_id", user!.id);
+      }
+      const { count, error } = await q;
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!user,
+  });
+
+  const getBadge = (url: string) => {
+    if ((url === "/admin/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
+    if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
+    return 0;
+  };
+
   return (
     <Sidebar side="right">
       {/* User Profile Header */}
@@ -126,7 +158,12 @@ export function AppSidebar() {
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                         <item.icon className="h-[17px] w-[17px]" />
                       </div>
-                      <span className="text-sm">{item.title}</span>
+                      <span className="text-sm flex-1">{item.title}</span>
+                      {getBadge(item.url) > 0 && (
+                        <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">
+                          {getBadge(item.url)}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -158,7 +195,12 @@ export function AppSidebar() {
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/30 group-hover:bg-sidebar-accent/60 transition-colors">
                         <MessageSquare className="h-[17px] w-[17px]" />
                       </div>
-                      <span className="text-sm">تذاكر الدعم</span>
+                      <span className="text-sm flex-1">تذاكر الدعم</span>
+                      {(activeTicketsCount ?? 0) > 0 && (
+                        <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">
+                          {activeTicketsCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
