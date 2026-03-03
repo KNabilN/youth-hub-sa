@@ -64,13 +64,15 @@ export default function Checkout() {
     try {
       if (paymentMethod === "electronic") {
         for (const item of items) {
+          const itemAmount = item.micro_services.price * item.quantity;
           await purchase.mutateAsync({
             serviceId: item.micro_services.id,
             providerId: item.micro_services.provider_id,
             buyerId: user.id,
-            amount: item.micro_services.price,
+            amount: itemAmount,
             beneficiaryId: selectedAssociation || undefined,
             serviceTitle: item.micro_services.title,
+            hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
           });
         }
         await clearCart.mutateAsync();
@@ -89,8 +91,9 @@ export default function Checkout() {
           items: items.map((item) => ({
             serviceId: item.micro_services.id,
             providerId: item.micro_services.provider_id,
-            price: item.micro_services.price,
+            price: item.micro_services.price * item.quantity,
             title: item.micro_services.title,
+            hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
           })),
         });
         await clearCart.mutateAsync();
@@ -164,10 +167,15 @@ export default function Checkout() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{item.micro_services.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.micro_services.profiles?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.micro_services.profiles?.full_name}
+                        {item.micro_services.service_type === "hourly" && (
+                          <span className="ms-1">• {item.quantity} ساعة × {item.micro_services.price.toLocaleString()} ر.س</span>
+                        )}
+                      </p>
                     </div>
                     <span className="font-bold text-sm">
-                      {item.micro_services.price.toLocaleString()} ر.س
+                      {(item.micro_services.price * item.quantity).toLocaleString()} ر.س
                     </span>
                   </div>
                 ))}

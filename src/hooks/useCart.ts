@@ -68,6 +68,20 @@ export function useRemoveFromCart() {
   });
 }
 
+export function useUpdateCartQuantity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) => {
+      const { error } = await supabase
+        .from("cart_items")
+        .update({ quantity })
+        .eq("id", cartItemId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
+  });
+}
+
 export function useClearCart() {
   const qc = useQueryClient();
   const { user } = useAuth();
