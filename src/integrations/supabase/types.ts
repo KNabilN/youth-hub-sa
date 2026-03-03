@@ -1089,6 +1089,10 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_iban: string | null
+          bank_name: string | null
           bio: string | null
           contact_officer_email: string | null
           contact_officer_name: string | null
@@ -1115,6 +1119,10 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           bio?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null
@@ -1141,6 +1149,10 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           bio?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null

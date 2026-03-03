@@ -11,6 +11,7 @@ import { Menu, Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, role } = useAuth();
@@ -127,6 +128,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </Avatar>
             </button>
           </header>
+          <ProfileCompletionBanner />
           <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
             {children}
           </main>
