@@ -19,7 +19,10 @@ const featureIcons: Record<string, React.ComponentType<{ className?: string }>> 
 
 const featureColors = [
   { color: "from-primary/20 to-primary/5", iconBg: "bg-primary/15 text-primary" },
-  { color: "from-[hsl(var(--info))]/20 to-[hsl(var(--info))]/5", iconBg: "bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]" },
+  {
+    color: "from-[hsl(var(--info))]/20 to-[hsl(var(--info))]/5",
+    iconBg: "bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]",
+  },
   { color: "from-accent/20 to-accent/5", iconBg: "bg-accent/15 text-accent-foreground" },
 ];
 
@@ -27,10 +30,23 @@ export default function Index() {
   const { data: hero } = useSiteContent("hero");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
-  const { stats, statsLoading, services, servicesLoading, projects: featuredProjects, projectsLoading } = useLandingStats();
+  const {
+    stats,
+    statsLoading,
+    services,
+    servicesLoading,
+    projects: featuredProjects,
+    projectsLoading,
+  } = useLandingStats();
   const { data: cta } = useSiteContent("cta");
 
-  const h = hero || { badge: "🚀 المنصة الأولى لتمكين الجمعيات الشبابية في المملكة", title: "كل ماتحتاجه في مكان واحد", subtitle: "للجمعيات الشبابية", description: "ازدهر في منظومة مزوّدي الخدمة، حيث التميّز والفرص بلا حدود", cta_text: "ابدأ الآن" };
+  const h = hero || {
+    badge: "المنصة الأولى لتمكين الجمعيات الشبابية في المملكة",
+    title: "كل ماتحتاجه في مكان واحد",
+    subtitle: "للجمعيات الشبابية",
+    description: "ازدهر في منظومة مزوّدي الخدمة، حيث التميّز والفرص بلا حدود",
+    cta_text: "ابدأ الآن",
+  };
   const feat = features || { title: "", subtitle: "", items: [] };
   const tr = trust || { badge: "", title: "", items: [] };
   const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
@@ -56,12 +72,19 @@ export default function Index() {
             <span className="text-white/90">{h.subtitle}</span>
           </h1>
           {h.description && (
-            <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1" style={{ animationFillMode: "both" }}>
+            <p
+              className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1"
+              style={{ animationFillMode: "both" }}
+            >
               {h.description}
             </p>
           )}
           <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold" onClick={() => window.location.href = '/auth'}>
+            <Button
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
+              onClick={() => (window.location.href = "/auth")}
+            >
               {h.cta_text}
               <ArrowLeft className="me-2 h-4 w-4" />
             </Button>
@@ -75,7 +98,7 @@ export default function Index() {
       {/* 3. المميزات */}
       {feat.items?.length > 0 && (
         <section className="py-20 px-4 bg-pattern">
-            <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-7xl">
             <div className="text-center mb-14">
               <h2 className="text-3xl font-bold mb-3">{feat.title}</h2>
               <p className="text-muted-foreground">{feat.subtitle}</p>
@@ -85,7 +108,10 @@ export default function Index() {
                 const Icon = featureIcons[f.icon] || Users;
                 const colors = featureColors[idx % featureColors.length];
                 return (
-                  <div key={f.title} className="bg-muted/40 rounded-2xl p-10 min-h-[280px] border border-border/50 space-y-5 card-hover flex flex-col items-center text-center justify-center">
+                  <div
+                    key={f.title}
+                    className="bg-muted/40 rounded-2xl p-10 min-h-[280px] border border-border/50 space-y-5 card-hover flex flex-col items-center text-center justify-center"
+                  >
                     <div className={`w-20 h-20 ${colors.iconBg} rounded-full flex items-center justify-center`}>
                       <Icon className="w-9 h-9" />
                     </div>
@@ -120,7 +146,10 @@ export default function Index() {
             </div>
             <div className="grid sm:grid-cols-2 gap-4 text-start">
               {tr.items.map((item: string) => (
-                <div key={item} className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover">
+                <div
+                  key={item}
+                  className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover"
+                >
                   <div className="mt-0.5 shrink-0 w-6 h-6 bg-[hsl(var(--success))]/15 rounded-full flex items-center justify-center">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--success))]" />
                   </div>
@@ -148,13 +177,21 @@ export default function Index() {
                 انضم إلى المنصة وابدأ في تحقيق أهدافك مع شبكة واسعة من الشركاء
               </p>
             </div>
-            
+
             <div className="shrink-0 flex flex-col items-center gap-3">
-              <Button size="lg" className="bg-white text-[#2381C0] hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold" onClick={() => window.location.href = '/auth'}>
+              <Button
+                size="lg"
+                className="bg-white text-[#2381C0] hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
+                onClick={() => (window.location.href = "/auth")}
+              >
                 سجّل مجاناً
                 <ArrowLeft className="me-2 h-5 w-5" />
               </Button>
-              <p className="text-white/70 text-xs text-center">جرّبه بدون مخاطر – ضمان استرجاع<br/>الأموال خلال 14 يومًا!</p>
+              <p className="text-white/70 text-xs text-center">
+                جرّبه بدون مخاطر – ضمان استرجاع
+                <br />
+                الأموال خلال 14 يومًا!
+              </p>
             </div>
           </div>
         </div>
@@ -164,7 +201,9 @@ export default function Index() {
       <section className="bg-muted/30 py-16 px-4 text-center">
         <div className="container mx-auto max-w-5xl space-y-3">
           <h2 className="text-3xl font-bold text-foreground">نحن هنا لمساعدتك</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية
+          </p>
         </div>
       </section>
       <section className="py-16 px-4 bg-muted/30">
