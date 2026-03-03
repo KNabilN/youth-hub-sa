@@ -16,8 +16,16 @@ const donationSchema = z.object({
 
 type DonationFormValues = z.infer<typeof donationSchema>;
 
+export interface DonationFormData {
+  amount: number;
+  target_type: "project" | "service";
+  target_id: string;
+  target_title: string;
+  provider_id?: string;
+}
+
 interface DonationFormProps {
-  onSubmit: (values: { amount: number; project_id?: string; service_id?: string }) => void;
+  onSubmit: (values: DonationFormData) => void;
   isLoading?: boolean;
 }
 
@@ -34,7 +42,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title")
+        .select("id, title, association_id")
         .eq("status", "open")
         .eq("is_private", false);
       if (error) throw error;
@@ -47,7 +55,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title")
+        .select("id, title, provider_id, price")
         .eq("approval", "approved");
       if (error) throw error;
       return data;
@@ -57,11 +65,14 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
   const items = targetType === "project" ? projects : services;
 
   const handleSubmit = (values: DonationFormValues) => {
+    const selectedItem = items?.find((i) => i.id === values.target_id);
     onSubmit({
       amount: values.amount,
-      ...(values.target_type === "project" ? { project_id: values.target_id } : { service_id: values.target_id }),
+      target_type: values.target_type,
+      target_id: values.target_id,
+      target_title: selectedItem?.title || "",
+      provider_id: values.target_type === "service" ? (selectedItem as any)?.provider_id : undefined,
     });
-    form.reset();
   };
 
   return (
@@ -101,7 +112,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
             <FormMessage />
           </FormItem>
         )} />
-        <Button type="submit" disabled={isLoading}>{isLoading ? "جاري تقديم المنحة..." : "قدّم المنحة"}</Button>
+        <Button type="submit" disabled={isLoading}>{isLoading ? "جاري التحضير..." : "متابعة للدفع"}</Button>
       </form>
     </Form>
   );
