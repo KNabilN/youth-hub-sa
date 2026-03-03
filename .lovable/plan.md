@@ -1,18 +1,29 @@
 
 
-## Plan: Add Provider Name to Admin Services Search
+## Plan: Toggle Association Name Visibility (Admin)
 
-### Change
-In `src/pages/admin/AdminServices.tsx`, update the search filter to also match against the provider's full name (`s.profiles?.full_name`).
+### What
+Add a toggle (Switch) per row in the admin projects table that lets the admin show or hide the association's name. This requires a new `is_name_visible` boolean column on the `profiles` table, defaulting to `true`.
 
-### File: `src/pages/admin/AdminServices.tsx`
-- In the `filtered` logic (~line 68), add `s.profiles?.full_name` to the search condition:
-  ```
-  if (!s.title.toLowerCase().includes(q) 
-      && !(s.service_number || "").toLowerCase().includes(q)
-      && !(s.profiles?.full_name || "").toLowerCase().includes(q)) return false;
-  ```
-- Update the search input placeholder to indicate provider search is supported (e.g., "بحث بالعنوان أو مقدم الخدمة...")
+### Database Change
+Add column `is_name_visible` (boolean, default `true`, not null) to `profiles` table via migration.
 
-One file, two-line change.
+### Files to Modify
+
+1. **`src/pages/admin/AdminProjects.tsx`**
+   - Import `Switch` component
+   - Add a new column header "إظهار الاسم" in the table
+   - Add a `Switch` per row, checked based on the association profile's `is_name_visible` value
+   - On toggle, call a mutation to update `profiles.is_name_visible` for the association
+
+2. **`src/hooks/useAdminProjects.ts`**
+   - Update the select query to include `profiles!projects_association_id_fkey(full_name, is_name_visible)`
+   - Add a new mutation `useToggleAssociationVisibility` that updates `profiles.is_name_visible`
+
+3. **Public-facing pages** (e.g., `ProjectPublicView`, `Associations`, landing page) — where association names appear, conditionally hide based on `is_name_visible`.
+
+### UI
+- The Switch appears in a new "إظهار الاسم" column between "الجمعية" and "التصنيف"
+- Toggling instantly updates the profile and shows a success toast
+- `colSpan` updated from 8 to 9
 
