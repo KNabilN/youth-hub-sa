@@ -131,8 +131,14 @@ export default function ProjectDetails() {
         return;
       }
 
-      // 0b. Verify deliverable is accepted
-      if (!deliverable || deliverable.status !== "accepted") {
+      // 0b. Verify at least one deliverable is accepted
+      const { data: allDeliverables } = await supabase
+        .from("project_deliverables")
+        .select("status")
+        .eq("project_id", id!)
+        .eq("status", "accepted")
+        .limit(1);
+      if (!allDeliverables?.length) {
         toast({ title: "لا يمكن إتمام الطلب قبل قبول التسليمات", variant: "destructive" });
         setCompleting(false);
         return;

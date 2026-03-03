@@ -42,6 +42,7 @@ export default function Marketplace() {
         .from("micro_services")
         .select("*, categories(*), regions(*), cities(*), profiles:provider_id(full_name)")
         .eq("approval", "approved")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .range(pagination.from, pagination.to);
       if (category !== "all") query = query.eq("category_id", category);

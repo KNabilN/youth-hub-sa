@@ -253,9 +253,9 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
 
       {isLogin && (
         <div className="text-center">
-          <a href="/forgot-password" className="text-sm text-primary hover:underline">
+          <Link to="/forgot-password" className="text-sm text-primary hover:underline">
             نسيت كلمة المرور؟
-          </a>
+          </Link>
         </div>
       )}
 

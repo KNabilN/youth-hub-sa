@@ -8,19 +8,15 @@ export function useMyDisputes() {
     queryKey: ["my-disputes", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      // RLS policy "Involved parties view disputes" already filters to only
+      // disputes where user is raised_by or involved via the project
       const { data, error } = await supabase
         .from("disputes")
         .select("*, projects(title, assigned_provider_id, association_id), profiles:raised_by(full_name)")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      // Filter client-side: disputes where user is raiser or assigned provider
-      return (data ?? []).filter(
-        (d: any) =>
-          d.raised_by === user!.id ||
-          d.projects?.assigned_provider_id === user!.id ||
-          d.projects?.association_id === user!.id
-      );
+      return data ?? [];
     },
   });
 }
