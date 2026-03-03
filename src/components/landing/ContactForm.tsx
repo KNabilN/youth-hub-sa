@@ -16,6 +16,8 @@ const contactSchema = z.object({
   message: z.string().trim().min(10, "الرسالة يجب أن تكون 10 أحرف على الأقل").max(1000),
 });
 
+const COOLDOWN_MS = 30_000;
+
 export function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,10 +25,18 @@ export function ContactForm() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+
+  const isCoolingDown = Date.now() < cooldownUntil;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    if (Date.now() < cooldownUntil) {
+      toast.error("يرجى الانتظار قبل إرسال رسالة أخرى");
+      return;
+    }
 
     const result = contactSchema.safeParse({ name, email, message });
     if (!result.success) {
@@ -47,6 +57,7 @@ export function ContactForm() {
       } as any);
       if (error) throw error;
       setSent(true);
+      setCooldownUntil(Date.now() + COOLDOWN_MS);
       setName("");
       setEmail("");
       setMessage("");
@@ -96,9 +107,9 @@ export function ContactForm() {
             <CharCounter current={message.length} max={1000} />
             {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={sending}>
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={sending || isCoolingDown}>
             <Mail className="h-4 w-4 me-2" />
-            {sending ? "جارٍ الإرسال..." : "إرسال الرسالة"}
+            {sending ? "جارٍ الإرسال..." : isCoolingDown ? "يرجى الانتظار..." : "إرسال الرسالة"}
           </Button>
         </form>
       </CardContent>

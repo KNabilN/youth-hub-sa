@@ -1623,6 +1623,8 @@ export type Database = {
     }
     Functions: {
       get_landing_stats: { Args: never; Returns: Json }
+      get_public_profile: { Args: { p_id: string }; Returns: Json }
+      get_public_project: { Args: { p_id: string }; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
