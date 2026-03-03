@@ -51,6 +51,7 @@ export default function Associations() {
                   organization_name={a.organization_name}
                   bio={a.bio}
                   is_verified={a.is_verified}
+                  avatar_url={a.avatar_url}
                 />
               </Link>
             ))}
