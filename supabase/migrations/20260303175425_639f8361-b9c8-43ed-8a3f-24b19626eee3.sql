@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN is_name_visible boolean NOT NULL DEFAULT true;
