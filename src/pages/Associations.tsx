@@ -11,19 +11,14 @@ export default function Associations() {
   const { data: associations, isLoading } = useQuery({
     queryKey: ["associations"],
     queryFn: async () => {
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "youth_association");
-      if (roleError) throw roleError;
-      if (!roleData?.length) return [];
+      const { data: ids, error: rpcError } = await supabase.rpc("get_verified_association_ids");
+      if (rpcError) throw rpcError;
+      if (!ids?.length) return [];
 
-      const userIds = roleData.map((r) => r.user_id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .in("id", userIds)
-        .eq("is_verified", true);
+        .in("id", ids);
       if (error) throw error;
       return data;
     },
