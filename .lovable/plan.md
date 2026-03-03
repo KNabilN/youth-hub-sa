@@ -1,43 +1,18 @@
 
 
-## Plan: Add Image Dimension Guidelines to All Upload Points
+## Plan: Add Provider Name to Admin Services Search
 
-### Problem
-Users upload images without knowing the recommended dimensions, resulting in unexpected cropping.
+### Change
+In `src/pages/admin/AdminServices.tsx`, update the search filter to also match against the provider's full name (`s.profiles?.full_name`).
 
-### Approach
-Add a small helper text (hint) below or near each image upload area showing the recommended dimensions. This will be done across all upload points in the system.
+### File: `src/pages/admin/AdminServices.tsx`
+- In the `filtered` logic (~line 68), add `s.profiles?.full_name` to the search condition:
+  ```
+  if (!s.title.toLowerCase().includes(q) 
+      && !(s.service_number || "").toLowerCase().includes(q)
+      && !(s.profiles?.full_name || "").toLowerCase().includes(q)) return false;
+  ```
+- Update the search input placeholder to indicate provider search is supported (e.g., "بحث بالعنوان أو مقدم الخدمة...")
 
-### Recommended Dimensions
-
-| Upload Point | Dimensions | Aspect Ratio |
-|---|---|---|
-| Profile Avatar | 200×200 px | 1:1 (مربع) |
-| Cover Image | 1200×400 px | 3:1 |
-| Company Logo (Donor) | 300×300 px | 1:1 (مربع) |
-| Service Main Image | 800×500 px | 16:10 |
-| Service Gallery | 800×500 px | 16:10 |
-| Portfolio Item | 800×450 px | 16:9 |
-
-### Files to Modify
-
-1. **`src/pages/Profile.tsx`** — Add dimension hints to:
-   - Cover image upload area (line ~265: "تغيير صورة الغلاف" → add "1200×400 بكسل")
-   - Avatar upload hover overlay (line ~286: add "200×200 بكسل")
-   - Company logo upload area (add "300×300 بكسل")
-
-2. **`src/components/services/ServiceForm.tsx`** — Add hints to:
-   - Main service image upload (line ~126: add "800×500 بكسل")
-   - Gallery images upload (line ~146: add hint)
-
-3. **`src/components/portfolio/PortfolioManager.tsx`** — Add hint near the image select button (line ~76: add "800×450 بكسل")
-
-4. **`src/components/admin/AdminDirectEditDialog.tsx`** — If admin uploads avatar/cover for users, add hints there too.
-
-5. **`src/components/attachments/FileUploader.tsx`** — This is for documents/files, not images specifically, so no dimension hint needed.
-
-### Implementation Details
-- Each hint will be a `<p className="text-xs text-muted-foreground">` element showing the recommended dimensions in Arabic
-- Format: `الأبعاد المُوصى بها: العرض × الارتفاع بكسل`
-- Non-intrusive, placed as helper text below the upload trigger
+One file, two-line change.
 
