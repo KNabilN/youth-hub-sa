@@ -162,17 +162,20 @@ export function AdminDirectEditDialog({
                     <AvatarFallback><User className="h-6 w-6" /></AvatarFallback>
                   </Avatar>
                   <div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={avatarUpload.isPending}
-                      className="gap-1.5"
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      {avatarUpload.isPending ? "جاري الرفع..." : "رفع صورة جديدة"}
-                    </Button>
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={avatarUpload.isPending}
+                        className="gap-1.5"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        {avatarUpload.isPending ? "جاري الرفع..." : "رفع صورة جديدة"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 200×200 بكسل</p>
+                    </div>
                     <input
                       ref={avatarInputRef}
                       type="file"
@@ -213,6 +216,7 @@ export function AdminDirectEditDialog({
                     <Upload className="h-3.5 w-3.5" />
                     {coverUpload.isPending ? "جاري الرفع..." : "رفع صورة غلاف جديدة"}
                   </Button>
+                  <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 1200×400 بكسل</p>
                   <input
                     ref={coverInputRef}
                     type="file"

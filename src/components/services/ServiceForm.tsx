@@ -124,6 +124,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
               <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
               <span className="text-sm text-muted-foreground">{uploading ? "جارٍ الرفع..." : "اضغط لرفع صورة"}</span>
+              <span className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 800×500 بكسل</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, false)} disabled={uploading} />
             </label>
           )}
@@ -131,7 +132,8 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
 
         {/* Gallery */}
         <div>
-          <label className="text-sm font-medium mb-2 block">معرض الصور (حتى 5 صور إضافية)</label>
+          <label className="text-sm font-medium mb-1 block">معرض الصور (حتى 5 صور إضافية)</label>
+          <p className="text-xs text-muted-foreground mb-2">الأبعاد المُوصى بها: 800×500 بكسل</p>
           <div className="flex gap-2 flex-wrap">
             {galleryUrls.map((url, i) => (
               <div key={i} className="relative w-24 h-20 rounded-md overflow-hidden border">
