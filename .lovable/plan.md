@@ -1,35 +1,24 @@
 
 
-## Plan: Enable Folder & File Upload for Deliverables
+## Fix: Allow .rar and archive file uploads
 
 ### Problem
-The current FileUploader only supports individual file selection with a restricted MIME type whitelist. Service providers need to upload entire project folders (source code, design assets, etc.) with their directory structure preserved.
+The `useAttachments.ts` hook still has the original strict MIME type whitelist that doesn't include archive formats (`.rar`, `.zip`, `.7z`). The previous plan to skip MIME validation for deliverables wasn't properly applied — line 65 still blocks any file not in `ALLOWED_TYPES`.
 
 ### Changes
 
-#### 1. Expand allowed file types in `useAttachments.ts`
-- Add compressed archives (`.zip`, `.rar`, `.7z`), code files (`.html`, `.css`, `.js`, `.ts`, `.json`, `.xml`, `.txt`, `.svg`, `.psd`, `.ai`, `.fig`), and a catch-all for deliverable entity type that skips MIME validation (since project files can be anything).
-- Increase max file size to 50MB for deliverable uploads specifically (project folders can be large).
-- Preserve `webkitRelativePath` in the `file_name` field so the folder structure is visible.
+#### `src/hooks/useAttachments.ts`
+1. Add archive MIME types to `ALLOWED_TYPES`:
+   - `application/x-rar-compressed` and `application/vnd.rar` (for .rar)
+   - `application/zip` and `application/x-zip-compressed` (for .zip)  
+   - `application/x-7z-compressed` (for .7z)
+   - `application/x-compressed` (catch-all)
+2. Also add common code/text types: `text/plain`, `text/html`, `text/css`, `application/javascript`, `application/json`, `image/svg+xml`
+3. For `deliverable` entity type, skip MIME validation entirely (project files can be anything)
+4. Accept the `entityType` parameter in the mutation to check if it's a deliverable before validating
+5. Increase size limit to 50MB for deliverable uploads
 
-#### 2. Update `FileUploader.tsx`
-- Add a second button "رفع مجلد" (Upload Folder) that opens a folder picker using `webkitdirectory` attribute.
-- Keep the existing drag-and-drop and file picker for individual files.
-- Show the relative path for folder-uploaded files.
-- Update the accept attribute and description text when used for deliverables.
-
-#### 3. Update `DeliverablePanel.tsx`
-- Pass a flag to `FileUploader` indicating it's a deliverable upload (to allow broader file types).
-- Improve UX: allow file upload alongside notes before submission (stage files first).
-
-#### 4. Update `AttachmentList.tsx`
-- Display `file_name` with folder path prefix when present (e.g., `src/components/App.tsx` instead of just `App.tsx`).
-
-### Files to modify
-| File | Change |
-|------|--------|
-| `src/hooks/useAttachments.ts` | Skip MIME filter for deliverables, increase size limit, preserve relative path |
-| `src/components/attachments/FileUploader.tsx` | Add folder upload button with `webkitdirectory`, update accept list |
-| `src/components/deliverables/DeliverablePanel.tsx` | Pass `isDeliverable` flag, allow upload before submit |
-| `src/components/attachments/AttachmentList.tsx` | Show folder path in file names |
+#### `src/components/attachments/FileUploader.tsx`
+- Update the `accept` attribute to include `.rar,.zip,.7z` extensions
+- Update the description text to mention archives
 
