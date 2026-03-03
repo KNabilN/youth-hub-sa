@@ -4,6 +4,7 @@ import ctaBg from "@/assets/cta-bg.jpg";
 import { useLandingStats } from "@/hooks/useLandingStats";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Zap, Globe, CheckCircle2, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
@@ -27,6 +28,7 @@ const featureColors = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
   const { data: hero } = useSiteContent("hero");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
@@ -83,7 +85,7 @@ export default function Index() {
             <Button
               size="lg"
               className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
-              onClick={() => (window.location.href = "/auth")}
+              onClick={() => navigate("/auth")}
             >
               {h.cta_text}
               <ArrowLeft className="me-2 h-4 w-4" />
@@ -182,7 +184,7 @@ export default function Index() {
               <Button
                 size="lg"
                 className="bg-white text-[#2381C0] hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
-                onClick={() => (window.location.href = "/auth")}
+                onClick={() => navigate("/auth")}
               >
                 سجّل مجاناً
                 <ArrowLeft className="me-2 h-5 w-5" />

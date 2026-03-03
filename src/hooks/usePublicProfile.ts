@@ -16,7 +16,7 @@ export function usePublicProfile(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, avatar_url, bio, cover_image_url, company_logo_url, organization_name, skills, qualifications, hourly_rate, is_verified, profile_views, license_number")
         .eq("id", id!)
         .single();
       if (error) throw error;
