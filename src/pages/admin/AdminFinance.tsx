@@ -39,6 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -71,6 +72,7 @@ export default function AdminFinance() {
   const rejectBT = useRejectBankTransfer();
   const { data: templateContent } = useSiteContent("invoice_template");
   const queryClient = useQueryClient();
+  const { data: pendingCounts } = useAdminFinancePending();
   const [escrowFilter, setEscrowFilter] = useState("all");
   const [invoiceFilter, setInvoiceFilter] = useState("all");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -171,10 +173,25 @@ export default function AdminFinance() {
         <Tabs defaultValue="escrow">
           <div className="flex justify-end">
             <TabsList>
-              <TabsTrigger value="escrow">الضمان</TabsTrigger>
+              <TabsTrigger value="escrow" className="gap-1.5">
+                الضمان
+                {(pendingCounts?.escrow ?? 0) > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">{pendingCounts!.escrow}</Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="invoices">الفواتير</TabsTrigger>
-              <TabsTrigger value="withdrawals">طلبات السحب</TabsTrigger>
-              <TabsTrigger value="bank-transfers">التحويلات البنكية</TabsTrigger>
+              <TabsTrigger value="withdrawals" className="gap-1.5">
+                طلبات السحب
+                {(pendingCounts?.withdrawals ?? 0) > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">{pendingCounts!.withdrawals}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="bank-transfers" className="gap-1.5">
+                التحويلات البنكية
+                {(pendingCounts?.bankTransfers ?? 0) > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">{pendingCounts!.bankTransfers}</Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="escrow">
