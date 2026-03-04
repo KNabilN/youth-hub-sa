@@ -1,40 +1,22 @@
 
 
-# إضافة نوافذ تصدير CSV متقدمة لجميع صفحات الإدارة
+# Allow Logged-in Users to Visit the Landing Page
 
-## الوضع الحالي
-- صفحة المستخدمين فقط تملك نافذة تصدير متقدمة (ExportUsersDialog) مع اختيار الأعمدة والفلترة
-- باقي الصفحات (الخدمات، الطلبات، التذاكر، الشكاوى، المالية) تستخدم زر تصدير مباشر بدون تخصيص
+## Problem
+Currently there's no way for a logged-in user to navigate back to the public landing page from the dashboard. The routing already supports it (public routes have no `ProtectedRoute` wrapper), but there's no navigation link.
 
-## الخطة
+## Changes
 
-### 1. إنشاء مكوّن تصدير عام قابل لإعادة الاستخدام
-ملف جديد: `src/components/admin/ExportDialog.tsx`
-- مكوّن Dialog عام يقبل: عنوان، قائمة أعمدة متاحة، أعمدة افتراضية، فلاتر اختيارية (مثل الحالة/التصنيف)، ودالة جلب البيانات
-- يعرض: checkboxes لاختيار الأعمدة + فلاتر اختيارية + زر تصدير
-- نفس تصميم ExportUsersDialog الحالي
+### 1. `src/components/landing/LandingHeader.tsx`
+- Check auth state using `useAuth()`
+- If user is logged in: show "لوحة التحكم" (Dashboard) button instead of login/register buttons
+- Keep the navigation links (الرئيسية, من نحن, etc.) visible regardless of auth state
 
-### 2. تطبيقه على الصفحات التالية
+### 2. `src/components/AppSidebar.tsx`
+- Add a "الصفحة الرئيسية" link (with a Home icon) at the top of or near the sidebar menu that links to `/` so users can return to the landing page from the dashboard
 
-**AdminServices.tsx** — فلتر حسب الحالة (مقبول/مرفوض/قيد المراجعة) + أعمدة: العنوان، مقدم الخدمة، التصنيف، السعر، الحالة، التاريخ
-
-**AdminProjects.tsx** — فلتر حسب الحالة + أعمدة: رقم الطلب، العنوان، الجمعية، التصنيف، المنطقة، المدينة، الميزانية، الحالة، التاريخ
-
-**AdminTickets.tsx** — فلتر حسب الحالة/الأولوية + أعمدة: رقم التذكرة، الموضوع، المستخدم، الأولوية، الحالة، التاريخ
-
-**AdminDisputes.tsx** — فلتر حسب الحالة + أعمدة: المشروع، مقدم الشكوى، الوصف، الحالة، التاريخ
-
-**AdminFinance.tsx** — 4 تبويبات كل منها يحصل على نافذة تصدير خاصة بأعمدته
-
-### 3. تعديل كل صفحة
-- استبدال زر التصدير المباشر بزر يفتح نافذة ExportDialog
-- كل صفحة تمرر أعمدتها وفلاترها ودالة الجلب الخاصة بها
-
-## الملفات المتأثرة
-- `src/components/admin/ExportDialog.tsx` (جديد)
-- `src/pages/admin/AdminServices.tsx`
-- `src/pages/admin/AdminProjects.tsx`
-- `src/pages/admin/AdminTickets.tsx`
-- `src/pages/admin/AdminDisputes.tsx`
-- `src/pages/admin/AdminFinance.tsx`
+### Result
+- Logged-in users see a "Dashboard" button in the landing header instead of login/register
+- Sidebar includes a link back to the landing page
+- No sign-out required to browse public pages
 
