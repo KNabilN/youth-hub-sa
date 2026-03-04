@@ -1,76 +1,126 @@
 
 
-## خطة: إعادة تصميم نظام المنح (نوعان: تحويل موجه لجمعية / تحويل لطلب جمعية)
+## خطة: نظام طلبات المنح بين الجمعيات والمانحين
 
-### النوعان والسيناريوهات
+### الفكرة العامة
 
-```text
-نوع المنحة                     عند القبول                              عند الرفض
-─────────────────────────────  ──────────────────────────────────────  ─────────────────────────
-1. تحويل موجه لجمعية           → فاتورة للجمعية + حفظ في الفواتير      → إشعار رفض للمانح بالسبب
-   (بدون طلب محدد)
+إنشاء جدول `grant_requests` يمثل طلبات الدعم من الجمعيات، إما عامة (مرئية لجميع المانحين) أو موجهة لمانح بعينه، مع ربطها اختيارياً بمشروع محدد. هذا يفصل بين "طلب المنحة" و"التبرع الفعلي" ويتيح تتبع الفلو كاملاً.
 
-2. تحويل لطلب جمعية محدد       → ضمان مالي (held)                      → إشعار رفض للمانح بالسبب
-                                → فاتورة استلام للمانح + رسالة شكر
-                                → عقد بين الجمعية والمزود + إشعارات
-                                → بعد التوقيع → بدء المشروع
+### 1. تعديل قاعدة البيانات — جدول `grant_requests`
+
+```sql
+CREATE TABLE public.grant_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  association_id uuid NOT NULL,          -- الجمعية الطالبة
+  donor_id uuid DEFAULT NULL,            -- NULL = طلب عام، أو UUID = طلب موجه لمانح
+  project_id uuid DEFAULT NULL,          -- NULL = منحة عامة، أو UUID = لمشروع محدد
+  amount numeric NOT NULL,
+  description text DEFAULT '',
+  status text NOT NULL DEFAULT 'pending', -- pending, approved, rejected, funded
+  admin_note text DEFAULT '',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.grant_requests ENABLE ROW LEVEL SECURITY;
+
+-- الجمعية ترى وتنشئ طلباتها
+CREATE POLICY "Associations manage own grant requests"
+  ON grant_requests FOR ALL TO authenticated
+  USING (association_id = auth.uid())
+  WITH CHECK (association_id = auth.uid());
+
+-- المانح يرى الطلبات العامة + الموجهة له
+CREATE POLICY "Donors view grant requests"
+  ON grant_requests FOR SELECT TO authenticated
+  USING (
+    has_role(auth.uid(), 'donor') AND
+    (donor_id IS NULL OR donor_id = auth.uid()) AND
+    status IN ('pending', 'approved')
+  );
+
+-- الأدمن يدير الكل
+CREATE POLICY "Admin manage all grant requests"
+  ON grant_requests FOR ALL TO authenticated
+  USING (has_role(auth.uid(), 'super_admin'));
 ```
 
----
+- إضافة trigger إشعارات: عند إنشاء طلب موجه → إشعار للمانح، عند تغيير الحالة → إشعار للجمعية
 
-### التغييرات المطلوبة
+### 2. صفحات جديدة
 
-#### 1. تعديل `DonationForm.tsx` — إعادة تصميم نوع المنحة
+| الصفحة | المسار | الدور | الوصف |
+|--------|--------|------|-------|
+| طلبات الدعم (تصفح) | `/grant-requests` | donor | عرض كل طلبات الجمعيات العامة + الموجهة للمانح، مع فلاتر |
+| طلبات الدعم الواردة | `/my-grant-requests` | donor | طلبات موجهة لهذا المانح تحديداً |
+| المانحون | `/donors` | youth_association | عرض المانحين الموثقين + زر "طلب منحة" |
+| طلبات المنح الخاصة بي | `/my-grants` | youth_association | عرض طلبات المنح التي أنشأتها الجمعية |
 
-- تغيير `target_type` من `"project" | "service"` إلى `"association" | "project"`
-- **نوع "تحويل موجه لجمعية"**: يظهر حقل اختيار الجمعية فقط + المبلغ (بدون اختيار طلب)
-- **نوع "تحويل لطلب جمعية"**: يظهر اختيار الجمعية أولاً → ثم يتم تحميل طلبات تلك الجمعية المفتوحة → اختيار الطلب
-- إزالة خيار "خدمة" من النموذج (المنح للجمعيات فقط حسب المتطلب)
-- تحديث `DonationFormData` interface ليعكس النوعين الجديدين
+### 3. تعديل القائمة الجانبية (`AppSidebar.tsx`)
 
-#### 2. تعديل `Donations.tsx` — منطق الدفع
+**للمانح:**
+- إضافة "طلبات الدعم" → `/grant-requests`
+- إضافة "طلبات واردة" → `/my-grant-requests`
 
-- كلا النوعين يستخدمان نفس flow: رفع إيصال تحويل بنكي → إنشاء escrow بحالة `pending_payment` → إنشاء `bank_transfer` → إنشاء `donor_contribution`
-- **نوع الجمعية العام**: `escrow` بدون `project_id`، مع `beneficiary_id` = الجمعية
-- **نوع الطلب**: `escrow` مع `project_id` محدد + `payee_id` = مزود الخدمة المعين للطلب
-- إزالة خيار "الدفع الإلكتروني" (كل المنح عبر تحويل بنكي يراجعه الأدمن)
+**للجمعية:**
+- إضافة "المانحون" → `/donors`
+- إضافة "طلبات المنح" → `/my-grants`
 
-#### 3. تعديل `useApproveBankTransfer` — فصل سيناريوهات الموافقة
+### 4. صفحة المانحون للجمعيات (`/donors`)
 
-**سيناريو 1 — تحويل موجه لجمعية (بدون project_id):**
-1. تحديث `bank_transfers.status` → `approved`
-2. تحديث `escrow.status` → `held`
-3. إصدار فاتورة مرتبطة بالـ escrow + `issued_to` = الجمعية (`beneficiary_id`)
-4. إشعار للجمعية: "تم استلام منحة بمبلغ X ر.س"
+- عرض قائمة المانحين الموثقين (عبر `user_roles` + `profiles`)
+- كل بطاقة مانح بها زر "طلب منحة" يفتح Dialog لإنشاء `grant_request`
+- Dialog يحتوي: نوع المنحة (عامة/لمشروع)، اختيار المشروع، المبلغ، الوصف
+- دالة RPC `get_verified_donor_ids` مماثلة لـ `get_verified_association_ids`
 
-**سيناريو 2 — تحويل لطلب جمعية محدد (مع project_id):**
-1. تحديث `bank_transfers.status` → `approved`
-2. تحديث `escrow.status` → `held`
-3. إصدار فاتورة استلام للمانح (`issued_to` = المانح/payer_id) + إشعار شكر
-4. إنشاء عقد تلقائي بين الجمعية والمزود + إشعارات لكليهما
-5. بعد توقيع المزود → بدء المشروع (موجود في `useSignContract`)
+### 5. صفحة طلبات الدعم للمانح (`/grant-requests`)
 
-#### 4. تعديل `useRejectBankTransfer` — إشعار الرفض بالسبب
+- عرض بطاقات طلبات الجمعيات المفتوحة (عامة + موجهة)
+- فلاتر: اسم الجمعية، نطاق المبلغ
+- زر "تبرع" على كل طلب → ينتقل لصفحة المنح (`/donations`) مع تعبئة البيانات تلقائياً
 
-- الإشعار موجود فعلاً عبر trigger `notify_on_bank_transfer_change` ويتضمن السبب
-- تحديث `donor_contributions.donation_status` إلى `"rejected"` عند الرفض
+### 6. صفحة طلبات المنح الخاصة بالجمعية (`/my-grants`)
 
-#### 5. تعديل `DonationPaymentStep.tsx`
+- عرض جدول/بطاقات بطلبات المنح التي أنشأتها الجمعية
+- عرض الحالة (بانتظار / موافق / مرفوض / ممول)
+- زر "طلب منحة جديدة" يفتح نفس الـ Dialog
 
-- إزالة خيار "الدفع الإلكتروني" — المنح عبر تحويل بنكي فقط
-- عرض ملخص يوضح نوع المنحة (موجهة لجمعية / لطلب محدد)
+### 7. تعديل إنشاء الطلب (`ProjectForm.tsx`)
 
-#### 6. إضافة حالة `rejected` لـ `statusConfig` في صفحة المنح
+- إضافة خيار "طلب منحة" عند إنشاء مشروع (switch أو checkbox)
+- إذا مفعّل: يظهر حقل "نوع المنحة" (عامة / من مانح محدد) + اختيار المانح
+- بعد إنشاء المشروع بنجاح، يتم إنشاء `grant_request` تلقائياً مرتبط بالمشروع
 
----
+### 8. الفلو الكامل
+
+```text
+الجمعية تنشئ طلب منحة (عام أو موجه)
+         ↓
+يظهر في صفحة طلبات الدعم للمانحين
+         ↓
+المانح يضغط "تبرع" → ينتقل لصفحة المنح بالبيانات معبأة
+         ↓
+المانح يرفع إيصال تحويل → يُنشأ escrow + bank_transfer
+         ↓
+الأدمن يراجع → يوافق أو يرفض
+         ↓
+عند الموافقة: grant_request.status → 'funded'
+         + باقي الفلو حسب النوع (فاتورة + عقد... الخ)
+```
 
 ### الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/components/donor/DonationForm.tsx` | إعادة تصميم النموذج (نوعان جديدان) |
-| `src/components/donor/DonationPaymentStep.tsx` | إزالة الدفع الإلكتروني |
-| `src/pages/Donations.tsx` | تحديث منطق الدفع للنوعين |
-| `src/hooks/useBankTransfer.ts` | فصل سيناريوهات الموافقة في `useApproveBankTransfer` |
-| `src/hooks/useDonorContributions.ts` | إضافة حقل `donation_type` اختيارياً |
+| **جديد** `src/pages/GrantRequests.tsx` | صفحة تصفح طلبات الدعم (مانح) |
+| **جديد** `src/pages/MyGrantRequests.tsx` | طلبات واردة للمانح |
+| **جديد** `src/pages/Donors.tsx` | صفحة المانحين (جمعية) |
+| **جديد** `src/pages/MyGrants.tsx` | طلبات المنح (جمعية) |
+| **جديد** `src/hooks/useGrantRequests.ts` | CRUD + queries |
+| `src/components/AppSidebar.tsx` | إضافة عناصر القائمة |
+| `src/App.tsx` | إضافة Routes |
+| `src/components/projects/ProjectForm.tsx` | خيار طلب منحة |
+| `src/pages/ProjectCreate.tsx` | إنشاء grant_request بعد المشروع |
+| `src/hooks/useBankTransfer.ts` | تحديث status الـ grant_request عند الموافقة |
+| Migration | جدول grant_requests + RPC + trigger |
 
