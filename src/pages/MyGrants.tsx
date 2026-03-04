@@ -9,9 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { HandCoins, Plus, FileText } from "lucide-react";
+import { HandCoins, Plus, FileText, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
@@ -33,6 +36,7 @@ export default function MyGrants() {
   const { data: myProjects } = useAssociationProjects(user?.id);
 
   const [open, setOpen] = useState(false);
+  const [donorOpen, setDonorOpen] = useState(false);
   const [isTargeted, setIsTargeted] = useState(false);
   const [donorId, setDonorId] = useState("");
   const [grantType, setGrantType] = useState<"general" | "project">("general");
@@ -129,12 +133,30 @@ export default function MyGrants() {
             {isTargeted && (
               <div>
                 <Label>اختر المانح</Label>
-                <Select value={donorId} onValueChange={setDonorId}>
-                  <SelectTrigger><SelectValue placeholder="اختر مانحاً" /></SelectTrigger>
-                  <SelectContent>
-                    {donors?.map(d => <SelectItem key={d.id} value={d.id}>{d.full_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Popover open={donorOpen} onOpenChange={setDonorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={donorOpen} className="w-full justify-between font-normal">
+                      {donorId ? donors?.find(d => d.id === donorId)?.full_name : "اختر مانحاً"}
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="ابحث عن مانح..." />
+                      <CommandList>
+                        <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                        <CommandGroup>
+                          {donors?.map(d => (
+                            <CommandItem key={d.id} value={d.full_name} onSelect={() => { setDonorId(d.id); setDonorOpen(false); }}>
+                              <Check className={cn("me-2 h-4 w-4", donorId === d.id ? "opacity-100" : "opacity-0")} />
+                              {d.full_name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
             <div>
