@@ -10,8 +10,11 @@ import { StarRating } from "@/components/ratings/StarRating";
 import { RatingDistribution } from "@/components/ratings/RatingDistribution";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import {
-  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon, ArrowRight,
+  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon, ArrowRight, Heart,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -27,6 +30,18 @@ export default function PublicProfile() {
   const navigate = useNavigate();
   const { profile, role, services, portfolio, ratings, savesCount } = usePublicProfile(id);
   const { isSaved, toggle: toggleSave } = useToggleProfileSave(id);
+  const { user } = useAuth();
+
+  const { data: currentUserRole } = useQuery({
+    queryKey: ["my-role", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id).maybeSingle();
+      return data?.role ?? null;
+    },
+  });
+
+  const showSupportButton = currentUserRole === "donor" && role.data === "youth_association";
 
   const p = profile.data;
   const r = ratings.data ?? [];
@@ -128,15 +143,26 @@ export default function PublicProfile() {
               </span>
             </div>
 
-            <Button
-              variant={isSaved ? "default" : "outline"}
-              size="sm"
-              onClick={toggleSave}
-              className="mt-1 transition-all"
-            >
-              {isSaved ? <BookmarkCheck className="h-4 w-4 me-1" /> : <Bookmark className="h-4 w-4 me-1" />}
-              {isSaved ? "تم الحفظ" : "حفظ الملف"}
-            </Button>
+            <div className="flex items-center gap-2 mt-1">
+              <Button
+                variant={isSaved ? "default" : "outline"}
+                size="sm"
+                onClick={toggleSave}
+                className="transition-all"
+              >
+                {isSaved ? <BookmarkCheck className="h-4 w-4 me-1" /> : <Bookmark className="h-4 w-4 me-1" />}
+                {isSaved ? "تم الحفظ" : "حفظ الملف"}
+              </Button>
+              {showSupportButton && (
+                <Button
+                  size="sm"
+                  onClick={() => navigate(`/donations?association_id=${id}`)}
+                  className="gap-1.5"
+                >
+                  <Heart className="h-4 w-4" /> دعم هذه الجمعية
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
