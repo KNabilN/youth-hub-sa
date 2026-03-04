@@ -103,7 +103,23 @@ function DonorDashboard() {
     { title: "المشاريع الممولة", value: stats?.projectsFunded ?? 0, icon: FolderKanban, color: "info" },
     { title: "تقارير الأثر", value: "0", icon: BarChart3, color: "success" },
   ];
-  return <StatsGrid items={items} isLoading={isLoading} />;
+  return (
+    <div className="space-y-4">
+      <StatsGrid items={items} isLoading={isLoading} />
+      {!isLoading && (stats?.totalDonations ?? 0) > 0 && (
+        <Card className="border-s-4 border-s-accent bg-accent/5 animate-fade-in">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-accent/10">
+              <HandCoins className="h-6 w-6 text-accent-foreground" />
+            </div>
+            <p className="text-sm font-medium leading-relaxed">
+              الله يجزاك خير! دعمك وصل وأثره بيّن، شكراً لك من القلب على عطائك الكريم 🤍
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 }
 
 function AdminDashboard() {
