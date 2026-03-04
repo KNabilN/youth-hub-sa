@@ -87,7 +87,12 @@ export default function Donations() {
         }
       } else {
         // Project donation
-        const associationId = formData.association_id || user.id;
+        if (!formData.association_id) {
+          toast.error("يجب تحديد الجمعية المستفيدة");
+          setProcessing(false);
+          return;
+        }
+        const associationId = formData.association_id;
         if (method === "electronic") {
           const { error: escrowErr } = await (await import("@/integrations/supabase/client")).supabase
             .from("escrow_transactions")

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, FolderKanban } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function Projects() {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -72,10 +73,13 @@ export default function Projects() {
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-52" />)}
           </div>
         ) : !projects?.length ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">لا توجد طلبات حتى الآن</p>
-            <Button className="mt-4" onClick={() => navigate("/projects/new")}>إنشاء أول طلب</Button>
-          </div>
+          <EmptyState
+            icon={FolderKanban}
+            title="لا توجد طلبات حتى الآن"
+            description="أنشئ أول طلب لبدء العمل مع مقدمي الخدمات"
+            actionLabel="إنشاء أول طلب"
+            onAction={() => navigate("/projects/new")}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (

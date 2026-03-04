@@ -16,7 +16,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-muted flex items-center justify-center" dir="rtl">
       <AuthModal open={open} onOpenChange={handleOpenChange} defaultMode={defaultMode} />
     </div>
   );
