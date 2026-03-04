@@ -1,0 +1,85 @@
+import { useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { useGrantRequestsForDonor } from "@/hooks/useGrantRequests";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { HandCoins, Search, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { EmptyState } from "@/components/EmptyState";
+import { ContentSkeleton } from "@/components/ContentSkeleton";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+
+export default function GrantRequests() {
+  const { data: requests, isLoading } = useGrantRequestsForDonor();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+
+  const filtered = requests?.filter(r =>
+    r.association?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    r.association?.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
+    r.description?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleDonate = (req: any) => {
+    const params = new URLSearchParams();
+    params.set("grant_request_id", req.id);
+    params.set("association_id", req.association_id);
+    params.set("amount", String(req.amount));
+    if (req.project_id) params.set("project_id", req.project_id);
+    navigate(`/donations?${params.toString()}`);
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2"><HandCoins className="h-6 w-6" /> طلبات الدعم</h1>
+          <p className="text-sm text-muted-foreground mt-1">طلبات الجمعيات التي تحتاج إلى دعم</p>
+        </div>
+
+        <div className="relative max-w-md">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="ابحث بالجمعية أو الوصف..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+        </div>
+
+        {isLoading ? <ContentSkeleton /> : !filtered?.length ? (
+          <EmptyState icon={HandCoins} title="لا توجد طلبات" description="لا توجد طلبات دعم حالياً" />
+        ) : (
+          <div className="grid gap-4">
+            {filtered.map(req => (
+              <Card key={req.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-12 w-12 shrink-0">
+                      <AvatarImage src={req.association?.avatar_url || undefined} />
+                      <AvatarFallback>{req.association?.full_name?.[0] || "؟"}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold">{req.association?.organization_name || req.association?.full_name}</p>
+                        {req.donor_id && <Badge variant="secondary">طلب موجه لك</Badge>}
+                        {req.project?.title && <Badge variant="outline">مشروع: {req.project.title}</Badge>}
+                      </div>
+                      <p className="text-lg font-bold text-primary">{Number(req.amount).toLocaleString()} ر.س</p>
+                      {req.description && <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>}
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(req.created_at), "d MMM yyyy", { locale: ar })}
+                      </p>
+                    </div>
+                    <Button onClick={() => handleDonate(req)} className="shrink-0">
+                      <HandCoins className="h-4 w-4 me-2" /> تبرع
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
