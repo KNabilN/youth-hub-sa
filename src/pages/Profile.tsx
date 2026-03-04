@@ -221,7 +221,7 @@ export default function Profile() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-3xl animate-fade-in">
+      <div className="space-y-6 max-w-5xl mx-auto animate-fade-in">
         {isLoading ? (
           <Skeleton className="h-64 w-full rounded-2xl" />
         ) : (
