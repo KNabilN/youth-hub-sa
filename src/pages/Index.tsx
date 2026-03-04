@@ -58,7 +58,7 @@ export default function Index() {
       {/* 1. Hero */}
       <section className="relative py-28 px-4 overflow-hidden min-h-[560px] flex items-center">
         <div className="absolute inset-0">
-          <img src={heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+          <img src={h.bg_image || heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
           <div className="absolute inset-0 bg-[hsl(var(--primary))]/75" />
         </div>
         <div className="container mx-auto max-w-5xl text-center space-y-8 relative z-10">

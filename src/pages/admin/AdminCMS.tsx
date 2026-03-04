@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAllSiteContent, useUpdateSiteContent } from "@/hooks/useSiteContent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight } from "lucide-react";
+import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon } from "lucide-react";
 import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ═══════════ Page Groups ═══════════ */
 
@@ -68,6 +69,51 @@ const sectionLabels: Record<string, string> = {
 };
 
 /* ═══════════ Field Editors ═══════════ */
+
+function ImageUploadField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `cms/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("service-images").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
+      onChange(urlData.publicUrl);
+      toast.success("تم رفع الصورة بنجاح");
+    } catch {
+      toast.error("فشل رفع الصورة");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      {value && (
+        <div className="relative rounded-lg overflow-hidden border h-32 w-full">
+          <img src={value} alt="خلفية" className="w-full h-full object-cover" />
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 left-2 h-7 w-7"
+            onClick={() => onChange("")}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+      <Button variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
+        {uploading ? "جارٍ الرفع..." : <><Upload className="h-4 w-4 me-1" />رفع صورة</>}
+      </Button>
+    </div>
+  );
+}
 
 function JsonFieldEditor({ label, value, onChange, multiline = false }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean }) {
   return (
@@ -171,6 +217,7 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
       case "hero":
         return (
           <div className="space-y-3">
+            <ImageUploadField label="صورة خلفية الهيدر" value={content.bg_image || ""} onChange={(v) => set("bg_image", v)} />
             <JsonFieldEditor label="الشارة" value={content.badge || ""} onChange={(v) => set("badge", v)} />
             <JsonFieldEditor label="العنوان الرئيسي" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} />
