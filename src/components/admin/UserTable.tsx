@@ -182,13 +182,17 @@ export function UserTable({ pagination }: UserTableProps) {
             className="h-10 gap-1"
             onClick={async () => {
               toast.info("جارٍ تصدير المستخدمين...");
-              const { data } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, is_suspended, created_at, user_roles(role)");
+              const [profilesRes, rolesRes] = await Promise.all([
+                supabase.from("profiles").select("id, full_name, phone, organization_name, is_verified, is_suspended, created_at"),
+                supabase.from("user_roles").select("user_id, role"),
+              ]);
+              const roleMap = new Map((rolesRes.data ?? []).map((r: any) => [r.user_id, r.role]));
               const roleLabelsMap: Record<string, string> = { super_admin: "مدير النظام", youth_association: "جمعية شبابية", service_provider: "مقدم خدمة", donor: "مانح" };
               downloadCSV("users.csv",
                 ["الاسم", "الهاتف", "المنظمة", "الدور", "موثق", "الحالة", "تاريخ الانضمام"],
-                (data ?? []).map((u: any) => [
+                (profilesRes.data ?? []).map((u: any) => [
                   u.full_name || "", u.phone || "", u.organization_name || "",
-                  roleLabelsMap[u.user_roles?.[0]?.role] || "",
+                  roleLabelsMap[roleMap.get(u.id)] || "",
                   u.is_verified ? "نعم" : "لا",
                   u.is_suspended ? "معلّق" : "نشط",
                   u.created_at?.slice(0, 10) || "",
