@@ -73,8 +73,9 @@ export default function LandingHeader() {
                   <LayoutDashboard className="h-4 w-4" />
                   لوحة التحكم
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => signOut()} title="تسجيل الخروج">
-                  <LogOut className="h-5 w-5" />
+                <Button variant="outline" className="shadow-md gap-2" onClick={() => signOut()}>
+                  <LogOut className="h-4 w-4" />
+                  تسجيل الخروج
                 </Button>
               </>
             ) : (
