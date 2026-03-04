@@ -56,9 +56,6 @@ const menuByRole = {
   ],
   donor: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
-    { title: "سوق الخدمات", url: "/marketplace", icon: Store },
-    { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
-    { title: "مشترياتي", url: "/donor-purchases", icon: ShoppingBag },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "طلبات الدعم", url: "/grant-requests", icon: Heart },
     { title: "طلبات واردة", url: "/my-grant-requests", icon: Inbox },
