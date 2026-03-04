@@ -1,126 +1,83 @@
 
 
-## خطة: نظام طلبات المنح بين الجمعيات والمانحين
+## مراجعة شاملة للمنصة — مشاكل مكتشفة وخطة الإصلاح
 
-### الفكرة العامة
+### 1. مشاكل في تدفق البيانات (Database Connectivity)
 
-إنشاء جدول `grant_requests` يمثل طلبات الدعم من الجمعيات، إما عامة (مرئية لجميع المانحين) أو موجهة لمانح بعينه، مع ربطها اختيارياً بمشروع محدد. هذا يفصل بين "طلب المنحة" و"التبرع الفعلي" ويتيح تتبع الفلو كاملاً.
+| المشكلة | الملف | التفاصيل |
+|---------|-------|----------|
+| **طلبات المنح لا تُعبأ تلقائياً في صفحة المنح** | `Donations.tsx` | عند ضغط المانح "تبرع" من `/grant-requests` أو `/my-grant-requests`، يتم تمرير `grant_request_id` و`association_id` و`amount` عبر URL params، لكن `Donations.tsx` لا يقرأ هذه الـ params إطلاقاً — لا يوجد `useSearchParams`. الفورم يبدأ فارغاً دائماً |
+| **grant_request لا يتحدث بشكل دقيق عند الموافقة** | `useBankTransfer.ts` (L186-194) | المطابقة تتم بـ `amount` + `association_id` + `status=pending` — مما قد يطابق grant_request خاطئ إذا كان هناك طلبان بنفس المبلغ. يجب الربط عبر `grant_request_id` محدد بدلاً من المطابقة بالمبلغ |
+| **عدم وجود عمود `grant_request_id` في `escrow_transactions`** | Schema | لا يوجد ربط مباشر بين الـ escrow وطلب المنحة، مما يمنع التتبع الدقيق |
 
-### 1. تعديل قاعدة البيانات — جدول `grant_requests`
+### 2. مشاكل في UI/UX
 
-```sql
-CREATE TABLE public.grant_requests (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  association_id uuid NOT NULL,          -- الجمعية الطالبة
-  donor_id uuid DEFAULT NULL,            -- NULL = طلب عام، أو UUID = طلب موجه لمانح
-  project_id uuid DEFAULT NULL,          -- NULL = منحة عامة، أو UUID = لمشروع محدد
-  amount numeric NOT NULL,
-  description text DEFAULT '',
-  status text NOT NULL DEFAULT 'pending', -- pending, approved, rejected, funded
-  admin_note text DEFAULT '',
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+| المشكلة | الملف | التفاصيل |
+|---------|-------|----------|
+| **DonationForm: مبلغ افتراضي = 0** | `DonationForm.tsx` (L49) | `defaultValues: { amount: 0 }` — يظهر "0" في الحقل بدلاً من placeholder فارغ |
+| **عدم وجود header موحد في صفحات GrantRequests و MyGrantRequests** | `GrantRequests.tsx`, `MyGrantRequests.tsx` | تستخدم h1 + p بدون الأيقونة المحاطة بخلفية ولا الخط المتدرج (gradient divider) المستخدم في باقي الصفحات مثل Contracts و Donations |
+| **عدم وجود header موحد في Donors** | `Donors.tsx` | نفس المشكلة — لا يتبع نمط "Unified Header" المعتمد |
+| **MyGrants: حالة "funded" تظهر بلون outline غير واضح** | `MyGrants.tsx` (L25) | `funded` يستخدم `variant: "outline"` — لا يميزها بصرياً كحالة إيجابية. يجب أن تكون `default` (لون أخضر/أساسي) |
+| **DonationTimeline: الخط الرأسي على الجانب الخاطئ** | `DonationTimeline.tsx` (L38) | `end-4` يضع الخط في اليسار في RTL — يجب أن يكون `start-4` ليتوافق مع اتجاه الأيقونات |
 
-ALTER TABLE public.grant_requests ENABLE ROW LEVEL SECURITY;
+### 3. مشاكل وظيفية (Functional Issues)
 
--- الجمعية ترى وتنشئ طلباتها
-CREATE POLICY "Associations manage own grant requests"
-  ON grant_requests FOR ALL TO authenticated
-  USING (association_id = auth.uid())
-  WITH CHECK (association_id = auth.uid());
+| المشكلة | الملف | التفاصيل |
+|---------|-------|----------|
+| **useCreateBankTransfer يُنشئ bank_transfer لكل escrow بنفس المبلغ الإجمالي** | `useBankTransfer.ts` (L76-87) | إذا كانت السلة تحتوي 3 خدمات، يتم إنشاء 3 bank_transfers كل منها بـ `amount: total` (المبلغ الإجمالي) بدلاً من مبلغ كل خدمة |
+| **عدم وجود pagination في صفحات GrantRequests و Donors** | عدة صفحات | مع كثرة البيانات، لا يوجد pagination أو infinite scroll |
+| **Checkout: اختيار الجمعية بدون بحث** | `Checkout.tsx` (L197-208) | يستخدم Select عادي بدون بحث — نفس المشكلة التي حُلّت في DonationForm |
+| **useSignContract: لا يتحقق من وجود assigned_provider_id** | `useContracts.ts` (L75-80) | عند بدء المشروع تلقائياً، لا يتحقق أن المشروع فيه مزود معين |
 
--- المانح يرى الطلبات العامة + الموجهة له
-CREATE POLICY "Donors view grant requests"
-  ON grant_requests FOR SELECT TO authenticated
-  USING (
-    has_role(auth.uid(), 'donor') AND
-    (donor_id IS NULL OR donor_id = auth.uid()) AND
-    status IN ('pending', 'approved')
-  );
+### 4. مشاكل في سلاسة التدفق (Flow Gaps)
 
--- الأدمن يدير الكل
-CREATE POLICY "Admin manage all grant requests"
-  ON grant_requests FOR ALL TO authenticated
-  USING (has_role(auth.uid(), 'super_admin'));
-```
+| المشكلة | التفاصيل |
+|---------|----------|
+| **لا يوجد ربط بين التبرع وطلب المنحة** | عندما يتبرع المانح من صفحة طلبات الدعم، لا يتم حفظ `grant_request_id` في أي مكان (لا escrow ولا donor_contribution)، فلا يمكن تتبع أن هذا التبرع جاء استجابة لطلب معين |
+| **عدم وجود إدارة طلبات المنح في لوحة الأدمن** | لا توجد صفحة للأدمن لمراجعة/موافقة/رفض طلبات المنح (`grant_requests`) |
+| **DonationForm لا يدعم التعبئة من URL** | عند الانتقال من "طلبات الدعم" بالـ params، لا يتم ملء الفورم تلقائياً |
 
-- إضافة trigger إشعارات: عند إنشاء طلب موجه → إشعار للمانح، عند تغيير الحالة → إشعار للجمعية
+---
 
-### 2. صفحات جديدة
+### خطة الإصلاح
 
-| الصفحة | المسار | الدور | الوصف |
-|--------|--------|------|-------|
-| طلبات الدعم (تصفح) | `/grant-requests` | donor | عرض كل طلبات الجمعيات العامة + الموجهة للمانح، مع فلاتر |
-| طلبات الدعم الواردة | `/my-grant-requests` | donor | طلبات موجهة لهذا المانح تحديداً |
-| المانحون | `/donors` | youth_association | عرض المانحين الموثقين + زر "طلب منحة" |
-| طلبات المنح الخاصة بي | `/my-grants` | youth_association | عرض طلبات المنح التي أنشأتها الجمعية |
+#### 1. إضافة `grant_request_id` لجدول `escrow_transactions` (Migration)
+- عمود جديد `grant_request_id uuid DEFAULT NULL` للربط المباشر
 
-### 3. تعديل القائمة الجانبية (`AppSidebar.tsx`)
+#### 2. إصلاح تعبئة الفورم من URL في `Donations.tsx`
+- إضافة `useSearchParams` لقراءة `association_id`, `amount`, `project_id` من URL
+- تمرير القيم كـ `defaultValues` لـ `DonationForm`
+- حفظ `grant_request_id` في escrow و donor_contribution
 
-**للمانح:**
-- إضافة "طلبات الدعم" → `/grant-requests`
-- إضافة "طلبات واردة" → `/my-grant-requests`
+#### 3. إصلاح `useCreateBankTransfer` — مبلغ bank_transfer
+- استبدال `amount` (الإجمالي) بـ `item.price` لكل bank_transfer
 
-**للجمعية:**
-- إضافة "المانحون" → `/donors`
-- إضافة "طلبات المنح" → `/my-grants`
+#### 4. إصلاح `useApproveBankTransfer` — مطابقة grant_request
+- استخدام `grant_request_id` من escrow بدلاً من المطابقة بالمبلغ
 
-### 4. صفحة المانحون للجمعيات (`/donors`)
+#### 5. توحيد UI
+- تطبيق نمط "Unified Header" (أيقونة + gradient divider) على: `GrantRequests`, `MyGrantRequests`, `Donors`, `MyGrants`
+- إصلاح DonationForm: `amount` default → `undefined` مع placeholder
+- إصلاح DonationTimeline: `end-4` → `start-4`
+- تحسين funded badge color
 
-- عرض قائمة المانحين الموثقين (عبر `user_roles` + `profiles`)
-- كل بطاقة مانح بها زر "طلب منحة" يفتح Dialog لإنشاء `grant_request`
-- Dialog يحتوي: نوع المنحة (عامة/لمشروع)، اختيار المشروع، المبلغ، الوصف
-- دالة RPC `get_verified_donor_ids` مماثلة لـ `get_verified_association_ids`
+#### 6. إضافة Combobox للـ Checkout
+- تحويل حقل اختيار الجمعية في Checkout إلى combobox قابل للبحث
 
-### 5. صفحة طلبات الدعم للمانح (`/grant-requests`)
-
-- عرض بطاقات طلبات الجمعيات المفتوحة (عامة + موجهة)
-- فلاتر: اسم الجمعية، نطاق المبلغ
-- زر "تبرع" على كل طلب → ينتقل لصفحة المنح (`/donations`) مع تعبئة البيانات تلقائياً
-
-### 6. صفحة طلبات المنح الخاصة بالجمعية (`/my-grants`)
-
-- عرض جدول/بطاقات بطلبات المنح التي أنشأتها الجمعية
-- عرض الحالة (بانتظار / موافق / مرفوض / ممول)
-- زر "طلب منحة جديدة" يفتح نفس الـ Dialog
-
-### 7. تعديل إنشاء الطلب (`ProjectForm.tsx`)
-
-- إضافة خيار "طلب منحة" عند إنشاء مشروع (switch أو checkbox)
-- إذا مفعّل: يظهر حقل "نوع المنحة" (عامة / من مانح محدد) + اختيار المانح
-- بعد إنشاء المشروع بنجاح، يتم إنشاء `grant_request` تلقائياً مرتبط بالمشروع
-
-### 8. الفلو الكامل
-
-```text
-الجمعية تنشئ طلب منحة (عام أو موجه)
-         ↓
-يظهر في صفحة طلبات الدعم للمانحين
-         ↓
-المانح يضغط "تبرع" → ينتقل لصفحة المنح بالبيانات معبأة
-         ↓
-المانح يرفع إيصال تحويل → يُنشأ escrow + bank_transfer
-         ↓
-الأدمن يراجع → يوافق أو يرفض
-         ↓
-عند الموافقة: grant_request.status → 'funded'
-         + باقي الفلو حسب النوع (فاتورة + عقد... الخ)
-```
+#### 7. إضافة صفحة إدارة طلبات المنح في الأدمن (اختياري — يمكن تأجيله)
 
 ### الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| **جديد** `src/pages/GrantRequests.tsx` | صفحة تصفح طلبات الدعم (مانح) |
-| **جديد** `src/pages/MyGrantRequests.tsx` | طلبات واردة للمانح |
-| **جديد** `src/pages/Donors.tsx` | صفحة المانحين (جمعية) |
-| **جديد** `src/pages/MyGrants.tsx` | طلبات المنح (جمعية) |
-| **جديد** `src/hooks/useGrantRequests.ts` | CRUD + queries |
-| `src/components/AppSidebar.tsx` | إضافة عناصر القائمة |
-| `src/App.tsx` | إضافة Routes |
-| `src/components/projects/ProjectForm.tsx` | خيار طلب منحة |
-| `src/pages/ProjectCreate.tsx` | إنشاء grant_request بعد المشروع |
-| `src/hooks/useBankTransfer.ts` | تحديث status الـ grant_request عند الموافقة |
-| Migration | جدول grant_requests + RPC + trigger |
+| Migration | إضافة `grant_request_id` لـ `escrow_transactions` |
+| `src/pages/Donations.tsx` | قراءة URL params + تمريرها للفورم |
+| `src/components/donor/DonationForm.tsx` | دعم `defaultValues` prop + إصلاح amount |
+| `src/hooks/useBankTransfer.ts` | إصلاح bank_transfer amount + grant_request matching |
+| `src/pages/GrantRequests.tsx` | Unified Header |
+| `src/pages/MyGrantRequests.tsx` | Unified Header |
+| `src/pages/Donors.tsx` | Unified Header |
+| `src/pages/MyGrants.tsx` | Unified Header + funded badge |
+| `src/components/donor/DonationTimeline.tsx` | RTL fix |
+| `src/pages/Checkout.tsx` | Combobox للجمعية |
 
