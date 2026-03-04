@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, LayoutDashboard } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import AuthModal from "@/components/AuthModal";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LandingHeader() {
   const { count: cartCount } = useUnifiedCart();
   const { data: header } = useSiteContent("header");
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,12 +67,21 @@ export default function LandingHeader() {
                 </Link>
               </Button>
             )}
-            <Button variant="ghost" onClick={() => openAuth("login")}>
-              {hd.login_text}
-            </Button>
-            <Button className="shadow-md" onClick={() => openAuth("register")}>
-              {hd.register_text}
-            </Button>
+            {user ? (
+              <Button className="shadow-md gap-2" onClick={() => navigate("/dashboard")}>
+                <LayoutDashboard className="h-4 w-4" />
+                لوحة التحكم
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => openAuth("login")}>
+                  {hd.login_text}
+                </Button>
+                <Button className="shadow-md" onClick={() => openAuth("register")}>
+                  {hd.register_text}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -92,12 +104,21 @@ export default function LandingHeader() {
               </Link>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button variant="ghost" size="sm" className="flex-1" onClick={() => openAuth("login")}>
-                {hd.login_text}
-              </Button>
-              <Button size="sm" className="flex-1" onClick={() => openAuth("register")}>
-                {hd.register_text}
-              </Button>
+              {user ? (
+                <Button size="sm" className="flex-1 gap-2" onClick={() => { setMobileMenuOpen(false); navigate("/dashboard"); }}>
+                  <LayoutDashboard className="h-4 w-4" />
+                  لوحة التحكم
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => openAuth("login")}>
+                    {hd.login_text}
+                  </Button>
+                  <Button size="sm" className="flex-1" onClick={() => openAuth("register")}>
+                    {hd.register_text}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
