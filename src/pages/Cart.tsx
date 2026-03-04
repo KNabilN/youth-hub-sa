@@ -1,44 +1,57 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useCartItems, useRemoveFromCart, useClearCart, useUpdateCartQuantity } from "@/hooks/useCart";
+import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package, Clock } from "lucide-react";
+import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package, Clock, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-/** Calculate line total: for hourly services quantity = hours */
-function lineTotal(item: any) {
-  return item.micro_services.price * item.quantity;
-}
+import AuthModal from "@/components/AuthModal";
 
 export default function Cart() {
-  const { data: items, isLoading } = useCartItems();
-  const removeItem = useRemoveFromCart();
-  const clearCart = useClearCart();
-  const updateQty = useUpdateCartQuantity();
+  const {
+    items, isLoading, total, isLoggedIn,
+    removeItem, clearAll, updateQuantity,
+    isRemoving, isClearing,
+  } = useUnifiedCart();
   const navigate = useNavigate();
-
-  const total = items?.reduce((sum, item) => sum + lineTotal(item), 0) ?? 0;
+  const [showAuth, setShowAuth] = useState(false);
 
   const handleRemove = (id: string) => {
-    removeItem.mutate(id, {
-      onSuccess: () => toast.success("تم إزالة العنصر من السلة"),
-    });
+    removeItem(id);
+    toast.success("تم إزالة العنصر من السلة");
   };
 
   const handleClearCart = () => {
-    clearCart.mutate(undefined, {
-      onSuccess: () => toast.success("تم تفريغ السلة"),
-    });
+    clearAll();
+    toast.success("تم تفريغ السلة");
   };
 
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      setShowAuth(true);
+      return;
+    }
+    navigate("/checkout");
+  };
+
+  function lineTotal(item: { price: number; quantity: number }) {
+    return item.price * item.quantity;
+  }
+
+  // Use DashboardLayout only for logged-in users, otherwise plain layout
+  const Wrapper = isLoggedIn ? DashboardLayout : ({ children }: { children: React.ReactNode }) => (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto max-w-4xl py-8 px-4">{children}</div>
+    </div>
+  );
+
   return (
-    <DashboardLayout>
+    <Wrapper>
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -49,12 +62,12 @@ export default function Cart() {
             <div>
               <h1 className="text-2xl font-bold">سلة المشتريات</h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {items?.length ?? 0} عنصر في السلة
+                {items.length} عنصر في السلة
               </p>
             </div>
           </div>
-          {(items?.length ?? 0) > 0 && (
-            <Button variant="outline" size="sm" onClick={handleClearCart} disabled={clearCart.isPending}>
+          {items.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleClearCart} disabled={isClearing}>
               <Trash2 className="h-4 w-4 me-1" />
               تفريغ السلة
             </Button>
@@ -78,7 +91,7 @@ export default function Cart() {
               </Card>
             ))}
           </div>
-        ) : !items?.length ? (
+        ) : !items.length ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
               <div className="bg-muted p-4 rounded-full mb-4">
@@ -88,7 +101,7 @@ export default function Cart() {
               <p className="text-sm text-muted-foreground max-w-sm mb-4">
                 لم تضف أي خدمات إلى السلة بعد. تصفح سوق الخدمات لإضافة خدمات.
               </p>
-              <Button onClick={() => navigate("/marketplace")}>
+              <Button onClick={() => navigate(isLoggedIn ? "/marketplace" : "/")}>
                 <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
                 تصفح الخدمات
               </Button>
@@ -102,10 +115,10 @@ export default function Cart() {
                 <Card key={item.id} className="overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      {item.micro_services.image_url ? (
+                      {item.image_url ? (
                         <img
-                          src={item.micro_services.image_url}
-                          alt={item.micro_services.title}
+                          src={item.image_url}
+                          alt={item.title}
                           className="h-20 w-20 rounded-lg object-cover shrink-0"
                         />
                       ) : (
@@ -116,9 +129,9 @@ export default function Cart() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="font-semibold truncate">{item.micro_services.title}</h3>
+                            <h3 className="font-semibold truncate">{item.title}</h3>
                             <p className="text-sm text-muted-foreground">
-                              {item.micro_services.profiles?.full_name}
+                              {item.provider_name}
                             </p>
                           </div>
                           <Button
@@ -126,16 +139,16 @@ export default function Cart() {
                             size="icon"
                             className="shrink-0 text-muted-foreground hover:text-destructive"
                             onClick={() => handleRemove(item.id)}
-                            disabled={removeItem.isPending}
+                            disabled={isRemoving}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <Badge variant="outline">
-                            {item.micro_services.service_type === "fixed_price" ? "سعر ثابت" : "بالساعة"}
+                            {item.service_type === "fixed_price" ? "سعر ثابت" : "بالساعة"}
                           </Badge>
-                          {item.micro_services.service_type === "hourly" ? (
+                          {item.service_type === "hourly" ? (
                             <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1.5 bg-muted/60 rounded-lg px-2 py-1">
                                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -146,7 +159,7 @@ export default function Cart() {
                                   value={item.quantity}
                                   onChange={(e) => {
                                     const val = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
-                                    updateQty.mutate({ cartItemId: item.id, quantity: val });
+                                    updateQuantity(item.id, val);
                                   }}
                                   className="h-7 w-16 text-center text-sm border-0 bg-transparent p-0"
                                 />
@@ -158,7 +171,7 @@ export default function Cart() {
                             </div>
                           ) : (
                             <span className="font-bold text-primary">
-                              {item.micro_services.price.toLocaleString()} ر.س
+                              {item.price.toLocaleString()} ر.س
                             </span>
                           )}
                         </div>
@@ -180,8 +193,8 @@ export default function Cart() {
                     {items.map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
                         <span className="text-muted-foreground truncate max-w-[60%]">
-                          {item.micro_services.title}
-                          {item.micro_services.service_type === "hourly" && (
+                          {item.title}
+                          {item.service_type === "hourly" && (
                             <span className="text-xs"> ({item.quantity} ساعة)</span>
                           )}
                         </span>
@@ -194,18 +207,23 @@ export default function Cart() {
                     <span>الإجمالي</span>
                     <span className="text-primary">{total.toLocaleString()} ر.س</span>
                   </div>
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={() => navigate("/checkout")}
-                  >
-                    <CreditCard className="h-4 w-4 me-2" />
-                    إتمام الشراء
+                  <Button className="w-full" size="lg" onClick={handleCheckout}>
+                    {isLoggedIn ? (
+                      <>
+                        <CreditCard className="h-4 w-4 me-2" />
+                        إتمام الشراء
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="h-4 w-4 me-2" />
+                        سجل دخولك لإتمام الشراء
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => navigate("/marketplace")}
+                    onClick={() => navigate(isLoggedIn ? "/marketplace" : "/")}
                   >
                     متابعة التسوق
                   </Button>
@@ -215,6 +233,13 @@ export default function Cart() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+
+      {/* Auth modal for guests */}
+      <AuthModal
+        open={showAuth}
+        onOpenChange={setShowAuth}
+        defaultMode="login"
+      />
+    </Wrapper>
   );
 }

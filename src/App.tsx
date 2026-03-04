@@ -155,7 +155,7 @@ const App = () => (
                 <Route path="/my-disputes" element={<ProtectedRoute><SuspenseWrap><MyDisputes /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/donor-purchases" element={<ProtectedRoute><SuspenseWrap><DonorPurchases /></SuspenseWrap></ProtectedRoute>} />
                 
-                <Route path="/cart" element={<ProtectedRoute><SuspenseWrap><Cart /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/cart" element={<SuspenseWrap><Cart /></SuspenseWrap>} />
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
