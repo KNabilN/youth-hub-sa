@@ -321,6 +321,7 @@ export function AppSidebar() {
                 </>
               )}
 
+              {role === "super_admin" && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
@@ -335,6 +336,7 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              )}
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>

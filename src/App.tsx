@@ -168,7 +168,7 @@ const App = () => (
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><SuspenseWrap><Notifications /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/trash" element={<ProtectedRoute><SuspenseWrap><Trash /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/trash" element={<ProtectedRoute><AdminRoute><SuspenseWrap><Trash /></SuspenseWrap></AdminRoute></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
