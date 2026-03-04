@@ -837,6 +837,60 @@ export type Database = {
           },
         ]
       }
+      impact_reports: {
+        Row: {
+          association_id: string
+          contribution_id: string | null
+          created_at: string
+          description: string | null
+          donor_id: string
+          file_name: string
+          file_path: string
+          id: string
+          project_id: string | null
+          title: string
+        }
+        Insert: {
+          association_id: string
+          contribution_id?: string | null
+          created_at?: string
+          description?: string | null
+          donor_id: string
+          file_name: string
+          file_path: string
+          id?: string
+          project_id?: string | null
+          title?: string
+        }
+        Update: {
+          association_id?: string
+          contribution_id?: string | null
+          created_at?: string
+          description?: string | null
+          donor_id?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          project_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impact_reports_contribution_id_fkey"
+            columns: ["contribution_id"]
+            isOneToOne: false
+            referencedRelation: "donor_contributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impact_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
