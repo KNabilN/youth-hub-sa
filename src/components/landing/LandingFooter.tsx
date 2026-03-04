@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import logoWhite from "@/assets/logo-white.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Instagram } from "lucide-react";
 
 const topCategories = [
   "الخدمات المالية",
