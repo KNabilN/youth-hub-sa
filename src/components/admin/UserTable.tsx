@@ -95,7 +95,12 @@ export function UserTable({ pagination }: UserTableProps) {
   const [suspensionReason, setSuspensionReason] = useState("");
 
   const filtered = (users ?? []).filter((u: any) => {
-    if (search && !u.full_name?.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const matchName = u.full_name?.toLowerCase().includes(q);
+      const matchNumber = u.user_number?.toLowerCase().includes(q);
+      if (!matchName && !matchNumber) return false;
+    }
     if (verifiedFilter === "verified" && !u.is_verified) return false;
     if (verifiedFilter === "unverified" && u.is_verified) return false;
     return true;
@@ -156,7 +161,7 @@ export function UserTable({ pagination }: UserTableProps) {
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">البحث</Label>
-          <Input placeholder="بحث بالاسم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
+          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
