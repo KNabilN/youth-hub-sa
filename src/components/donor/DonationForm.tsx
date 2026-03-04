@@ -41,12 +41,21 @@ export interface DonationFormData {
 interface DonationFormProps {
   onSubmit: (values: DonationFormData) => void;
   isLoading?: boolean;
+  defaultAssociationId?: string;
+  defaultAmount?: number;
+  defaultProjectId?: string;
+  defaultTargetType?: "association" | "project";
 }
 
-export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
+export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaultAmount, defaultProjectId, defaultTargetType }: DonationFormProps) {
   const form = useForm<DonationFormValues>({
     resolver: zodResolver(donationSchema),
-    defaultValues: { amount: 0, target_type: "association", association_id: "", project_id: "" },
+    defaultValues: {
+      amount: defaultAmount || (undefined as any),
+      target_type: defaultTargetType || "association",
+      association_id: defaultAssociationId || "",
+      project_id: defaultProjectId || "",
+    },
   });
 
   const [assocOpen, setAssocOpen] = useState(false);
@@ -107,7 +116,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         <FormField control={form.control} name="amount" render={({ field }) => (
           <FormItem>
             <FormLabel>المبلغ (ر.س)</FormLabel>
-            <FormControl><Input type="number" min={1} step="0.01" placeholder="0.00" {...field} /></FormControl>
+            <FormControl><Input type="number" min={1} step="0.01" placeholder="أدخل المبلغ" {...field} value={field.value || ""} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
@@ -115,7 +124,7 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         <FormField control={form.control} name="target_type" render={({ field }) => (
           <FormItem>
             <FormLabel>نوع المنحة</FormLabel>
-            <Select onValueChange={(v) => { field.onChange(v); form.setValue("association_id", ""); form.setValue("project_id", ""); }} defaultValue={field.value}>
+            <Select onValueChange={(v) => { field.onChange(v); form.setValue("association_id", defaultAssociationId || ""); form.setValue("project_id", ""); }} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
                 <SelectItem value="association">تحويل موجه لجمعية</SelectItem>

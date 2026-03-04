@@ -15,7 +15,7 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   pending: { label: "بانتظار المراجعة", variant: "secondary" },
   approved: { label: "تمت الموافقة", variant: "default" },
   rejected: { label: "مرفوض", variant: "destructive" },
-  funded: { label: "تم التمويل", variant: "outline" },
+  funded: { label: "تم التمويل", variant: "default" },
 };
 
 export default function MyGrantRequests() {
@@ -34,10 +34,16 @@ export default function MyGrantRequests() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Inbox className="h-6 w-6" /> طلبات واردة</h1>
-          <p className="text-sm text-muted-foreground mt-1">طلبات المنح الموجهة لك من الجمعيات</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Inbox className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">طلبات واردة</h1>
+            <p className="text-sm text-muted-foreground">طلبات المنح الموجهة لك من الجمعيات</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? <ContentSkeleton /> : !requests?.length ? (
           <EmptyState icon={Inbox} title="لا توجد طلبات واردة" description="لم يتم توجيه أي طلبات منح لك حالياً" />
