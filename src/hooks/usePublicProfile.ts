@@ -112,7 +112,23 @@ export function usePublicProfile(id: string | undefined) {
     },
   });
 
-  return { profile, role, services, portfolio, ratings, savesCount };
+  const projects = useQuery({
+    queryKey: ["public-profile-projects", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title, description, status, budget, created_at, categories(name), regions(name)")
+        .eq("association_id", id!)
+        .neq("status", "draft")
+        .eq("is_private", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  return { profile, role, services, portfolio, ratings, savesCount, projects };
 }
 
 export function useToggleProfileSave(profileId: string | undefined) {

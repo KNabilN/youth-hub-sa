@@ -10,7 +10,7 @@ import { StarRating } from "@/components/ratings/StarRating";
 import { RatingDistribution } from "@/components/ratings/RatingDistribution";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import {
-  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon, ArrowRight, Heart,
+  CheckCircle, Eye, Bookmark, BookmarkCheck, Star, Award, Briefcase, GraduationCap, MessageSquare, User as UserIcon, ImageIcon, ArrowRight, Heart, FileText, Calendar,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ const roleLabels: Record<string, string> = {
 export default function PublicProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile, role, services, portfolio, ratings, savesCount } = usePublicProfile(id);
+  const { profile, role, services, portfolio, ratings, savesCount, projects } = usePublicProfile(id);
   const { isSaved, toggle: toggleSave } = useToggleProfileSave(id);
   const { user } = useAuth();
 
@@ -42,6 +42,7 @@ export default function PublicProfile() {
   });
 
   const showSupportButton = currentUserRole === "donor" && role.data === "youth_association";
+  const isAssociation = role.data === "youth_association";
 
   const p = profile.data;
   const r = ratings.data ?? [];
@@ -53,6 +54,17 @@ export default function PublicProfile() {
   const qualifications: { title: string; description?: string }[] = (p as any)?.qualifications ?? [];
   const coverUrl: string = (p as any)?.cover_image_url || "";
   const views: number = (p as any)?.profile_views ?? 0;
+
+  const statusLabels: Record<string, string> = {
+    open: "مفتوح",
+    in_progress: "قيد التنفيذ",
+    completed: "مكتمل",
+    pending_approval: "بانتظار الموافقة",
+    cancelled: "ملغي",
+    disputed: "متنازع عليه",
+    suspended: "معلق",
+    archived: "مؤرشف",
+  };
 
   if (profile.isLoading) {
     return (
@@ -172,12 +184,18 @@ export default function PublicProfile() {
         <Tabs defaultValue="about" dir="rtl">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50 h-auto p-1 gap-1 rounded-xl">
             <TabsTrigger value="about" className="gap-1.5 rounded-lg"><UserIcon className="h-4 w-4" /> نبذة</TabsTrigger>
-            {skills.length > 0 && (
+            {!isAssociation && skills.length > 0 && (
               <TabsTrigger value="skills" className="gap-1.5 rounded-lg"><Award className="h-4 w-4" /> المهارات</TabsTrigger>
             )}
-            <TabsTrigger value="services" className="gap-1.5 rounded-lg"><Briefcase className="h-4 w-4" /> الخدمات</TabsTrigger>
-            <TabsTrigger value="portfolio" className="gap-1.5 rounded-lg"><ImageIcon className="h-4 w-4" /> الأعمال</TabsTrigger>
-            {qualifications.length > 0 && (
+            {isAssociation ? (
+              <TabsTrigger value="projects" className="gap-1.5 rounded-lg"><FileText className="h-4 w-4" /> الطلبات</TabsTrigger>
+            ) : (
+              <TabsTrigger value="services" className="gap-1.5 rounded-lg"><Briefcase className="h-4 w-4" /> الخدمات</TabsTrigger>
+            )}
+            {!isAssociation && (
+              <TabsTrigger value="portfolio" className="gap-1.5 rounded-lg"><ImageIcon className="h-4 w-4" /> الأعمال</TabsTrigger>
+            )}
+            {!isAssociation && qualifications.length > 0 && (
               <TabsTrigger value="qualifications" className="gap-1.5 rounded-lg"><GraduationCap className="h-4 w-4" /> المؤهلات</TabsTrigger>
             )}
             <TabsTrigger value="ratings" className="gap-1.5 rounded-lg"><MessageSquare className="h-4 w-4" /> التقييمات</TabsTrigger>
@@ -192,64 +210,115 @@ export default function PublicProfile() {
             </Card>
           </TabsContent>
 
-          {/* Skills */}
-          <TabsContent value="skills" className="mt-6 animate-in fade-in-50 duration-300">
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill, i) => (
-                <Badge key={i} variant="secondary" className="text-sm px-3 py-1.5">{skill}</Badge>
-              ))}
-            </div>
-          </TabsContent>
+          {/* Skills (provider only) */}
+          {!isAssociation && (
+            <TabsContent value="skills" className="mt-6 animate-in fade-in-50 duration-300">
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, i) => (
+                  <Badge key={i} variant="secondary" className="text-sm px-3 py-1.5">{skill}</Badge>
+                ))}
+              </div>
+            </TabsContent>
+          )}
 
-          {/* Services */}
-          <TabsContent value="services" className="mt-6 animate-in fade-in-50 duration-300">
-            {services.data?.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {services.data.map((s: any) => (
-                  <Card key={s.id} className="overflow-hidden hover:shadow-md transition-all duration-200 group">
-                    {s.image_url && (
-                      <div className="h-40 overflow-hidden">
-                        <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          {/* Projects (association only) */}
+          {isAssociation && (
+            <TabsContent value="projects" className="mt-6 animate-in fade-in-50 duration-300">
+              {projects.data?.length ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {projects.data.map((proj: any) => (
+                    <Card
+                      key={proj.id}
+                      className="overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer group"
+                      onClick={() => navigate(`/projects/public/${proj.id}`)}
+                    >
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-sm line-clamp-2">{proj.title}</h3>
+                          <Badge variant="secondary" className="text-xs shrink-0">
+                            {statusLabels[proj.status] ?? proj.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{proj.description}</p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                          {proj.categories?.name && (
+                            <Badge variant="outline" className="text-xs">{proj.categories.name}</Badge>
+                          )}
+                          {proj.budget && (
+                            <span className="text-primary font-semibold">
+                              {Number(proj.budget).toLocaleString()} ر.س
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(proj.created_at), "dd/MM/yyyy")}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-8 text-muted-foreground">لا توجد طلبات</p>
+              )}
+            </TabsContent>
+          )}
+
+          {/* Services (provider only) */}
+          {!isAssociation && (
+            <TabsContent value="services" className="mt-6 animate-in fade-in-50 duration-300">
+              {services.data?.length ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {services.data.map((s: any) => (
+                    <Card key={s.id} className="overflow-hidden hover:shadow-md transition-all duration-200 group">
+                      {s.image_url && (
+                        <div className="h-40 overflow-hidden">
+                          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                        </div>
+                      )}
+                      <CardContent className="p-4 space-y-2">
+                        <h3 className="font-semibold text-sm">{s.title}</h3>
+                        {s.categories?.name && <Badge variant="secondary" className="text-xs">{s.categories.name}</Badge>}
+                        <p className="text-primary font-bold text-sm">
+                          ابتداءً من {Number(s.price).toLocaleString()} ر.س
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-8 text-muted-foreground">لا توجد خدمات</p>
+              )}
+            </TabsContent>
+          )}
+
+          {/* Portfolio (provider only) */}
+          {!isAssociation && (
+            <TabsContent value="portfolio" className="mt-6 animate-in fade-in-50 duration-300">
+              <PortfolioGrid providerId={id!} />
+            </TabsContent>
+          )}
+
+          {/* Qualifications (provider only) */}
+          {!isAssociation && (
+            <TabsContent value="qualifications" className="mt-6 animate-in fade-in-50 duration-300">
+              <div className="space-y-3">
+                {qualifications.map((q, i) => (
+                  <Card key={i} className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <GraduationCap className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-sm">{q.title}</h4>
+                          {q.description && <p className="text-xs text-muted-foreground mt-1">{q.description}</p>}
+                        </div>
                       </div>
-                    )}
-                    <CardContent className="p-4 space-y-2">
-                      <h3 className="font-semibold text-sm">{s.title}</h3>
-                      {s.categories?.name && <Badge variant="secondary" className="text-xs">{s.categories.name}</Badge>}
-                      <p className="text-primary font-bold text-sm">
-                        ابتداءً من {Number(s.price).toLocaleString()} ر.س
-                      </p>
                     </CardContent>
                   </Card>
                 ))}
               </div>
-            ) : (
-              <p className="text-center py-8 text-muted-foreground">لا توجد خدمات</p>
-            )}
-          </TabsContent>
-
-          {/* Portfolio */}
-          <TabsContent value="portfolio" className="mt-6 animate-in fade-in-50 duration-300">
-            <PortfolioGrid providerId={id!} />
-          </TabsContent>
-
-          {/* Qualifications */}
-          <TabsContent value="qualifications" className="mt-6 animate-in fade-in-50 duration-300">
-            <div className="space-y-3">
-              {qualifications.map((q, i) => (
-                <Card key={i} className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <GraduationCap className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <div>
-                        <h4 className="font-semibold text-sm">{q.title}</h4>
-                        {q.description && <p className="text-xs text-muted-foreground mt-1">{q.description}</p>}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+            </TabsContent>
+          )}
 
           {/* Ratings */}
           <TabsContent value="ratings" className="mt-6 animate-in fade-in-50 duration-300">
