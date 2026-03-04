@@ -15,12 +15,25 @@ import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { FileEdit, Eye, Download } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
+import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
+
+const projectExportColumns: ExportColumnDef[] = [
+  { key: "request_number", label: "رقم الطلب" },
+  { key: "title", label: "العنوان" },
+  { key: "association", label: "الجمعية" },
+  { key: "category", label: "التصنيف" },
+  { key: "region", label: "المنطقة" },
+  { key: "city", label: "المدينة" },
+  { key: "budget", label: "الميزانية" },
+  { key: "status", label: "الحالة" },
+  { key: "created_at", label: "التاريخ" },
+];
+const projectExportDefaults = ["request_number", "title", "association", "category", "status", "budget", "created_at"];
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
@@ -57,6 +70,7 @@ export default function AdminProjects() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editProject, setEditProject] = useState<any>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
@@ -110,23 +124,7 @@ export default function AdminProjects() {
           >
             إعادة تعيين
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 gap-1"
-            onClick={async () => {
-              toast.info("جارٍ تصدير الطلبات...");
-              const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name), categories(name), regions(name), cities(name)");
-              downloadCSV("projects.csv",
-                ["رقم الطلب", "العنوان", "الجمعية", "التصنيف", "المنطقة", "المدينة", "الحالة", "الميزانية", "التاريخ"],
-                (data ?? []).map((p: any) => [
-                  p.request_number || "", p.title, (p.profiles as any)?.full_name || "",
-                  (p.categories as any)?.name || "", (p.regions as any)?.name || "", (p.cities as any)?.name || "",
-                  statusLabels[p.status] || p.status, p.budget != null ? String(p.budget) : "", p.created_at?.slice(0, 10) || "",
-                ])
-              );
-            }}
-          >
+          <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
             <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
@@ -219,6 +217,40 @@ export default function AdminProjects() {
           }}
         />
       )}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        title="تصدير الطلبات"
+        filename="projects.csv"
+        columns={projectExportColumns}
+        defaultColumns={projectExportDefaults}
+        filters={[{
+          key: "status",
+          label: "فلتر حسب الحالة",
+          options: Object.entries(statusLabels).map(([k, v]) => ({ value: k, label: v })),
+        }]}
+        onExport={async (cols, filters) => {
+          const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name), categories(name), regions(name), cities(name)");
+          let rows = data ?? [];
+          if (filters.status !== "all") rows = rows.filter((p: any) => p.status === filters.status);
+          const colMap: Record<string, (p: any) => string> = {
+            request_number: (p) => p.request_number || "",
+            title: (p) => p.title || "",
+            association: (p) => (p.profiles as any)?.full_name || "",
+            category: (p) => (p.categories as any)?.name || "",
+            region: (p) => (p.regions as any)?.name || "",
+            city: (p) => (p.cities as any)?.name || "",
+            budget: (p) => p.budget != null ? String(p.budget) : "",
+            status: (p) => statusLabels[p.status] || p.status,
+            created_at: (p) => p.created_at?.slice(0, 10) || "",
+          };
+          const activeCols = projectExportColumns.filter((c) => cols.includes(c.key));
+          return {
+            headers: activeCols.map((c) => c.label),
+            rows: rows.map((p: any) => activeCols.map((c) => colMap[c.key]?.(p) ?? "")),
+          };
+        }}
+      />
     </DashboardLayout>
   );
 }

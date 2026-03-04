@@ -9,15 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 
 type TicketStatus = Database["public"]["Enums"]["ticket_status"];
+
+const ticketExportColumns: ExportColumnDef[] = [
+  { key: "ticket_number", label: "رقم التذكرة" },
+  { key: "subject", label: "الموضوع" },
+  { key: "user", label: "المستخدم" },
+  { key: "priority", label: "الأولوية" },
+  { key: "status", label: "الحالة" },
+  { key: "created_at", label: "التاريخ" },
+];
+const ticketExportDefaults = ["ticket_number", "subject", "user", "priority", "status", "created_at"];
 
 const statusLabels: Record<string, string> = {
   open: "مفتوحة",
@@ -53,6 +63,7 @@ export default function AdminTickets() {
   const updateStatus = useUpdateTicketStatus();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [exportOpen, setExportOpen] = useState(false);
 
   const filtered = (tickets ?? []).filter((t: any) => {
     const q = search.toLowerCase();
@@ -95,22 +106,7 @@ export default function AdminTickets() {
           >
             إعادة تعيين
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 gap-1"
-            onClick={async () => {
-              toast.info("جارٍ تصدير التذاكر...");
-              const { data } = await supabase.from("support_tickets").select("ticket_number, subject, priority, status, created_at, profiles!support_tickets_user_id_fkey(full_name)");
-              downloadCSV("tickets.csv",
-                ["رقم التذكرة", "الموضوع", "المستخدم", "الأولوية", "الحالة", "التاريخ"],
-                (data ?? []).map((t: any) => [
-                  t.ticket_number || "", t.subject, (t.profiles as any)?.full_name || "",
-                  priorityLabels[t.priority] || t.priority, statusLabels[t.status] || t.status, t.created_at?.slice(0, 10) || "",
-                ])
-              );
-            }}
-          >
+          <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
             <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
@@ -159,6 +155,37 @@ export default function AdminTickets() {
           </div>
         )}
       </div>
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        title="تصدير التذاكر"
+        filename="tickets.csv"
+        columns={ticketExportColumns}
+        defaultColumns={ticketExportDefaults}
+        filters={[
+          { key: "status", label: "فلتر حسب الحالة", options: Object.entries(statusLabels).map(([k, v]) => ({ value: k, label: v })) },
+          { key: "priority", label: "فلتر حسب الأولوية", options: Object.entries(priorityLabels).map(([k, v]) => ({ value: k, label: v })) },
+        ]}
+        onExport={async (cols, filters) => {
+          const { data } = await supabase.from("support_tickets").select("ticket_number, subject, priority, status, created_at, profiles!support_tickets_user_id_fkey(full_name)");
+          let rows = data ?? [];
+          if (filters.status !== "all") rows = rows.filter((t: any) => t.status === filters.status);
+          if (filters.priority !== "all") rows = rows.filter((t: any) => t.priority === filters.priority);
+          const colMap: Record<string, (t: any) => string> = {
+            ticket_number: (t) => t.ticket_number || "",
+            subject: (t) => t.subject || "",
+            user: (t) => (t.profiles as any)?.full_name || "",
+            priority: (t) => priorityLabels[t.priority] || t.priority,
+            status: (t) => statusLabels[t.status] || t.status,
+            created_at: (t) => t.created_at?.slice(0, 10) || "",
+          };
+          const activeCols = ticketExportColumns.filter((c) => cols.includes(c.key));
+          return {
+            headers: activeCols.map((c) => c.label),
+            rows: rows.map((t: any) => activeCols.map((c) => colMap[c.key]?.(t) ?? "")),
+          };
+        }}
+      />
     </DashboardLayout>
   );
 }

@@ -15,13 +15,23 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { Eye, FileEdit, Download } from "lucide-react";
-import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
 import type { Database } from "@/integrations/supabase/types";
+import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 
 type DisputeStatus = Database["public"]["Enums"]["dispute_status"];
+
+const disputeExportColumns: ExportColumnDef[] = [
+  { key: "dispute_number", label: "رقم الشكوى" },
+  { key: "project", label: "المشروع" },
+  { key: "raised_by", label: "مقدم الشكوى" },
+  { key: "description", label: "الوصف" },
+  { key: "status", label: "الحالة" },
+  { key: "created_at", label: "التاريخ" },
+];
+const disputeExportDefaults = ["dispute_number", "project", "raised_by", "status", "created_at"];
 
 const disputeFields: DirectEditFieldConfig[] = [
   { key: "resolution_notes", label: "ملاحظات الحل", type: "textarea" },
@@ -34,6 +44,7 @@ export default function AdminDisputes() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editDispute, setEditDispute] = useState<any>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const filtered = (disputes ?? []).filter((d: any) => {
     if (search) {
@@ -88,22 +99,7 @@ export default function AdminDisputes() {
           >
             إعادة تعيين
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 gap-1"
-            onClick={async () => {
-              toast.info("جارٍ تصدير الشكاوى...");
-              const { data } = await supabase.from("disputes").select("description, status, created_at, projects(title), profiles!disputes_raised_by_fkey(full_name)");
-              downloadCSV("disputes.csv",
-                ["المشروع", "مقدم الشكوى", "الوصف", "الحالة", "التاريخ"],
-                (data ?? []).map((d: any) => [
-                  (d.projects as any)?.title || "", (d.profiles as any)?.full_name || "",
-                  d.description || "", disputeStatusLabels[d.status] || d.status, d.created_at?.slice(0, 10) || "",
-                ])
-              );
-            }}
-          >
+          <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
             <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
@@ -205,6 +201,37 @@ export default function AdminDisputes() {
           }}
         />
       )}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        title="تصدير الشكاوى"
+        filename="disputes.csv"
+        columns={disputeExportColumns}
+        defaultColumns={disputeExportDefaults}
+        filters={[{
+          key: "status",
+          label: "فلتر حسب الحالة",
+          options: allDisputeStatuses.map((s) => ({ value: s, label: disputeStatusLabels[s] })),
+        }]}
+        onExport={async (cols, filters) => {
+          const { data } = await supabase.from("disputes").select("dispute_number, description, status, created_at, projects(title), profiles!disputes_raised_by_fkey(full_name)");
+          let rows = data ?? [];
+          if (filters.status !== "all") rows = rows.filter((d: any) => d.status === filters.status);
+          const colMap: Record<string, (d: any) => string> = {
+            dispute_number: (d) => d.dispute_number || "",
+            project: (d) => (d.projects as any)?.title || "",
+            raised_by: (d) => (d.profiles as any)?.full_name || "",
+            description: (d) => d.description || "",
+            status: (d) => disputeStatusLabels[d.status] || d.status,
+            created_at: (d) => d.created_at?.slice(0, 10) || "",
+          };
+          const activeCols = disputeExportColumns.filter((c) => cols.includes(c.key));
+          return {
+            headers: activeCols.map((c) => c.label),
+            rows: rows.map((d: any) => activeCols.map((c) => colMap[c.key]?.(d) ?? "")),
+          };
+        }}
+      />
     </DashboardLayout>
   );
 }
