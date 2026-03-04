@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import AuthModal from "@/components/AuthModal";
+import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 
 export default function LandingHeader() {
+  const { count: cartCount } = useUnifiedCart();
   const { data: header } = useSiteContent("header");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -50,7 +53,17 @@ export default function LandingHeader() {
             ))}
           </nav>
 
-          <div className="hidden md:flex gap-2">
+          <div className="hidden md:flex gap-2 items-center">
+            {cartCount > 0 && (
+              <Button variant="ghost" size="icon" asChild className="relative">
+                <Link to="/cart">
+                  <ShoppingCart className="h-5 w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                    {cartCount}
+                  </Badge>
+                </Link>
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => openAuth("login")}>
               {hd.login_text}
             </Button>

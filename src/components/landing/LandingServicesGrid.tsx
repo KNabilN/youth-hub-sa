@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +32,9 @@ const typeLabel: Record<string, string> = {
 };
 
 export default function LandingServicesGrid({ services, loading }: LandingServicesGridProps) {
-  const { addItem, isAdding } = useUnifiedCart();
+  const { addItem, items, isAdding } = useUnifiedCart();
+  const navigate = useNavigate();
+  const cartServiceIds = new Set(items.map((i) => i.service_id));
 
   if (!loading && services.length === 0) return null;
 
@@ -106,15 +108,27 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
                         التفاصيل
                       </Link>
                     </Button>
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleAdd(s.id)}
-                      disabled={isAdding}
-                    >
-                      <ShoppingCart className="h-4 w-4 me-1" />
-                      أضف للسلة
-                    </Button>
+                    {cartServiceIds.has(s.id) ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="flex-1"
+                        onClick={() => navigate("/cart")}
+                      >
+                        <Check className="h-4 w-4 me-1" />
+                        عرض السلة
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleAdd(s.id)}
+                        disabled={isAdding}
+                      >
+                        <ShoppingCart className="h-4 w-4 me-1" />
+                        أضف للسلة
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
