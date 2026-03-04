@@ -139,7 +139,7 @@ export default function Index() {
           <div className="container mx-auto max-w-6xl text-center space-y-8">
             <div>
               {tr.badge &&
-            <div className="inline-flex items-center gap-2 bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] text-sm font-medium px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-4 py-2 rounded-full mb-4">
                   <Lock className="w-4 h-4" />
                   {tr.badge}
                 </div>
@@ -152,8 +152,8 @@ export default function Index() {
               key={item}
               className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover">
               
-                  <div className="mt-0.5 shrink-0 w-6 h-6 bg-[hsl(var(--success))]/15 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--success))]" />
+                  <div className="mt-0.5 shrink-0 w-6 h-6 bg-primary/15 rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <span className="text-sm leading-relaxed">{item}</span>
                 </div>
