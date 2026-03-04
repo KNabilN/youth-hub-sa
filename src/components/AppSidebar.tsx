@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag,
+  Mail, Trash2, ShoppingBag, Home,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -87,7 +87,8 @@ export function AppSidebar() {
   const { role, signOut, user } = useAuth();
   const { data: profile } = useProfile();
   const { theme, setTheme } = useTheme();
-  const items = role ? menuByRole[role] : [];
+  const homeItem = { title: "الصفحة الرئيسية", url: "/", icon: Home };
+  const items = role ? [homeItem, ...menuByRole[role]] : [homeItem];
   const isNonAdmin = role && role !== "super_admin";
 
   // Unread notifications count
