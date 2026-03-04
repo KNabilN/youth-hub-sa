@@ -167,7 +167,7 @@ export default function Index() {
       <Testimonials />
 
       {/* 8. CTA نهائي */}
-      <section className="py-16 px-4 bg-[#2381C0]">
+      <section className="py-16 px-4 bg-primary">
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="text-right space-y-4 flex-1">
@@ -183,7 +183,7 @@ export default function Index() {
             <div className="shrink-0 flex flex-col items-center gap-3">
               <Button
                 size="lg"
-                className="bg-white text-[#2381C0] hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
+                className="bg-white text-primary hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
                 onClick={() => navigate("/auth")}>
                 
                 سجّل مجاناً
