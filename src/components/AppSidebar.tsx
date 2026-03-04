@@ -12,6 +12,7 @@ import { useUnreadCount } from "@/hooks/useNotifications";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import { useCartCount } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -92,6 +93,9 @@ export function AppSidebar() {
   // Unread notifications count
   const { data: unreadCount } = useUnreadCount();
 
+  // Cart items count
+  const cartCount = useCartCount();
+
   // In-progress tickets count (admin sees all, non-admin sees own)
   const { data: activeTicketsCount } = useQuery({
     queryKey: ["sidebar-active-tickets", user?.id, role],
@@ -114,6 +118,7 @@ export function AppSidebar() {
   const getBadge = (url: string) => {
     if ((url === "/admin/notifications" || url === "/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
+    if (url === "/cart" && cartCount > 0) return cartCount;
     return 0;
   };
 
