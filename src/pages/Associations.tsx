@@ -4,10 +4,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users } from "lucide-react";
+import { Users, Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { useState, useMemo } from "react";
 
 export default function Associations() {
+  const [search, setSearch] = useState("");
   const { data: associations, isLoading } = useQuery({
     queryKey: ["associations"],
     queryFn: async () => {
@@ -38,13 +41,27 @@ export default function Associations() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
+        <div className="relative max-w-md">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="ابحث باسم الجمعية أو المنظمة..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pr-10"
+          />
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1,2,3].map(i => <Skeleton key={i} className="h-44 w-full" />)}</div>
         ) : !associations?.length ? (
           <EmptyState icon={Users} title="لا توجد جمعيات موثقة حالياً" description="ستظهر الجمعيات الموثقة هنا قريباً" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {associations.map((a) => (
+            {associations.filter((a) => {
+              if (!search.trim()) return true;
+              const q = search.trim().toLowerCase();
+              return (a.full_name?.toLowerCase().includes(q) || a.organization_name?.toLowerCase().includes(q));
+            }).map((a) => (
               <Link key={a.id} to={`/associations/${a.id}`} className="block hover:scale-[1.01] transition-transform">
                 <AssociationCard
                   full_name={a.full_name}
