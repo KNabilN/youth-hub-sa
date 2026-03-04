@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag, Home,
+  Mail, Trash2, ShoppingBag, Home, Inbox, Heart,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -30,6 +30,8 @@ const menuByRole = {
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
+    { title: "المانحون", url: "/donors", icon: Users },
+    { title: "طلبات المنح", url: "/my-grants", icon: HandCoins },
     { title: "العقود", url: "/contracts", icon: FileText },
     { title: "سجل الساعات", url: "/time-logs", icon: ClipboardList },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
@@ -57,6 +59,8 @@ const menuByRole = {
     { title: "سلة المشتريات", url: "/cart", icon: ShoppingCart },
     { title: "مشترياتي", url: "/donor-purchases", icon: ShoppingBag },
     { title: "الجمعيات", url: "/associations", icon: Users },
+    { title: "طلبات الدعم", url: "/grant-requests", icon: Heart },
+    { title: "طلبات واردة", url: "/my-grant-requests", icon: Inbox },
     { title: "المنح", url: "/donations", icon: HandCoins },
     { title: "تقارير الأثر", url: "/impact", icon: BarChart3 },
   ],

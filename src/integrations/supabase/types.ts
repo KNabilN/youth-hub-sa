@@ -766,6 +766,67 @@ export type Database = {
           },
         ]
       }
+      grant_requests: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          association_id: string
+          created_at: string | null
+          description: string | null
+          donor_id: string | null
+          id: string
+          project_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          association_id: string
+          created_at?: string | null
+          description?: string | null
+          donor_id?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          association_id?: string
+          created_at?: string | null
+          description?: string | null
+          donor_id?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grant_requests_association_id_fkey"
+            columns: ["association_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grant_requests_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grant_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
@@ -1677,6 +1738,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_verified_association_ids: { Args: never; Returns: string[] }
+      get_verified_donor_ids: { Args: never; Returns: string[] }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

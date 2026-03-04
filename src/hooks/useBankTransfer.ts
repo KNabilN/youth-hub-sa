@@ -183,6 +183,16 @@ export function useApproveBankTransfer() {
           .eq("amount", escrow.amount);
       }
 
+      // Update any linked grant_requests to 'funded'
+      if (bt) {
+        await supabase
+          .from("grant_requests" as any)
+          .update({ status: "funded", updated_at: new Date().toISOString() } as any)
+          .eq("association_id", escrow.beneficiary_id || escrow.payee_id)
+          .eq("amount", escrow.amount)
+          .eq("status", "pending");
+      }
+
       if (!escrow.project_id) {
         // === Scenario 1: General donation to association (no project_id) ===
         // Issue invoice to the association (beneficiary)
@@ -270,6 +280,9 @@ export function useApproveBankTransfer() {
       qc.invalidateQueries({ queryKey: ["my-invoices"] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["donor-contributions"] });
+      qc.invalidateQueries({ queryKey: ["my-grants"] });
+      qc.invalidateQueries({ queryKey: ["grant-requests-donor"] });
+      qc.invalidateQueries({ queryKey: ["my-grant-requests"] });
     },
   });
 }
