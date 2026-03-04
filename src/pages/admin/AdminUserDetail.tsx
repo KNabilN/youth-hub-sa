@@ -44,7 +44,10 @@ import {
   ShieldOff,
   Heart,
   Wrench,
+  MapPin,
 } from "lucide-react";
+import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -91,8 +94,13 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
     { key: "qualifications", label: "المؤهلات", type: "qualifications" },
   ];
 
+  const locationFields: DirectEditFieldConfig[] = [
+    { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
+    { key: "city_id", label: "المدينة", type: "select", selectSource: "cities" },
+  ];
+
   if (role === "service_provider") {
-    return [...common, { key: "hourly_rate", label: "السعر بالساعة", type: "number" }];
+    return [...common, { key: "hourly_rate", label: "السعر بالساعة", type: "number" }, ...locationFields];
   }
   if (role === "youth_association") {
     return [
@@ -103,6 +111,7 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
       { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
       { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
       { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
+      ...locationFields,
     ];
   }
   if (role === "donor") {
@@ -175,6 +184,9 @@ export default function AdminUserDetail() {
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [suspensionReason, setSuspensionReason] = useState("");
 
+  const { data: allRegions } = useRegions();
+  const { data: allCities } = useCities();
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -204,6 +216,8 @@ export default function AdminUserDetail() {
   }
 
   const role = user.user_roles?.[0]?.role;
+  const regionName = allRegions?.find((r) => r.id === (user as any).region_id)?.name;
+  const cityName = allCities?.find((c) => c.id === (user as any).city_id)?.name;
 
   const handleToggleVerify = () => {
     toggleVerify.mutate(
@@ -371,6 +385,12 @@ export default function AdminUserDetail() {
                   )}
                   {role === "youth_association" && (
                     <InfoField icon={FileText} label="رقم الترخيص" value={user.license_number} />
+                  )}
+                  {(role === "youth_association" || role === "service_provider") && (
+                    <>
+                      <InfoField icon={MapPin} label="المنطقة" value={regionName} />
+                      <InfoField icon={MapPin} label="المدينة" value={cityName} />
+                    </>
                   )}
                 </div>
               </CardContent>
