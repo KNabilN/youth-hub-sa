@@ -4,13 +4,13 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { Mail, Phone, Instagram } from "lucide-react";
 
 const topCategories = [
-  "الخدمات المالية",
-  "البناء المؤسسي",
-  "العمليات الداخلية",
-  "الخدمات التقنية",
-  "الخدمات التدريبية",
-  "خدمات التسويق",
-];
+"الخدمات المالية",
+"البناء المؤسسي",
+"العمليات الداخلية",
+"الخدمات التقنية",
+"الخدمات التدريبية",
+"خدمات التسويق"];
+
 
 export default function LandingFooter() {
   const { data: footer } = useSiteContent("footer");
@@ -35,9 +35,9 @@ export default function LandingFooter() {
           <div className="space-y-3">
             <h4 className="font-semibold text-sm text-white">الفئات الأعلى تقييماً</h4>
             <ul className="space-y-2">
-              {topCategories.map((cat) => (
-                <li key={cat} className="text-sm text-gray-400">{cat}</li>
-              ))}
+              {topCategories.map((cat) =>
+              <li key={cat} className="text-sm text-gray-400">{cat}</li>
+              )}
             </ul>
           </div>
 
@@ -48,11 +48,11 @@ export default function LandingFooter() {
               <li><Link to="/about" className="text-sm text-gray-400 hover:text-white transition-colors">من نحن</Link></li>
               <li><Link to="/faq" className="text-sm text-gray-400 hover:text-white transition-colors">الأسئلة الشائعة</Link></li>
               <li><Link to="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">سياسة الخصوصية</Link></li>
-              {(ft.links || []).map((link: any) => (
-                <li key={link.label}>
+              {(ft.links || []).map((link: any) =>
+              <li key={link.label}>
                   <a href={link.url} className="text-sm text-gray-400 hover:text-white transition-colors">{link.label}</a>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
@@ -62,16 +62,17 @@ export default function LandingFooter() {
             <div className="space-y-2">
               <a href="mailto:sspf.scy@gmail.com" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                 <Mail className="h-4 w-4 shrink-0" />
-                <span dir="ltr">sspf.scy@gmail.com</span>
+                <span dir="ltr">
+</span>
               </a>
               <a href="tel:0554648475" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                 <Phone className="h-4 w-4 shrink-0" />
-                <span dir="ltr">0554648475</span>
+                <span dir="ltr">+966 50 941 5819</span>
               </a>
             </div>
             <div className="flex items-center gap-3 pt-2">
               <a href="https://x.com/sspf_sa" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="X (Twitter)">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
               </a>
               <a href="https://www.instagram.com/mnslkhdmtlmshtrk" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram className="h-5 w-5" />
@@ -88,6 +89,5 @@ export default function LandingFooter() {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
 }
