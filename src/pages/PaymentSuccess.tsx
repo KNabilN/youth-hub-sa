@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { StepProgress } from "@/components/ui/step-progress";
-import { ArrowLeft, Receipt, Clock } from "lucide-react";
+import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const checkoutSteps = [
@@ -11,6 +11,14 @@ const checkoutSteps = [
   { label: "المراجعة" },
   { label: "الدفع" },
   { label: "التأكيد" },
+];
+
+const bankTransferJourney = [
+  { icon: CheckCircle2, label: "تم إرسال الإيصال", status: "done" as const },
+  { icon: Clock, label: "بانتظار موافقة الإدارة", status: "current" as const },
+  { icon: FileText, label: "إصدار الفاتورة", status: "upcoming" as const },
+  { icon: ScrollText, label: "إنشاء العقد وتوقيع المزود", status: "upcoming" as const },
+  { icon: PlayCircle, label: "بدء المشروع", status: "upcoming" as const },
 ];
 
 export default function PaymentSuccess() {
@@ -37,6 +45,51 @@ export default function PaymentSuccess() {
                   <p className="text-sm text-muted-foreground">
                     سيتم مراجعة إيصال التحويل من قبل الإدارة وسيتم إشعارك بالنتيجة
                   </p>
+                </div>
+
+                {/* Journey Timeline */}
+                <div className="w-full bg-muted/30 rounded-xl p-4 space-y-0">
+                  <p className="text-xs font-semibold text-muted-foreground mb-3">المراحل القادمة</p>
+                  {bankTransferJourney.map((step, idx) => {
+                    const Icon = step.icon;
+                    const isDone = step.status === "done";
+                    const isCurrent = step.status === "current";
+                    return (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                              isDone
+                                ? "bg-primary text-primary-foreground"
+                                : isCurrent
+                                ? "bg-orange-500/15 text-orange-600 ring-2 ring-orange-500/30"
+                                : "bg-muted text-muted-foreground/50"
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          {idx < bankTransferJourney.length - 1 && (
+                            <div
+                              className={`w-0.5 h-6 my-0.5 ${
+                                isDone ? "bg-primary" : "bg-border"
+                              }`}
+                            />
+                          )}
+                        </div>
+                        <span
+                          className={`text-sm pt-1.5 text-right ${
+                            isDone
+                              ? "text-foreground font-medium"
+                              : isCurrent
+                              ? "text-orange-600 font-medium"
+                              : "text-muted-foreground/60"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             ) : (

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, FileText, Clock } from "lucide-react";
+import { Check, FileText, Clock, PenLine } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ContractCardProps {
@@ -19,9 +19,10 @@ function getStatus(c: any) {
 
 export function ContractCard({ contract, canSign, onSign, isSignPending }: ContractCardProps) {
   const status = getStatus(contract);
+  const needsSignature = canSign;
 
   return (
-    <Card>
+    <Card className={needsSignature ? "border-primary/50 ring-1 ring-primary/20 shadow-sm" : ""}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-muted-foreground" />
@@ -31,7 +32,15 @@ export function ContractCard({ contract, canSign, onSign, isSignPending }: Contr
             </Link>
           </CardTitle>
         </div>
-        <Badge variant={status.variant}>{status.label}</Badge>
+        <div className="flex items-center gap-2">
+          {needsSignature && (
+            <Badge variant="destructive" className="gap-1 animate-pulse">
+              <PenLine className="h-3 w-3" />
+              مطلوب توقيعك
+            </Badge>
+          )}
+          <Badge variant={status.variant}>{status.label}</Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {contract.terms && <p className="text-muted-foreground">{contract.terms}</p>}

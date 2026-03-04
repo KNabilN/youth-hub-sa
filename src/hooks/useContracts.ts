@@ -63,17 +63,24 @@ export function useSignContract() {
 
       if (!contract) return;
 
-      // DB trigger handles notifications — no client-side sendNotification needed
-
-      // If both signed, create escrow
+      // If both signed, check if escrow already exists (bank transfer flow) or create new
       if (contract.association_signed_at && contract.provider_signed_at) {
+        // Check if a held escrow already exists for this project
         const { data: existingEscrow } = await supabase
           .from("escrow_transactions")
-          .select("id")
+          .select("id, status")
           .eq("project_id", contract.project_id)
           .maybeSingle();
 
-        if (!existingEscrow) {
+        if (existingEscrow && (existingEscrow.status === "held" || existingEscrow.status === "pending_payment")) {
+          // Bank transfer flow — escrow already exists, start the project
+          await supabase
+            .from("projects")
+            .update({ status: "in_progress" as any })
+            .eq("id", contract.project_id);
+          // DB trigger notify_on_project_status_change handles notifications
+        } else if (!existingEscrow) {
+          // Regular flow — create escrow
           const { data: bid } = await supabase
             .from("bids")
             .select("price")
@@ -89,7 +96,6 @@ export function useSignContract() {
               amount: bid.price,
               status: "held",
             });
-            // DB trigger notify_on_escrow_change handles notifications
           }
         }
       }
@@ -98,6 +104,8 @@ export function useSignContract() {
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["contract"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["my-projects"] });
     },
   });
 }
