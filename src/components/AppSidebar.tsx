@@ -120,10 +120,88 @@ export function AppSidebar() {
     enabled: !!user,
   });
 
+  // Pending grant requests counts
+  const { data: grantRequestsCounts } = useQuery({
+    queryKey: ["sidebar-grant-counts", user?.id, role],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+
+      if (role === "donor") {
+        // طلبات الدعم: all pending grant requests
+        const { count: allPending } = await supabase
+          .from("grant_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending");
+        counts["/grant-requests"] = allPending ?? 0;
+
+        // طلبات واردة: grant requests targeted to this donor
+        const { count: incoming } = await supabase
+          .from("grant_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("donor_id", user!.id)
+          .eq("status", "pending");
+        counts["/my-grant-requests"] = incoming ?? 0;
+      }
+
+      if (role === "youth_association") {
+        // طلبات المنح: my pending grant requests
+        const { count: myGrants } = await supabase
+          .from("grant_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("association_id", user!.id)
+          .eq("status", "pending");
+        counts["/my-grants"] = myGrants ?? 0;
+
+        // طلبات الجمعيات: my pending projects
+        const { count: myProjects } = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("association_id", user!.id)
+          .is("deleted_at", null)
+          .in("status", ["pending_approval", "open"]);
+        counts["/projects"] = myProjects ?? 0;
+      }
+
+      if (role === "service_provider") {
+        // طلبات الجمعيات المتاحة: open projects
+        const { count: available } = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null)
+          .eq("status", "open");
+        counts["/available-projects"] = available ?? 0;
+
+        // طلباتي: my assigned in-progress projects
+        const { count: myAssigned } = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("assigned_provider_id", user!.id)
+          .is("deleted_at", null)
+          .eq("status", "in_progress");
+        counts["/my-projects"] = myAssigned ?? 0;
+      }
+
+      if (role === "super_admin") {
+        // طلبات الجمعيات: pending approval projects
+        const { count: pendingProjects } = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null)
+          .eq("status", "pending_approval");
+        counts["/admin/projects"] = pendingProjects ?? 0;
+      }
+
+      return counts;
+    },
+    enabled: !!user && !!role,
+  });
+
   const getBadge = (url: string) => {
     if ((url === "/admin/notifications" || url === "/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
     if (url === "/cart" && cartCount > 0) return cartCount;
+    const grantCount = grantRequestsCounts?.[url];
+    if (grantCount && grantCount > 0) return grantCount;
     return 0;
   };
 
