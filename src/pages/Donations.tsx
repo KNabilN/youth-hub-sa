@@ -2,8 +2,6 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
-import { usePurchaseService } from "@/hooks/usePurchaseService";
-import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
 import { DonationForm, DonationFormData } from "@/components/donor/DonationForm";
 import { DonationPaymentStep } from "@/components/donor/DonationPaymentStep";
@@ -21,6 +19,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { HandCoins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   available: { label: "متاح", variant: "default" },
@@ -29,6 +28,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   suspended: { label: "معلق", variant: "destructive" },
   expired: { label: "منتهي", variant: "secondary" },
   pending: { label: "بانتظار المراجعة", variant: "secondary" },
+  rejected: { label: "مرفوض", variant: "destructive" },
 };
 
 const donationSteps = [
@@ -43,8 +43,6 @@ export default function Donations() {
   const { data: contributions, isLoading } = useDonorContributions();
   const { data: balances, isLoading: balancesLoading } = useDonorBalances();
   const createContribution = useCreateContribution();
-  const purchase = usePurchaseService();
-  const bankTransfer = useCreateBankTransfer();
 
   const [step, setStep] = useState<"form" | "payment">("form");
   const [formData, setFormData] = useState<DonationFormData | null>(null);
@@ -55,96 +53,85 @@ export default function Donations() {
     setStep("payment");
   };
 
-  const handlePaymentConfirm = async (method: "electronic" | "bank_transfer", receiptFile?: File) => {
+  const handlePaymentConfirm = async (receiptFile: File) => {
     if (!user || !formData) return;
     setProcessing(true);
     try {
-      if (formData.target_type === "service" && formData.provider_id) {
-        // Service donation — use existing hooks
-        if (method === "electronic") {
-          await purchase.mutateAsync({
-            serviceId: formData.target_id,
-            providerId: formData.provider_id,
-            buyerId: user.id,
+      // 1. Upload receipt
+      const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
+      const { error: uploadErr } = await supabase.storage.from("transfer-receipts").upload(filePath, receiptFile);
+      if (uploadErr) throw uploadErr;
+
+      if (formData.target_type === "association") {
+        // === Scenario 1: General donation to association (no project) ===
+        const { data: escrow, error: escrowErr } = await supabase
+          .from("escrow_transactions")
+          .insert({
+            payer_id: user.id,
+            payee_id: formData.association_id, // association is payee
+            beneficiary_id: formData.association_id,
             amount: formData.amount,
-            serviceTitle: formData.target_title,
-            beneficiaryId: formData.association_id,
-          });
-        } else {
-          if (!receiptFile) return;
-          await bankTransfer.mutateAsync({
-            receiptFile,
-            amount: formData.amount,
-            userId: user.id,
-            beneficiaryId: formData.association_id,
-            items: [{
-              serviceId: formData.target_id,
-              providerId: formData.provider_id,
-              price: formData.amount,
-              title: formData.target_title,
-            }],
-          });
-        }
+            status: "pending_payment" as any,
+          } as any)
+          .select()
+          .single();
+        if (escrowErr) throw escrowErr;
+
+        await supabase.from("bank_transfers").insert({
+          escrow_id: escrow.id,
+          user_id: user.id,
+          receipt_url: filePath,
+          amount: formData.amount,
+        } as any);
+
+        await createContribution.mutateAsync({
+          amount: formData.amount,
+          association_id: formData.association_id,
+          donation_status: "pending",
+        });
       } else {
-        // Project donation
-        if (!formData.association_id) {
-          toast.error("يجب تحديد الجمعية المستفيدة");
-          setProcessing(false);
-          return;
-        }
-        const associationId = formData.association_id;
-        if (method === "electronic") {
-          const { error: escrowErr } = await (await import("@/integrations/supabase/client")).supabase
-            .from("escrow_transactions")
-            .insert({
-              payer_id: user.id,
-              payee_id: associationId,
-              amount: formData.amount,
-              status: "held" as any,
-              project_id: formData.target_id,
-            } as any);
-          if (escrowErr) throw escrowErr;
+        // === Scenario 2: Donation to specific project request ===
+        const projectId = formData.project_id!;
 
-          await createContribution.mutateAsync({
+        // Get the assigned provider from the project
+        const { data: project } = await supabase
+          .from("projects")
+          .select("assigned_provider_id, association_id")
+          .eq("id", projectId)
+          .single();
+
+        const payeeId = project?.assigned_provider_id || formData.association_id;
+
+        const { data: escrow, error: escrowErr } = await supabase
+          .from("escrow_transactions")
+          .insert({
+            payer_id: user.id,
+            payee_id: payeeId,
+            beneficiary_id: formData.association_id,
             amount: formData.amount,
-            project_id: formData.target_id,
-            donation_status: "available",
-          });
-        } else {
-          if (!receiptFile) return;
-          const { supabase } = await import("@/integrations/supabase/client");
-          const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
-          const { error: uploadErr } = await supabase.storage.from("transfer-receipts").upload(filePath, receiptFile);
-          if (uploadErr) throw uploadErr;
+            status: "pending_payment" as any,
+            project_id: projectId,
+          } as any)
+          .select()
+          .single();
+        if (escrowErr) throw escrowErr;
 
-          const { data: escrow, error: escrowErr } = await supabase
-            .from("escrow_transactions")
-            .insert({
-              payer_id: user.id,
-              payee_id: associationId,
-              amount: formData.amount,
-              status: "pending_payment" as any,
-              project_id: formData.target_id,
-            } as any)
-            .select()
-            .single();
-          if (escrowErr) throw escrowErr;
+        await supabase.from("bank_transfers").insert({
+          escrow_id: escrow.id,
+          user_id: user.id,
+          receipt_url: filePath,
+          amount: formData.amount,
+        } as any);
 
-          await supabase.from("bank_transfers").insert({
-            escrow_id: escrow.id,
-            user_id: user.id,
-            receipt_url: filePath,
-            amount: formData.amount,
-          } as any);
-
-          await createContribution.mutateAsync({
-            amount: formData.amount,
-            project_id: formData.target_id,
-            donation_status: "pending",
-          });
-        }
+        await createContribution.mutateAsync({
+          amount: formData.amount,
+          project_id: projectId,
+          association_id: formData.association_id,
+          donation_status: "pending",
+        });
       }
-      navigate("/payment-success", { state: { total: formData.amount, count: 1, method } });
+
+      navigate("/payment-success", { state: { total: formData.amount, count: 1, method: "bank_transfer" } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
@@ -166,7 +153,6 @@ export default function Donations() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        {/* Balance Cards */}
         <DonorBalanceCards
           available={balances?.available ?? 0}
           reserved={balances?.reserved ?? 0}
@@ -187,8 +173,9 @@ export default function Donations() {
             ) : formData ? (
               <DonationPaymentStep
                 amount={formData.amount}
-                targetLabel={formData.target_title}
+                targetType={formData.target_type}
                 associationName={formData.association_name}
+                projectTitle={formData.project_title}
                 onConfirm={handlePaymentConfirm}
                 onBack={() => setStep("form")}
                 isProcessing={processing}
@@ -218,7 +205,7 @@ export default function Donations() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>التاريخ</TableHead>
-                        <TableHead>الطلب / الخدمة</TableHead>
+                        <TableHead>الوجهة</TableHead>
                         <TableHead>الحالة</TableHead>
                         <TableHead>المبلغ</TableHead>
                       </TableRow>
@@ -226,10 +213,11 @@ export default function Donations() {
                     <TableBody>
                       {contributions.map((c: any) => {
                         const st = statusConfig[c.donation_status] ?? statusConfig.available;
+                        const target = c.projects?.title || (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name || "منحة عامة";
                         return (
                           <TableRow key={c.id}>
                             <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                            <TableCell>{c.projects?.title || c.micro_services?.title || "-"}</TableCell>
+                            <TableCell>{target}</TableCell>
                             <TableCell><Badge variant={st.variant} className="text-[10px]">{st.label}</Badge></TableCell>
                             <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
                           </TableRow>
