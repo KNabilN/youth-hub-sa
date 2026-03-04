@@ -128,7 +128,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         {!isLogin && (
           <>
             <div className="space-y-2">
-              <Label htmlFor="modal-fullName">الاسم الكامل</Label>
+              <Label htmlFor="modal-fullName">الاسم الكامل <span className="text-destructive">*</span></Label>
               <Input
                 id="modal-fullName"
                 value={fullName}
@@ -141,7 +141,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             </div>
 
             <div className="space-y-2">
-              <Label>نوع الحساب</Label>
+              <Label>نوع الحساب <span className="text-destructive">*</span></Label>
               <div className="grid grid-cols-1 gap-2">
                 {roleOptions.map((r) => (
                   <button
@@ -171,7 +171,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="modal-phone">رقم الجوال</Label>
+              <Label htmlFor="modal-phone">رقم الجوال <span className="text-destructive">*</span></Label>
               <div className="relative flex gap-2">
                 <div className="flex items-center gap-1.5 h-11 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground shrink-0 select-none">
                   <span>🇸🇦</span>
@@ -195,7 +195,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="modal-email">البريد الإلكتروني</Label>
+          <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
           <Input
             id="modal-email"
             type="email"
@@ -210,7 +210,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="modal-password">كلمة المرور</Label>
+          <Label htmlFor="modal-password">كلمة المرور <span className="text-destructive">*</span></Label>
           <Input
             id="modal-password"
             type="password"
