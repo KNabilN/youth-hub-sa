@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft } from "lucide-react";
+import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useUnifiedCart } from "@/hooks/useUnifiedCart";
+import { toast } from "sonner";
 
 interface Service {
   id: string;
@@ -22,8 +26,20 @@ interface LandingServicesGridProps {
   loading: boolean;
 }
 
+const typeLabel: Record<string, string> = {
+  fixed_price: "سعر ثابت",
+  hourly: "بالساعة",
+};
+
 export default function LandingServicesGrid({ services, loading }: LandingServicesGridProps) {
+  const { addItem, isAdding } = useUnifiedCart();
+
   if (!loading && services.length === 0) return null;
+
+  const handleAdd = (serviceId: string) => {
+    addItem(serviceId);
+    toast.success("تمت إضافة الخدمة إلى السلة");
+  };
 
   return (
     <section className="py-20 px-4 bg-muted/30">
@@ -42,46 +58,66 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={i} className="h-52 rounded-2xl" />
+              <Skeleton key={i} className="h-72 rounded-2xl" />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {services.map((s) => (
-              <Link
-                to={`/services/${s.id}`}
-                key={s.id}
-                className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 block"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  {s.category && (
-                    <Badge variant="secondary" className="gap-1 font-medium">
-                      <Tag className="w-3 h-3" />
-                      {s.category.name}
+              <Card key={s.id} className="card-hover group overflow-hidden">
+                {s.image_url && (
+                  <div className="w-full h-40 overflow-hidden">
+                    <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                )}
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base truncate">{s.title}</CardTitle>
+                    <Badge variant="outline" className="shrink-0">
+                      {typeLabel[s.service_type] || s.service_type}
                     </Badge>
-                  )}
-                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/8 rounded-full px-3 py-1">
-                    <Banknote className="w-4 h-4" />
-                    {s.price.toLocaleString("ar-SA")} ر.س
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors">
-                    {s.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                    {s.description}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+                  </div>
                   {s.provider && (
-                    <span className="flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5" />
-                      {s.provider.full_name}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
+                          {s.provider.full_name?.[0] || "؟"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground">{s.provider.full_name}</span>
+                    </div>
                   )}
-                </div>
-              </Link>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
+                      {s.price.toLocaleString("ar-SA")} ر.س
+                    </div>
+                    <div className="flex gap-1.5">
+                      {s.category && <Badge variant="secondary" className="text-xs">{s.category.name}</Badge>}
+                      {s.region && <Badge variant="secondary" className="text-xs">{s.region.name}</Badge>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
+                      <Link to={`/services/${s.id}`}>
+                        <Eye className="h-4 w-4 me-1" />
+                        التفاصيل
+                      </Link>
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleAdd(s.id)}
+                      disabled={isAdding}
+                    >
+                      <ShoppingCart className="h-4 w-4 me-1" />
+                      أضف للسلة
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

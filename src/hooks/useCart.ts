@@ -94,3 +94,24 @@ export function useClearCart() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
   });
 }
+
+/** Sync guest cart service IDs into the DB cart */
+export function useSyncGuestCart() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (serviceIds: string[]) => {
+      if (!user || serviceIds.length === 0) return;
+      const rows = serviceIds.map((sid) => ({
+        user_id: user.id,
+        service_id: sid,
+        quantity: 1,
+      }));
+      const { error } = await supabase
+        .from("cart_items")
+        .upsert(rows, { onConflict: "user_id,service_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
+  });
+}
