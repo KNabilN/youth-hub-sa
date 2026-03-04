@@ -420,7 +420,7 @@ export default function AdminFinance() {
                           </TableCell>
                           <TableCell className="font-semibold text-base">{Number(w.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell className="font-medium">{providerName}</TableCell>
-                          <TableCell className="font-mono text-sm text-muted-foreground">{idx + 1}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground">{w.withdrawal_number || idx + 1}</TableCell>
                         </TableRow>
                       );
                     })}

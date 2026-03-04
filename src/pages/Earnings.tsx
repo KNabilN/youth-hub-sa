@@ -95,6 +95,7 @@ export default function Earnings() {
                 {withdrawals?.map((w: any) =>
               <div key={w.id} className={`flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors ${statusBorders[w.status] ?? ""}`}>
                     <div>
+                      {w.withdrawal_number && <p className="text-xs font-mono text-muted-foreground mb-0.5">{w.withdrawal_number}</p>}
                       <p className="font-medium">{Number(w.amount).toLocaleString()} ر.س</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</p>
                     </div>
