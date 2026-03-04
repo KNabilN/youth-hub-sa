@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
 import { useAdminUploadAvatar, useAdminUploadCover } from "@/hooks/useAdminUpload";
 import { toast } from "sonner";
 import { Upload, X, Plus, User, ImageIcon } from "lucide-react";
@@ -17,7 +18,7 @@ export interface DirectEditFieldConfig {
   key: string;
   label: string;
   type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications";
-  selectSource?: "categories" | "regions";
+  selectSource?: "categories" | "regions" | "cities";
 }
 
 interface AdminDirectEditDialogProps {
@@ -46,6 +47,8 @@ export function AdminDirectEditDialog({
   const [newQual, setNewQual] = useState("");
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
+  const selectedRegionId = values["region_id"] as string | undefined;
+  const { data: cities } = useCities(selectedRegionId);
 
   const avatarUpload = useAdminUploadAvatar(userId ?? "");
   const coverUpload = useAdminUploadCover(userId ?? "");
@@ -91,6 +94,7 @@ export function AdminDirectEditDialog({
   const getSelectOptions = (source: string) => {
     if (source === "categories") return categories ?? [];
     if (source === "regions") return regions ?? [];
+    if (source === "cities") return cities ?? [];
     return [];
   };
 
@@ -317,7 +321,14 @@ export function AdminDirectEditDialog({
                 <Select
                   dir="rtl"
                   value={values[field.key] ?? ""}
-                  onValueChange={(val) => setValues((v) => ({ ...v, [field.key]: val }))}
+                  onValueChange={(val) => {
+                    setValues((v) => {
+                      const updated = { ...v, [field.key]: val };
+                      // Clear city when region changes
+                      if (field.key === "region_id") updated["city_id"] = "";
+                      return updated;
+                    });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="اختر..." />

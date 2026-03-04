@@ -1195,6 +1195,7 @@ export type Database = {
           bank_iban: string | null
           bank_name: string | null
           bio: string | null
+          city_id: string | null
           company_logo_url: string | null
           contact_officer_email: string | null
           contact_officer_name: string | null
@@ -1217,6 +1218,7 @@ export type Database = {
           phone: string | null
           profile_views: number | null
           qualifications: Json | null
+          region_id: string | null
           skills: string[] | null
           suspension_reason: string | null
           updated_at: string
@@ -1228,6 +1230,7 @@ export type Database = {
           bank_iban?: string | null
           bank_name?: string | null
           bio?: string | null
+          city_id?: string | null
           company_logo_url?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null
@@ -1250,6 +1253,7 @@ export type Database = {
           phone?: string | null
           profile_views?: number | null
           qualifications?: Json | null
+          region_id?: string | null
           skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
@@ -1261,6 +1265,7 @@ export type Database = {
           bank_iban?: string | null
           bank_name?: string | null
           bio?: string | null
+          city_id?: string | null
           company_logo_url?: string | null
           contact_officer_email?: string | null
           contact_officer_name?: string | null
@@ -1283,11 +1288,27 @@ export type Database = {
           phone?: string | null
           profile_views?: number | null
           qualifications?: Json | null
+          region_id?: string | null
           skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_deliverables: {
         Row: {

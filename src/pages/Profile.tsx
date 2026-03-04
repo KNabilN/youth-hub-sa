@@ -19,6 +19,9 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
+import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -81,7 +84,12 @@ export default function Profile() {
   const [bankIban, setBankIban] = useState("");
   const [bankAccountHolder, setBankAccountHolder] = useState("");
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [regionId, setRegionId] = useState<string | null>(null);
+  const [cityId, setCityId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+
+  const { data: regions } = useRegions();
+  const { data: cities } = useCities(regionId);
 
   if (profile && !initialized) {
     setFullName(profile.full_name ?? "");
@@ -102,6 +110,8 @@ export default function Profile() {
     setBankAccountNumber((profile as any).bank_account_number ?? "");
     setBankIban((profile as any).bank_iban ?? "");
     setBankAccountHolder((profile as any).bank_account_holder ?? "");
+    setRegionId((profile as any).region_id ?? null);
+    setCityId((profile as any).city_id ?? null);
     setInitialized(true);
   }
 
@@ -134,6 +144,8 @@ export default function Profile() {
         bank_account_number: bankAccountNumber,
         bank_iban: bankIban,
         bank_account_holder: bankAccountHolder,
+        region_id: regionId || null,
+        city_id: cityId || null,
       },
       {
         onSuccess: () => {
@@ -358,6 +370,33 @@ export default function Profile() {
                       </Label>
                       <Input id="licenseNumber" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" className={`h-11 ${isRequired("license_number", role) && !licenseNumber ? "border-warning" : ""}`} />
                     </div>
+                  )}
+
+                  {(role === "youth_association" || role === "service_provider") && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>المنطقة</Label>
+                        <Select dir="rtl" value={regionId ?? ""} onValueChange={(val) => { setRegionId(val || null); setCityId(null); }}>
+                          <SelectTrigger className="h-11"><SelectValue placeholder="اختر المنطقة" /></SelectTrigger>
+                          <SelectContent>
+                            {regions?.map((r) => (
+                              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>المدينة</Label>
+                        <Select dir="rtl" value={cityId ?? ""} onValueChange={(val) => setCityId(val || null)} disabled={!regionId}>
+                          <SelectTrigger className="h-11"><SelectValue placeholder={regionId ? "اختر المدينة" : "اختر المنطقة أولاً"} /></SelectTrigger>
+                          <SelectContent>
+                            {cities?.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
                   )}
 
                   {role === "service_provider" && (
