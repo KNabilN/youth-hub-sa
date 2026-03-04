@@ -304,7 +304,10 @@ export default function AdminUserDetail() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-3">{user.full_name || "—"}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">{user.full_name || "—"}</h1>
+              {(user as any).user_number && (
+                <p className="text-xs font-mono text-muted-foreground mb-2">{(user as any).user_number}</p>
+              )}
               <div className="flex flex-wrap justify-center gap-2">
                 {role && (
                   <Badge variant="secondary" className="text-sm px-3 py-1">

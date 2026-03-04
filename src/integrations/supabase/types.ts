@@ -1222,6 +1222,7 @@ export type Database = {
           skills: string[] | null
           suspension_reason: string | null
           updated_at: string
+          user_number: string
         }
         Insert: {
           avatar_url?: string | null
@@ -1257,6 +1258,7 @@ export type Database = {
           skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
+          user_number?: string
         }
         Update: {
           avatar_url?: string | null
@@ -1292,6 +1294,7 @@ export type Database = {
           skills?: string[] | null
           suspension_reason?: string | null
           updated_at?: string
+          user_number?: string
         }
         Relationships: [
           {
