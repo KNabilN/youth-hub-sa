@@ -53,10 +53,13 @@ export function useAllWithdrawals() {
 export function useUpdateWithdrawalStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, receipt_url, rejection_reason }: { id: string; status: string; receipt_url?: string; rejection_reason?: string }) => {
+      const updateData: Record<string, any> = { status, processed_at: new Date().toISOString() };
+      if (receipt_url) updateData.receipt_url = receipt_url;
+      if (rejection_reason) updateData.rejection_reason = rejection_reason;
       const { error } = await supabase
         .from("withdrawal_requests")
-        .update({ status, processed_at: new Date().toISOString() })
+        .update(updateData)
         .eq("id", id);
       if (error) throw error;
     },

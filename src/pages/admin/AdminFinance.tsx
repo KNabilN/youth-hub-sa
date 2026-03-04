@@ -76,6 +76,15 @@ export default function AdminFinance() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<{ transferId: string; escrowId: string } | null>(null);
   const [rejectNote, setRejectNote] = useState("");
+
+  // Withdrawal approval/rejection dialogs
+  const [wApproveDialogOpen, setWApproveDialogOpen] = useState(false);
+  const [wRejectDialogOpen, setWRejectDialogOpen] = useState(false);
+  const [wTargetId, setWTargetId] = useState("");
+  const [wTargetProviderId, setWTargetProviderId] = useState("");
+  const [wReceiptFile, setWReceiptFile] = useState<File | null>(null);
+  const [wRejectReason, setWRejectReason] = useState("");
+  const [wUploading, setWUploading] = useState(false);
   const [exportEscrow, setExportEscrow] = useState(false);
   const [exportInvoice, setExportInvoice] = useState(false);
   const [exportWithdrawal, setExportWithdrawal] = useState(false);
@@ -83,9 +92,25 @@ export default function AdminFinance() {
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
-  const handleWithdrawal = (id: string, status: string) => {
-    updateW.mutate({ id, status }, {
-      onSuccess: () => toast.success(status === "approved" ? "تمت الموافقة" : "تم الرفض"),
+  const handleApproveWithdrawal = async () => {
+    if (!wReceiptFile || !wTargetId) { toast.error("يرجى إرفاق ملف الإيصال"); return; }
+    setWUploading(true);
+    try {
+      const filePath = `${wTargetId}/${Date.now()}_${wReceiptFile.name}`;
+      const { error: uploadErr } = await supabase.storage.from("withdrawal-receipts").upload(filePath, wReceiptFile);
+      if (uploadErr) throw uploadErr;
+      updateW.mutate({ id: wTargetId, status: "approved", receipt_url: filePath }, {
+        onSuccess: () => { toast.success("تمت الموافقة وإرفاق الإيصال"); setWApproveDialogOpen(false); setWReceiptFile(null); },
+        onError: () => toast.error("حدث خطأ"),
+      });
+    } catch { toast.error("فشل رفع الملف"); }
+    finally { setWUploading(false); }
+  };
+
+  const handleRejectWithdrawal = () => {
+    if (!wRejectReason.trim()) { toast.error("يرجى كتابة سبب الرفض"); return; }
+    updateW.mutate({ id: wTargetId, status: "rejected", rejection_reason: wRejectReason }, {
+      onSuccess: () => { toast.success("تم الرفض وإرسال السبب"); setWRejectDialogOpen(false); setWRejectReason(""); },
       onError: () => toast.error("حدث خطأ"),
     });
   };
@@ -394,17 +419,41 @@ export default function AdminFinance() {
                           <TableCell>
                             {w.status === "pending" ? (
                               <div className="flex gap-2">
-                                <Button size="sm" onClick={() => handleWithdrawal(w.id, "approved")} disabled={updateW.isPending}>
+                                <Button size="sm" onClick={() => {
+                                  setWTargetId(w.id);
+                                  setWTargetProviderId(w.provider_id);
+                                  setWReceiptFile(null);
+                                  setWApproveDialogOpen(true);
+                                }} disabled={updateW.isPending}>
                                   <CheckCircle className="h-3.5 w-3.5 me-1" />موافقة
                                 </Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(w.id, "rejected")} disabled={updateW.isPending}>
+                                <Button size="sm" variant="destructive" onClick={() => {
+                                  setWTargetId(w.id);
+                                  setWTargetProviderId(w.provider_id);
+                                  setWRejectReason("");
+                                  setWRejectDialogOpen(true);
+                                }} disabled={updateW.isPending}>
                                   <XCircle className="h-3.5 w-3.5 me-1" />رفض
                                 </Button>
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">
-                                {w.processed_at ? format(new Date(w.processed_at), "yyyy/MM/dd", { locale: ar }) : "—"}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground">
+                                  {w.processed_at ? format(new Date(w.processed_at), "yyyy/MM/dd", { locale: ar }) : "—"}
+                                </span>
+                                {w.status === "approved" && w.receipt_url && (
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => {
+                                    const { data } = await supabase.storage.from("withdrawal-receipts").createSignedUrl(w.receipt_url, 300);
+                                    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                    else toast.error("تعذر فتح الإيصال");
+                                  }}>
+                                    <ExternalLink className="h-3 w-3 me-1" />الإيصال
+                                  </Button>
+                                )}
+                                {w.status === "rejected" && w.rejection_reason && (
+                                  <span className="text-xs text-destructive">السبب: {w.rejection_reason}</span>
+                                )}
+                              </div>
                             )}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
@@ -528,7 +577,54 @@ export default function AdminFinance() {
           </TabsContent>
         </Tabs>
 
-        {/* Reject Dialog */}
+        {/* Withdrawal Approve Dialog */}
+        <Dialog open={wApproveDialogOpen} onOpenChange={setWApproveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>إرفاق إيصال التحويل</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <Label>ملف الإيصال <span className="text-destructive">*</span></Label>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                onChange={(e) => setWReceiptFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm file:me-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {wReceiptFile && <p className="text-xs text-muted-foreground">{wReceiptFile.name}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setWApproveDialogOpen(false)}>إلغاء</Button>
+              <Button onClick={handleApproveWithdrawal} disabled={wUploading || updateW.isPending || !wReceiptFile}>
+                {wUploading ? "جارٍ الرفع..." : "موافقة وإرفاق"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Withdrawal Reject Dialog */}
+        <Dialog open={wRejectDialogOpen} onOpenChange={setWRejectDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>رفض طلب السحب</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <Label>سبب الرفض <span className="text-destructive">*</span></Label>
+              <Textarea
+                value={wRejectReason}
+                onChange={(e) => setWRejectReason(e.target.value)}
+                placeholder="اكتب سبب الرفض الذي سيصل لمزود الخدمة..."
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setWRejectDialogOpen(false)}>إلغاء</Button>
+              <Button variant="destructive" onClick={handleRejectWithdrawal} disabled={updateW.isPending || !wRejectReason.trim()}>
+                تأكيد الرفض
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
           <DialogContent>
             <DialogHeader>

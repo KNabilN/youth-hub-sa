@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Receipt, Wallet } from "lucide-react";
+import { Receipt, Wallet, Download, ExternalLink, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض", processed: "تم التحويل" };
 const statusBorders: Record<string, string> = { pending: "border-e-4 border-yellow-500", approved: "border-e-4 border-emerald-500", rejected: "border-e-4 border-red-500", processed: "border-e-4 border-blue-500" };
@@ -98,8 +99,25 @@ export default function Earnings() {
                       {w.withdrawal_number && <p className="text-xs font-mono text-muted-foreground mb-0.5">{w.withdrawal_number}</p>}
                       <p className="font-medium">{Number(w.amount).toLocaleString()} ر.س</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</p>
+                      {w.status === "rejected" && w.rejection_reason && (
+                        <div className="flex items-start gap-1 mt-1.5 p-2 rounded bg-destructive/5 border border-destructive/20">
+                          <AlertCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                          <p className="text-xs text-destructive">{w.rejection_reason}</p>
+                        </div>
+                      )}
                     </div>
-                    <Badge className={statusColors[w.status]}>{statusLabels[w.status] ?? w.status}</Badge>
+                    <div className="flex items-center gap-2">
+                      {(w.status === "approved" || w.status === "processed") && w.receipt_url && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={async () => {
+                          const { data } = await supabase.storage.from("withdrawal-receipts").createSignedUrl(w.receipt_url, 300);
+                          if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                          else toast.error("تعذر فتح الإيصال");
+                        }}>
+                          <Download className="h-3 w-3 me-1" />الإيصال
+                        </Button>
+                      )}
+                      <Badge className={statusColors[w.status]}>{statusLabels[w.status] ?? w.status}</Badge>
+                    </div>
                   </div>
               )}
               </div>
