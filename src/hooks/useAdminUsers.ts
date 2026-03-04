@@ -1,9 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useAdminUsers(from = 0, to = 19, roleFilter?: string) {
+interface AdminUsersFilters {
+  roleFilter?: string;
+  regionId?: string;
+  cityId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
+  const roleFilter = filters?.roleFilter;
+  const regionId = filters?.regionId;
+  const cityId = filters?.cityId;
+  const dateFrom = filters?.dateFrom;
+  const dateTo = filters?.dateTo;
+
   return useQuery({
-    queryKey: ["admin-users", from, to, roleFilter],
+    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo],
     queryFn: async () => {
       // First get role data, optionally filtered
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
@@ -15,13 +29,53 @@ export function useAdminUsers(from = 0, to = 19, roleFilter?: string) {
 
       const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) ?? []);
 
-      // If filtering by role, only fetch those specific profiles
+      // If filtering by region/city, find user IDs that have services or projects in that region/city
+      let locationUserIds: string[] | null = null;
+      if ((regionId && regionId !== "all") || (cityId && cityId !== "all")) {
+        const userIdSet = new Set<string>();
+
+        // Search in services
+        let svcQuery = supabase.from("micro_services").select("provider_id");
+        if (cityId && cityId !== "all") {
+          svcQuery = svcQuery.eq("city_id", cityId);
+        } else if (regionId && regionId !== "all") {
+          svcQuery = svcQuery.eq("region_id", regionId);
+        }
+        const { data: svcData } = await svcQuery;
+        svcData?.forEach((s) => userIdSet.add(s.provider_id));
+
+        // Search in projects
+        let projQuery = supabase.from("projects").select("association_id");
+        if (cityId && cityId !== "all") {
+          projQuery = projQuery.eq("city_id", cityId);
+        } else if (regionId && regionId !== "all") {
+          projQuery = projQuery.eq("region_id", regionId);
+        }
+        const { data: projData } = await projQuery;
+        projData?.forEach((p) => userIdSet.add(p.association_id));
+
+        locationUserIds = Array.from(userIdSet);
+        if (locationUserIds.length === 0) return [];
+      }
+
+      // Build profiles query
       let profilesQuery = supabase.from("profiles").select("*").order("created_at", { ascending: false });
 
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];
         if (userIds.length === 0) return [];
         profilesQuery = profilesQuery.in("id", userIds);
+      }
+
+      if (locationUserIds) {
+        profilesQuery = profilesQuery.in("id", locationUserIds);
+      }
+
+      if (dateFrom) {
+        profilesQuery = profilesQuery.gte("created_at", dateFrom);
+      }
+      if (dateTo) {
+        profilesQuery = profilesQuery.lte("created_at", dateTo + "T23:59:59");
       }
 
       profilesQuery = profilesQuery.range(from, to);

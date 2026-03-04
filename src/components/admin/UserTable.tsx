@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw } from "lucide-react";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
 import { format } from "date-fns";
@@ -21,6 +21,8 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { PaginationControls } from "@/components/PaginationControls";
 import { logAudit } from "@/lib/audit";
+import { useRegions } from "@/hooks/useRegions";
+import { useCities } from "@/hooks/useCities";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -67,13 +69,26 @@ export function UserTable({ pagination }: UserTableProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [editUser, setEditUser] = useState<any>(null);
   
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
-  // Pass roleFilter to hook for server-side filtering
-  const { data: users, isLoading } = useAdminUsers(from, to, roleFilter);
+  const { data: regions } = useRegions();
+  const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
+
+  // Pass filters to hook for server-side filtering
+  const { data: users, isLoading } = useAdminUsers(from, to, {
+    roleFilter,
+    regionId: regionFilter,
+    cityId: cityFilter,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  });
 
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
@@ -167,13 +182,45 @@ export function UserTable({ pagination }: UserTableProps) {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">المنطقة</Label>
+          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); }}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="المنطقة" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              {regions?.map((r) => (
+                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">المدينة</Label>
+          <Select value={cityFilter} onValueChange={setCityFilter} disabled={regionFilter === "all"}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="المدينة" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              {cities?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">من تاريخ</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
+        </div>
         <Button
           variant="outline"
           size="sm"
-          className="h-10"
-          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); }}
+          className="h-10 gap-1"
+          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); }}
         >
-          إعادة تعيين
+          <RotateCcw className="h-3.5 w-3.5" />إعادة تعيين
         </Button>
         <div className="me-auto flex gap-2">
           <Button
