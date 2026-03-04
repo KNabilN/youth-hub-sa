@@ -20,7 +20,7 @@ export default function Contracts() {
 
   const handleSign = (id: string) => {
     signContract.mutate(id, {
-      onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
+      onSuccess: () => toast({ title: "تم توقيع العقد بنجاح", description: "سيتم بدء المشروع تلقائياً بعد توقيع جميع الأطراف" }),
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -70,7 +70,12 @@ export default function Contracts() {
           <EmptyState icon={ScrollText} title="لا توجد عقود بعد" description="ستظهر عقودك هنا بمجرد قبول العروض وإنشاء العقود" />
         ) : (
           <div className="space-y-3">
-            {contracts.map((contract: any) => (
+            {/* Show contracts needing signature first */}
+            {[...contracts].sort((a: any, b: any) => {
+              const aNeeds = canSign(a) ? 0 : 1;
+              const bNeeds = canSign(b) ? 0 : 1;
+              return aNeeds - bNeeds;
+            }).map((contract: any) => (
               <ContractCard
                 key={contract.id}
                 contract={contract}

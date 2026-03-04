@@ -506,6 +506,7 @@ export default function AdminFinance() {
                       <TableHead>التاريخ</TableHead>
                       <TableHead>الحالة</TableHead>
                       <TableHead>المبلغ</TableHead>
+                      <TableHead>الخدمة / المشروع</TableHead>
                       <TableHead>المستخدم</TableHead>
                       <TableHead className="min-w-[140px]">#</TableHead>
                     </TableRow>
@@ -514,6 +515,8 @@ export default function AdminFinance() {
                     {(bankTransfers ?? []).map((bt: any) => {
                       const statusLabel = bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض";
                       const statusColor = bt.status === "pending" ? "bg-orange-500/10 text-orange-600" : bt.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
+                      const escrowData = bt.escrow_transactions;
+                      const serviceOrProject = escrowData?.micro_services?.title || escrowData?.projects?.title || "—";
                       return (
                         <TableRow key={bt.id}>
                           <TableCell>
@@ -523,7 +526,7 @@ export default function AdminFinance() {
                                   size="sm"
                                   onClick={() => {
                                     approveBT.mutate({ transferId: bt.id, escrowId: bt.escrow_id }, {
-                                      onSuccess: () => toast.success("تمت الموافقة على التحويل"),
+                                      onSuccess: () => toast.success("تمت الموافقة — تم إصدار الفاتورة وإنشاء العقد تلقائياً"),
                                       onError: () => toast.error("حدث خطأ"),
                                     });
                                   }}
@@ -564,12 +567,13 @@ export default function AdminFinance() {
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(bt.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                           <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
                           <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-sm">{serviceOrProject}</TableCell>
                           <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
                           <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{bt.transfer_number || "—"}</TableCell>
                         </TableRow>
                       );
                     })}
-                    {(bankTransfers ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد تحويلات بنكية</TableCell></TableRow>}
+                    {(bankTransfers ?? []).length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد تحويلات بنكية</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
