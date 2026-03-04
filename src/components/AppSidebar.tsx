@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { useCartCount } from "@/hooks/useCart";
+import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -100,6 +101,9 @@ export function AppSidebar() {
 
   // Cart items count
   const cartCount = useCartCount();
+
+  // Admin finance pending counts
+  const { data: financePending } = useAdminFinancePending();
 
   // In-progress tickets count (admin sees all, non-admin sees own)
   const { data: activeTicketsCount } = useQuery({
@@ -200,6 +204,7 @@ export function AppSidebar() {
     if ((url === "/admin/notifications" || url === "/notifications") && (unreadCount ?? 0) > 0) return unreadCount;
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
     if (url === "/cart" && cartCount > 0) return cartCount;
+    if (url === "/admin/finance" && (financePending?.total ?? 0) > 0) return financePending!.total;
     const grantCount = grantRequestsCounts?.[url];
     if (grantCount && grantCount > 0) return grantCount;
     return 0;
