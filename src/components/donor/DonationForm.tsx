@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -5,6 +6,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
@@ -44,12 +49,14 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
     defaultValues: { amount: 0, target_type: "association", association_id: "", project_id: "" },
   });
 
+  const [assocOpen, setAssocOpen] = useState(false);
+  const [projectOpen, setProjectOpen] = useState(false);
+
   const targetType = form.watch("target_type");
   const selectedAssociationId = form.watch("association_id");
 
   const { data: associations } = useVerifiedAssociations();
 
-  // Load open projects for the selected association
   const { data: associationProjects } = useQuery({
     queryKey: ["association-projects-for-donation", selectedAssociationId],
     queryFn: async () => {
@@ -65,9 +72,13 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
     enabled: targetType === "project" && !!selectedAssociationId,
   });
 
+  const selectedAssociation = associations?.find((a) => a.id === selectedAssociationId);
+  const selectedProjectId = form.watch("project_id");
+  const selectedProject = associationProjects?.find((p) => p.id === selectedProjectId);
+
   const handleSubmit = (values: DonationFormValues) => {
-    const selectedAssociation = associations?.find((a) => a.id === values.association_id);
-    const associationName = selectedAssociation?.organization_name || selectedAssociation?.full_name;
+    const assoc = associations?.find((a) => a.id === values.association_id);
+    const associationName = assoc?.organization_name || assoc?.full_name;
 
     if (values.target_type === "association") {
       onSubmit({
@@ -77,15 +88,15 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
         association_name: associationName || undefined,
       });
     } else {
-      const selectedProject = associationProjects?.find((p) => p.id === values.project_id);
+      const proj = associationProjects?.find((p) => p.id === values.project_id);
       onSubmit({
         amount: values.amount,
         target_type: "project",
         association_id: values.association_id,
         association_name: associationName || undefined,
         project_id: values.project_id,
-        project_title: selectedProject?.title || "",
-        provider_id: selectedProject?.assigned_provider_id || undefined,
+        project_title: proj?.title || "",
+        provider_id: proj?.assigned_provider_id || undefined,
       });
     }
   };
@@ -115,38 +126,98 @@ export function DonationForm({ onSubmit, isLoading }: DonationFormProps) {
           </FormItem>
         )} />
 
+        {/* Searchable Association Combobox */}
         <FormField control={form.control} name="association_id" render={({ field }) => (
-          <FormItem>
+          <FormItem className="flex flex-col">
             <FormLabel>الجمعية المستفيدة</FormLabel>
-            <Select onValueChange={(v) => { field.onChange(v); form.setValue("project_id", ""); }} value={field.value}>
-              <FormControl><SelectTrigger><SelectValue placeholder="اختر الجمعية..." /></SelectTrigger></FormControl>
-              <SelectContent>
-                {associations?.map((assoc) => (
-                  <SelectItem key={assoc.id} value={assoc.id}>
-                    {assoc.organization_name || assoc.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={assocOpen} onOpenChange={setAssocOpen}>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={assocOpen}
+                    className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
+                  >
+                    {selectedAssociation
+                      ? (selectedAssociation.organization_name || selectedAssociation.full_name)
+                      : "ابحث واختر الجمعية..."}
+                    <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="ابحث عن جمعية..." />
+                  <CommandList>
+                    <CommandEmpty>لم يتم العثور على نتائج</CommandEmpty>
+                    <CommandGroup>
+                      {associations?.map((assoc) => (
+                        <CommandItem
+                          key={assoc.id}
+                          value={assoc.organization_name || assoc.full_name || assoc.id}
+                          onSelect={() => {
+                            field.onChange(assoc.id);
+                            form.setValue("project_id", "");
+                            setAssocOpen(false);
+                          }}
+                        >
+                          <Check className={cn("me-2 h-4 w-4", field.value === assoc.id ? "opacity-100" : "opacity-0")} />
+                          {assoc.organization_name || assoc.full_name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <FormMessage />
           </FormItem>
         )} />
 
-        {/* Show project selector only for "project" type */}
+        {/* Searchable Project Combobox */}
         {targetType === "project" && selectedAssociationId && (
           <FormField control={form.control} name="project_id" render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>طلب الجمعية</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl><SelectTrigger><SelectValue placeholder="اختر الطلب..." /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {associationProjects?.length ? associationProjects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>{project.title}</SelectItem>
-                  )) : (
-                    <div className="p-3 text-sm text-muted-foreground text-center">لا توجد طلبات مفتوحة لهذه الجمعية</div>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={projectOpen} onOpenChange={setProjectOpen}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={projectOpen}
+                      className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
+                    >
+                      {selectedProject ? selectedProject.title : "ابحث واختر الطلب..."}
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="ابحث عن طلب..." />
+                    <CommandList>
+                      <CommandEmpty>لا توجد طلبات مفتوحة لهذه الجمعية</CommandEmpty>
+                      <CommandGroup>
+                        {associationProjects?.map((project) => (
+                          <CommandItem
+                            key={project.id}
+                            value={project.title}
+                            onSelect={() => {
+                              field.onChange(project.id);
+                              setProjectOpen(false);
+                            }}
+                          >
+                            <Check className={cn("me-2 h-4 w-4", field.value === project.id ? "opacity-100" : "opacity-0")} />
+                            {project.title}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )} />
