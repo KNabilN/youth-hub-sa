@@ -241,6 +241,7 @@ export function UserTable({ pagination }: UserTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>الرقم</TableHead>
               <TableHead>الاسم</TableHead>
               <TableHead>الدور</TableHead>
               <TableHead>التوثيق</TableHead>
@@ -252,6 +253,9 @@ export function UserTable({ pagination }: UserTableProps) {
           <TableBody>
             {filtered.map((u: any) => (
               <TableRow key={u.id}>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground font-mono">
+                  {u.user_number || "—"}
+                </TableCell>
                 <TableCell>
                   <Button variant="link" className="p-0 h-auto font-medium" onClick={() => navigate(`/admin/users/${u.id}`)}>
                     {u.full_name || "—"}
@@ -320,7 +324,7 @@ export function UserTable({ pagination }: UserTableProps) {
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
