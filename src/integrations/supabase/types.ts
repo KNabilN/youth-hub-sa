@@ -102,6 +102,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
+          transfer_number: string
           user_id: string
         }
         Insert: {
@@ -114,6 +115,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          transfer_number?: string
           user_id: string
         }
         Update: {
@@ -126,6 +128,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          transfer_number?: string
           user_id?: string
         }
         Relationships: [
@@ -690,6 +693,7 @@ export type Database = {
           amount: number
           beneficiary_id: string | null
           created_at: string
+          escrow_number: string
           id: string
           payee_id: string
           payer_id: string
@@ -702,6 +706,7 @@ export type Database = {
           amount: number
           beneficiary_id?: string | null
           created_at?: string
+          escrow_number?: string
           id?: string
           payee_id: string
           payer_id: string
@@ -714,6 +719,7 @@ export type Database = {
           amount?: number
           beneficiary_id?: string | null
           created_at?: string
+          escrow_number?: string
           id?: string
           payee_id?: string
           payer_id?: string

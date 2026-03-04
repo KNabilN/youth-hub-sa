@@ -198,6 +198,7 @@ export default function AdminFinance() {
                       <TableHead>المستفيد</TableHead>
                       <TableHead>الدافع</TableHead>
                       <TableHead>الطلب</TableHead>
+                      <TableHead className="min-w-[140px]">#</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -262,9 +263,10 @@ export default function AdminFinance() {
                         <TableCell>{(e as any).payee?.full_name ?? "—"}</TableCell>
                         <TableCell>{(e as any).payer?.full_name ?? "—"}</TableCell>
                         <TableCell>{e.projects?.title ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{e.escrow_number || "—"}</TableCell>
                       </TableRow>
                     ))}
-                    {filteredEscrows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد معاملات</TableCell></TableRow>}
+                    {filteredEscrows.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد معاملات</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
@@ -379,7 +381,7 @@ export default function AdminFinance() {
                       <TableHead>البيانات البنكية</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>مقدم الخدمة</TableHead>
-                      <TableHead className="w-12">#</TableHead>
+                       <TableHead className="min-w-[140px]">#</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -420,7 +422,7 @@ export default function AdminFinance() {
                           </TableCell>
                           <TableCell className="font-semibold text-base">{Number(w.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell className="font-medium">{providerName}</TableCell>
-                          <TableCell className="font-mono text-sm text-muted-foreground">{w.withdrawal_number || idx + 1}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{w.withdrawal_number || idx + 1}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -456,6 +458,7 @@ export default function AdminFinance() {
                       <TableHead>الحالة</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>المستخدم</TableHead>
+                      <TableHead className="min-w-[140px]">#</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -513,10 +516,11 @@ export default function AdminFinance() {
                           <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
                           <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{bt.transfer_number || "—"}</TableCell>
                         </TableRow>
                       );
                     })}
-                    {(bankTransfers ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد تحويلات بنكية</TableCell></TableRow>}
+                    {(bankTransfers ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد تحويلات بنكية</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
