@@ -1627,6 +1627,8 @@ export type Database = {
           id: string
           processed_at: string | null
           provider_id: string
+          receipt_url: string | null
+          rejection_reason: string | null
           status: string
           withdrawal_number: string
         }
@@ -1636,6 +1638,8 @@ export type Database = {
           id?: string
           processed_at?: string | null
           provider_id: string
+          receipt_url?: string | null
+          rejection_reason?: string | null
           status?: string
           withdrawal_number?: string
         }
@@ -1645,6 +1649,8 @@ export type Database = {
           id?: string
           processed_at?: string | null
           provider_id?: string
+          receipt_url?: string | null
+          rejection_reason?: string | null
           status?: string
           withdrawal_number?: string
         }
