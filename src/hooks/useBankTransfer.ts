@@ -72,15 +72,15 @@ export function useCreateBankTransfer() {
         escrowIds.push(escrow.id);
       }
 
-      // Create bank_transfer records for each escrow
-      for (const escrowId of escrowIds) {
+      // Create bank_transfer records for each escrow with per-item amount
+      for (let i = 0; i < escrowIds.length; i++) {
         const { error: btErr } = await supabase
           .from("bank_transfers" as any)
           .insert({
-            escrow_id: escrowId,
+            escrow_id: escrowIds[i],
             user_id: userId,
             receipt_url: filePath,
-            amount,
+            amount: items[i].price,
             status: "pending",
           } as any);
         if (btErr) throw btErr;
@@ -148,10 +148,10 @@ export function useApproveBankTransfer() {
         .eq("id", escrowId);
       if (escErr) throw escErr;
 
-      // 3. Fetch escrow details
+      // 3. Fetch escrow details (including grant_request_id)
       const { data: escrow } = await supabase
         .from("escrow_transactions")
-        .select("payer_id, payee_id, beneficiary_id, project_id, amount, service_id")
+        .select("payer_id, payee_id, beneficiary_id, project_id, amount, service_id, grant_request_id")
         .eq("id", escrowId)
         .single();
       if (!escrow) return;
@@ -183,14 +183,12 @@ export function useApproveBankTransfer() {
           .eq("amount", escrow.amount);
       }
 
-      // Update any linked grant_requests to 'funded'
-      if (bt) {
+      // Update linked grant_request to 'funded' using direct grant_request_id
+      if ((escrow as any).grant_request_id) {
         await supabase
           .from("grant_requests" as any)
           .update({ status: "funded", updated_at: new Date().toISOString() } as any)
-          .eq("association_id", escrow.beneficiary_id || escrow.payee_id)
-          .eq("amount", escrow.amount)
-          .eq("status", "pending");
+          .eq("id", (escrow as any).grant_request_id);
       }
 
       if (!escrow.project_id) {

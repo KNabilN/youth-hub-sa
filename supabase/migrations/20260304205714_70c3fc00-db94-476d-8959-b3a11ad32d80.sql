@@ -1,0 +1,1 @@
+ALTER TABLE public.escrow_transactions ADD COLUMN grant_request_id uuid DEFAULT NULL REFERENCES public.grant_requests(id) ON DELETE SET NULL;

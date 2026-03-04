@@ -6,7 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HandCoins, Search, ArrowLeft } from "lucide-react";
+import { HandCoins, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
@@ -36,10 +36,16 @@ export default function GrantRequests() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><HandCoins className="h-6 w-6" /> طلبات الدعم</h1>
-          <p className="text-sm text-muted-foreground mt-1">طلبات الجمعيات التي تحتاج إلى دعم</p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <HandCoins className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">طلبات الدعم</h1>
+            <p className="text-sm text-muted-foreground">طلبات الجمعيات التي تحتاج إلى دعم</p>
+          </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

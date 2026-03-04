@@ -58,12 +58,16 @@ export default function Donors() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Users className="h-7 w-7 text-primary" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><Users className="h-6 w-6" /> المانحون</h1>
-            <p className="text-sm text-muted-foreground mt-1">تصفح المانحين الموثقين وأرسل طلبات المنح</p>
+            <h1 className="text-2xl font-bold">المانحون</h1>
+            <p className="text-sm text-muted-foreground">تصفح المانحين الموثقين وأرسل طلبات المنح</p>
           </div>
         </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -127,7 +131,7 @@ export default function Donors() {
             )}
             <div>
               <Label>المبلغ المطلوب (ر.س)</Label>
-              <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" />
+              <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="أدخل المبلغ" />
             </div>
             <div>
               <Label>وصف الطلب</Label>

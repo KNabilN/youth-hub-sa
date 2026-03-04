@@ -694,6 +694,7 @@ export type Database = {
           beneficiary_id: string | null
           created_at: string
           escrow_number: string
+          grant_request_id: string | null
           id: string
           payee_id: string
           payer_id: string
@@ -707,6 +708,7 @@ export type Database = {
           beneficiary_id?: string | null
           created_at?: string
           escrow_number?: string
+          grant_request_id?: string | null
           id?: string
           payee_id: string
           payer_id: string
@@ -720,6 +722,7 @@ export type Database = {
           beneficiary_id?: string | null
           created_at?: string
           escrow_number?: string
+          grant_request_id?: string | null
           id?: string
           payee_id?: string
           payer_id?: string
@@ -734,6 +737,13 @@ export type Database = {
             columns: ["beneficiary_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_grant_request_id_fkey"
+            columns: ["grant_request_id"]
+            isOneToOne: false
+            referencedRelation: "grant_requests"
             referencedColumns: ["id"]
           },
           {

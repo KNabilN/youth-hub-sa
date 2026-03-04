@@ -13,8 +13,10 @@ import { StepProgress } from "@/components/ui/step-progress";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -45,6 +47,7 @@ export default function Checkout() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedAssociation, setSelectedAssociation] = useState<string>("");
+  const [assocOpen, setAssocOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
@@ -194,18 +197,44 @@ export default function Checkout() {
                 <p className="text-sm text-muted-foreground">
                   اختر الجمعية الشبابية التي ستستفيد من هذه الخدمة
                 </p>
-                <Select value={selectedAssociation} onValueChange={setSelectedAssociation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الجمعية المستفيدة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {associations?.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.organization_name || a.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={assocOpen} onOpenChange={setAssocOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={assocOpen}
+                      className={cn("w-full justify-between font-normal", !selectedAssociation && "text-muted-foreground")}
+                    >
+                      {selectedAssociation
+                        ? (associations?.find(a => a.id === selectedAssociation)?.organization_name || associations?.find(a => a.id === selectedAssociation)?.full_name)
+                        : "ابحث واختر الجمعية المستفيدة..."}
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="ابحث عن جمعية..." />
+                      <CommandList>
+                        <CommandEmpty>لم يتم العثور على نتائج</CommandEmpty>
+                        <CommandGroup>
+                          {associations?.map((a) => (
+                            <CommandItem
+                              key={a.id}
+                              value={a.organization_name || a.full_name || a.id}
+                              onSelect={() => {
+                                setSelectedAssociation(a.id);
+                                setAssocOpen(false);
+                              }}
+                            >
+                              <Check className={cn("me-2 h-4 w-4", selectedAssociation === a.id ? "opacity-100" : "opacity-0")} />
+                              {a.organization_name || a.full_name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 {!selectedAssociation && (
                   <p className="text-xs text-amber-600">
                     يُنصح باختيار جمعية مستفيدة لإنشاء مشروع تلقائي وتتبع التسليم

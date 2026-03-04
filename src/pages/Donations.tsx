@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { HandCoins } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
@@ -40,9 +40,16 @@ const donationSteps = [
 export default function Donations() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: contributions, isLoading } = useDonorContributions();
   const { data: balances, isLoading: balancesLoading } = useDonorBalances();
   const createContribution = useCreateContribution();
+
+  // Read URL params for auto-fill from grant requests
+  const urlAssociationId = searchParams.get("association_id") || undefined;
+  const urlAmount = searchParams.get("amount") ? Number(searchParams.get("amount")) : undefined;
+  const urlProjectId = searchParams.get("project_id") || undefined;
+  const urlGrantRequestId = searchParams.get("grant_request_id") || undefined;
 
   const [step, setStep] = useState<"form" | "payment">("form");
   const [formData, setFormData] = useState<DonationFormData | null>(null);
@@ -63,15 +70,15 @@ export default function Donations() {
       if (uploadErr) throw uploadErr;
 
       if (formData.target_type === "association") {
-        // === Scenario 1: General donation to association (no project) ===
         const { data: escrow, error: escrowErr } = await supabase
           .from("escrow_transactions")
           .insert({
             payer_id: user.id,
-            payee_id: formData.association_id, // association is payee
+            payee_id: formData.association_id,
             beneficiary_id: formData.association_id,
             amount: formData.amount,
             status: "pending_payment" as any,
+            grant_request_id: urlGrantRequestId || null,
           } as any)
           .select()
           .single();
@@ -90,10 +97,7 @@ export default function Donations() {
           donation_status: "pending",
         });
       } else {
-        // === Scenario 2: Donation to specific project request ===
         const projectId = formData.project_id!;
-
-        // Get the assigned provider from the project
         const { data: project } = await supabase
           .from("projects")
           .select("assigned_provider_id, association_id")
@@ -111,6 +115,7 @@ export default function Donations() {
             amount: formData.amount,
             status: "pending_payment" as any,
             project_id: projectId,
+            grant_request_id: urlGrantRequestId || null,
           } as any)
           .select()
           .single();
@@ -169,7 +174,13 @@ export default function Donations() {
           </CardHeader>
           <CardContent>
             {step === "form" ? (
-              <DonationForm onSubmit={handleFormSubmit} />
+              <DonationForm
+                onSubmit={handleFormSubmit}
+                defaultAssociationId={urlAssociationId}
+                defaultAmount={urlAmount}
+                defaultProjectId={urlProjectId}
+                defaultTargetType={urlProjectId ? "project" : undefined}
+              />
             ) : formData ? (
               <DonationPaymentStep
                 amount={formData.amount}
