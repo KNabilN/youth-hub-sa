@@ -318,6 +318,8 @@ export default function ProjectDetails() {
           </div>
         </div>
 
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+
         <div className="flex flex-wrap gap-4 text-sm">
           {project.budget && <span><strong>الميزانية:</strong> {project.budget} ر.س</span>}
           {project.estimated_hours && <span><strong>الساعات المقدرة:</strong> {project.estimated_hours}</span>}
