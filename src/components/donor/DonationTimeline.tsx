@@ -9,6 +9,8 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   consumed: { label: "مستهلك", variant: "outline" },
   suspended: { label: "معلق", variant: "destructive" },
   expired: { label: "منتهي", variant: "secondary" },
+  pending: { label: "بانتظار المراجعة", variant: "secondary" },
+  rejected: { label: "مرفوض", variant: "destructive" },
 };
 
 interface Contribution {

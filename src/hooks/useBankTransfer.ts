@@ -151,12 +151,12 @@ export function useApproveBankTransfer() {
       // 3. Fetch escrow details
       const { data: escrow } = await supabase
         .from("escrow_transactions")
-        .select("payer_id, payee_id, project_id, amount, service_id")
+        .select("payer_id, payee_id, beneficiary_id, project_id, amount, service_id")
         .eq("id", escrowId)
         .single();
       if (!escrow) return;
 
-      // 4. Generate invoice
+      // Get commission rate
       const { data: config } = await supabase
         .from("commission_config")
         .select("rate")
@@ -167,49 +167,100 @@ export function useApproveBankTransfer() {
       const rate = config?.rate ?? 0.05;
       const commissionAmount = Number(escrow.amount) * Number(rate);
 
-      await supabase.from("invoices").insert({
-        invoice_number: generateInvoiceNumber(),
-        amount: escrow.amount,
-        commission_amount: commissionAmount,
-        issued_to: escrow.payer_id,
-        escrow_id: escrowId,
-      });
+      // Update donor_contributions status to available
+      const { data: bt } = await supabase
+        .from("bank_transfers")
+        .select("user_id")
+        .eq("id", transferId)
+        .single();
 
-      // 5. Create contract if project exists
-      if (escrow.project_id) {
-        // Get service title for contract terms
-        let serviceTitle = "خدمة";
-        if (escrow.service_id) {
-          const { data: svc } = await supabase
-            .from("micro_services")
-            .select("title")
-            .eq("id", escrow.service_id)
-            .single();
-          if (svc) serviceTitle = svc.title;
-        }
-
-        const terms = `عقد تنفيذ خدمة "${serviceTitle}" — المبلغ المتفق عليه: ${Number(escrow.amount).toLocaleString()} ر.س. يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه، ويلتزم الطرف الأول بالدفع عبر نظام الضمان المالي.`;
-
-        // Check if contract already exists
-        const { data: existingContract } = await supabase
-          .from("contracts")
-          .select("id")
-          .eq("project_id", escrow.project_id)
-          .maybeSingle();
-
-        if (!existingContract) {
-          await supabase.from("contracts").insert({
-            project_id: escrow.project_id,
-            association_id: escrow.payer_id,
-            provider_id: escrow.payee_id,
-            terms,
-            association_signed_at: new Date().toISOString(), // Auto-sign for payer (association/donor)
-          });
-          // DB trigger notify_on_contract_change handles notifications to both parties
-        }
+      if (bt) {
+        await supabase
+          .from("donor_contributions")
+          .update({ donation_status: "available" })
+          .eq("donor_id", bt.user_id)
+          .eq("donation_status", "pending")
+          .eq("amount", escrow.amount);
       }
 
-      // 6. Notifications are handled by DB triggers (bank_transfer_approved + contract_created)
+      if (!escrow.project_id) {
+        // === Scenario 1: General donation to association (no project_id) ===
+        // Issue invoice to the association (beneficiary)
+        const issuedTo = escrow.beneficiary_id || escrow.payee_id;
+        await supabase.from("invoices").insert({
+          invoice_number: generateInvoiceNumber(),
+          amount: escrow.amount,
+          commission_amount: commissionAmount,
+          issued_to: issuedTo,
+          escrow_id: escrowId,
+          notes: "فاتورة منحة موجهة للجمعية",
+        });
+
+        // Notify association
+        await sendNotification(
+          issuedTo,
+          `تم استلام منحة بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وتم إصدار الفاتورة`,
+          "donation_approved"
+        );
+      } else {
+        // === Scenario 2: Donation to specific project request ===
+        // Issue receipt invoice to the donor (payer)
+        await supabase.from("invoices").insert({
+          invoice_number: generateInvoiceNumber(),
+          amount: escrow.amount,
+          commission_amount: commissionAmount,
+          issued_to: escrow.payer_id,
+          escrow_id: escrowId,
+          notes: "فاتورة استلام منحة لطلب جمعية",
+        });
+
+        // Send thank-you notification to donor
+        await sendNotification(
+          escrow.payer_id,
+          `شكراً لمنحتك الكريمة بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س — تم إصدار فاتورة الاستلام`,
+          "donation_thankyou"
+        );
+
+        // Get project details for contract
+        const { data: project } = await supabase
+          .from("projects")
+          .select("title, association_id, assigned_provider_id")
+          .eq("id", escrow.project_id)
+          .single();
+
+        if (project && project.assigned_provider_id) {
+          // Get service title if applicable
+          let serviceTitle = project.title || "خدمة";
+          if (escrow.service_id) {
+            const { data: svc } = await supabase
+              .from("micro_services")
+              .select("title")
+              .eq("id", escrow.service_id)
+              .single();
+            if (svc) serviceTitle = svc.title;
+          }
+
+          const terms = `عقد تنفيذ خدمة "${serviceTitle}" — المبلغ المتفق عليه: ${Number(escrow.amount).toLocaleString()} ر.س. يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه، ويلتزم الطرف الأول بالدفع عبر نظام الضمان المالي.`;
+
+          // Check if contract already exists
+          const { data: existingContract } = await supabase
+            .from("contracts")
+            .select("id")
+            .eq("project_id", escrow.project_id)
+            .maybeSingle();
+
+          if (!existingContract) {
+            await supabase.from("contracts").insert({
+              project_id: escrow.project_id,
+              association_id: project.association_id,
+              provider_id: project.assigned_provider_id,
+              terms,
+              association_signed_at: new Date().toISOString(),
+            });
+            // DB trigger notify_on_contract_change handles notifications
+          }
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-bank-transfers"] });
@@ -218,6 +269,7 @@ export function useApproveBankTransfer() {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["my-invoices"] });
       qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["donor-contributions"] });
     },
   });
 }
@@ -250,12 +302,29 @@ export function useRejectBankTransfer() {
         .eq("id", escrowId);
       if (escErr) throw escErr;
 
+      // Update donor_contributions to rejected
+      const { data: bt } = await supabase
+        .from("bank_transfers")
+        .select("user_id, amount")
+        .eq("id", transferId)
+        .single();
+
+      if (bt) {
+        await supabase
+          .from("donor_contributions")
+          .update({ donation_status: "rejected" })
+          .eq("donor_id", bt.user_id)
+          .eq("donation_status", "pending")
+          .eq("amount", bt.amount);
+      }
+
       // Notifications handled by DB trigger notify_on_bank_transfer_change
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-bank-transfers"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
       qc.invalidateQueries({ queryKey: ["admin-escrow"] });
+      qc.invalidateQueries({ queryKey: ["donor-contributions"] });
     },
   });
 }
