@@ -14,9 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download } from "lucide-react";
-import { downloadCSV } from "@/lib/csv-export";
-import { supabase } from "@/integrations/supabase/client";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
+import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -71,6 +70,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const [editUser, setEditUser] = useState<any>(null);
   
   const [createOpen, setCreateOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Pass roleFilter to hook for server-side filtering
   const { data: users, isLoading } = useAdminUsers(from, to, roleFilter);
@@ -180,25 +180,7 @@ export function UserTable({ pagination }: UserTableProps) {
             variant="outline"
             size="sm"
             className="h-10 gap-1"
-            onClick={async () => {
-              toast.info("جارٍ تصدير المستخدمين...");
-              const [profilesRes, rolesRes] = await Promise.all([
-                supabase.from("profiles").select("id, full_name, phone, organization_name, is_verified, is_suspended, created_at"),
-                supabase.from("user_roles").select("user_id, role"),
-              ]);
-              const roleMap = new Map((rolesRes.data ?? []).map((r: any) => [r.user_id, r.role]));
-              const roleLabelsMap: Record<string, string> = { super_admin: "مدير النظام", youth_association: "جمعية شبابية", service_provider: "مقدم خدمة", donor: "مانح" };
-              downloadCSV("users.csv",
-                ["الاسم", "الهاتف", "المنظمة", "الدور", "موثق", "الحالة", "تاريخ الانضمام"],
-                (profilesRes.data ?? []).map((u: any) => [
-                  u.full_name || "", u.phone || "", u.organization_name || "",
-                  roleLabelsMap[roleMap.get(u.id)] || "",
-                  u.is_verified ? "نعم" : "لا",
-                  u.is_suspended ? "معلّق" : "نشط",
-                  u.created_at?.slice(0, 10) || "",
-                ])
-              );
-            }}
+            onClick={() => setExportOpen(true)}
           >
             <Download className="h-4 w-4" />تصدير CSV
           </Button>
@@ -361,6 +343,8 @@ export function UserTable({ pagination }: UserTableProps) {
         />
       )}
 
+      {/* Export Dialog */}
+      <ExportUsersDialog open={exportOpen} onOpenChange={setExportOpen} />
 
       {/* Create User Dialog */}
       <AdminCreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
