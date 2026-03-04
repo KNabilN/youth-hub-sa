@@ -14,12 +14,23 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { FileEdit, Eye, Download } from "lucide-react";
-import { downloadCSV } from "@/lib/csv-export";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
+import { ExportDialog, type ExportColumnDef, type ExportFilterDef } from "@/components/admin/ExportDialog";
+
+const serviceExportColumns: ExportColumnDef[] = [
+  { key: "title", label: "العنوان" },
+  { key: "provider", label: "مقدم الخدمة" },
+  { key: "category", label: "التصنيف" },
+  { key: "price", label: "السعر" },
+  { key: "approval", label: "الحالة" },
+  { key: "service_number", label: "رقم الخدمة" },
+  { key: "created_at", label: "التاريخ" },
+];
+const serviceExportDefaults = ["title", "provider", "category", "price", "approval", "created_at"];
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
 
@@ -59,6 +70,7 @@ export default function AdminServices() {
   const [approvalFilter, setApprovalFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editService, setEditService] = useState<any>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
@@ -119,22 +131,7 @@ export default function AdminServices() {
           >
             إعادة تعيين
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 gap-1"
-            onClick={async () => {
-              toast.info("جارٍ تصدير الخدمات...");
-              const { data } = await supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
-              downloadCSV("services.csv",
-                ["العنوان", "مقدم الخدمة", "التصنيف", "السعر", "الحالة", "التاريخ"],
-                (data ?? []).map((s: any) => [
-                  s.title, (s.profiles as any)?.full_name || "", (s.categories as any)?.name || "",
-                  String(s.price), approvalLabels[s.approval] || s.approval, s.created_at?.slice(0, 10) || "",
-                ])
-              );
-            }}
-          >
+          <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
             <Download className="h-4 w-4" />تصدير CSV
           </Button>
         </div>
@@ -215,6 +212,38 @@ export default function AdminServices() {
           }}
         />
       )}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        title="تصدير الخدمات"
+        filename="services.csv"
+        columns={serviceExportColumns}
+        defaultColumns={serviceExportDefaults}
+        filters={[{
+          key: "approval",
+          label: "فلتر حسب الحالة",
+          options: Object.entries(approvalLabels).map(([k, v]) => ({ value: k, label: v })),
+        }]}
+        onExport={async (cols, filters) => {
+          const { data } = await supabase.from("micro_services").select("service_number, title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
+          let rows = data ?? [];
+          if (filters.approval !== "all") rows = rows.filter((s: any) => s.approval === filters.approval);
+          const colMap: Record<string, (s: any) => string> = {
+            title: (s) => s.title || "",
+            provider: (s) => (s.profiles as any)?.full_name || "",
+            category: (s) => (s.categories as any)?.name || "",
+            price: (s) => String(s.price),
+            approval: (s) => approvalLabels[s.approval] || s.approval,
+            service_number: (s) => s.service_number || "",
+            created_at: (s) => s.created_at?.slice(0, 10) || "",
+          };
+          const activeCols = serviceExportColumns.filter((c) => cols.includes(c.key));
+          return {
+            headers: activeCols.map((c) => c.label),
+            rows: rows.map((s: any) => activeCols.map((c) => colMap[c.key]?.(s) ?? "")),
+          };
+        }}
+      />
     </DashboardLayout>
   );
 }

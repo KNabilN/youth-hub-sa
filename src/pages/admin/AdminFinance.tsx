@@ -15,7 +15,24 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 import { downloadCSV } from "@/lib/csv-export";
+
+const escrowExportCols: ExportColumnDef[] = [
+  { key: "project", label: "الطلب" }, { key: "payer", label: "الدافع" }, { key: "payee", label: "المستفيد" },
+  { key: "amount", label: "المبلغ" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+];
+const invoiceExportCols: ExportColumnDef[] = [
+  { key: "invoice_number", label: "رقم الفاتورة" }, { key: "recipient", label: "المستلم" }, { key: "amount", label: "المبلغ" },
+  { key: "commission", label: "العمولة" }, { key: "net", label: "الصافي" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+];
+const withdrawalExportCols: ExportColumnDef[] = [
+  { key: "provider", label: "مقدم الخدمة" }, { key: "amount", label: "المبلغ" }, { key: "bank", label: "البنك" },
+  { key: "iban", label: "IBAN" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+];
+const bankTransferExportCols: ExportColumnDef[] = [
+  { key: "user", label: "المستخدم" }, { key: "amount", label: "المبلغ" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+];
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +76,10 @@ export default function AdminFinance() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<{ transferId: string; escrowId: string } | null>(null);
   const [rejectNote, setRejectNote] = useState("");
+  const [exportEscrow, setExportEscrow] = useState(false);
+  const [exportInvoice, setExportInvoice] = useState(false);
+  const [exportWithdrawal, setExportWithdrawal] = useState(false);
+  const [exportBankTransfer, setExportBankTransfer] = useState(false);
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
@@ -137,16 +158,7 @@ export default function AdminFinance() {
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
-                onClick={() => {
-                  toast.info("جارٍ تصدير الضمان...");
-                  downloadCSV("escrow.csv",
-                    ["الطلب", "الدافع", "المستفيد", "المبلغ", "الحالة", "التاريخ"],
-                    (escrows ?? []).map((e: any) => [
-                      e.projects?.title || "", (e as any).payer?.full_name || "", (e as any).payee?.full_name || "",
-                      String(e.amount), escrowStatusLabels[e.status] || e.status, e.created_at?.slice(0, 10) || "",
-                    ])
-                  );
-                }}
+                onClick={() => setExportEscrow(true)}
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
@@ -264,17 +276,7 @@ export default function AdminFinance() {
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
-                onClick={() => {
-                  toast.info("جارٍ تصدير الفواتير...");
-                  downloadCSV("invoices.csv",
-                    ["رقم الفاتورة", "المستلم", "المبلغ", "العمولة", "الصافي", "الحالة", "التاريخ"],
-                    (invoices ?? []).map((inv: any) => [
-                      inv.invoice_number, inv.profiles?.full_name || "", String(inv.amount),
-                      String(inv.commission_amount), String(Number(inv.amount) - Number(inv.commission_amount)),
-                      inv.status, inv.created_at?.slice(0, 10) || "",
-                    ])
-                  );
-                }}
+                onClick={() => setExportInvoice(true)}
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
@@ -356,21 +358,7 @@ export default function AdminFinance() {
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
-                onClick={() => {
-                  toast.info("جارٍ تصدير طلبات السحب...");
-                  downloadCSV("withdrawals.csv",
-                    ["#", "مقدم الخدمة", "المبلغ", "البنك", "IBAN", "الحالة", "التاريخ"],
-                    (withdrawals ?? []).map((w: any, i: number) => [
-                      String(i + 1),
-                      (w as any).profiles?.full_name || (w as any).profiles?.organization_name || "",
-                      String(w.amount),
-                      (w as any).profiles?.bank_name || "",
-                      (w as any).profiles?.bank_iban || "",
-                      wStatusLabels[w.status] || w.status,
-                      w.created_at?.slice(0, 10) || "",
-                    ])
-                  );
-                }}
+                onClick={() => setExportWithdrawal(true)}
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
@@ -448,17 +436,7 @@ export default function AdminFinance() {
                 variant="ghost"
                 size="sm"
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
-                onClick={() => {
-                  toast.info("جارٍ تصدير التحويلات البنكية...");
-                  downloadCSV("bank-transfers.csv",
-                    ["المستخدم", "المبلغ", "الحالة", "التاريخ"],
-                    (bankTransfers ?? []).map((bt: any) => [
-                      bt.profiles?.full_name || "", String(bt.amount),
-                      bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض",
-                      bt.created_at?.slice(0, 10) || "",
-                    ])
-                  );
-                }}
+                onClick={() => setExportBankTransfer(true)}
               >
                 <Download className="h-4 w-4" />تصدير CSV
               </Button>
@@ -581,6 +559,95 @@ export default function AdminFinance() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Export Dialogs */}
+        <ExportDialog
+          open={exportEscrow}
+          onOpenChange={setExportEscrow}
+          title="تصدير الضمان المالي"
+          filename="escrow.csv"
+          columns={escrowExportCols}
+          defaultColumns={escrowExportCols.map(c => c.key)}
+          filters={[{ key: "status", label: "الحالة", options: Object.entries(escrowStatusLabels).map(([k, v]) => ({ value: k, label: v })) }]}
+          onExport={async (cols, filters) => {
+            let rows = escrows ?? [];
+            if (filters.status !== "all") rows = rows.filter((e: any) => e.status === filters.status);
+            const colMap: Record<string, (e: any) => string> = {
+              project: (e) => e.projects?.title || "",
+              payer: (e) => (e as any).payer?.full_name || "",
+              payee: (e) => (e as any).payee?.full_name || "",
+              amount: (e) => String(e.amount),
+              status: (e) => escrowStatusLabels[e.status] || e.status,
+              created_at: (e) => e.created_at?.slice(0, 10) || "",
+            };
+            const active = escrowExportCols.filter(c => cols.includes(c.key));
+            return { headers: active.map(c => c.label), rows: rows.map((e: any) => active.map(c => colMap[c.key]?.(e) ?? "")) };
+          }}
+        />
+        <ExportDialog
+          open={exportInvoice}
+          onOpenChange={setExportInvoice}
+          title="تصدير الفواتير"
+          filename="invoices.csv"
+          columns={invoiceExportCols}
+          defaultColumns={invoiceExportCols.map(c => c.key)}
+          onExport={async (cols) => {
+            const rows = invoices ?? [];
+            const colMap: Record<string, (inv: any) => string> = {
+              invoice_number: (inv) => inv.invoice_number || "",
+              recipient: (inv) => inv.profiles?.full_name || "",
+              amount: (inv) => String(inv.amount),
+              commission: (inv) => String(inv.commission_amount),
+              net: (inv) => String(Number(inv.amount) - Number(inv.commission_amount)),
+              status: (inv) => inv.status || "",
+              created_at: (inv) => inv.created_at?.slice(0, 10) || "",
+            };
+            const active = invoiceExportCols.filter(c => cols.includes(c.key));
+            return { headers: active.map(c => c.label), rows: rows.map((inv: any) => active.map(c => colMap[c.key]?.(inv) ?? "")) };
+          }}
+        />
+        <ExportDialog
+          open={exportWithdrawal}
+          onOpenChange={setExportWithdrawal}
+          title="تصدير طلبات السحب"
+          filename="withdrawals.csv"
+          columns={withdrawalExportCols}
+          defaultColumns={withdrawalExportCols.map(c => c.key)}
+          filters={[{ key: "status", label: "الحالة", options: Object.entries(wStatusLabels).map(([k, v]) => ({ value: k, label: v })) }]}
+          onExport={async (cols, filters) => {
+            let rows = withdrawals ?? [];
+            if (filters.status !== "all") rows = rows.filter((w: any) => w.status === filters.status);
+            const colMap: Record<string, (w: any) => string> = {
+              provider: (w) => (w as any).profiles?.full_name || (w as any).profiles?.organization_name || "",
+              amount: (w) => String(w.amount),
+              bank: (w) => (w as any).profiles?.bank_name || "",
+              iban: (w) => (w as any).profiles?.bank_iban || "",
+              status: (w) => wStatusLabels[w.status] || w.status,
+              created_at: (w) => w.created_at?.slice(0, 10) || "",
+            };
+            const active = withdrawalExportCols.filter(c => cols.includes(c.key));
+            return { headers: active.map(c => c.label), rows: rows.map((w: any) => active.map(c => colMap[c.key]?.(w) ?? "")) };
+          }}
+        />
+        <ExportDialog
+          open={exportBankTransfer}
+          onOpenChange={setExportBankTransfer}
+          title="تصدير التحويلات البنكية"
+          filename="bank-transfers.csv"
+          columns={bankTransferExportCols}
+          defaultColumns={bankTransferExportCols.map(c => c.key)}
+          onExport={async (cols) => {
+            const rows = bankTransfers ?? [];
+            const colMap: Record<string, (bt: any) => string> = {
+              user: (bt) => bt.profiles?.full_name || "",
+              amount: (bt) => String(bt.amount),
+              status: (bt) => bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض",
+              created_at: (bt) => bt.created_at?.slice(0, 10) || "",
+            };
+            const active = bankTransferExportCols.filter(c => cols.includes(c.key));
+            return { headers: active.map(c => c.label), rows: rows.map((bt: any) => active.map(c => colMap[c.key]?.(bt) ?? "")) };
+          }}
+        />
       </div>
     </DashboardLayout>
   );
