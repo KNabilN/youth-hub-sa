@@ -1622,6 +1622,7 @@ export type Database = {
           processed_at: string | null
           provider_id: string
           status: string
+          withdrawal_number: string
         }
         Insert: {
           amount: number
@@ -1630,6 +1631,7 @@ export type Database = {
           processed_at?: string | null
           provider_id: string
           status?: string
+          withdrawal_number?: string
         }
         Update: {
           amount?: number
@@ -1638,6 +1640,7 @@ export type Database = {
           processed_at?: string | null
           provider_id?: string
           status?: string
+          withdrawal_number?: string
         }
         Relationships: [
           {
