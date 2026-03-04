@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, ShoppingCart, LayoutDashboard } from "lucide-react";
+import { Menu, X, ShoppingCart, LayoutDashboard, LogOut } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import AuthModal from "@/components/AuthModal";
@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 export default function LandingHeader() {
   const { count: cartCount } = useUnifiedCart();
   const { data: header } = useSiteContent("header");
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -68,10 +68,15 @@ export default function LandingHeader() {
               </Button>
             )}
             {user ? (
-              <Button className="shadow-md gap-2" onClick={() => navigate("/dashboard")}>
-                <LayoutDashboard className="h-4 w-4" />
-                لوحة التحكم
-              </Button>
+              <>
+                <Button className="shadow-md gap-2" onClick={() => navigate("/dashboard")}>
+                  <LayoutDashboard className="h-4 w-4" />
+                  لوحة التحكم
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => signOut()} title="تسجيل الخروج">
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="ghost" onClick={() => openAuth("login")}>
@@ -105,10 +110,16 @@ export default function LandingHeader() {
             ))}
             <div className="flex gap-2 pt-2">
               {user ? (
-                <Button size="sm" className="flex-1 gap-2" onClick={() => { setMobileMenuOpen(false); navigate("/dashboard"); }}>
-                  <LayoutDashboard className="h-4 w-4" />
-                  لوحة التحكم
-                </Button>
+                <>
+                  <Button size="sm" className="flex-1 gap-2" onClick={() => { setMobileMenuOpen(false); navigate("/dashboard"); }}>
+                    <LayoutDashboard className="h-4 w-4" />
+                    لوحة التحكم
+                  </Button>
+                  <Button variant="ghost" size="sm" className="gap-2" onClick={() => { setMobileMenuOpen(false); signOut(); }}>
+                    <LogOut className="h-4 w-4" />
+                    خروج
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" className="flex-1" onClick={() => openAuth("login")}>
