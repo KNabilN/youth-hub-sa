@@ -1,3 +1,4 @@
+import React from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
 import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
@@ -14,7 +15,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 import { downloadCSV } from "@/lib/csv-export";
 
@@ -41,6 +42,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
+import { WithdrawalEscrowDetails } from "@/components/admin/WithdrawalEscrowDetails";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -92,6 +94,7 @@ export default function AdminFinance() {
   const [exportInvoice, setExportInvoice] = useState(false);
   const [exportWithdrawal, setExportWithdrawal] = useState(false);
   const [exportBankTransfer, setExportBankTransfer] = useState(false);
+  const [expandedWithdrawalId, setExpandedWithdrawalId] = useState<string | null>(null);
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
@@ -445,8 +448,9 @@ export default function AdminFinance() {
                       const providerName = profile?.full_name || profile?.organization_name || "—";
                       const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
                       return (
-                        <TableRow key={w.id}>
-                          <TableCell>
+                        <React.Fragment key={w.id}>
+                        <TableRow className="cursor-pointer hover:bg-muted/40" onClick={() => setExpandedWithdrawalId(expandedWithdrawalId === w.id ? null : w.id)}>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             {w.status === "pending" ? (
                               <div className="flex gap-2">
                                 <Button size="sm" onClick={() => {
@@ -505,8 +509,21 @@ export default function AdminFinance() {
                               <Link to={`/admin/users/${w.provider_id}`} className="text-primary hover:underline">{providerName}</Link>
                             ) : "—"}
                           </TableCell>
-                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{w.withdrawal_number || idx + 1}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {w.withdrawal_number || idx + 1}
+                              {expandedWithdrawalId === w.id ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          </TableCell>
                         </TableRow>
+                        {expandedWithdrawalId === w.id && (
+                          <TableRow>
+                            <TableCell colSpan={7} className="p-0 bg-muted/30 border-b-2 border-primary/20">
+                              <WithdrawalEscrowDetails providerId={w.provider_id} />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        </React.Fragment>
                       );
                     })}
                     {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
