@@ -230,7 +230,7 @@ export default function Donations() {
               />
             ) : step === "moyasar" && formData && moyasarKey ? (
               <MoyasarPaymentForm
-                amount={formData.amount}
+                amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
                   formData.target_type === "association"
                     ? `منحة لجمعية ${formData.association_name}`
