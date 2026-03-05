@@ -52,6 +52,7 @@ export default function Checkout() {
   const [assocOpen, setAssocOpen] = useState(false);
   const [showMoyasarForm, setShowMoyasarForm] = useState(false);
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
+  const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
@@ -91,15 +92,20 @@ export default function Checkout() {
           hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
         }));
 
-        // Save context for callback verification
-        sessionStorage.setItem("moyasar_payment_context", JSON.stringify({
+        const paymentContext = {
           type: "checkout",
           items: paymentItems,
           beneficiary_id: selectedAssociation || null,
           total,
-        }));
+        };
+
+        // Save context both in sessionStorage (primary) and URL params (fallback)
+        sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
+        const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
+        const callbackUrl = `${window.location.origin}/payment-callback?ctx=${ctxParam}`;
 
         setMoyasarKey(data.publishable_key);
+        setMoyasarCallbackUrl(callbackUrl);
         setShowMoyasarForm(true);
         setProcessing(false);
       } else {
@@ -400,7 +406,7 @@ export default function Checkout() {
               <MoyasarPaymentForm
                 amount={total}
                 description={`شراء ${items.length} خدمات عبر منصة معين`}
-                callbackUrl={`${window.location.origin}/payment-callback`}
+                callbackUrl={moyasarCallbackUrl}
                 publishableKey={moyasarKey}
                 metadata={checkoutMetadata}
               />

@@ -56,6 +56,7 @@ export default function Donations() {
   const [formData, setFormData] = useState<DonationFormData | null>(null);
   const [processing, setProcessing] = useState(false);
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
+  const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
 
   const donationMetadata = useMemo(() => ({
     type: "donation",
@@ -163,16 +164,20 @@ export default function Donations() {
       }
 
       // Save context for callback verification
-      sessionStorage.setItem("moyasar_payment_context", JSON.stringify({
+      const paymentContext = {
         type: "donation",
         target_type: formData.target_type,
         association_id: formData.association_id,
         project_id: formData.project_id || null,
         grant_request_id: urlGrantRequestId || null,
         total: formData.amount,
-      }));
+      };
+      sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
+      const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
+      const callbackUrl = `${window.location.origin}/payment-callback?ctx=${ctxParam}`;
 
       setMoyasarKey(data.publishable_key);
+      setMoyasarCallbackUrl(callbackUrl);
       setStep("moyasar");
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
@@ -226,7 +231,7 @@ export default function Donations() {
                     ? `منحة لجمعية ${formData.association_name}`
                     : `منحة لطلب ${formData.project_title}`
                 }
-                callbackUrl={`${window.location.origin}/payment-callback`}
+                callbackUrl={moyasarCallbackUrl}
                 publishableKey={moyasarKey}
                 metadata={donationMetadata}
               />

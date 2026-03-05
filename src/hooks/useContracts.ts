@@ -80,7 +80,7 @@ export function useSignContract() {
             .eq("id", contract.project_id);
           // DB trigger notify_on_project_status_change handles notifications
         } else if (!existingEscrow) {
-          // Regular flow — create escrow
+          // Regular flow — create escrow from accepted bid
           const { data: bid } = await supabase
             .from("bids")
             .select("price")
@@ -96,6 +96,8 @@ export function useSignContract() {
               amount: bid.price,
               status: "held",
             });
+          } else {
+            throw new Error("لم يتم العثور على عرض سعر مقبول لإنشاء الضمان المالي. يرجى التأكد من قبول عرض سعر قبل توقيع العقد.");
           }
         }
       }

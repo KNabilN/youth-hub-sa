@@ -171,11 +171,7 @@ export default function AdminFinance() {
         notes: notesText,
       });
 
-      // Notify recipient
-      const notifMsg = action === "released"
-        ? `تم تحرير الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`
-        : `تم استرداد الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`;
-      await supabase.from("notifications").insert({ user_id: issuedTo, message: notifMsg, type: action === "released" ? "escrow_released" : "escrow_refunded" });
+      // Note: notifications are handled by the database trigger `notify_on_escrow_change`
 
       queryClient.invalidateQueries({ queryKey: ["admin-escrow"] });
       queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });
