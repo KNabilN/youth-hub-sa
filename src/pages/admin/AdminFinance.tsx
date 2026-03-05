@@ -914,6 +914,21 @@ export default function AdminFinance() {
           }}
         />
       </div>
+      <ConfirmDialog
+        open={!!deleteInvoiceTarget}
+        onOpenChange={(o) => !o && setDeleteInvoiceTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل الفاتورة "${deleteInvoiceTarget?.invoice_number}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "invoices", id: deleteInvoiceTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteInvoiceTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
+        }}
+      />
     </DashboardLayout>
   );
 }
