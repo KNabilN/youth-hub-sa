@@ -74,6 +74,7 @@ const menuByRole = {
     { title: "الشكاوى", url: "/admin/disputes", icon: Gavel },
     { title: "المالية", url: "/admin/finance", icon: Receipt },
     { title: "التقارير", url: "/admin/reports", icon: BarChart3 },
+    { title: "الفرضيات", url: "/admin/hypotheses", icon: ClipboardList },
     { title: "الإشعارات", url: "/admin/notifications", icon: Bell },
     { title: "تذاكر الدعم", url: "/admin/tickets", icon: MessageSquare },
     

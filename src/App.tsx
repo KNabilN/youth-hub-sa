@@ -82,6 +82,7 @@ const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications")
 const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
 const AdminServiceDetail = lazy(() => import("./pages/admin/AdminServiceDetail"));
 const AdminProjectDetail = lazy(() => import("./pages/admin/AdminProjectDetail"));
+const AdminHypotheses = lazy(() => import("./pages/admin/AdminHypotheses"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
@@ -187,6 +188,7 @@ const App = () => (
                 <Route path="/admin/tickets" element={<AdminRoute><SuspenseWrap><AdminTickets /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/tickets/:id" element={<AdminRoute><SuspenseWrap><AdminTicketDetail /></SuspenseWrap></AdminRoute>} />
                 
+                <Route path="/admin/hypotheses" element={<AdminRoute><SuspenseWrap><AdminHypotheses /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/cms" element={<AdminRoute><SuspenseWrap><AdminCMS /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><SuspenseWrap><AdminNotifications /></SuspenseWrap></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />
