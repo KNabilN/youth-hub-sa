@@ -28,7 +28,7 @@ export default function Messages() {
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         <div className="border rounded-2xl overflow-hidden bg-card" style={{ height: "calc(100vh - 250px)" }}>
-          <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] h-full">
+          <div className="grid grid-cols-1 md:grid-cols-[min(320px,40vw)_1fr] h-full">
             {/* Conversation List */}
             <div className={cn(
               "border-s overflow-y-auto",

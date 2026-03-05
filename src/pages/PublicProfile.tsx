@@ -182,7 +182,7 @@ export default function PublicProfile() {
       {/* Tabs */}
       <div className="px-4 sm:px-8 mt-8">
         <Tabs defaultValue="about" dir="rtl">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50 h-auto p-1 gap-1 rounded-xl">
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide bg-muted/50 h-auto p-1 gap-1 rounded-xl">
             <TabsTrigger value="about" className="gap-1.5 rounded-lg"><UserIcon className="h-4 w-4" /> نبذة</TabsTrigger>
             {!isAssociation && skills.length > 0 && (
               <TabsTrigger value="skills" className="gap-1.5 rounded-lg"><Award className="h-4 w-4" /> المهارات</TabsTrigger>

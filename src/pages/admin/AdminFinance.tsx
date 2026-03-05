@@ -171,8 +171,8 @@ export default function AdminFinance() {
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
         <FinanceSummary />
         <Tabs defaultValue="escrow">
-          <div className="flex justify-end">
-            <TabsList>
+          <div className="flex justify-end overflow-x-auto">
+            <TabsList className="flex-nowrap scrollbar-hide">
               <TabsTrigger value="escrow" className="gap-1.5">
                 الضمان
                 {(pendingCounts?.escrow ?? 0) > 0 && (
