@@ -70,23 +70,13 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
       const fullPhone = phone ? `+966${phone}` : "";
       const fullContactPhone = contactOfficerPhone ? `+966${contactOfficerPhone}` : "";
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role,
-            phone: fullPhone,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        await supabase.from("profiles").update({
-          phone: fullPhone || null,
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email,
+          password,
+          full_name: fullName,
+          role,
+          phone: fullPhone,
           organization_name: orgName || null,
           license_number: licenseNumber || null,
           contact_officer_name: contactOfficerName || null,
@@ -95,8 +85,11 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
           contact_officer_title: contactOfficerTitle || null,
           bio: bio || null,
           hourly_rate: hourlyRate ? Number(hourlyRate) : null,
-        }).eq("id", data.user.id);
-      }
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success("تم إنشاء الحساب بنجاح");
       qc.invalidateQueries({ queryKey: ["admin-users"] });
