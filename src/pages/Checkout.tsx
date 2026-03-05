@@ -56,6 +56,11 @@ export default function Checkout() {
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
 
+  const checkoutMetadata = useMemo(() => ({
+    type: "checkout",
+    user_id: user?.id,
+  }), [user?.id]);
+
   const handleCopyAccount = () => {
     navigator.clipboard.writeText(BANK_INFO.accountNumber);
     setCopied(true);
