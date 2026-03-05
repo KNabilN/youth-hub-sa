@@ -10,9 +10,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon, Eye, EyeOff } from "lucide-react";
+import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon, Eye, EyeOff, Star } from "lucide-react";
 import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /* ═══════════ Page Groups ═══════════ */
 
@@ -223,7 +224,126 @@ function TestimonialsEditor({ items, onChange }: { items: { name: string; org: s
   );
 }
 
-/* ═══════════ Section Editor ═══════════ */
+/* ═══════════ Featured Pickers ═══════════ */
+
+function FeaturedServicesPicker() {
+  const qc = useQueryClient();
+  const { data: services, isLoading } = useQuery({
+    queryKey: ["cms-all-services"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("micro_services")
+        .select("id, title, is_featured, approval, provider:profiles!micro_services_provider_id_fkey(full_name)")
+        .eq("approval", "approved")
+        .is("deleted_at", null)
+        .order("is_featured", { ascending: false })
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const toggle = async (id: string, current: boolean) => {
+    const { error } = await supabase.from("micro_services").update({ is_featured: !current } as any).eq("id", id);
+    if (error) { toast.error("فشل التحديث"); return; }
+    qc.invalidateQueries({ queryKey: ["cms-all-services"] });
+    qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
+    toast.success(!current ? "تم تمييز الخدمة" : "تم إلغاء التمييز");
+  };
+
+  if (isLoading) return <Skeleton className="h-32 w-full" />;
+  const list = services || [];
+  const featuredCount = list.filter((s: any) => s.is_featured).length;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium flex items-center gap-1.5">
+          <Star className="h-3.5 w-3.5 text-amber-500" />
+          الخدمات المميزة في الصفحة الرئيسية
+        </Label>
+        <span className="text-xs text-muted-foreground">{featuredCount} مميزة</span>
+      </div>
+      <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
+        {list.map((s: any) => (
+          <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{s.title}</p>
+              <p className="text-xs text-muted-foreground truncate">{s.provider?.full_name}</p>
+            </div>
+            <Switch
+              checked={!!s.is_featured}
+              onCheckedChange={() => toggle(s.id, !!s.is_featured)}
+              aria-label="تمييز الخدمة"
+            />
+          </div>
+        ))}
+        {list.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد خدمات معتمدة</p>}
+      </div>
+    </div>
+  );
+}
+
+function FeaturedProjectsPicker() {
+  const qc = useQueryClient();
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["cms-all-projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title, is_featured, status, association:profiles!projects_association_id_fkey(full_name, organization_name)")
+        .eq("status", "open")
+        .eq("is_private", false)
+        .is("deleted_at", null)
+        .order("is_featured", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const toggle = async (id: string, current: boolean) => {
+    const { error } = await supabase.from("projects").update({ is_featured: !current } as any).eq("id", id);
+    if (error) { toast.error("فشل التحديث"); return; }
+    qc.invalidateQueries({ queryKey: ["cms-all-projects"] });
+    qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
+    toast.success(!current ? "تم تمييز الطلب" : "تم إلغاء التمييز");
+  };
+
+  if (isLoading) return <Skeleton className="h-32 w-full" />;
+  const list = projects || [];
+  const featuredCount = list.filter((p: any) => p.is_featured).length;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium flex items-center gap-1.5">
+          <Star className="h-3.5 w-3.5 text-amber-500" />
+          الطلبات المميزة في الصفحة الرئيسية
+        </Label>
+        <span className="text-xs text-muted-foreground">{featuredCount} مميزة</span>
+      </div>
+      <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
+        {list.map((p: any) => (
+          <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{p.title}</p>
+              <p className="text-xs text-muted-foreground truncate">{p.association?.organization_name || p.association?.full_name}</p>
+            </div>
+            <Switch
+              checked={!!p.is_featured}
+              onCheckedChange={() => toggle(p.id, !!p.is_featured)}
+              aria-label="تمييز الطلب"
+            />
+          </div>
+        ))}
+        {list.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد طلبات مفتوحة</p>}
+      </div>
+    </div>
+  );
+}
+
+
 
 function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; content: Record<string, any> }) {
   const [content, setContent] = useState(initial);
@@ -272,6 +392,8 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
             <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+            <Separator />
+            <FeaturedProjectsPicker />
           </div>
         );
       case "services_section":
@@ -280,6 +402,8 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
             <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+            <Separator />
+            <FeaturedServicesPicker />
           </div>
         );
       case "trust":
