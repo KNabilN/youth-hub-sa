@@ -11,6 +11,7 @@ export function useContracts(filter = "all") {
       let query = supabase
         .from("contracts")
         .select("*, projects(title, status), profiles:provider_id(full_name)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (role === "youth_association") {

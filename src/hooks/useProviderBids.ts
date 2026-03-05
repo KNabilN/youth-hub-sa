@@ -12,6 +12,7 @@ export function useProviderBids(statusFilter?: string) {
         .from("bids")
         .select("*, projects(title, budget)")
         .eq("provider_id", user!.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter as any);

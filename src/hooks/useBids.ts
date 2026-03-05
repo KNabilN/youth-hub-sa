@@ -11,6 +11,7 @@ export function useBids(projectId: string | undefined) {
         .from("bids")
         .select("*, profiles:provider_id(full_name, avatar_url)")
         .eq("project_id", projectId!)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

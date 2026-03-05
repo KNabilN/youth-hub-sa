@@ -1,110 +1,25 @@
 
 
-# مراجعة شاملة للنظام — النتائج والتوصيات
+# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
 
-## 1. أخطاء يجب إصلاحها فوراً
+## المشكلة
+حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
 
-### 1.1 باغ: حوار حذف التذاكر يعرض "undefined"
-**الملف**: `src/pages/admin/AdminTickets.tsx` سطر 203
-**المشكلة**: رسالة التأكيد تستخدم `deleteTarget?.ticket_number` لكن في بعض الحالات بيانات التذكرة قد لا تحتوي على `ticket_number`. الأهم: Session replay يؤكد ظهور "undefined" في الحوار.
-**الحل**: استخدام `deleteTarget?.ticket_number || deleteTarget?.subject || "—"` كـ fallback.
+## الحل
+تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-### 1.2 باغ: متغير `amount` غير معرّف في Edge Function
-**الملف**: `supabase/functions/moyasar-verify-payment/index.ts` سطر 61
-**المشكلة**: في دالة `createInvoiceAndNotifyAdmin` يتم استخدام المتغير `amount` في نص الإشعار، لكن المتغير ليس ضمن معاملات الدالة — المعامل اسمه `baseAmount`. هذا يعني إشعارات الأدمن عند الدفع الإلكتروني ستظهر "undefined ر.س".
-**الحل**: تغيير `${amount}` إلى `${baseAmount}` في سطر 61.
+**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
 
-### 1.3 باغ: عقود بدون فلتر `deleted_at`
-**الملف**: `src/hooks/useContracts.ts`
-**المشكلة**: استعلام العقود لا يفلتر `deleted_at IS NULL` رغم إضافة العمود. العقود المحذوفة ستظهر للمستخدمين.
-**الحل**: إضافة `.is("deleted_at", null)` للاستعلام.
+**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
 
-### 1.4 باغ: تقييمات بدون فلتر `deleted_at`
-**المشكلة**: مثل العقود — أي hook يقرأ `ratings` أو `bids` يجب أن يفلتر `deleted_at`.
+**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
 
-### 1.5 باغ: `getClaims()` غير موجود في Supabase JS v2
-**الملف**: `supabase/functions/moyasar-verify-payment/index.ts` سطر 89
-**المشكلة**: `supabase.auth.getClaims(token)` ليس API صالح. يجب استخدام `supabase.auth.getUser()` بدلاً.
+### التغييرات
 
----
-
-## 2. قاعدة البيانات والاتصالات
-
-| الجانب | الحالة | ملاحظة |
-|---|---|---|
-| RLS Policies | ✅ سليمة | كل الجداول محمية بـ RLS مع `has_role` + `is_not_suspended` |
-| Soft Delete فلترة | ⚠️ ناقصة | `useContracts`, `useBids` (user-facing) لا تفلتر `deleted_at` |
-| Triggers | ✅ شاملة | 23+ trigger تغطي الإشعارات والأرقام التسلسلية |
-| Purge Function | ✅ محدّثة | تشمل كل الجداول الـ 10 |
-| Admin Hooks | ✅ | كل hooks الأدمن تفلتر `deleted_at` بشكل صحيح |
-
----
-
-## 3. واجهة المستخدم والتجاوبية (UI/UX)
-
-| الجانب | الحالة | ملاحظة |
-|---|---|---|
-| RTL Support | ✅ | كامل — `me-`, `ms-`, sidebar `side="right"` |
-| Tabs Overflow | ✅ | `overflow-x-auto` + `scrollbar-hide` مُطبق |
-| Grid Responsive | ✅ | grids تستخدم `grid-cols-2 sm:grid-cols-3` |
-| Loading States | ✅ | Skeleton loading في كل الصفحات |
-| Empty States | ✅ | `EmptyState` component مستخدم |
-| Admin Tables | ✅ | متجانسة: بحث + فلاتر + تصدير + pagination |
-| Sidebar Badges | ✅ | عدادات ديناميكية للإشعارات والتذاكر والمالية |
-| سلة المحذوفات | ✅ | Tabs + counts + restore/delete + confirm dialogs |
-| Error Boundary | ✅ | موجود على مستوى الـ App |
-| Lazy Loading | ✅ | كل الصفحات غير الأساسية lazy-loaded |
-
----
-
-## 4. تدفقات الدفع
-
-### الدفع الإلكتروني (Moyasar)
-| الخطوة | الحالة | ملاحظة |
-|---|---|---|
-| تحميل مفتاح Moyasar | ✅ | عبر edge function آمن |
-| PCI Compliance | ✅ | النموذج يُعرض عبر Moyasar SDK |
-| Callback + 3DS | ✅ | Context مشفر في URL + sessionStorage fallback |
-| Session Recovery | ✅ | 10 retries لاسترداد الجلسة بعد 3DS redirect |
-| إشعارات الأدمن | ⚠️ | الإشعار يعرض "undefined ر.س" (باغ #1.2) |
-| إصدار فواتير تلقائية | ✅ | تُصدر فوراً عند نجاح الدفع |
-| مسح السلة | ✅ | يتم تلقائياً بعد نجاح الدفع |
-
-### التحويل البنكي
-| الخطوة | الحالة | ملاحظة |
-|---|---|---|
-| رفع الإيصال | ✅ | حد 5MB + storage bucket مؤمّن |
-| إنشاء Escrow (pending_payment) | ✅ | |
-| مراجعة الأدمن (approve/reject) | ✅ | مع إشعارات تلقائية |
-| إصدار فاتورة عند الموافقة | ✅ | |
-| إنشاء عقد تلقائي | ✅ | مع توقيع الجمعية التلقائي |
-| الرفض مع ملاحظة | ✅ | يغير الـ escrow لـ "failed" |
-
----
-
-## 5. تدفقات المستخدم الأساسية
-
-| التدفق | الحالة |
+| الملف | التغيير |
 |---|---|
-| تسجيل → email verification → login | ✅ |
-| جمعية: إنشاء طلب → موافقة → عروض → عقد → ضمان → تسليم → إتمام | ✅ |
-| مزود: تصفح طلبات → تقديم عرض → توقيع عقد → تسجيل ساعات → سحب أرباح | ✅ |
-| مانح: تصفح جمعيات → تبرع (إلكتروني/بنكي) → تقرير أثر | ✅ |
-| مانح: شراء خدمة لجمعية → checkout → escrow → مشروع تلقائي | ✅ |
-| نزاع → تجميد ضمان → حل → تحرير/استرداد | ✅ |
-| الأدمن: حذف ناعم → سلة المحذوفات → استرجاع/حذف نهائي | ✅ |
+| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
+| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
 
----
-
-## 6. ملخص التغييرات المطلوبة
-
-| # | الملف | التغيير |
-|---|---|---|
-| 1 | `src/pages/admin/AdminTickets.tsx` | إصلاح "undefined" في رسالة حذف التذكرة |
-| 2 | `supabase/functions/moyasar-verify-payment/index.ts` | إصلاح `amount` → `baseAmount` + إصلاح `getClaims` → `getUser` |
-| 3 | `src/hooks/useContracts.ts` | إضافة `.is("deleted_at", null)` |
-| 4 | `src/hooks/useBids.ts` (إن وُجد user-facing) | إضافة فلتر `deleted_at` |
-| 5 | `src/hooks/useProviderBids.ts` | التحقق من فلتر `deleted_at` |
-
-هذه الإصلاحات ضرورية لضمان سلامة البيانات المعروضة وصحة إشعارات الدفع.
+الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
 
