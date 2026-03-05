@@ -840,6 +840,51 @@ export type Database = {
           },
         ]
       }
+      hypotheses: {
+        Row: {
+          actual_value: string | null
+          admin_notes: string | null
+          domain: string
+          hypothesis: string
+          hypothesis_number: number
+          id: number
+          metric: string
+          status: string
+          success_criteria: string
+          test_method: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          actual_value?: string | null
+          admin_notes?: string | null
+          domain: string
+          hypothesis: string
+          hypothesis_number: number
+          id?: number
+          metric: string
+          status?: string
+          success_criteria: string
+          test_method: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          actual_value?: string | null
+          admin_notes?: string | null
+          domain?: string
+          hypothesis?: string
+          hypothesis_number?: number
+          id?: number
+          metric?: string
+          status?: string
+          success_criteria?: string
+          test_method?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       impact_reports: {
         Row: {
           association_id: string
