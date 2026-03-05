@@ -6,6 +6,61 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function generateInvoiceNumber(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `INV-${date}-${rand}`;
+}
+
+async function getCommissionRate(adminClient: any): Promise<number> {
+  const { data: config } = await adminClient
+    .from("commission_config")
+    .select("rate")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return config?.rate ?? 0.05;
+}
+
+async function createInvoiceAndNotifyAdmin(
+  adminClient: any,
+  escrowId: string,
+  issuedTo: string,
+  amount: number,
+  commissionRate: number
+) {
+  const commissionAmount = amount * commissionRate;
+
+  const { error: invErr } = await adminClient.from("invoices").insert({
+    invoice_number: generateInvoiceNumber(),
+    amount,
+    commission_amount: commissionAmount,
+    issued_to: issuedTo,
+    escrow_id: escrowId,
+  });
+  if (invErr) {
+    console.error("Invoice creation error:", invErr);
+    return;
+  }
+
+  // Notify all super_admin users
+  const { data: admins } = await adminClient
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "super_admin");
+
+  if (admins?.length) {
+    const notifications = admins.map((a: any) => ({
+      user_id: a.user_id,
+      message: `فاتورة إلكترونية جديدة بمبلغ ${amount} ر.س تم إنشاؤها تلقائياً بعد دفع إلكتروني`,
+      type: "payment",
+    }));
+    await adminClient.from("notifications").insert(notifications);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,7 +81,6 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Use getClaims for local JWT verification (no network call)
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims?.sub) {
@@ -99,14 +153,17 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Get commission rate once
+    const commissionRate = await getCommissionRate(adminClient);
+
     // Context determines what type of payment this is
     const paymentContext = context || paymentData.metadata || {};
     const contextType = paymentContext.type;
 
     if (contextType === "checkout") {
-      await processCheckout(adminClient, userId, paymentContext);
+      await processCheckout(adminClient, userId, paymentContext, commissionRate);
     } else if (contextType === "donation") {
-      await processDonation(adminClient, userId, paymentContext, amountSAR);
+      await processDonation(adminClient, userId, paymentContext, amountSAR, commissionRate);
     }
 
     return new Response(
@@ -127,7 +184,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function processCheckout(adminClient: any, userId: string, ctx: any) {
+async function processCheckout(adminClient: any, userId: string, ctx: any, commissionRate: number) {
   const items = ctx.items || [];
   const beneficiaryId = ctx.beneficiary_id || null;
 
@@ -162,15 +219,26 @@ async function processCheckout(adminClient: any, userId: string, ctx: any) {
       }
     }
 
-    await adminClient.from("escrow_transactions").insert({
-      service_id: item.service_id,
-      payer_id: userId,
-      payee_id: item.provider_id,
-      amount: item.price,
-      status: "held",
-      project_id: projectId,
-      beneficiary_id: beneficiaryId,
-    });
+    const { data: escrow, error: escrowErr } = await adminClient
+      .from("escrow_transactions")
+      .insert({
+        service_id: item.service_id,
+        payer_id: userId,
+        payee_id: item.provider_id,
+        amount: item.price,
+        status: "held",
+        project_id: projectId,
+        beneficiary_id: beneficiaryId,
+      })
+      .select("id")
+      .single();
+
+    if (escrowErr) {
+      console.error("Escrow creation error:", escrowErr);
+    } else {
+      // Auto-generate invoice
+      await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate);
+    }
 
     await adminClient.from("donor_contributions").insert({
       donor_id: userId,
@@ -183,21 +251,25 @@ async function processCheckout(adminClient: any, userId: string, ctx: any) {
   await adminClient.from("cart_items").delete().eq("user_id", userId);
 }
 
-async function processDonation(adminClient: any, userId: string, ctx: any, amountSAR: number) {
+async function processDonation(adminClient: any, userId: string, ctx: any, amountSAR: number, commissionRate: number) {
   const targetType = ctx.target_type;
   const associationId = ctx.association_id;
   const projectId = ctx.project_id || null;
   const grantRequestId = ctx.grant_request_id || null;
 
+  let escrowData: any = null;
+
   if (targetType === "association") {
-    await adminClient.from("escrow_transactions").insert({
+    const { data, error } = await adminClient.from("escrow_transactions").insert({
       payer_id: userId,
       payee_id: associationId,
       beneficiary_id: associationId,
       amount: amountSAR,
       status: "held",
       grant_request_id: grantRequestId,
-    });
+    }).select("id").single();
+    if (error) console.error("Escrow error:", error);
+    else escrowData = data;
   } else {
     const { data: project } = await adminClient
       .from("projects")
@@ -207,7 +279,7 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
 
     const payeeId = project?.assigned_provider_id || associationId;
 
-    await adminClient.from("escrow_transactions").insert({
+    const { data, error } = await adminClient.from("escrow_transactions").insert({
       payer_id: userId,
       payee_id: payeeId,
       beneficiary_id: associationId,
@@ -215,7 +287,14 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
       status: "held",
       project_id: projectId,
       grant_request_id: grantRequestId,
-    });
+    }).select("id").single();
+    if (error) console.error("Escrow error:", error);
+    else escrowData = data;
+  }
+
+  // Auto-generate invoice for donation
+  if (escrowData) {
+    await createInvoiceAndNotifyAdmin(adminClient, escrowData.id, userId, amountSAR, commissionRate);
   }
 
   await adminClient.from("donor_contributions").insert({
