@@ -145,15 +145,16 @@ export default function AdminServices() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الرقم</TableHead>
-                    <TableHead>العنوان</TableHead>
-                    <TableHead>مقدم الخدمة</TableHead>
-                    <TableHead>التصنيف</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>السعر</TableHead>
-                    <TableHead>التاريخ</TableHead>
-                    <TableHead>تغيير الحالة</TableHead>
-                    <TableHead>إجراءات</TableHead>
+                     <TableHead>الرقم</TableHead>
+                     <TableHead>العنوان</TableHead>
+                     <TableHead>مقدم الخدمة</TableHead>
+                     <TableHead>التصنيف</TableHead>
+                     <TableHead>الحالة</TableHead>
+                     <TableHead>السعر</TableHead>
+                     <TableHead>الترتيب</TableHead>
+                     <TableHead>التاريخ</TableHead>
+                     <TableHead>تغيير الحالة</TableHead>
+                     <TableHead>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -164,7 +165,23 @@ export default function AdminServices() {
                       <TableCell>{s.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={approvalColors[s.approval]}>{approvalLabels[s.approval]}</Badge></TableCell>
-                      <TableCell>{s.price} ر.س</TableCell>
+                       <TableCell>{s.price} ر.س</TableCell>
+                       <TableCell>
+                         <Input
+                           type="number"
+                           className="w-20 h-8 text-center"
+                           defaultValue={(s as any).display_order ?? 0}
+                           onBlur={(e) => {
+                             const val = parseInt(e.target.value) || 0;
+                             if (val !== ((s as any).display_order ?? 0)) {
+                               updateService.mutate(
+                                 { id: s.id, display_order: val },
+                                 { onSuccess: () => toast.success("تم تحديث الترتيب"), onError: () => toast.error("حدث خطأ") }
+                               );
+                             }
+                           }}
+                         />
+                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
                         <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
@@ -184,7 +201,7 @@ export default function AdminServices() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paged.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
+                  {paged.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>

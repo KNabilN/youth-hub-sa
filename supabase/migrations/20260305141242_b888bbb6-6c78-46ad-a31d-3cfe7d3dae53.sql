@@ -1,0 +1,1 @@
+ALTER TABLE public.micro_services ADD COLUMN display_order integer NOT NULL DEFAULT 0;

@@ -1004,6 +1004,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string
+          display_order: number
           faq: Json | null
           gallery: Json | null
           id: string
@@ -1027,6 +1028,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          display_order?: number
           faq?: Json | null
           gallery?: Json | null
           id?: string
@@ -1050,6 +1052,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string
+          display_order?: number
           faq?: Json | null
           gallery?: Json | null
           id?: string
