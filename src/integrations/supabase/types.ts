@@ -1054,6 +1054,7 @@ export type Database = {
           gallery: Json | null
           id: string
           image_url: string | null
+          is_featured: boolean
           long_description: string | null
           packages: Json | null
           price: number
@@ -1078,6 +1079,7 @@ export type Database = {
           gallery?: Json | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean
           long_description?: string | null
           packages?: Json | null
           price: number
@@ -1102,6 +1104,7 @@ export type Database = {
           gallery?: Json | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean
           long_description?: string | null
           packages?: Json | null
           price?: number
@@ -1481,6 +1484,7 @@ export type Database = {
           description: string
           estimated_hours: number | null
           id: string
+          is_featured: boolean
           is_private: boolean
           region_id: string | null
           request_number: string
@@ -1500,6 +1504,7 @@ export type Database = {
           description?: string
           estimated_hours?: number | null
           id?: string
+          is_featured?: boolean
           is_private?: boolean
           region_id?: string | null
           request_number?: string
@@ -1519,6 +1524,7 @@ export type Database = {
           description?: string
           estimated_hours?: number | null
           id?: string
+          is_featured?: boolean
           is_private?: boolean
           region_id?: string | null
           request_number?: string

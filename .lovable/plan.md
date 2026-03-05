@@ -1,37 +1,25 @@
 
 
-# خطة: تحكم الأدمن في الخدمات والطلبات المعروضة بالصفحة الرئيسية
+# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
 
-## الفكرة
-إضافة عمود `is_featured` لجدولي `micro_services` و `projects` يتحكم فيه الأدمن لتحديد أي خدمات وطلبات تظهر بالصفحة الرئيسية.
+## المشكلة
+حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
 
-## التغييرات
+## الحل
+تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-### 1. Database Migration
-```sql
-ALTER TABLE micro_services ADD COLUMN is_featured boolean NOT NULL DEFAULT false;
-ALTER TABLE projects ADD COLUMN is_featured boolean NOT NULL DEFAULT false;
-```
+**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
 
-### 2. تحديث `useLandingStats.ts`
-- الخدمات: فلترة بـ `is_featured = true` أولاً، وإذا لم يوجد featured يعرض حسب `display_order` كالحالي (fallback)
-- الطلبات: نفس المنطق — `is_featured = true` أولاً ثم fallback للأحدث
+**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
 
-### 3. تحديث `AdminServices.tsx`
-- إضافة عمود "مميز" في الجدول مع Toggle/Switch لكل خدمة يتحكم بـ `is_featured`
+**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
 
-### 4. تحديث `AdminProjects.tsx` (أو إنشاء صفحة مشابهة)
-- إضافة عمود "مميز" مع Toggle لكل طلب
-
-### 5. تحديث hooks الأدمن
-- `useAdminServices` و `useAdminProjects` يجلبون `is_featured` تلقائياً (موجود بالفعل مع `select("*")`)
-
-## ملخص الملفات
+### التغييرات
 
 | الملف | التغيير |
 |---|---|
-| Migration | إضافة `is_featured` لجدولين |
-| `src/hooks/useLandingStats.ts` | فلترة بـ `is_featured` |
-| `src/pages/admin/AdminServices.tsx` | Toggle للتمييز |
-| `src/pages/admin/AdminProjects.tsx` | Toggle للتمييز |
+| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
+| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+
+الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
 

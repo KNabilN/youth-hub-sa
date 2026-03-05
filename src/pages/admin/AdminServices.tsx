@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { FileEdit, Eye, Download } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
@@ -152,6 +153,7 @@ export default function AdminServices() {
                      <TableHead>الحالة</TableHead>
                      <TableHead>السعر</TableHead>
                      <TableHead>الترتيب</TableHead>
+                     <TableHead>مميز</TableHead>
                      <TableHead>التاريخ</TableHead>
                      <TableHead>تغيير الحالة</TableHead>
                      <TableHead>إجراءات</TableHead>
@@ -185,7 +187,21 @@ export default function AdminServices() {
                             }}
                           />
                        </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                       <TableCell>
+                         <Switch
+                           checked={(s as any).is_featured ?? false}
+                           onCheckedChange={(checked) => {
+                             updateService.mutate(
+                               { id: s.id, is_featured: checked },
+                               {
+                                 onSuccess: () => toast.success(checked ? "تم تمييز الخدمة" : "تم إلغاء التمييز"),
+                                 onError: () => toast.error("حدث خطأ"),
+                               }
+                             );
+                           }}
+                         />
+                       </TableCell>
+                       <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
                         <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
                           <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
