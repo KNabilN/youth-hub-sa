@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
+import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -55,7 +57,9 @@ export default function Checkout() {
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+  const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+  const { data: commissionRate = 0.05 } = useCommissionRate();
+  const pricing = calculatePricing(subtotal, commissionRate);
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
