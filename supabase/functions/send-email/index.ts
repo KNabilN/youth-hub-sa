@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const typeLabels: Record<string, string> = {
   info: "إشعار",
   bid_received: "عرض سعر جديد",
@@ -23,6 +32,8 @@ const typeLabels: Record<string, string> = {
 
 function buildEmailHTML(toName: string, message: string, type: string): string {
   const label = typeLabels[type] || "إشعار";
+  const safeName = escapeHtml(toName);
+  const safeMessage = escapeHtml(message);
   return `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -38,9 +49,9 @@ function buildEmailHTML(toName: string, message: string, type: string): string {
     <tr>
       <td style="padding:30px;">
         <p style="margin:0 0 8px;color:#64748b;font-size:13px;">${label}</p>
-        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${toName || ""},</p>
+        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${safeName || ""},</p>
         <div style="background:#f8fafc;border-right:4px solid #14b8a6;padding:16px 20px;border-radius:8px;margin:16px 0;">
-          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${message}</p>
+          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${safeMessage}</p>
         </div>
         <a href="https://youth-hub-sa.lovable.app/notifications" style="display:inline-block;margin-top:20px;padding:10px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;">
           عرض الإشعارات
@@ -63,7 +74,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
@@ -99,12 +109,8 @@ serve(async (req) => {
     const emailSubject = subject || `${typeLabels[type] || "إشعار"} - منصة الشباب`;
     const emailHTML = buildEmailHTML(to_name || "", body, type || "info");
 
-    // Log the email for audit (actual SMTP like Resend can be added here)
     console.log(`📧 Email: to=${to_email}, subject=${emailSubject}, type=${type}`);
     console.log(`📧 HTML length: ${emailHTML.length} chars`);
-
-    // Future: integrate with Resend, SendGrid, or AWS SES here
-    // For now, log successfully - the notification is already stored in DB
 
     return new Response(
       JSON.stringify({ success: true, message: "Email notification processed", to: to_email }),
