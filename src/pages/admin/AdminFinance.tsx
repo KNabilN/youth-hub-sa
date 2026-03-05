@@ -125,14 +125,65 @@ export default function AdminFinance() {
     const labels: Record<string, string> = {
       frozen: "تم تجميد الضمان",
       held: "تم إعادة الضمان للاحتجاز",
-      released: "تم تحرير الضمان",
-      refunded: "تم استرداد الضمان",
       under_review: "تم وضع الضمان قيد المراجعة",
     };
     updateEscrow.mutate({ id, status: status as any }, {
       onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
       onError: () => toast.error("حدث خطأ"),
     });
+  };
+
+  const handleEscrowWithReceipt = async () => {
+    if (!escrowReceiptFile || !escrowActionDialog) { toast.error("يرجى إرفاق ملف الإيصال"); return; }
+    setEscrowUploading(true);
+    try {
+      const { id, action, escrow } = escrowActionDialog;
+      const filePath = `${id}/${Date.now()}_${escrowReceiptFile.name}`;
+      const { error: uploadErr } = await supabase.storage.from("escrow-receipts").upload(filePath, escrowReceiptFile);
+      if (uploadErr) throw uploadErr;
+
+      // Update escrow status with receipt
+      const { error: updateErr } = await supabase.from("escrow_transactions").update({ status: action, receipt_url: filePath }).eq("id", id);
+      if (updateErr) throw updateErr;
+
+      // Fetch commission rate
+      const { data: config } = await supabase.from("commission_config").select("rate").eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const rate = config?.rate ?? 0.05;
+      const commissionAmount = Number(escrow.amount) * Number(rate);
+
+      // Generate invoice
+      const now = new Date();
+      const invoiceNumber = `INV-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const issuedTo = action === "released" ? escrow.payee_id : escrow.payer_id;
+      const notesText = action === "released" ? "فاتورة تحرير ضمان مالي" : "فاتورة استرداد ضمان مالي";
+
+      await supabase.from("invoices").insert({
+        invoice_number: invoiceNumber,
+        amount: Number(escrow.amount),
+        commission_amount: commissionAmount,
+        issued_to: issuedTo,
+        escrow_id: id,
+        notes: notesText,
+      });
+
+      // Notify recipient
+      const notifMsg = action === "released"
+        ? `تم تحرير الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`
+        : `تم استرداد الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`;
+      await supabase.from("notifications").insert({ user_id: issuedTo, message: notifMsg, type: action === "released" ? "escrow_released" : "escrow_refunded" });
+
+      queryClient.invalidateQueries({ queryKey: ["admin-escrow"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-finance-pending"] });
+      toast.success(action === "released" ? "تم تحرير الضمان وإصدار الفاتورة" : "تم استرداد الضمان وإصدار الفاتورة");
+      setEscrowActionDialog(null);
+      setEscrowReceiptFile(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("حدث خطأ أثناء العملية");
+    } finally {
+      setEscrowUploading(false);
+    }
   };
 
   const filteredEscrows = (escrows ?? []).filter((e: any) =>
