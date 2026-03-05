@@ -142,11 +142,12 @@ export default function AdminProjects() {
                     <TableHead>العنوان</TableHead>
                     <TableHead>الجمعية</TableHead>
                     <TableHead>إظهار الاسم</TableHead>
-                    <TableHead>التصنيف</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>التاريخ</TableHead>
-                    <TableHead>تغيير الحالة</TableHead>
-                    <TableHead>إجراءات</TableHead>
+                     <TableHead>التصنيف</TableHead>
+                     <TableHead>مميز</TableHead>
+                     <TableHead>الحالة</TableHead>
+                     <TableHead>التاريخ</TableHead>
+                     <TableHead>تغيير الحالة</TableHead>
+                     <TableHead>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -168,8 +169,22 @@ export default function AdminProjects() {
                           }}
                         />
                       </TableCell>
-                      <TableCell>{p.categories?.name ?? "—"}</TableCell>
-                      <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
+                       <TableCell>{p.categories?.name ?? "—"}</TableCell>
+                       <TableCell>
+                         <Switch
+                           checked={(p as any).is_featured ?? false}
+                           onCheckedChange={(checked) => {
+                             updateProject.mutate(
+                               { id: p.id, is_featured: checked },
+                               {
+                                 onSuccess: () => toast.success(checked ? "تم تمييز الطلب" : "تم إلغاء التمييز"),
+                                 onError: () => toast.error("حدث خطأ"),
+                               }
+                             );
+                           }}
+                         />
+                       </TableCell>
+                       <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
                         <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
@@ -189,7 +204,7 @@ export default function AdminProjects() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>
