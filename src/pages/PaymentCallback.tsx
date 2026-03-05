@@ -12,6 +12,10 @@ export default function PaymentCallback() {
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const contextStr = sessionStorage.getItem("moyasar_payment_context");
+  const paymentContext = contextStr ? JSON.parse(contextStr) : {};
+  const retryPath = paymentContext?.type === "donation" ? "/donations" : "/checkout";
+
   useEffect(() => {
     const paymentId = searchParams.get("id");
     const paymentStatus = searchParams.get("status");
@@ -107,7 +111,7 @@ export default function PaymentCallback() {
                   <p className="text-sm text-muted-foreground">{errorMsg}</p>
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <Button onClick={() => navigate("/checkout")}>
+                  <Button onClick={() => navigate(retryPath)}>
                     إعادة المحاولة
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/dashboard")}>
