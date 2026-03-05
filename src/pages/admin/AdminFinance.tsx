@@ -1,3 +1,4 @@
+import React from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
 import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
@@ -447,7 +448,8 @@ export default function AdminFinance() {
                       const providerName = profile?.full_name || profile?.organization_name || "—";
                       const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
                       return (
-                        <TableRow key={w.id}>
+                        <React.Fragment key={w.id}>
+                        <TableRow className="cursor-pointer hover:bg-muted/40" onClick={() => setExpandedWithdrawalId(expandedWithdrawalId === w.id ? null : w.id)}>
                           <TableCell>
                             {w.status === "pending" ? (
                               <div className="flex gap-2">
@@ -507,17 +509,22 @@ export default function AdminFinance() {
                               <Link to={`/admin/users/${w.provider_id}`} className="text-primary hover:underline">{providerName}</Link>
                             ) : "—"}
                           </TableCell>
-                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{w.withdrawal_number || idx + 1}</TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {w.withdrawal_number || idx + 1}
+                              {expandedWithdrawalId === w.id ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          </TableCell>
                         </TableRow>
                         {expandedWithdrawalId === w.id && (
                           <TableRow>
-                            <TableCell colSpan={7} className="p-0 bg-muted/30">
+                            <TableCell colSpan={7} className="p-0 bg-muted/30 border-b-2 border-primary/20">
                               <WithdrawalEscrowDetails providerId={w.provider_id} />
                             </TableCell>
                           </TableRow>
                         )}
+                        </React.Fragment>
                       );
-                    })}
                     {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
                   </TableBody>
                 </Table>
