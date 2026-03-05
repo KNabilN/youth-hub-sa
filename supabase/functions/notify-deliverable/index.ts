@@ -7,6 +7,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const typeLabels: Record<string, string> = {
   deliverable_submitted: "تسليم جديد",
   deliverable_accepted: "قبول التسليمات",
@@ -15,6 +24,8 @@ const typeLabels: Record<string, string> = {
 
 function buildEmailHTML(toName: string, message: string, type: string): string {
   const label = typeLabels[type] || "إشعار";
+  const safeName = escapeHtml(toName);
+  const safeMessage = escapeHtml(message);
   return `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -30,9 +41,9 @@ function buildEmailHTML(toName: string, message: string, type: string): string {
     <tr>
       <td style="padding:30px;">
         <p style="margin:0 0 8px;color:#64748b;font-size:13px;">${label}</p>
-        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${toName || ""},</p>
+        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${safeName || ""},</p>
         <div style="background:#f8fafc;border-right:4px solid #14b8a6;padding:16px 20px;border-radius:8px;margin:16px 0;">
-          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${message}</p>
+          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${safeMessage}</p>
         </div>
         <a href="https://youth-hub-sa.lovable.app/notifications" style="display:inline-block;margin-top:20px;padding:10px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;">
           عرض الإشعارات
@@ -63,28 +74,29 @@ serve(async (req) => {
       });
     }
 
+    // Verify caller via getClaims (no network call)
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = claimsData.claims.sub as string;
+
     // Create admin client to look up emails
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify caller
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { project_id, action } = await req.json();
-    // action: "submitted" | "accepted" | "revision_requested"
 
     if (!project_id || !action) {
       return new Response(JSON.stringify({ error: "Missing project_id or action" }), {
@@ -112,26 +124,26 @@ serve(async (req) => {
     let emailType: string;
     let emailMessage: string;
 
+    const safeTitle = escapeHtml(project.title);
+
     if (action === "submitted") {
-      // Provider submitted → notify association
       recipientId = project.association_id;
       emailType = "deliverable_submitted";
       const { data: provider } = await adminClient
         .from("profiles")
         .select("full_name")
-        .eq("id", user.id)
+        .eq("id", callerId)
         .single();
-      emailMessage = `قام ${provider?.full_name || "مقدم الخدمة"} بتقديم تسليمات جديدة لمشروع "${project.title}" للمراجعة.`;
+      const safeName = escapeHtml(provider?.full_name || "مقدم الخدمة");
+      emailMessage = `قام ${safeName} بتقديم تسليمات جديدة لمشروع "${safeTitle}" للمراجعة.`;
     } else if (action === "accepted") {
-      // Association accepted → notify provider
       recipientId = project.assigned_provider_id;
       emailType = "deliverable_accepted";
-      emailMessage = `تم قبول تسليماتك في مشروع "${project.title}". أحسنت!`;
+      emailMessage = `تم قبول تسليماتك في مشروع "${safeTitle}". أحسنت!`;
     } else if (action === "revision_requested") {
-      // Association requested revisions → notify provider
       recipientId = project.assigned_provider_id;
       emailType = "deliverable_revision";
-      emailMessage = `تم طلب تعديلات على تسليماتك في مشروع "${project.title}". يرجى مراجعة الملاحظات وإعادة التقديم.`;
+      emailMessage = `تم طلب تعديلات على تسليماتك في مشروع "${safeTitle}". يرجى مراجعة الملاحظات وإعادة التقديم.`;
     } else {
       return new Response(JSON.stringify({ error: "Invalid action" }), {
         status: 400,
@@ -161,7 +173,6 @@ serve(async (req) => {
       });
     }
 
-    // Check specific preference
     const prefs = (recipientProfile.notification_preferences as Record<string, boolean>) || {};
     if (prefs[emailType] === false) {
       console.log(`📧 Notification type ${emailType} disabled by user`);
@@ -188,12 +199,10 @@ serve(async (req) => {
       emailType
     );
 
-    const emailSubject = `${typeLabels[emailType] || "إشعار"} - ${project.title} - منصة الشباب`;
+    const emailSubject = `${typeLabels[emailType] || "إشعار"} - ${escapeHtml(project.title)} - منصة الشباب`;
 
     console.log(`📧 Deliverable email: to=${recipientUser.email}, type=${emailType}, subject=${emailSubject}`);
     console.log(`📧 HTML length: ${emailHTML.length} chars`);
-
-    // Future: integrate with Resend, SendGrid, or AWS SES here
 
     return new Response(
       JSON.stringify({ success: true, to: recipientUser.email, type: emailType }),
