@@ -21,6 +21,7 @@ import { HandCoins } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   available: { label: "متاح", variant: "default" },
@@ -57,6 +58,7 @@ export default function Donations() {
   const [processing, setProcessing] = useState(false);
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
+  const { data: commissionRate = 0.05 } = useCommissionRate();
 
   const donationMetadata = useMemo(() => ({
     type: "donation",
