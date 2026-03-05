@@ -1,25 +1,68 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+# خطة: حذف ناعم (Soft Delete) شامل من لوحة الأدمن
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+## الوضع الحالي
+- الـ Trash يدعم 5 جداول فقط: `micro_services`, `projects`, `support_tickets`, `portfolio_items`, `disputes`
+- الـ `useTrashItems` يفلتر بـ `ownerCol` حسب المستخدم الحالي — لكن الأدمن يحتاج يشوف **كل** المحذوفات
+- الجداول التالية **لا تحتوي** على `deleted_at`: `profiles`, `invoices`, `contracts`, `bids`, `escrow_transactions`, `ratings`
+- دالة `purge_soft_deleted_records` موجودة لكنها تغطي الـ 5 جداول الحالية فقط
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+## التغييرات المطلوبة
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### 1. Database Migration
+إضافة `deleted_at` للجداول الناقصة:
+```sql
+ALTER TABLE profiles ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE invoices ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE contracts ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE bids ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+ALTER TABLE ratings ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+```
+تحديث دالة `purge_soft_deleted_records` لتشمل الجداول الجديدة.
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+### 2. تحديث `useTrash.ts`
+- توسيع `TrashTableName` ليشمل: `profiles`, `invoices`, `contracts`, `bids`, `ratings`
+- إضافة `tableConfig` لكل جدول جديد مع `ownerCol` و `titleCol`
+- **عند كون المستخدم admin**: لا يفلتر بـ `ownerCol` بل يجلب **جميع** العناصر المحذوفة من كل الجداول
+- تحديث `useEmptyTrash` لنفس المنطق
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+### 3. تحديث `Trash.tsx`
+- إضافة تبويبات جديدة للجداول المضافة (مستخدمين، فواتير، عقود، عروض أسعار، تقييمات)
+- إضافة أيقونات مناسبة لكل تبويب
 
-### التغييرات
+### 4. إضافة زر "حذف" في صفحات الأدمن
+إضافة زر soft-delete في كل صفحة إدارة:
+- **AdminUsers** (`UserTable.tsx`): زر حذف لكل مستخدم
+- **AdminServices** (`AdminServices.tsx`): زر حذف لكل خدمة (إن لم يكن موجود)
+- **AdminProjects** (`AdminProjects.tsx`): زر حذف لكل طلب
+- **AdminDisputes** (via `useAdminDisputes`): زر حذف
+- **AdminTickets**: زر حذف
+- **AdminFinance**: زر حذف للفواتير
+
+كل زر يستدعي `useSoftDelete` مع confirmation dialog.
+
+### 5. تحديث الاستعلامات الإدارية
+إضافة `.is("deleted_at", null)` للاستعلامات التي لا تفلترها حالياً:
+- `useAdminUsers` — فلترة profiles المحذوفة
+- `useInvoices` — فلترة الفواتير المحذوفة
+- أي hook آخر يعرض بيانات الجداول الجديدة
+
+### 6. تحديث `purge_soft_deleted_records`
+توسيع الدالة لتشمل الجداول الجديدة.
+
+## ملخص الملفات
 
 | الملف | التغيير |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
-
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+| Migration SQL | إضافة `deleted_at` + تحديث purge function |
+| `src/hooks/useTrash.ts` | توسيع الجداول + منطق admin يجلب الكل |
+| `src/pages/Trash.tsx` | تبويبات جديدة |
+| `src/components/admin/UserTable.tsx` | زر حذف مستخدم |
+| `src/pages/admin/AdminServices.tsx` | زر حذف خدمة |
+| `src/pages/admin/AdminProjects.tsx` | زر حذف طلب |
+| `src/pages/admin/AdminFinance.tsx` | زر حذف فاتورة |
+| `src/hooks/useAdminUsers.ts` | فلترة deleted_at |
+| `src/hooks/useAdminFinance.ts` | فلترة deleted_at |
+| `src/hooks/useAdminTickets.ts` | (موجود بالفعل) |
 
