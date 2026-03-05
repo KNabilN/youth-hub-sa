@@ -57,16 +57,16 @@ export default function LandingHeader() {
           </nav>
 
           <div className="hidden md:flex gap-2 items-center">
-            {cartCount > 0 && (
-              <Button variant="ghost" size="icon" asChild className="relative">
-                <Link to="/cart">
-                  <ShoppingCart className="h-5 w-5" />
+            <Button variant="ghost" size="icon" asChild className="relative">
+              <Link to="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
                     {cartCount}
                   </Badge>
-                </Link>
-              </Button>
-            )}
+                )}
+              </Link>
+            </Button>
             {user ? (
               <>
                 <Button className="shadow-md gap-2" onClick={() => navigate("/dashboard")}>
@@ -90,10 +90,21 @@ export default function LandingHeader() {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-1 md:hidden">
+            <Button variant="ghost" size="icon" asChild className="relative">
+              <Link to="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                    {cartCount}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Nav */}
