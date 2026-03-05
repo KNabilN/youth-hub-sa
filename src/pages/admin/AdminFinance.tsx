@@ -786,6 +786,42 @@ export default function AdminFinance() {
           </DialogContent>
         </Dialog>
 
+        {/* Escrow Release/Refund Receipt Dialog */}
+        <Dialog open={!!escrowActionDialog} onOpenChange={(open) => { if (!open) { setEscrowActionDialog(null); setEscrowReceiptFile(null); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{escrowActionDialog?.action === "released" ? "إرفاق إيصال التحرير" : "إرفاق إيصال الاسترداد"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                {escrowActionDialog?.action === "released"
+                  ? "سيتم تحرير الضمان المالي وإصدار فاتورة تلقائياً لمقدم الخدمة"
+                  : "سيتم استرداد الضمان المالي وإصدار فاتورة تلقائياً للدافع"}
+              </p>
+              {escrowActionDialog && (
+                <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+                  <p>المبلغ: <span className="font-semibold">{Number(escrowActionDialog.escrow.amount).toLocaleString()} ر.س</span></p>
+                  <p>رقم الضمان: <span className="font-mono">{escrowActionDialog.escrow.escrow_number}</span></p>
+                </div>
+              )}
+              <Label>ملف الإيصال <span className="text-destructive">*</span></Label>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                onChange={(e) => setEscrowReceiptFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm file:me-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {escrowReceiptFile && <p className="text-xs text-muted-foreground">{escrowReceiptFile.name}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setEscrowActionDialog(null); setEscrowReceiptFile(null); }}>إلغاء</Button>
+              <Button onClick={handleEscrowWithReceipt} disabled={escrowUploading || !escrowReceiptFile}>
+                {escrowUploading ? "جارٍ المعالجة..." : escrowActionDialog?.action === "released" ? "تحرير وإصدار فاتورة" : "استرداد وإصدار فاتورة"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Export Dialogs */}
         <ExportDialog
           open={exportEscrow}
