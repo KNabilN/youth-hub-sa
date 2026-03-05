@@ -349,7 +349,7 @@ export default function Checkout() {
                     <Separator />
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">المبلغ المطلوب</span>
-                      <span className="font-bold text-primary">{total.toLocaleString()} ر.س</span>
+                      <span className="font-bold text-primary">{pricing.total.toLocaleString()} ر.س</span>
                     </div>
                   </div>
 
@@ -413,7 +413,7 @@ export default function Checkout() {
             {/* Moyasar Payment Form */}
             {showMoyasarForm && moyasarKey && (
               <MoyasarPaymentForm
-                amount={total}
+                amount={pricing.total}
                 description={`شراء ${items.length} خدمات عبر منصة معين`}
                 callbackUrl={moyasarCallbackUrl}
                 publishableKey={moyasarKey}
@@ -450,21 +450,13 @@ export default function Checkout() {
                     <Badge variant="secondary">{items.length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">المجموع الفرعي</span>
-                    <span>{total.toLocaleString()} ر.س</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
                       {paymentMethod === "electronic" ? "دفع إلكتروني" : "تحويل بنكي"}
                     </Badge>
                   </div>
                 </div>
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>الإجمالي</span>
-                  <span className="text-primary">{total.toLocaleString()} ر.س</span>
-                </div>
+                <PricingBreakdownDisplay pricing={pricing} />
 
                 <Button
                   className="w-full"
@@ -486,7 +478,7 @@ export default function Checkout() {
                   ) : paymentMethod === "electronic" ? (
                     <>
                       <CreditCard className="h-4 w-4 me-2" />
-                      تأكيد الدفع — {total.toLocaleString()} ر.س
+                      تأكيد الدفع — {pricing.total.toLocaleString()} ر.س
                     </>
                   ) : (
                     <>
@@ -510,8 +502,8 @@ export default function Checkout() {
           title={paymentMethod === "electronic" ? "تأكيد عملية الدفع" : "تأكيد إرسال إيصال التحويل"}
           description={
             paymentMethod === "electronic"
-              ? `هل تريد تأكيد دفع ${total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
-              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
+              ? `هل تريد تأكيد دفع ${pricing.total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
+              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${pricing.total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
           }
           confirmLabel={paymentMethod === "electronic" ? "تأكيد الدفع" : "إرسال الإيصال"}
           cancelLabel="مراجعة الطلب"
