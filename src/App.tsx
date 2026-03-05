@@ -54,6 +54,7 @@ const MyGrants = lazy(() => import("./pages/MyGrants"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -166,6 +167,7 @@ const App = () => (
                 <Route path="/cart" element={<SuspenseWrap><Cart /></SuspenseWrap>} />
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/payment-callback" element={<ProtectedRoute><SuspenseWrap><PaymentCallback /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><SuspenseWrap><Notifications /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/trash" element={<ProtectedRoute><AdminRoute><SuspenseWrap><Trash /></SuspenseWrap></AdminRoute></ProtectedRoute>} />

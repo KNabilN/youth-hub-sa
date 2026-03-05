@@ -66,20 +66,45 @@ export default function Checkout() {
 
     try {
       if (paymentMethod === "electronic") {
-        for (const item of items) {
-          const itemAmount = item.micro_services.price * item.quantity;
-          await purchase.mutateAsync({
-            serviceId: item.micro_services.id,
-            providerId: item.micro_services.provider_id,
-            buyerId: user.id,
-            amount: itemAmount,
-            beneficiaryId: selectedAssociation || undefined,
-            serviceTitle: item.micro_services.title,
-            hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
-          });
+        // Moyasar online payment flow
+        const callbackUrl = `${window.location.origin}/payment-callback`;
+        const paymentItems = items.map((item) => ({
+          service_id: item.micro_services.id,
+          provider_id: item.micro_services.provider_id,
+          price: item.micro_services.price * item.quantity,
+          title: item.micro_services.title,
+          hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
+        }));
+
+        // Save context for callback verification
+        sessionStorage.setItem("moyasar_payment_context", JSON.stringify({
+          type: "checkout",
+          items: paymentItems,
+          beneficiary_id: selectedAssociation || null,
+          total,
+        }));
+
+        const { data, error } = await supabase.functions.invoke("moyasar-create-payment", {
+          body: {
+            amount: total,
+            description: `شراء ${items.length} خدمات عبر منصة معين`,
+            callback_url: callbackUrl,
+            metadata: {
+              type: "checkout",
+              items: paymentItems,
+              beneficiary_id: selectedAssociation || null,
+            },
+          },
+        });
+
+        if (error || !data?.transaction_url) {
+          toast.error("حدث خطأ أثناء إنشاء عملية الدفع");
+          setProcessing(false);
+          return;
         }
-        await clearCart.mutateAsync();
-        navigate("/payment-success", { state: { total, count: items.length, method: "electronic" } });
+
+        // Redirect to Moyasar 3DS page
+        window.location.href = data.transaction_url;
       } else {
         if (!receiptFile) {
           toast.error("يرجى رفع صورة إيصال التحويل");
