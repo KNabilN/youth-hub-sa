@@ -189,11 +189,11 @@ export default function Index() {
                 سجّل مجاناً
                 <ArrowLeft className="me-2 h-5 w-5" />
               </Button>
-              <p className="text-white/70 text-xs text-center">
+              
 
-                <br />
-                الأموال خلال 14 يومًا!
-              </p>
+
+
+              
             </div>
           </div>
         </div>
