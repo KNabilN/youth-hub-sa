@@ -6,7 +6,7 @@ export default function Testimonials() {
   const { data } = useSiteContent("testimonials");
   const t = data || { title: "آراء العملاء", subtitle: "", items: [] };
 
-  if (!t.items?.length) return null;
+  if (t.visible === false || !t.items?.length) return null;
 
   return (
     <section className="py-20 px-4 bg-muted/30">
