@@ -96,6 +96,11 @@ export default function AdminFinance() {
   const [exportBankTransfer, setExportBankTransfer] = useState(false);
   const [expandedWithdrawalId, setExpandedWithdrawalId] = useState<string | null>(null);
 
+  // Escrow release/refund dialog
+  const [escrowActionDialog, setEscrowActionDialog] = useState<{ id: string; action: "released" | "refunded"; escrow: any } | null>(null);
+  const [escrowReceiptFile, setEscrowReceiptFile] = useState<File | null>(null);
+  const [escrowUploading, setEscrowUploading] = useState(false);
+
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
   const handleApproveWithdrawal = async () => {
@@ -125,14 +130,65 @@ export default function AdminFinance() {
     const labels: Record<string, string> = {
       frozen: "تم تجميد الضمان",
       held: "تم إعادة الضمان للاحتجاز",
-      released: "تم تحرير الضمان",
-      refunded: "تم استرداد الضمان",
       under_review: "تم وضع الضمان قيد المراجعة",
     };
     updateEscrow.mutate({ id, status: status as any }, {
       onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
       onError: () => toast.error("حدث خطأ"),
     });
+  };
+
+  const handleEscrowWithReceipt = async () => {
+    if (!escrowReceiptFile || !escrowActionDialog) { toast.error("يرجى إرفاق ملف الإيصال"); return; }
+    setEscrowUploading(true);
+    try {
+      const { id, action, escrow } = escrowActionDialog;
+      const filePath = `${id}/${Date.now()}_${escrowReceiptFile.name}`;
+      const { error: uploadErr } = await supabase.storage.from("escrow-receipts").upload(filePath, escrowReceiptFile);
+      if (uploadErr) throw uploadErr;
+
+      // Update escrow status with receipt
+      const { error: updateErr } = await supabase.from("escrow_transactions").update({ status: action, receipt_url: filePath }).eq("id", id);
+      if (updateErr) throw updateErr;
+
+      // Fetch commission rate
+      const { data: config } = await supabase.from("commission_config").select("rate").eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const rate = config?.rate ?? 0.05;
+      const commissionAmount = Number(escrow.amount) * Number(rate);
+
+      // Generate invoice
+      const now = new Date();
+      const invoiceNumber = `INV-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const issuedTo = action === "released" ? escrow.payee_id : escrow.payer_id;
+      const notesText = action === "released" ? "فاتورة تحرير ضمان مالي" : "فاتورة استرداد ضمان مالي";
+
+      await supabase.from("invoices").insert({
+        invoice_number: invoiceNumber,
+        amount: Number(escrow.amount),
+        commission_amount: commissionAmount,
+        issued_to: issuedTo,
+        escrow_id: id,
+        notes: notesText,
+      });
+
+      // Notify recipient
+      const notifMsg = action === "released"
+        ? `تم تحرير الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`
+        : `تم استرداد الضمان المالي بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وإصدار فاتورة رقم ${invoiceNumber}`;
+      await supabase.from("notifications").insert({ user_id: issuedTo, message: notifMsg, type: action === "released" ? "escrow_released" : "escrow_refunded" });
+
+      queryClient.invalidateQueries({ queryKey: ["admin-escrow"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-finance-pending"] });
+      toast.success(action === "released" ? "تم تحرير الضمان وإصدار الفاتورة" : "تم استرداد الضمان وإصدار الفاتورة");
+      setEscrowActionDialog(null);
+      setEscrowReceiptFile(null);
+    } catch (err) {
+      console.error(err);
+      toast.error("حدث خطأ أثناء العملية");
+    } finally {
+      setEscrowUploading(false);
+    }
   };
 
   const filteredEscrows = (escrows ?? []).filter((e: any) =>
@@ -254,13 +310,13 @@ export default function AdminFinance() {
                           <div className="flex gap-1 flex-wrap">
                             {e.status === "held" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
@@ -270,10 +326,10 @@ export default function AdminFinance() {
                                 <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />إعادة احتجاز
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
@@ -299,7 +355,18 @@ export default function AdminFinance() {
                               </Button>
                             )}
                             {(e.status === "released" || e.status === "refunded") && (
-                              <span className="text-xs text-muted-foreground py-1">مكتمل</span>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground py-1">مكتمل</span>
+                                {(e as any).receipt_url && (
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => {
+                                    const { data } = await supabase.storage.from("escrow-receipts").createSignedUrl((e as any).receipt_url, 300);
+                                    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                    else toast.error("تعذر فتح الإيصال");
+                                  }}>
+                                    <ExternalLink className="h-3 w-3 me-1" />الإيصال
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </div>
                         </TableCell>
@@ -714,6 +781,42 @@ export default function AdminFinance() {
                 }}
               >
                 تأكيد الرفض
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Escrow Release/Refund Receipt Dialog */}
+        <Dialog open={!!escrowActionDialog} onOpenChange={(open) => { if (!open) { setEscrowActionDialog(null); setEscrowReceiptFile(null); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{escrowActionDialog?.action === "released" ? "إرفاق إيصال التحرير" : "إرفاق إيصال الاسترداد"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">
+                {escrowActionDialog?.action === "released"
+                  ? "سيتم تحرير الضمان المالي وإصدار فاتورة تلقائياً لمقدم الخدمة"
+                  : "سيتم استرداد الضمان المالي وإصدار فاتورة تلقائياً للدافع"}
+              </p>
+              {escrowActionDialog && (
+                <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+                  <p>المبلغ: <span className="font-semibold">{Number(escrowActionDialog.escrow.amount).toLocaleString()} ر.س</span></p>
+                  <p>رقم الضمان: <span className="font-mono">{escrowActionDialog.escrow.escrow_number}</span></p>
+                </div>
+              )}
+              <Label>ملف الإيصال <span className="text-destructive">*</span></Label>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                onChange={(e) => setEscrowReceiptFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm file:me-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+              {escrowReceiptFile && <p className="text-xs text-muted-foreground">{escrowReceiptFile.name}</p>}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setEscrowActionDialog(null); setEscrowReceiptFile(null); }}>إلغاء</Button>
+              <Button onClick={handleEscrowWithReceipt} disabled={escrowUploading || !escrowReceiptFile}>
+                {escrowUploading ? "جارٍ المعالجة..." : escrowActionDialog?.action === "released" ? "تحرير وإصدار فاتورة" : "استرداد وإصدار فاتورة"}
               </Button>
             </DialogFooter>
           </DialogContent>
