@@ -228,6 +228,7 @@ function TestimonialsEditor({ items, onChange }: { items: { name: string; org: s
 
 function FeaturedServicesPicker() {
   const qc = useQueryClient();
+  const [search, setSearch] = useState("");
   const { data: services, isLoading } = useQuery({
     queryKey: ["cms-all-services"],
     queryFn: async () => {
@@ -252,23 +253,40 @@ function FeaturedServicesPicker() {
   };
 
   if (isLoading) return <Skeleton className="h-32 w-full" />;
-  const list = services || [];
-  const featuredCount = list.filter((s: any) => s.is_featured).length;
+  const all = services || [];
+  const featuredCount = all.filter((s: any) => s.is_featured).length;
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? all.filter((s: any) => s.title?.toLowerCase().includes(q) || s.provider?.full_name?.toLowerCase().includes(q))
+    : all;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium flex items-center gap-1.5">
-          <Star className="h-3.5 w-3.5 text-amber-500" />
+          <Star className="h-3.5 w-3.5 text-primary" />
           الخدمات المميزة في الصفحة الرئيسية
         </Label>
-        <span className="text-xs text-muted-foreground">{featuredCount} مميزة</span>
+        <span className="text-xs text-muted-foreground">{featuredCount} مميزة من {all.length}</span>
       </div>
-      <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
-        {list.map((s: any) => (
-          <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors">
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{s.title}</p>
+      <div className="relative">
+        <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="ابحث باسم الخدمة أو مقدم الخدمة..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pr-9 h-9 text-sm"
+          dir="rtl"
+        />
+      </div>
+      <div className="border rounded-lg max-h-72 overflow-y-auto divide-y">
+        {filtered.map((s: any) => (
+          <div key={s.id} className={`flex items-center justify-between px-3 py-2.5 hover:bg-muted/50 transition-colors ${s.is_featured ? "bg-primary/5" : ""}`}>
+            <div className="min-w-0 flex-1 me-3">
+              <div className="flex items-center gap-1.5">
+                {s.is_featured && <Star className="h-3 w-3 text-primary shrink-0 fill-primary" />}
+                <p className="text-sm font-medium truncate">{s.title}</p>
+              </div>
               <p className="text-xs text-muted-foreground truncate">{s.provider?.full_name}</p>
             </div>
             <Switch
@@ -278,7 +296,7 @@ function FeaturedServicesPicker() {
             />
           </div>
         ))}
-        {list.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد خدمات معتمدة</p>}
+        {filtered.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{q ? "لا توجد نتائج" : "لا توجد خدمات معتمدة"}</p>}
       </div>
     </div>
   );
@@ -286,6 +304,7 @@ function FeaturedServicesPicker() {
 
 function FeaturedProjectsPicker() {
   const qc = useQueryClient();
+  const [search, setSearch] = useState("");
   const { data: projects, isLoading } = useQuery({
     queryKey: ["cms-all-projects"],
     queryFn: async () => {
@@ -311,23 +330,40 @@ function FeaturedProjectsPicker() {
   };
 
   if (isLoading) return <Skeleton className="h-32 w-full" />;
-  const list = projects || [];
-  const featuredCount = list.filter((p: any) => p.is_featured).length;
+  const all = projects || [];
+  const featuredCount = all.filter((p: any) => p.is_featured).length;
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? all.filter((p: any) => p.title?.toLowerCase().includes(q) || p.association?.organization_name?.toLowerCase().includes(q) || p.association?.full_name?.toLowerCase().includes(q))
+    : all;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium flex items-center gap-1.5">
-          <Star className="h-3.5 w-3.5 text-amber-500" />
+          <Star className="h-3.5 w-3.5 text-primary" />
           الطلبات المميزة في الصفحة الرئيسية
         </Label>
-        <span className="text-xs text-muted-foreground">{featuredCount} مميزة</span>
+        <span className="text-xs text-muted-foreground">{featuredCount} مميزة من {all.length}</span>
       </div>
-      <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
-        {list.map((p: any) => (
-          <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors">
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{p.title}</p>
+      <div className="relative">
+        <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="ابحث باسم الطلب أو الجمعية..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pr-9 h-9 text-sm"
+          dir="rtl"
+        />
+      </div>
+      <div className="border rounded-lg max-h-72 overflow-y-auto divide-y">
+        {filtered.map((p: any) => (
+          <div key={p.id} className={`flex items-center justify-between px-3 py-2.5 hover:bg-muted/50 transition-colors ${p.is_featured ? "bg-primary/5" : ""}`}>
+            <div className="min-w-0 flex-1 me-3">
+              <div className="flex items-center gap-1.5">
+                {p.is_featured && <Star className="h-3 w-3 text-primary shrink-0 fill-primary" />}
+                <p className="text-sm font-medium truncate">{p.title}</p>
+              </div>
               <p className="text-xs text-muted-foreground truncate">{p.association?.organization_name || p.association?.full_name}</p>
             </div>
             <Switch
@@ -337,7 +373,7 @@ function FeaturedProjectsPicker() {
             />
           </div>
         ))}
-        {list.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد طلبات مفتوحة</p>}
+        {filtered.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{q ? "لا توجد نتائج" : "لا توجد طلبات مفتوحة"}</p>}
       </div>
     </div>
   );
