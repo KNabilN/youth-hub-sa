@@ -34,7 +34,7 @@ const typeLabel: Record<string, string> = {
   hourly: "بالساعة",
 };
 
-export default function LandingServicesGrid({ services, loading }: LandingServicesGridProps) {
+export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
@@ -54,9 +54,9 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
             <Store className="w-4 h-4" />
             <span>خدمات معتمدة</span>
           </div>
-          <h2 className="text-3xl font-bold">الخدمات المتوفرة</h2>
+          <h2 className="text-3xl font-bold">{title || "الخدمات المتوفرة"}</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            خدمات معتمدة من مقدمي خدمات محترفين
+            {subtitle || "خدمات معتمدة من مقدمي خدمات محترفين"}
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function LandingServicesGrid({ services, loading }: LandingServic
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
             <Link to="/auth?mode=register">
-              تصفح جميع الخدمات
+              {buttonText || "تصفح جميع الخدمات"}
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>

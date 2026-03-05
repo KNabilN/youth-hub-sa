@@ -23,7 +23,7 @@ interface LandingRequestsTableProps {
   buttonText?: string;
 }
 
-export default function LandingRequestsTable({ projects, loading }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText }: LandingRequestsTableProps) {
   if (!loading && projects.length === 0) return null;
 
   return (
@@ -34,9 +34,9 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
             <FolderKanban className="w-4 h-4" />
             <span>طلبات مفتوحة</span>
           </div>
-          <h2 className="text-3xl font-bold">طلبات الجمعيات</h2>
+          <h2 className="text-3xl font-bold">{title || "طلبات الجمعيات"}</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            تصفّح أحدث الطلبات المفتوحة وقدّم عرضك الآن
+            {subtitle || "تصفّح أحدث الطلبات المفتوحة وقدّم عرضك الآن"}
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function LandingRequestsTable({ projects, loading }: LandingReque
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
             <Link to="/auth?mode=register">
-              سجّل لتقديم عروضك
+              {buttonText || "سجّل لتقديم عروضك"}
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>
