@@ -24,6 +24,9 @@ interface Service {
 interface LandingServicesGridProps {
   services: Service[];
   loading: boolean;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
 }
 
 const typeLabel: Record<string, string> = {

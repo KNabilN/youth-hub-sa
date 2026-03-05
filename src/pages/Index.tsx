@@ -32,6 +32,10 @@ export default function Index() {
   const { data: hero } = useSiteContent("hero");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
+  const { data: cta } = useSiteContent("cta");
+  const { data: requestsSection } = useSiteContent("requests_section");
+  const { data: servicesSection } = useSiteContent("services_section");
+  const { data: contactSection } = useSiteContent("contact_section");
   const {
     stats,
     statsLoading,
@@ -40,7 +44,6 @@ export default function Index() {
     projects: featuredProjects,
     projectsLoading
   } = useLandingStats();
-  const { data: cta } = useSiteContent("cta");
 
   const h = hero || {
     badge: "المنصة الأولى لتمكين الجمعيات الشبابية في المملكة",
@@ -51,54 +54,59 @@ export default function Index() {
   };
   const feat = features || { title: "", subtitle: "", items: [] };
   const tr = trust || { badge: "", title: "", items: [] };
-  const ct = cta || { title: "", description: "", button_text: "سجّل مجاناً" };
+  const ct = cta || { title: "ابدأ رحلتك الآن", description: "انضم إلى المنصة وابدأ في تحقيق أهدافك مع شبكة واسعة من الشركاء", button_text: "سجّل مجاناً" };
+  const rs = requestsSection || { title: "طلبات الجمعيات", subtitle: "تصفّح أحدث الطلبات المفتوحة وقدّم عرضك الآن", button_text: "سجّل لتقديم عروضك", visible: true };
+  const ss = servicesSection || { title: "الخدمات المتوفرة", subtitle: "خدمات معتمدة من مقدمي خدمات محترفين", button_text: "تصفح جميع الخدمات", visible: true };
+  const cs = contactSection || { title: "نحن هنا لمساعدتك", subtitle: "فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية", visible: true };
 
   return (
     <>
       {/* 1. Hero */}
-      <section className="relative py-28 px-4 overflow-hidden min-h-[560px] flex items-center">
-        <div className="absolute inset-0">
-          <img src={h.bg_image || heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-          <div className="absolute inset-0 bg-[hsl(var(--primary))]/75" />
-        </div>
-        <div className="container mx-auto max-w-5xl text-center space-y-8 relative z-10">
-          {h.badge &&
-          <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
-              <Zap className="w-4 h-4" />
-              {h.badge}
-            </div>
-          }
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-white drop-shadow-md">
-            {h.title}
-            <br />
-            <span className="text-white/90">{h.subtitle}</span>
-          </h1>
-          {h.description &&
-          <p
-            className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1"
-            style={{ animationFillMode: "both" }}>
-            
-              {h.description}
-            </p>
-          }
-          <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
-            <Button
-              size="lg"
-              className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
-              onClick={() => navigate("/auth")}>
-              
-              {h.cta_text}
-              <ArrowLeft className="me-2 h-4 w-4" />
-            </Button>
+      {h.visible !== false && (
+        <section className="relative py-28 px-4 overflow-hidden min-h-[560px] flex items-center">
+          <div className="absolute inset-0">
+            <img src={h.bg_image || heroBg} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+            <div className="absolute inset-0 bg-[hsl(var(--primary))]/75" />
           </div>
-        </div>
-      </section>
+          <div className="container mx-auto max-w-5xl text-center space-y-8 relative z-10">
+            {h.badge &&
+            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
+                <Zap className="w-4 h-4" />
+                {h.badge}
+              </div>
+            }
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-white drop-shadow-md">
+              {h.title}
+              <br />
+              <span className="text-white/90">{h.subtitle}</span>
+            </h1>
+            {h.description &&
+            <p
+              className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1"
+              style={{ animationFillMode: "both" }}>
+              
+                {h.description}
+              </p>
+            }
+            <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
+              <Button
+                size="lg"
+                className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
+                onClick={() => navigate("/auth")}>
+                
+                {h.cta_text}
+                <ArrowLeft className="me-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 2. احصائيات موحدة */}
       <LiveStats stats={stats} loading={statsLoading} />
 
       {/* 3. المميزات */}
-      {feat.items?.length > 0 &&
+      {feat.visible !== false && feat.items?.length > 0 &&
       <section className="py-20 px-4 bg-pattern">
           <div className="container mx-auto max-w-7xl">
             <div className="text-center mb-14">
@@ -128,13 +136,29 @@ export default function Index() {
       }
 
       {/* 4. طلبات الجمعيات */}
-      <LandingRequestsTable projects={featuredProjects} loading={projectsLoading} />
+      {rs.visible !== false && (
+        <LandingRequestsTable
+          projects={featuredProjects}
+          loading={projectsLoading}
+          title={rs.title}
+          subtitle={rs.subtitle}
+          buttonText={rs.button_text}
+        />
+      )}
 
       {/* 5. الخدمات المتوفرة */}
-      <LandingServicesGrid services={services} loading={servicesLoading} />
+      {ss.visible !== false && (
+        <LandingServicesGrid
+          services={services}
+          loading={servicesLoading}
+          title={ss.title}
+          subtitle={ss.subtitle}
+          buttonText={ss.button_text}
+        />
+      )}
 
       {/* 6. الثقة والأمان */}
-      {tr.items?.length > 0 &&
+      {tr.visible !== false && tr.items?.length > 0 &&
       <section className="py-20 px-4 bg-card/50">
           <div className="container mx-auto max-w-6xl text-center space-y-8">
             <div>
@@ -167,52 +191,49 @@ export default function Index() {
       <Testimonials />
 
       {/* 8. CTA نهائي */}
-      <section className="py-16 px-4 bg-primary">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="text-right space-y-4 flex-1">
-              
-              <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
-                نلتزم بتوفير فرص متساوية للجميع، دائمًا وفي كل مرة.
-              </h2>
-              <p className="text-white/70 text-sm leading-relaxed max-w-xl">
-                انضم إلى المنصة وابدأ في تحقيق أهدافك مع شبكة واسعة من الشركاء
-              </p>
-            </div>
+      {ct.visible !== false && (
+        <section className="py-16 px-4 bg-primary">
+          <div className="container mx-auto max-w-7xl">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-right space-y-4 flex-1">
+                <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                  {ct.title}
+                </h2>
+                <p className="text-white/70 text-sm leading-relaxed max-w-xl">
+                  {ct.description}
+                </p>
+              </div>
 
-            <div className="shrink-0 flex flex-col items-center gap-3">
-              <Button
-                size="lg"
-                className="bg-white text-primary hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
-                onClick={() => navigate("/auth")}>
-                
-                سجّل مجاناً
-                <ArrowLeft className="me-2 h-5 w-5" />
-              </Button>
-              
-
-
-
-              
+              <div className="shrink-0 flex flex-col items-center gap-3">
+                <Button
+                  size="lg"
+                  className="bg-white text-primary hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
+                  onClick={() => navigate("/auth")}>
+                  {ct.button_text || "سجّل مجاناً"}
+                  <ArrowLeft className="me-2 h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 9. نموذج التواصل */}
-      <section className="bg-muted/30 py-16 px-4 text-center">
-        <div className="container mx-auto max-w-5xl space-y-3">
-          <h2 className="text-3xl font-bold text-foreground">نحن هنا لمساعدتك</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            فريقنا جاهز للإجابة على استفساراتك ومساعدتك في رحلتك المهنية
-          </p>
-        </div>
-      </section>
-      <section className="py-16 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <ContactForm />
-        </div>
-      </section>
+      {cs.visible !== false && (
+        <>
+          <section className="bg-muted/30 py-16 px-4 text-center">
+            <div className="container mx-auto max-w-5xl space-y-3">
+              <h2 className="text-3xl font-bold text-foreground">{cs.title}</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">{cs.subtitle}</p>
+            </div>
+          </section>
+          <section className="py-16 px-4 bg-muted/30">
+            <div className="container mx-auto">
+              <ContactForm />
+            </div>
+          </section>
+        </>
+      )}
     </>);
 
 }

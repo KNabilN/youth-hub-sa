@@ -18,6 +18,9 @@ interface Project {
 interface LandingRequestsTableProps {
   projects: Project[];
   loading: boolean;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
 }
 
 export default function LandingRequestsTable({ projects, loading }: LandingRequestsTableProps) {
