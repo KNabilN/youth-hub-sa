@@ -167,7 +167,9 @@ Deno.serve(async (req) => {
     if (contextType === "checkout") {
       await processCheckout(adminClient, userId, paymentContext, commissionRate);
     } else if (contextType === "donation") {
-      await processDonation(adminClient, userId, paymentContext, amountSAR, commissionRate);
+      // For donations, use the subtotal (base amount) from context, not the total charged
+      const donationBaseAmount = paymentContext.subtotal || amountSAR;
+      await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate);
     }
 
     return new Response(
