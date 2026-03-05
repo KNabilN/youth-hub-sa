@@ -202,7 +202,7 @@ export default function Donations() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
-            <StepProgress steps={donationSteps} currentStep={step === "form" ? 0 : 1} className="mt-2" />
+            <StepProgress steps={donationSteps} currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2} className="mt-2" />
           </CardHeader>
           <CardContent>
             {step === "form" ? (
@@ -212,6 +212,21 @@ export default function Donations() {
                 defaultAmount={urlAmount}
                 defaultProjectId={urlProjectId}
                 defaultTargetType={urlProjectId ? "project" : undefined}
+              />
+            ) : step === "moyasar" && formData && moyasarKey ? (
+              <MoyasarPaymentForm
+                amount={formData.amount}
+                description={
+                  formData.target_type === "association"
+                    ? `منحة لجمعية ${formData.association_name}`
+                    : `منحة لطلب ${formData.project_title}`
+                }
+                callbackUrl={`${window.location.origin}/payment-callback`}
+                publishableKey={moyasarKey}
+                metadata={{
+                  type: "donation",
+                  user_id: user?.id,
+                }}
               />
             ) : formData ? (
               <DonationPaymentStep
