@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 import { downloadCSV } from "@/lib/csv-export";
 
@@ -41,6 +41,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
+import { WithdrawalEscrowDetails } from "@/components/admin/WithdrawalEscrowDetails";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -92,6 +93,7 @@ export default function AdminFinance() {
   const [exportInvoice, setExportInvoice] = useState(false);
   const [exportWithdrawal, setExportWithdrawal] = useState(false);
   const [exportBankTransfer, setExportBankTransfer] = useState(false);
+  const [expandedWithdrawalId, setExpandedWithdrawalId] = useState<string | null>(null);
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
@@ -507,6 +509,13 @@ export default function AdminFinance() {
                           </TableCell>
                           <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{w.withdrawal_number || idx + 1}</TableCell>
                         </TableRow>
+                        {expandedWithdrawalId === w.id && (
+                          <TableRow>
+                            <TableCell colSpan={7} className="p-0 bg-muted/30">
+                              <WithdrawalEscrowDetails providerId={w.provider_id} />
+                            </TableCell>
+                          </TableRow>
+                        )}
                       );
                     })}
                     {(withdrawals ?? []).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد طلبات سحب</TableCell></TableRow>}
