@@ -134,14 +134,20 @@ function AdminHypotheses() {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <FlaskConical className="h-5 w-5 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <FlaskConical className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">الفرضيات</h1>
+              <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام — المؤشرات تُحسب آلياً من بيانات النظام</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">الفرضيات</h1>
-            <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام — المؤشرات تُحسب آلياً من بيانات النظام</p>
-          </div>
+          <Button variant="outline" size="sm" disabled={downloading || !hypotheses?.length} onClick={handleDownloadReport}>
+            <Download className="h-4 w-4 ml-1.5" />
+            {downloading ? "جارٍ التحميل..." : "تحميل التقرير"}
+          </Button>
         </div>
 
         {/* KPI Cards */}
