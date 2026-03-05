@@ -173,11 +173,11 @@ export function useHypothesisMetrics() {
       const activeBidders30 = new Set(
         allBids.filter((b) => b.created_at >= thirtyDaysAgo).map((b) => b.provider_id)
       );
-      const activeCount = [...activeBidders30].filter((id) => providerIds.has(id)).size;
+      const activeCount = [...activeBidders30].filter((id) => providerIds.has(id)).length;
       const activeBidders90 = new Set(
         allBids.filter((b) => b.created_at >= ninetyDaysAgo).map((b) => b.provider_id)
       );
-      const retainedCount = [...activeBidders90].filter((id) => providerIds.has(id)).size;
+      const retainedCount = [...activeBidders90].filter((id) => providerIds.has(id)).length;
       const totalProviders = providerIds.size;
 
       const h1 = {
@@ -410,7 +410,7 @@ export function useHypothesisMetrics() {
 
       // ========== H14: Service Type ==========
       const fixedServices = allServices.filter((s) => s.service_type === "fixed_price");
-      const packageServices = allServices.filter((s) => s.service_type === "packages");
+      const packageServices = allServices.filter((s) => (s.service_type as string) === "packages" || s.service_type === "hourly");
       const fixedAvg = fixedServices.length > 0
         ? Math.round(fixedServices.reduce((s, sv) => s + Number(sv.price), 0) / fixedServices.length)
         : null;
