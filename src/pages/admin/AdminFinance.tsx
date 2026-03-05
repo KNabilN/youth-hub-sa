@@ -450,7 +450,7 @@ export default function AdminFinance() {
                       return (
                         <React.Fragment key={w.id}>
                         <TableRow className="cursor-pointer hover:bg-muted/40" onClick={() => setExpandedWithdrawalId(expandedWithdrawalId === w.id ? null : w.id)}>
-                          <TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             {w.status === "pending" ? (
                               <div className="flex gap-2">
                                 <Button size="sm" onClick={() => {
