@@ -20,7 +20,7 @@ export function DonorBalanceCards({ available, reserved, consumed, suspended, ex
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {items.map(item => (
         <Card key={item.label}>
           <CardContent className="p-4 text-center space-y-1">
