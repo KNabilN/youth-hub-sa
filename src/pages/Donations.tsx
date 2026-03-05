@@ -73,6 +73,7 @@ export default function Donations() {
   const handlePaymentConfirm = async (receiptFile: File) => {
     if (!user || !formData) return;
     setProcessing(true);
+    const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
       // 1. Upload receipt
       const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
@@ -98,7 +99,7 @@ export default function Donations() {
           escrow_id: escrow.id,
           user_id: user.id,
           receipt_url: filePath,
-          amount: formData.amount,
+          amount: donationPricing.total,
         } as any);
 
         await createContribution.mutateAsync({
@@ -135,7 +136,7 @@ export default function Donations() {
           escrow_id: escrow.id,
           user_id: user.id,
           receipt_url: filePath,
-          amount: formData.amount,
+          amount: donationPricing.total,
         } as any);
 
         await createContribution.mutateAsync({
@@ -146,7 +147,7 @@ export default function Donations() {
         });
       }
 
-      navigate("/payment-success", { state: { total: formData.amount, count: 1, method: "bank_transfer" } });
+      navigate("/payment-success", { state: { total: donationPricing.total, count: 1, method: "bank_transfer" } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
