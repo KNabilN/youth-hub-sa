@@ -196,13 +196,12 @@ export function AppSidebar() {
           .eq("status", "pending_approval");
         counts["/admin/projects"] = pendingProjects ?? 0;
 
-        // مستخدمون جدد: registered in the last 24 hours
-        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        // مستخدمون جدد غير موثقين
         const { count: newUsers } = await supabase
           .from("profiles")
           .select("id", { count: "exact", head: true })
           .is("deleted_at", null)
-          .gte("created_at", since);
+          .eq("is_verified", false);
         counts["/admin/users"] = newUsers ?? 0;
       }
 
