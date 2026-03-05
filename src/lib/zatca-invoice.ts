@@ -143,8 +143,8 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
       <!-- Header with Logo -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;margin-bottom:10px;background:linear-gradient(135deg, ${BRAND.headerBg} 0%, ${BRAND.white} 100%);border-radius:10px;padding:24px 30px;">
         <div style="text-align:right;flex:1;">
-          <h1 style="font-size: 26px; font-weight: 800; margin: 0; color:${BRAND.primary};font-family:${BASE_FONT};">فاتورة ضريبية</h1>
-          <p style="font-size: 14px; color: ${BRAND.textMuted}; margin: 4px 0 0;direction:ltr;text-align:right;">Tax Invoice</p>
+          <h1 style="font-size: 26px; font-weight: 800; margin: 0; color:${BRAND.primary};font-family:${BASE_FONT};">فاتورة</h1>
+           <p style="font-size: 14px; color: ${BRAND.textMuted}; margin: 4px 0 0;direction:ltr;text-align:right;">Invoice</p>
         </div>
         <div style="text-align:left;direction:ltr;display:flex;align-items:center;gap:12px;">
           <div>
