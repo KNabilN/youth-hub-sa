@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon } from "lucide-react";
+import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon, Eye, EyeOff } from "lucide-react";
 import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,10 +19,10 @@ import { supabase } from "@/integrations/supabase/client";
 const pageGroups = {
   landing: {
     label: "الصفحة الرئيسية",
-    description: "Hero، الإحصائيات، المميزات، لماذا المنصة، CTA، آراء العملاء",
+    description: "Hero، الإحصائيات، المميزات، الطلبات، الخدمات، لماذا المنصة، CTA، آراء العملاء، التواصل",
     icon: Globe,
-    keys: ["hero", "stats", "features", "trust", "cta", "testimonials"],
-    count: 6,
+    keys: ["hero", "stats", "features", "requests_section", "services_section", "trust", "cta", "testimonials", "contact_section"],
+    count: 9,
   },
   about: {
     label: "صفحة من نحن",
@@ -59,14 +60,20 @@ const sectionLabels: Record<string, string> = {
   hero: "القسم الرئيسي (Hero)",
   stats: "الإحصائيات",
   features: "المميزات",
+  requests_section: "قسم طلبات الجمعيات",
+  services_section: "قسم الخدمات المتوفرة",
   trust: "لماذا المنصة",
   cta: "دعوة الإجراء (CTA)",
   testimonials: "آراء العملاء",
+  contact_section: "قسم التواصل",
   about: "صفحة من نحن",
   faq: "الأسئلة الشائعة",
   header: "الهيدر",
   footer: "الفوتر",
 };
+
+// Sections that support visibility toggle
+const visibleSections = new Set(["hero", "stats", "features", "requests_section", "services_section", "trust", "cta", "testimonials", "contact_section"]);
 
 /* ═══════════ Field Editors ═══════════ */
 
@@ -195,6 +202,27 @@ function FeaturesEditor({ items, onChange }: { items: { title: string; desc: str
   );
 }
 
+function TestimonialsEditor({ items, onChange }: { items: { name: string; org: string; text: string; rating: number }[]; onChange: (items: any[]) => void }) {
+  return (
+    <div className="space-y-3">
+      <Label className="text-sm font-medium">الشهادات</Label>
+      {items.map((item, i) => (
+        <Card key={i} className="p-3">
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input value={item.name} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], name: e.target.value }; onChange(next); }} placeholder="الاسم" dir="rtl" />
+              <Input value={item.org} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], org: e.target.value }; onChange(next); }} placeholder="الجهة" dir="rtl" />
+              <Button variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))} className="shrink-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            <Textarea value={item.text} onChange={(e) => { const next = [...items]; next[i] = { ...next[i], text: e.target.value }; onChange(next); }} placeholder="نص الشهادة" dir="rtl" className="min-h-[60px]" />
+          </div>
+        </Card>
+      ))}
+      <Button variant="outline" size="sm" onClick={() => onChange([...items, { name: "", org: "", text: "", rating: 5 }])}><Plus className="h-4 w-4 me-1" />إضافة شهادة</Button>
+    </div>
+  );
+}
+
 /* ═══════════ Section Editor ═══════════ */
 
 function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; content: Record<string, any> }) {
@@ -211,6 +239,9 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
       onError: () => toast.error("حدث خطأ أثناء الحفظ"),
     });
   };
+
+  const isVisible = content.visible !== false;
+  const supportsVisibility = visibleSections.has(sectionKey);
 
   const renderFields = () => {
     switch (sectionKey) {
@@ -235,6 +266,22 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <FeaturesEditor items={content.items || []} onChange={(items) => set("items", items)} />
           </div>
         );
+      case "requests_section":
+        return (
+          <div className="space-y-3">
+            <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
+            <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
+            <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+          </div>
+        );
+      case "services_section":
+        return (
+          <div className="space-y-3">
+            <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
+            <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
+            <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+          </div>
+        );
       case "trust":
         return (
           <div className="space-y-3">
@@ -249,6 +296,21 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="الوصف" value={content.description || ""} onChange={(v) => set("description", v)} multiline />
             <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+          </div>
+        );
+      case "testimonials":
+        return (
+          <div className="space-y-3">
+            <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
+            <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} />
+            <TestimonialsEditor items={content.items || []} onChange={(items) => set("items", items)} />
+          </div>
+        );
+      case "contact_section":
+        return (
+          <div className="space-y-3">
+            <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
+            <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
           </div>
         );
       case "header":
@@ -280,10 +342,24 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
   };
 
   return (
-    <Card>
+    <Card className={!isVisible && supportsVisibility ? "opacity-60" : ""}>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">{sectionLabels[sectionKey] || sectionKey}</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <CardTitle className="text-base">{sectionLabels[sectionKey] || sectionKey}</CardTitle>
+            {supportsVisibility && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={isVisible}
+                  onCheckedChange={(checked) => set("visible", checked)}
+                  aria-label="إظهار/إخفاء القسم"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {isVisible ? <span className="flex items-center gap-1"><Eye className="h-3 w-3" />ظاهر</span> : <span className="flex items-center gap-1"><EyeOff className="h-3 w-3" />مخفي</span>}
+                </span>
+              </div>
+            )}
+          </div>
           <Button size="sm" onClick={handleSave} disabled={update.isPending}>
             <Save className="h-4 w-4 me-1" />
             {update.isPending ? "جارٍ الحفظ..." : "حفظ"}
@@ -336,7 +412,9 @@ export default function AdminCMS() {
   const selectedGroup = selectedPage ? pageGroups[selectedPage] : null;
 
   const filteredSections = selectedGroup
-    ? (sections ?? []).filter((s: any) => (selectedGroup.keys as readonly string[]).includes(s.section_key))
+    ? (selectedGroup.keys as readonly string[]).map(key => 
+        (sections ?? []).find((s: any) => s.section_key === key)
+      ).filter(Boolean)
     : [];
 
   return (
