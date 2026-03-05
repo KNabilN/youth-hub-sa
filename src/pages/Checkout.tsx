@@ -100,7 +100,11 @@ export default function Checkout() {
           type: "checkout",
           items: paymentItems,
           beneficiary_id: selectedAssociation || null,
-          total,
+          total: pricing.total,
+          subtotal: subtotal,
+          commission: pricing.commission,
+          vat: pricing.vat,
+          commission_rate: commissionRate,
         };
 
         // Save context both in sessionStorage (primary) and URL params (fallback)
@@ -120,7 +124,8 @@ export default function Checkout() {
         }
         await bankTransfer.mutateAsync({
           receiptFile,
-          amount: total,
+          amount: pricing.total,
+          baseAmount: subtotal,
           userId: user.id,
           beneficiaryId: selectedAssociation || undefined,
           items: items.map((item) => ({
@@ -132,7 +137,7 @@ export default function Checkout() {
           })),
         });
         await clearCart.mutateAsync();
-        navigate("/payment-success", { state: { total, count: items.length, method: "bank_transfer" } });
+        navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "bank_transfer" } });
       }
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
