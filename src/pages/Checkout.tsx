@@ -390,6 +390,21 @@ export default function Checkout() {
               </Card>
             )}
 
+            {/* Moyasar Payment Form */}
+            {showMoyasarForm && moyasarKey && (
+              <MoyasarPaymentForm
+                amount={total}
+                description={`شراء ${items.length} خدمات عبر منصة معين`}
+                callbackUrl={`${window.location.origin}/payment-callback`}
+                publishableKey={moyasarKey}
+                metadata={{
+                  type: "checkout",
+                  user_id: user?.id,
+                }}
+              />
+            )}
+
+            {!showMoyasarForm && (
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -402,6 +417,7 @@ export default function Checkout() {
                 </div>
               </CardContent>
             </Card>
+            )}
           </div>
 
           {/* Payment Summary */}
