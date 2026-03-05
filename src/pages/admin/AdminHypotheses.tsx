@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useHypotheses, useUpdateHypothesis } from "@/hooks/useHypotheses";
+import { useHypotheses, useUpdateHypothesis, type Hypothesis } from "@/hooks/useHypotheses";
 import { useHypothesisMetrics } from "@/hooks/useHypothesisMetrics";
 import { HypothesisMetricsPanel } from "@/components/admin/HypothesisMetricsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { generateReportPDF } from "@/lib/report-pdf";
 import {
   FlaskConical, CheckCircle2, XCircle, Clock, ChevronDown,
-  Target, TestTube, Award, Users, Building2, Briefcase, Shield, Gauge,
+  Target, TestTube, Award, Users, Building2, Briefcase, Shield, Gauge, Download,
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
