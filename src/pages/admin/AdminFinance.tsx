@@ -36,6 +36,7 @@ const bankTransferExportCols: ExportColumnDef[] = [
 import { generateInvoicePDF, type InvoiceData, type InvoiceTemplateConfig } from "@/lib/zatca-invoice";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -302,8 +303,16 @@ export default function AdminFinance() {
                         <TableCell className="text-sm text-muted-foreground">{format(new Date(e.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                         <TableCell><Badge className={escrowStatusColors[e.status]}>{escrowStatusLabels[e.status] ?? e.status}</Badge></TableCell>
                         <TableCell className="font-medium">{Number(e.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>{(e as any).payee?.full_name ?? "—"}</TableCell>
-                        <TableCell>{(e as any).payer?.full_name ?? "—"}</TableCell>
+                        <TableCell>
+                          {(e as any).payee?.full_name ? (
+                            <Link to={`/admin/users/${e.payee_id}`} className="text-primary hover:underline font-medium">{(e as any).payee.full_name}</Link>
+                          ) : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {(e as any).payer?.full_name ? (
+                            <Link to={`/admin/users/${e.payer_id}`} className="text-primary hover:underline font-medium">{(e as any).payer.full_name}</Link>
+                          ) : "—"}
+                        </TableCell>
                         <TableCell>{e.projects?.title ?? "—"}</TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{e.escrow_number || "—"}</TableCell>
                       </TableRow>
@@ -385,7 +394,11 @@ export default function AdminFinance() {
                           <TableCell className="font-semibold">{(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
                           <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell>{inv.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell>
+                            {inv.profiles?.full_name ? (
+                              <Link to={`/admin/users/${inv.issued_to}`} className="text-primary hover:underline font-medium">{inv.profiles.full_name}</Link>
+                            ) : "—"}
+                          </TableCell>
                           <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
                         </TableRow>
                       );
@@ -487,7 +500,11 @@ export default function AdminFinance() {
                             )}
                           </TableCell>
                           <TableCell className="font-semibold text-base">{Number(w.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell className="font-medium">{providerName}</TableCell>
+                          <TableCell className="font-medium">
+                            {providerName !== "—" ? (
+                              <Link to={`/admin/users/${w.provider_id}`} className="text-primary hover:underline">{providerName}</Link>
+                            ) : "—"}
+                          </TableCell>
                           <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{w.withdrawal_number || idx + 1}</TableCell>
                         </TableRow>
                       );
@@ -585,7 +602,11 @@ export default function AdminFinance() {
                           <TableCell><Badge className={statusColor}>{statusLabel}</Badge></TableCell>
                           <TableCell className="font-medium">{Number(bt.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell className="text-sm">{serviceOrProject}</TableCell>
-                          <TableCell>{bt.profiles?.full_name ?? "—"}</TableCell>
+                          <TableCell>
+                            {bt.profiles?.full_name ? (
+                              <Link to={`/admin/users/${bt.user_id}`} className="text-primary hover:underline font-medium">{bt.profiles.full_name}</Link>
+                            ) : "—"}
+                          </TableCell>
                           <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{bt.transfer_number || "—"}</TableCell>
                         </TableRow>
                       );
