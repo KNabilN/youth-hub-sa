@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
+import { useSoftDelete } from "@/hooks/useTrash";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -64,6 +66,8 @@ export default function AdminTickets() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [exportOpen, setExportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const softDelete = useSoftDelete();
 
   const filtered = (tickets ?? []).filter((t: any) => {
     const q = search.toLowerCase();
@@ -126,6 +130,7 @@ export default function AdminTickets() {
                    <TableHead>الحالة</TableHead>
                    <TableHead>التاريخ</TableHead>
                    <TableHead>تغيير الحالة</TableHead>
+                   <TableHead>إجراءات</TableHead>
                  </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,9 +152,14 @@ export default function AdminTickets() {
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(t)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
-                {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
+                {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>
@@ -184,6 +194,21 @@ export default function AdminTickets() {
             headers: activeCols.map((c) => c.label),
             rows: rows.map((t: any) => activeCols.map((c) => colMap[c.key]?.(t) ?? "")),
           };
+        }}
+      />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل التذكرة "${deleteTarget?.ticket_number}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "support_tickets", id: deleteTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
         }}
       />
     </DashboardLayout>

@@ -14,7 +14,9 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { Eye, FileEdit, Download } from "lucide-react";
+import { Eye, FileEdit, Download, Trash2 } from "lucide-react";
+import { useSoftDelete } from "@/hooks/useTrash";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { disputeStatusLabels, disputeStatusColors, allDisputeStatuses } from "@/lib/dispute-statuses";
@@ -45,6 +47,8 @@ export default function AdminDisputes() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [editDispute, setEditDispute] = useState<any>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const softDelete = useSoftDelete();
 
   const filtered = (disputes ?? []).filter((d: any) => {
     if (search) {
@@ -162,6 +166,9 @@ export default function AdminDisputes() {
                         <Button size="sm" variant="outline" onClick={() => setEditDispute(d)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
                         </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(d)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -230,6 +237,21 @@ export default function AdminDisputes() {
             headers: activeCols.map((c) => c.label),
             rows: rows.map((d: any) => activeCols.map((c) => colMap[c.key]?.(d) ?? "")),
           };
+        }}
+      />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل الشكوى "${deleteTarget?.dispute_number}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "disputes", id: deleteTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
         }}
       />
     </DashboardLayout>
