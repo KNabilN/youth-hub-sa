@@ -25,6 +25,7 @@ export function useLandingStats() {
         .select("id, title, description, price, service_type, image_url, approval, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
         .eq("approval", "approved")
         .is("deleted_at", null)
+        .order("display_order" as any, { ascending: true })
         .order("created_at", { ascending: false })
         .limit(9);
       if (error) throw error;

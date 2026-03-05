@@ -127,11 +127,11 @@ export default function Index() {
         </section>
       }
 
-      {/* 4. الخدمات المتوفرة */}
-      <LandingServicesGrid services={services} loading={servicesLoading} />
-
-      {/* 5. طلبات الجمعيات */}
+      {/* 4. طلبات الجمعيات */}
       <LandingRequestsTable projects={featuredProjects} loading={projectsLoading} />
+
+      {/* 5. الخدمات المتوفرة */}
+      <LandingServicesGrid services={services} loading={servicesLoading} />
 
       {/* 6. الثقة والأمان */}
       {tr.items?.length > 0 &&
