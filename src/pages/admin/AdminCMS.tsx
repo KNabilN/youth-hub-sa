@@ -10,9 +10,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon, Eye, EyeOff } from "lucide-react";
+import { Save, Plus, Trash2, LayoutTemplate, Globe, Layout, FileText, ArrowRight, Upload, ImageIcon, Eye, EyeOff, Star } from "lucide-react";
 import { InvoiceTemplateManager } from "@/components/admin/InvoiceTemplateManager";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /* ═══════════ Page Groups ═══════════ */
 
