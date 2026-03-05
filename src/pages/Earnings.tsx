@@ -56,21 +56,19 @@ export default function Earnings() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <Wallet className="h-7 w-7 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">المعاملات المادية</h1>
-              <p className="text-sm text-muted-foreground">تابع أرباحك وطلبات السحب</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-xl p-3">
+            <Wallet className="h-7 w-7 text-primary" />
           </div>
-          {availableBalance > 0 &&
-          <Button onClick={() => setShowDialog(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
+          <div>
+            <h1 className="text-2xl font-bold">المعاملات المادية</h1>
+            <p className="text-sm text-muted-foreground">تابع أرباحك وطلبات السحب</p>
+          </div>
+          {availableBalance > 0 && (
+            <Button onClick={() => setShowDialog(true)} className="ms-auto bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
               <Wallet className="h-4 w-4 me-2" /> طلب سحب
             </Button>
-          }
+          )}
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 

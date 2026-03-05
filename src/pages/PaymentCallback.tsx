@@ -12,8 +12,19 @@ export default function PaymentCallback() {
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const contextStr = sessionStorage.getItem("moyasar_payment_context");
-  const paymentContext = contextStr ? JSON.parse(contextStr) : {};
+  // Try sessionStorage first, then URL params as fallback (survives cross-origin 3DS redirects)
+  const getPaymentContext = () => {
+    const sessionCtx = sessionStorage.getItem("moyasar_payment_context");
+    if (sessionCtx) {
+      try { return JSON.parse(sessionCtx); } catch {}
+    }
+    const ctxParam = searchParams.get("ctx");
+    if (ctxParam) {
+      try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(ctxParam))))); } catch {}
+    }
+    return {};
+  };
+  const paymentContext = getPaymentContext();
   const retryPath = paymentContext?.type === "donation" ? "/donations" : "/checkout";
 
   useEffect(() => {
@@ -32,9 +43,7 @@ export default function PaymentCallback() {
       return;
     }
 
-    const contextStr = sessionStorage.getItem("moyasar_payment_context");
-    const context = contextStr ? JSON.parse(contextStr) : {};
-
+    const context = paymentContext;
     const verify = async () => {
       try {
         // Wait for session to be available (may be lost after 3DS redirect)
