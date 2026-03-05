@@ -111,7 +111,7 @@ export default function PaymentCallback() {
                   <p className="text-sm text-muted-foreground">{errorMsg}</p>
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <Button onClick={() => navigate("/checkout")}>
+                  <Button onClick={() => navigate(retryPath)}>
                     إعادة المحاولة
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/dashboard")}>
