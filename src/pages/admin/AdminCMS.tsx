@@ -392,6 +392,8 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
             <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+            <Separator />
+            <FeaturedProjectsPicker />
           </div>
         );
       case "services_section":
@@ -400,6 +402,8 @@ function SectionEditor({ sectionKey, content: initial }: { sectionKey: string; c
             <JsonFieldEditor label="العنوان" value={content.title || ""} onChange={(v) => set("title", v)} />
             <JsonFieldEditor label="العنوان الفرعي" value={content.subtitle || ""} onChange={(v) => set("subtitle", v)} multiline />
             <JsonFieldEditor label="نص الزر" value={content.button_text || ""} onChange={(v) => set("button_text", v)} />
+            <Separator />
+            <FeaturedServicesPicker />
           </div>
         );
       case "trust":
