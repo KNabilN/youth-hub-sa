@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useHypotheses, useUpdateHypothesis, useHypothesisMetrics } from "@/hooks/useHypotheses";
+import { useHypotheses, useUpdateHypothesis } from "@/hooks/useHypotheses";
+import { useHypothesisMetrics } from "@/hooks/useHypothesisMetrics";
+import { HypothesisMetricsPanel } from "@/components/admin/HypothesisMetricsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   FlaskConical, CheckCircle2, XCircle, Clock, ChevronDown,
-  Target, TestTube, Award, TrendingUp, Users, Building2, Briefcase, Shield,
-  Gauge,
+  Target, TestTube, Award, Users, Building2, Briefcase, Shield, Gauge,
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
@@ -31,12 +31,8 @@ const DOMAIN_CONFIG: Record<string, { label: string; icon: typeof Users }> = {
   "التشغيل والحوكمة": { label: "التشغيل والحوكمة", icon: Shield },
 };
 
-const AUTOMATED_METRICS: Record<number, string> = {
-  1: "activeProviderPct",
-  7: "ratingPct",
-  8: "noDisputePct",
-  18: "selfPayPct",
-};
+// Hypotheses that have automated metrics
+const AUTOMATED_HYPOTHESES = new Set([1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 14, 15, 17, 18, 23, 24, 25]);
 
 function AdminHypotheses() {
   const { data: hypotheses, isLoading } = useHypotheses();
@@ -73,17 +69,7 @@ function AdminHypotheses() {
     not_verified: all.filter((h) => h.status === "not_verified").length,
   };
   const progressPct = all.length > 0 ? Math.round(((counts.verified + counts.not_verified) / all.length) * 100) : 0;
-
   const domains = Object.keys(DOMAIN_CONFIG);
-
-  const getAutoMetric = (hNum: number) => {
-    if (!metrics) return null;
-    const key = AUTOMATED_METRICS[hNum];
-    if (!key) return null;
-    const val = (metrics as any)[key];
-    if (val === null || val === undefined) return null;
-    return val;
-  };
 
   return (
     <DashboardLayout>
@@ -95,7 +81,7 @@ function AdminHypotheses() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">الفرضيات</h1>
-            <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام وتحقّق منها</p>
+            <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام — المؤشرات تُحسب آلياً من بيانات النظام</p>
           </div>
         </div>
 
@@ -143,7 +129,8 @@ function AdminHypotheses() {
                   <HypothesisCard
                     key={h.id}
                     hypothesis={h}
-                    autoMetric={getAutoMetric(h.hypothesis_number)}
+                    metrics={metrics}
+                    isAutomated={AUTOMATED_HYPOTHESES.has(h.hypothesis_number)}
                     onUpdate={handleUpdate}
                   />
                 ))}
@@ -170,11 +157,13 @@ function KPICard({ icon: Icon, label, value, sub, color }: { icon: any; label: s
 
 function HypothesisCard({
   hypothesis: h,
-  autoMetric,
+  metrics,
+  isAutomated,
   onUpdate,
 }: {
   hypothesis: any;
-  autoMetric: number | null;
+  metrics: any;
+  isAutomated: boolean;
   onUpdate: (id: number, field: string, value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -202,7 +191,12 @@ function HypothesisCard({
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm leading-relaxed">{h.hypothesis}</CardTitle>
-              <Progress value={progressValue} className={`h-1.5 mt-2 w-32 ${progressColor}`} />
+              <div className="flex items-center gap-2 mt-2">
+                <Progress value={progressValue} className={`h-1.5 w-32 ${progressColor}`} />
+                {isAutomated && (
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 border-primary/30 text-primary">آلي</Badge>
+                )}
+              </div>
             </div>
           </div>
           <Badge className={`shrink-0 ${statusInfo.color} border-0 gap-1`}>
@@ -213,13 +207,9 @@ function HypothesisCard({
       </CardHeader>
 
       <CardContent className="pt-0 space-y-3">
-        {/* Auto metric */}
-        {autoMetric !== null && (
-          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <span className="text-xs text-muted-foreground">مؤشر آلي:</span>
-            <span className="text-sm font-bold text-primary">{autoMetric}%</span>
-          </div>
+        {/* Automated Metrics Panel */}
+        {isAutomated && (
+          <HypothesisMetricsPanel hypothesisNumber={h.hypothesis_number} metrics={metrics} />
         )}
 
         {/* Collapsible details */}
@@ -235,14 +225,11 @@ function HypothesisCard({
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Actions row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t">
+        {/* Admin controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t">
           <div>
             <label className="text-[10px] text-muted-foreground mb-1 block">الحالة</label>
-            <Select
-              value={h.status}
-              onValueChange={(v) => onUpdate(h.id, "status", v)}
-            >
+            <Select value={h.status} onValueChange={(v) => onUpdate(h.id, "status", v)}>
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -252,17 +239,6 @@ function HypothesisCard({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <label className="text-[10px] text-muted-foreground mb-1 block">القيمة الفعلية</label>
-            <Input
-              className="h-8 text-xs"
-              defaultValue={h.actual_value}
-              placeholder="أدخل القيمة..."
-              onBlur={(e) => {
-                if (e.target.value !== h.actual_value) onUpdate(h.id, "actual_value", e.target.value);
-              }}
-            />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground mb-1 block">ملاحظات</label>
