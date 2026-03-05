@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
@@ -56,6 +56,11 @@ export default function Donations() {
   const [formData, setFormData] = useState<DonationFormData | null>(null);
   const [processing, setProcessing] = useState(false);
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
+
+  const donationMetadata = useMemo(() => ({
+    type: "donation",
+    user_id: user?.id,
+  }), [user?.id]);
 
   const handleFormSubmit = (data: DonationFormData) => {
     setFormData(data);
@@ -223,10 +228,7 @@ export default function Donations() {
                 }
                 callbackUrl={`${window.location.origin}/payment-callback`}
                 publishableKey={moyasarKey}
-                metadata={{
-                  type: "donation",
-                  user_id: user?.id,
-                }}
+                metadata={donationMetadata}
               />
             ) : formData ? (
               <DonationPaymentStep
