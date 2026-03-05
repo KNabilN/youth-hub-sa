@@ -158,6 +158,7 @@ export default function Donations() {
   const handleOnlinePayment = async () => {
     if (!user || !formData) return;
     setProcessing(true);
+    const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
       const { data, error } = await supabase.functions.invoke("moyasar-get-config");
       if (error || !data?.publishable_key) {
@@ -173,7 +174,8 @@ export default function Donations() {
         association_id: formData.association_id,
         project_id: formData.project_id || null,
         grant_request_id: urlGrantRequestId || null,
-        total: formData.amount,
+        total: donationPricing.total,
+        subtotal: formData.amount,
       };
       sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
       const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
