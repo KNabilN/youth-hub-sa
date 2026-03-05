@@ -40,12 +40,69 @@ function AdminHypotheses() {
   const { data: hypotheses, isLoading } = useHypotheses();
   const { data: metrics } = useHypothesisMetrics();
   const updateMutation = useUpdateHypothesis();
+  const [downloading, setDownloading] = useState(false);
 
   const handleUpdate = (id: number, field: string, value: string) => {
     updateMutation.mutate(
       { id, [field]: value },
       { onSuccess: () => toast.success("تم التحديث") }
     );
+  };
+
+  const handleDownloadReport = async () => {
+    if (!hypotheses?.length) return;
+    setDownloading(true);
+    try {
+      const all = hypotheses;
+      const counts = {
+        verified: all.filter((h) => h.status === "verified").length,
+        testing: all.filter((h) => h.status === "testing").length,
+        not_tested: all.filter((h) => h.status === "not_tested").length,
+        not_verified: all.filter((h) => h.status === "not_verified").length,
+      };
+      const progressPct = Math.round(((counts.verified + counts.not_verified) / all.length) * 100);
+
+      const dates = all.map((h) => h.updated_at).filter(Boolean).map((d) => new Date(d));
+      const from = dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))) : new Date();
+      const to = new Date();
+
+      const summaryStats = [
+        { label: "تم التحقق", value: String(counts.verified) },
+        { label: "قيد الاختبار", value: String(counts.testing) },
+        { label: "لم تُختبر", value: String(counts.not_tested) },
+        { label: "لم تتحقق", value: String(counts.not_verified) },
+        { label: "نسبة التقدم", value: `${progressPct}%` },
+      ];
+
+      const domainKeys = Object.keys(DOMAIN_CONFIG);
+      const statusLabel = (s: string) => STATUS_MAP[s]?.label ?? s;
+      const sections = domainKeys
+        .map((domain) => {
+          const items = all.filter((h) => h.domain === domain);
+          if (!items.length) return null;
+          return {
+            title: DOMAIN_CONFIG[domain].label,
+            headers: ["#", "الفرضية", "المؤشر", "معيار النجاح", "الحالة", "ملاحظات"],
+            rows: items.map((h) => [
+              String(h.hypothesis_number),
+              h.hypothesis,
+              h.metric,
+              h.success_criteria,
+              statusLabel(h.status),
+              h.admin_notes || "—",
+            ]),
+          };
+        })
+        .filter(Boolean) as { title: string; headers: string[]; rows: string[][] }[];
+
+      await generateReportPDF("تقرير الفرضيات", { from, to }, sections, summaryStats);
+      toast.success("تم تحميل التقرير");
+    } catch (e) {
+      console.error(e);
+      toast.error("فشل تحميل التقرير");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (isLoading) {
