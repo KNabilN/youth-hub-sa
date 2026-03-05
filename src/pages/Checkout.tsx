@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -397,10 +397,7 @@ export default function Checkout() {
                 description={`شراء ${items.length} خدمات عبر منصة معين`}
                 callbackUrl={`${window.location.origin}/payment-callback`}
                 publishableKey={moyasarKey}
-                metadata={{
-                  type: "checkout",
-                  user_id: user?.id,
-                }}
+                metadata={checkoutMetadata}
               />
             )}
 

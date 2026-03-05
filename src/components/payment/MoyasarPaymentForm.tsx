@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -26,6 +26,13 @@ export function MoyasarPaymentForm({
   publishableKey,
 }: MoyasarPaymentFormProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const metadataRef = useRef(metadata);
+  const [initialized, setInitialized] = useState(false);
+
+  // Keep metadata ref up to date without triggering re-init
+  useEffect(() => {
+    metadataRef.current = metadata;
+  }, [metadata]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -39,7 +46,7 @@ export function MoyasarPaymentForm({
       container.innerHTML = "";
 
       window.Moyasar.init({
-        element: container,
+        element: ".moyasar-form",
         amount: Math.round(amount * 100), // convert SAR to halalas
         currency: "SAR",
         description,
@@ -47,9 +54,10 @@ export function MoyasarPaymentForm({
         callback_url: callbackUrl,
         methods: ["creditcard"],
         supported_networks: ["visa", "mastercard", "mada"],
-        metadata,
+        metadata: metadataRef.current,
         language: "ar",
       });
+      setInitialized(true);
     };
 
     // Load CSS if not already loaded
@@ -81,7 +89,7 @@ export function MoyasarPaymentForm({
       }, 100);
       return () => clearInterval(checkInterval);
     }
-  }, [amount, description, callbackUrl, publishableKey, metadata]);
+  }, [amount, description, callbackUrl, publishableKey]);
 
   return (
     <Card>
