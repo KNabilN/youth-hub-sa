@@ -96,6 +96,11 @@ export default function AdminFinance() {
   const [exportBankTransfer, setExportBankTransfer] = useState(false);
   const [expandedWithdrawalId, setExpandedWithdrawalId] = useState<string | null>(null);
 
+  // Escrow release/refund dialog
+  const [escrowActionDialog, setEscrowActionDialog] = useState<{ id: string; action: "released" | "refunded"; escrow: any } | null>(null);
+  const [escrowReceiptFile, setEscrowReceiptFile] = useState<File | null>(null);
+  const [escrowUploading, setEscrowUploading] = useState(false);
+
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
   const handleApproveWithdrawal = async () => {
