@@ -168,19 +168,22 @@ export default function AdminServices() {
                        <TableCell>{s.price} ر.س</TableCell>
                        <TableCell>
                          <Input
-                           type="number"
-                           className="w-20 h-8 text-center"
-                           defaultValue={(s as any).display_order ?? 0}
-                           onBlur={(e) => {
-                             const val = parseInt(e.target.value) || 0;
-                             if (val !== ((s as any).display_order ?? 0)) {
-                               updateService.mutate(
-                                 { id: s.id, display_order: val },
-                                 { onSuccess: () => toast.success("تم تحديث الترتيب"), onError: () => toast.error("حدث خطأ") }
-                               );
-                             }
-                           }}
-                         />
+                            type="number"
+                            className="w-20 h-8 text-center"
+                            min={0}
+                            placeholder="—"
+                            defaultValue={(s as any).display_order === 999 ? "" : (s as any).display_order}
+                            onBlur={(e) => {
+                              const raw = e.target.value.trim();
+                              const val = raw === "" || raw === "0" ? 999 : parseInt(raw) || 999;
+                              if (val !== ((s as any).display_order ?? 999)) {
+                                updateService.mutate(
+                                  { id: s.id, display_order: val },
+                                  { onSuccess: () => toast.success("تم تحديث الترتيب"), onError: () => toast.error("حدث خطأ") }
+                                );
+                              }
+                            }}
+                          />
                        </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
