@@ -26,17 +26,20 @@ export function MoyasarPaymentForm({
   publishableKey,
 }: MoyasarPaymentFormProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (initializedRef.current) return;
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
 
     const initForm = () => {
-      if (!window.Moyasar || !containerRef.current) return;
-      initializedRef.current = true;
+      if (!window.Moyasar || !container) return;
+
+      // Clear previous form content
+      container.innerHTML = "";
 
       window.Moyasar.init({
-        element: containerRef.current,
+        element: container,
         amount: Math.round(amount * 100), // convert SAR to halalas
         currency: "SAR",
         description,
@@ -49,12 +52,6 @@ export function MoyasarPaymentForm({
       });
     };
 
-    // Check if Moyasar script is already loaded
-    if (window.Moyasar) {
-      initForm();
-      return;
-    }
-
     // Load CSS if not already loaded
     if (!document.querySelector('link[href*="moyasar"]')) {
       const link = document.createElement("link");
@@ -64,6 +61,11 @@ export function MoyasarPaymentForm({
     }
 
     // Load JS if not already loaded
+    if (window.Moyasar) {
+      initForm();
+      return;
+    }
+
     if (!document.querySelector('script[src*="moyasar"]')) {
       const script = document.createElement("script");
       script.src = "https://cdn.moyasar.com/mpf/1.14.0/moyasar.js";
@@ -71,7 +73,6 @@ export function MoyasarPaymentForm({
       script.onload = initForm;
       document.head.appendChild(script);
     } else {
-      // Script tag exists but not yet loaded
       const checkInterval = setInterval(() => {
         if (window.Moyasar) {
           clearInterval(checkInterval);

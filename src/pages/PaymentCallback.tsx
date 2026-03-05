@@ -28,12 +28,30 @@ export default function PaymentCallback() {
       return;
     }
 
-    // Retrieve context from sessionStorage
     const contextStr = sessionStorage.getItem("moyasar_payment_context");
     const context = contextStr ? JSON.parse(contextStr) : {};
 
     const verify = async () => {
       try {
+        // Wait for session to be available (may be lost after 3DS redirect)
+        let retries = 0;
+        let session = null;
+        while (retries < 10) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            session = data.session;
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 500));
+          retries++;
+        }
+
+        if (!session) {
+          setStatus("failed");
+          setErrorMsg("انتهت صلاحية الجلسة. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke("moyasar-verify-payment", {
           body: { payment_id: paymentId, context },
         });
