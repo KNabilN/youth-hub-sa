@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useHypotheses, useUpdateHypothesis } from "@/hooks/useHypotheses";
+import { useHypotheses, useUpdateHypothesis, type Hypothesis } from "@/hooks/useHypotheses";
 import { useHypothesisMetrics } from "@/hooks/useHypothesisMetrics";
 import { HypothesisMetricsPanel } from "@/components/admin/HypothesisMetricsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { generateReportPDF } from "@/lib/report-pdf";
 import {
   FlaskConical, CheckCircle2, XCircle, Clock, ChevronDown,
-  Target, TestTube, Award, Users, Building2, Briefcase, Shield, Gauge,
+  Target, TestTube, Award, Users, Building2, Briefcase, Shield, Gauge, Download,
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
@@ -38,12 +40,69 @@ function AdminHypotheses() {
   const { data: hypotheses, isLoading } = useHypotheses();
   const { data: metrics } = useHypothesisMetrics();
   const updateMutation = useUpdateHypothesis();
+  const [downloading, setDownloading] = useState(false);
 
   const handleUpdate = (id: number, field: string, value: string) => {
     updateMutation.mutate(
       { id, [field]: value },
       { onSuccess: () => toast.success("تم التحديث") }
     );
+  };
+
+  const handleDownloadReport = async () => {
+    if (!hypotheses?.length) return;
+    setDownloading(true);
+    try {
+      const all = hypotheses;
+      const counts = {
+        verified: all.filter((h) => h.status === "verified").length,
+        testing: all.filter((h) => h.status === "testing").length,
+        not_tested: all.filter((h) => h.status === "not_tested").length,
+        not_verified: all.filter((h) => h.status === "not_verified").length,
+      };
+      const progressPct = Math.round(((counts.verified + counts.not_verified) / all.length) * 100);
+
+      const dates = all.map((h) => h.updated_at).filter(Boolean).map((d) => new Date(d));
+      const from = dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))) : new Date();
+      const to = new Date();
+
+      const summaryStats = [
+        { label: "تم التحقق", value: String(counts.verified) },
+        { label: "قيد الاختبار", value: String(counts.testing) },
+        { label: "لم تُختبر", value: String(counts.not_tested) },
+        { label: "لم تتحقق", value: String(counts.not_verified) },
+        { label: "نسبة التقدم", value: `${progressPct}%` },
+      ];
+
+      const domainKeys = Object.keys(DOMAIN_CONFIG);
+      const statusLabel = (s: string) => STATUS_MAP[s]?.label ?? s;
+      const sections = domainKeys
+        .map((domain) => {
+          const items = all.filter((h) => h.domain === domain);
+          if (!items.length) return null;
+          return {
+            title: DOMAIN_CONFIG[domain].label,
+            headers: ["#", "الفرضية", "المؤشر", "معيار النجاح", "الحالة", "ملاحظات"],
+            rows: items.map((h) => [
+              String(h.hypothesis_number),
+              h.hypothesis,
+              h.metric,
+              h.success_criteria,
+              statusLabel(h.status),
+              h.admin_notes || "—",
+            ]),
+          };
+        })
+        .filter(Boolean) as { title: string; headers: string[]; rows: string[][] }[];
+
+      await generateReportPDF("تقرير الفرضيات", { from, to }, sections, summaryStats);
+      toast.success("تم تحميل التقرير");
+    } catch (e) {
+      console.error(e);
+      toast.error("فشل تحميل التقرير");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (isLoading) {
@@ -75,14 +134,20 @@ function AdminHypotheses() {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <FlaskConical className="h-5 w-5 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <FlaskConical className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">الفرضيات</h1>
+              <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام — المؤشرات تُحسب آلياً من بيانات النظام</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">الفرضيات</h1>
-            <p className="text-sm text-muted-foreground">تتبع فرضيات نجاح النظام — المؤشرات تُحسب آلياً من بيانات النظام</p>
-          </div>
+          <Button variant="outline" size="sm" disabled={downloading || !hypotheses?.length} onClick={handleDownloadReport}>
+            <Download className="h-4 w-4 ml-1.5" />
+            {downloading ? "جارٍ التحميل..." : "تحميل التقرير"}
+          </Button>
         </div>
 
         {/* KPI Cards */}
