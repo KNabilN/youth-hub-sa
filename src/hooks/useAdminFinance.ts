@@ -21,10 +21,12 @@ export function useEscrowTransactions() {
 export function useUpdateEscrowStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: EscrowStatus }) => {
+    mutationFn: async ({ id, status, receipt_url }: { id: string; status: EscrowStatus; receipt_url?: string }) => {
+      const update: Record<string, any> = { status };
+      if (receipt_url) update.receipt_url = receipt_url;
       const { error } = await supabase
         .from("escrow_transactions")
-        .update({ status })
+        .update(update)
         .eq("id", id);
       if (error) throw error;
     },
