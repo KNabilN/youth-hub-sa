@@ -310,13 +310,13 @@ export default function AdminFinance() {
                           <div className="flex gap-1 flex-wrap">
                             {e.status === "held" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
@@ -326,10 +326,10 @@ export default function AdminFinance() {
                                 <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />إعادة احتجاز
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => handleEscrowStatus(e.id, "released")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => handleEscrowStatus(e.id, "refunded")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <RotateCcw className="h-3.5 w-3.5 me-1" />استرداد
                                 </Button>
                               </>
@@ -355,7 +355,18 @@ export default function AdminFinance() {
                               </Button>
                             )}
                             {(e.status === "released" || e.status === "refunded") && (
-                              <span className="text-xs text-muted-foreground py-1">مكتمل</span>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs text-muted-foreground py-1">مكتمل</span>
+                                {(e as any).receipt_url && (
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => {
+                                    const { data } = await supabase.storage.from("escrow-receipts").createSignedUrl((e as any).receipt_url, 300);
+                                    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                                    else toast.error("تعذر فتح الإيصال");
+                                  }}>
+                                    <ExternalLink className="h-3 w-3 me-1" />الإيصال
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </div>
                         </TableCell>
