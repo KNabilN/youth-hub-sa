@@ -144,6 +144,53 @@ export default function Donations() {
     }
   };
 
+  const handleOnlinePayment = async () => {
+    if (!user || !formData) return;
+    setProcessing(true);
+    try {
+      const callbackUrl = `${window.location.origin}/payment-callback`;
+
+      // Save context for callback verification
+      sessionStorage.setItem("moyasar_payment_context", JSON.stringify({
+        type: "donation",
+        target_type: formData.target_type,
+        association_id: formData.association_id,
+        project_id: formData.project_id || null,
+        grant_request_id: urlGrantRequestId || null,
+        total: formData.amount,
+      }));
+
+      const { data, error } = await supabase.functions.invoke("moyasar-create-payment", {
+        body: {
+          amount: formData.amount,
+          description: formData.target_type === "association"
+            ? `منحة لجمعية ${formData.association_name}`
+            : `منحة لطلب ${formData.project_title}`,
+          callback_url: callbackUrl,
+          metadata: {
+            type: "donation",
+            target_type: formData.target_type,
+            association_id: formData.association_id,
+            project_id: formData.project_id || null,
+            grant_request_id: urlGrantRequestId || null,
+          },
+        },
+      });
+
+      if (error || !data?.transaction_url) {
+        toast.error("حدث خطأ أثناء إنشاء عملية الدفع");
+        setProcessing(false);
+        return;
+      }
+
+      // Redirect to Moyasar 3DS page
+      window.location.href = data.transaction_url;
+    } catch (err) {
+      toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
+      setProcessing(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -188,6 +235,7 @@ export default function Donations() {
                 associationName={formData.association_name}
                 projectTitle={formData.project_title}
                 onConfirm={handlePaymentConfirm}
+                onOnlinePayment={handleOnlinePayment}
                 onBack={() => setStep("form")}
                 isProcessing={processing}
               />
