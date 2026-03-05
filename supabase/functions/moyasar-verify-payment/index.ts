@@ -13,6 +13,8 @@ function generateInvoiceNumber(): string {
   return `INV-${date}-${rand}`;
 }
 
+const VAT_RATE = 0.15;
+
 async function getCommissionRate(adminClient: any): Promise<number> {
   const { data: config } = await adminClient
     .from("commission_config")
@@ -28,17 +30,19 @@ async function createInvoiceAndNotifyAdmin(
   adminClient: any,
   escrowId: string,
   issuedTo: string,
-  amount: number,
+  baseAmount: number,
   commissionRate: number
 ) {
-  const commissionAmount = amount * commissionRate;
+  const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
+  const vatAmount = Math.round(commissionAmount * VAT_RATE * 100) / 100;
 
   const { error: invErr } = await adminClient.from("invoices").insert({
     invoice_number: generateInvoiceNumber(),
-    amount,
+    amount: baseAmount,
     commission_amount: commissionAmount,
     issued_to: issuedTo,
     escrow_id: escrowId,
+    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س`,
   });
   if (invErr) {
     console.error("Invoice creation error:", invErr);
@@ -163,7 +167,9 @@ Deno.serve(async (req) => {
     if (contextType === "checkout") {
       await processCheckout(adminClient, userId, paymentContext, commissionRate);
     } else if (contextType === "donation") {
-      await processDonation(adminClient, userId, paymentContext, amountSAR, commissionRate);
+      // For donations, use the subtotal (base amount) from context, not the total charged
+      const donationBaseAmount = paymentContext.subtotal || amountSAR;
+      await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate);
     }
 
     return new Response(

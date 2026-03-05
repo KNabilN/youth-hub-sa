@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Building2, Upload, Copy, Check, ArrowRight, Loader2, ShieldCheck, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
+import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
 
 const BANK_INFO = {
   bank: "مصرف الراجحي",
@@ -30,6 +32,8 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
   const [copied, setCopied] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: commissionRate = 0.05 } = useCommissionRate();
+  const pricing = calculatePricing(amount, commissionRate);
 
   const handleCopyAccount = () => {
     navigator.clipboard.writeText(BANK_INFO.accountNumber);
@@ -57,23 +61,21 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
       {/* Summary */}
       <Card className="border-primary/30">
         <CardContent className="p-4">
-          <div className="flex justify-between items-center">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">نوع المنحة</p>
-                <Badge variant="outline" className="text-[10px]">
-                  {targetType === "association" ? "تحويل موجه لجمعية" : "تحويل لطلب محدد"}
-                </Badge>
-              </div>
-              {associationName && (
-                <p className="text-sm">الجمعية: <span className="font-medium">{associationName}</span></p>
-              )}
-              {projectTitle && (
-                <p className="text-sm">الطلب: <span className="font-medium">{projectTitle}</span></p>
-              )}
+          <div className="space-y-1 mb-3">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">نوع المنحة</p>
+              <Badge variant="outline" className="text-[10px]">
+                {targetType === "association" ? "تحويل موجه لجمعية" : "تحويل لطلب محدد"}
+              </Badge>
             </div>
-            <span className="text-xl font-bold text-primary">{amount.toLocaleString()} ر.س</span>
+            {associationName && (
+              <p className="text-sm">الجمعية: <span className="font-medium">{associationName}</span></p>
+            )}
+            {projectTitle && (
+              <p className="text-sm">الطلب: <span className="font-medium">{projectTitle}</span></p>
+            )}
           </div>
+          <PricingBreakdownDisplay pricing={pricing} />
         </CardContent>
       </Card>
 
@@ -146,7 +148,7 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">المبلغ المطلوب</span>
-                <span className="font-bold text-primary">{amount.toLocaleString()} ر.س</span>
+                <span className="font-bold text-primary">{pricing.total.toLocaleString()} ر.س</span>
               </div>
             </div>
 

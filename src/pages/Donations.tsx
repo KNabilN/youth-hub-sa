@@ -21,6 +21,7 @@ import { HandCoins } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   available: { label: "متاح", variant: "default" },
@@ -57,6 +58,7 @@ export default function Donations() {
   const [processing, setProcessing] = useState(false);
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
+  const { data: commissionRate = 0.05 } = useCommissionRate();
 
   const donationMetadata = useMemo(() => ({
     type: "donation",
@@ -71,6 +73,7 @@ export default function Donations() {
   const handlePaymentConfirm = async (receiptFile: File) => {
     if (!user || !formData) return;
     setProcessing(true);
+    const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
       // 1. Upload receipt
       const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
@@ -96,7 +99,7 @@ export default function Donations() {
           escrow_id: escrow.id,
           user_id: user.id,
           receipt_url: filePath,
-          amount: formData.amount,
+          amount: donationPricing.total,
         } as any);
 
         await createContribution.mutateAsync({
@@ -133,7 +136,7 @@ export default function Donations() {
           escrow_id: escrow.id,
           user_id: user.id,
           receipt_url: filePath,
-          amount: formData.amount,
+          amount: donationPricing.total,
         } as any);
 
         await createContribution.mutateAsync({
@@ -144,7 +147,7 @@ export default function Donations() {
         });
       }
 
-      navigate("/payment-success", { state: { total: formData.amount, count: 1, method: "bank_transfer" } });
+      navigate("/payment-success", { state: { total: donationPricing.total, count: 1, method: "bank_transfer" } });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
@@ -155,6 +158,7 @@ export default function Donations() {
   const handleOnlinePayment = async () => {
     if (!user || !formData) return;
     setProcessing(true);
+    const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
       const { data, error } = await supabase.functions.invoke("moyasar-get-config");
       if (error || !data?.publishable_key) {
@@ -170,7 +174,8 @@ export default function Donations() {
         association_id: formData.association_id,
         project_id: formData.project_id || null,
         grant_request_id: urlGrantRequestId || null,
-        total: formData.amount,
+        total: donationPricing.total,
+        subtotal: formData.amount,
       };
       sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
       const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
@@ -225,7 +230,7 @@ export default function Donations() {
               />
             ) : step === "moyasar" && formData && moyasarKey ? (
               <MoyasarPaymentForm
-                amount={formData.amount}
+                amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
                   formData.target_type === "association"
                     ? `منحة لجمعية ${formData.association_name}`

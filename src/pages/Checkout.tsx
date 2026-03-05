@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
+import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -55,7 +57,9 @@ export default function Checkout() {
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+  const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
+  const { data: commissionRate = 0.05 } = useCommissionRate();
+  const pricing = calculatePricing(subtotal, commissionRate);
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
@@ -96,7 +100,11 @@ export default function Checkout() {
           type: "checkout",
           items: paymentItems,
           beneficiary_id: selectedAssociation || null,
-          total,
+          total: pricing.total,
+          subtotal: subtotal,
+          commission: pricing.commission,
+          vat: pricing.vat,
+          commission_rate: commissionRate,
         };
 
         // Save context both in sessionStorage (primary) and URL params (fallback)
@@ -116,7 +124,8 @@ export default function Checkout() {
         }
         await bankTransfer.mutateAsync({
           receiptFile,
-          amount: total,
+          amount: pricing.total,
+          baseAmount: subtotal,
           userId: user.id,
           beneficiaryId: selectedAssociation || undefined,
           items: items.map((item) => ({
@@ -128,7 +137,7 @@ export default function Checkout() {
           })),
         });
         await clearCart.mutateAsync();
-        navigate("/payment-success", { state: { total, count: items.length, method: "bank_transfer" } });
+        navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "bank_transfer" } });
       }
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
@@ -340,7 +349,7 @@ export default function Checkout() {
                     <Separator />
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">المبلغ المطلوب</span>
-                      <span className="font-bold text-primary">{total.toLocaleString()} ر.س</span>
+                      <span className="font-bold text-primary">{pricing.total.toLocaleString()} ر.س</span>
                     </div>
                   </div>
 
@@ -404,7 +413,7 @@ export default function Checkout() {
             {/* Moyasar Payment Form */}
             {showMoyasarForm && moyasarKey && (
               <MoyasarPaymentForm
-                amount={total}
+                amount={pricing.total}
                 description={`شراء ${items.length} خدمات عبر منصة معين`}
                 callbackUrl={moyasarCallbackUrl}
                 publishableKey={moyasarKey}
@@ -441,21 +450,13 @@ export default function Checkout() {
                     <Badge variant="secondary">{items.length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">المجموع الفرعي</span>
-                    <span>{total.toLocaleString()} ر.س</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
                       {paymentMethod === "electronic" ? "دفع إلكتروني" : "تحويل بنكي"}
                     </Badge>
                   </div>
                 </div>
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>الإجمالي</span>
-                  <span className="text-primary">{total.toLocaleString()} ر.س</span>
-                </div>
+                <PricingBreakdownDisplay pricing={pricing} />
 
                 <Button
                   className="w-full"
@@ -477,7 +478,7 @@ export default function Checkout() {
                   ) : paymentMethod === "electronic" ? (
                     <>
                       <CreditCard className="h-4 w-4 me-2" />
-                      تأكيد الدفع — {total.toLocaleString()} ر.س
+                      تأكيد الدفع — {pricing.total.toLocaleString()} ر.س
                     </>
                   ) : (
                     <>
@@ -501,8 +502,8 @@ export default function Checkout() {
           title={paymentMethod === "electronic" ? "تأكيد عملية الدفع" : "تأكيد إرسال إيصال التحويل"}
           description={
             paymentMethod === "electronic"
-              ? `هل تريد تأكيد دفع ${total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
-              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
+              ? `هل تريد تأكيد دفع ${pricing.total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
+              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${pricing.total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
           }
           confirmLabel={paymentMethod === "electronic" ? "تأكيد الدفع" : "إرسال الإيصال"}
           cancelLabel="مراجعة الطلب"

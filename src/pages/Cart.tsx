@@ -11,6 +11,8 @@ import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package, Clock, LogIn } fr
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthModal from "@/components/AuthModal";
+import { calculatePricing, useCommissionRate } from "@/lib/pricing";
+import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
 
 export default function Cart() {
   const {
@@ -20,6 +22,8 @@ export default function Cart() {
   } = useUnifiedCart();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
+  const { data: commissionRate = 0.05 } = useCommissionRate();
+  const pricing = calculatePricing(total, commissionRate);
 
   const handleRemove = (id: string) => {
     removeItem(id);
@@ -203,10 +207,7 @@ export default function Cart() {
                     ))}
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>الإجمالي</span>
-                    <span className="text-primary">{total.toLocaleString()} ر.س</span>
-                  </div>
+                  <PricingBreakdownDisplay pricing={pricing} />
                   <Button className="w-full" size="lg" onClick={handleCheckout}>
                     {isLoggedIn ? (
                       <>

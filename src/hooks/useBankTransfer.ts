@@ -8,16 +8,20 @@ export function useCreateBankTransfer() {
     mutationFn: async ({
       receiptFile,
       amount,
+      baseAmount,
       userId,
       items,
       beneficiaryId,
     }: {
       receiptFile: File;
       amount: number;
+      baseAmount?: number;
       userId: string;
       items: Array<{ serviceId: string; providerId: string; price: number; title?: string }>;
       beneficiaryId?: string;
     }) => {
+      // amount = total charged (including fees), baseAmount = service price subtotal
+      const escrowAmount = baseAmount ?? amount;
       // Upload receipt
       const filePath = `${userId}/${Date.now()}_${receiptFile.name}`;
       const { error: uploadErr } = await supabase.storage
@@ -72,15 +76,18 @@ export function useCreateBankTransfer() {
         escrowIds.push(escrow.id);
       }
 
-      // Create bank_transfer records for each escrow with per-item amount
+      // Create bank_transfer records — amount here is the total charged amount
       for (let i = 0; i < escrowIds.length; i++) {
+        // Proportional total amount per item
+        const itemProportion = items[i].price / (escrowAmount || 1);
+        const itemTotalAmount = Math.round(amount * itemProportion * 100) / 100;
         const { error: btErr } = await supabase
           .from("bank_transfers" as any)
           .insert({
             escrow_id: escrowIds[i],
             user_id: userId,
             receipt_url: filePath,
-            amount: items[i].price,
+            amount: itemTotalAmount,
             status: "pending",
           } as any);
         if (btErr) throw btErr;
