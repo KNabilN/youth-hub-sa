@@ -699,6 +699,7 @@ export type Database = {
           payee_id: string
           payer_id: string
           project_id: string | null
+          receipt_url: string | null
           service_id: string | null
           status: Database["public"]["Enums"]["escrow_status"]
           updated_at: string
@@ -713,6 +714,7 @@ export type Database = {
           payee_id: string
           payer_id: string
           project_id?: string | null
+          receipt_url?: string | null
           service_id?: string | null
           status?: Database["public"]["Enums"]["escrow_status"]
           updated_at?: string
@@ -727,6 +729,7 @@ export type Database = {
           payee_id?: string
           payer_id?: string
           project_id?: string | null
+          receipt_url?: string | null
           service_id?: string | null
           status?: Database["public"]["Enums"]["escrow_status"]
           updated_at?: string
