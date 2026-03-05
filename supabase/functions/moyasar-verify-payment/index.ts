@@ -58,7 +58,7 @@ async function createInvoiceAndNotifyAdmin(
   if (admins?.length) {
     const notifications = admins.map((a: any) => ({
       user_id: a.user_id,
-      message: `فاتورة إلكترونية جديدة بمبلغ ${amount} ر.س تم إنشاؤها تلقائياً بعد دفع إلكتروني`,
+      message: `فاتورة إلكترونية جديدة بمبلغ ${baseAmount} ر.س تم إنشاؤها تلقائياً بعد دفع إلكتروني`,
       type: "payment",
     }));
     await adminClient.from("notifications").insert(notifications);
@@ -85,16 +85,15 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     const { payment_id, context } = await req.json();
 
     if (!payment_id) {

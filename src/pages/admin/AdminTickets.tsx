@@ -200,7 +200,7 @@ export default function AdminTickets() {
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         title="نقل إلى سلة المحذوفات"
-        description={`سيتم نقل التذكرة "${deleteTarget?.ticket_number}" إلى سلة المحذوفات.`}
+        description={`سيتم نقل التذكرة "${deleteTarget?.ticket_number || deleteTarget?.subject || "—"}" إلى سلة المحذوفات.`}
         confirmLabel="نقل للسلة"
         variant="destructive"
         loading={softDelete.isPending}
