@@ -13,7 +13,9 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { FileEdit, Eye, Download } from "lucide-react";
+import { FileEdit, Eye, Download, Trash2 } from "lucide-react";
+import { useSoftDelete } from "@/hooks/useTrash";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -71,6 +73,8 @@ export default function AdminProjects() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editProject, setEditProject] = useState<any>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const softDelete = useSoftDelete();
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
@@ -201,6 +205,9 @@ export default function AdminProjects() {
                         <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
                         </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(p)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -264,6 +271,21 @@ export default function AdminProjects() {
             headers: activeCols.map((c) => c.label),
             rows: rows.map((p: any) => activeCols.map((c) => colMap[c.key]?.(p) ?? "")),
           };
+        }}
+      />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل الطلب "${deleteTarget?.title}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "projects", id: deleteTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
         }}
       />
     </DashboardLayout>

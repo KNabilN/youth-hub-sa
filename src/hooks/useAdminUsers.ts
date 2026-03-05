@@ -59,7 +59,7 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
       }
 
       // Build profiles query
-      let profilesQuery = supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      let profilesQuery = supabase.from("profiles").select("*").is("deleted_at", null).order("created_at", { ascending: false });
 
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];

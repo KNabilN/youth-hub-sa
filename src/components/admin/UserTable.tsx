@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useSoftDelete } from "@/hooks/useTrash";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2 } from "lucide-react";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
 import { format } from "date-fns";
@@ -66,7 +68,9 @@ export function UserTable({ pagination }: UserTableProps) {
   const toggleSuspend = useToggleSuspension();
   const changeRole = useChangeUserRole();
   const updateProfile = useAdminUpdateProfile();
+  const softDelete = useSoftDelete();
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
@@ -324,6 +328,14 @@ export function UserTable({ pagination }: UserTableProps) {
                     >
                       {u.is_suspended ? "إلغاء التعليق" : "تعليق"}
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setDeleteTarget(u)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -404,6 +416,23 @@ export function UserTable({ pagination }: UserTableProps) {
 
       {/* Create User Dialog */}
       <AdminCreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      {/* Soft Delete Confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل "${deleteTarget?.full_name}" إلى سلة المحذوفات. يمكنك استرجاعه خلال 30 يوماً.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "profiles", id: deleteTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
+        }}
+      />
     </div>
   );
 }

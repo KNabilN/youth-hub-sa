@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Trash2, RotateCcw, Clock, Layers, FolderKanban, MessageSquare, Images, Gavel } from "lucide-react";
+import { Trash2, RotateCcw, Clock, Layers, FolderKanban, MessageSquare, Images, Gavel, Users, FileText, Handshake, Tag, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,11 +15,16 @@ import { ar } from "date-fns/locale";
 
 const tabConfig: { value: TrashTableName | "all"; label: string; icon: React.ElementType }[] = [
   { value: "all", label: "الكل", icon: Trash2 },
+  { value: "profiles", label: "مستخدمين", icon: Users },
   { value: "micro_services", label: "خدمات", icon: Layers },
   { value: "projects", label: "طلبات", icon: FolderKanban },
+  { value: "invoices", label: "فواتير", icon: FileText },
+  { value: "contracts", label: "عقود", icon: Handshake },
+  { value: "bids", label: "عروض", icon: Tag },
   { value: "support_tickets", label: "تذاكر", icon: MessageSquare },
   { value: "portfolio_items", label: "أعمال", icon: Images },
   { value: "disputes", label: "شكاوى", icon: Gavel },
+  { value: "ratings", label: "تقييمات", icon: Star },
 ];
 
 export default function Trash() {

@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 import { downloadCSV } from "@/lib/csv-export";
 
@@ -43,6 +43,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
 import { WithdrawalEscrowDetails } from "@/components/admin/WithdrawalEscrowDetails";
+import { useSoftDelete } from "@/hooks/useTrash";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const escrowStatusLabels: Record<string, string> = {
   held: "محتجز",
@@ -95,6 +97,8 @@ export default function AdminFinance() {
   const [exportWithdrawal, setExportWithdrawal] = useState(false);
   const [exportBankTransfer, setExportBankTransfer] = useState(false);
   const [expandedWithdrawalId, setExpandedWithdrawalId] = useState<string | null>(null);
+  const [deleteInvoiceTarget, setDeleteInvoiceTarget] = useState<any>(null);
+  const softDelete = useSoftDelete();
 
   // Escrow release/refund dialog
   const [escrowActionDialog, setEscrowActionDialog] = useState<{ id: string; action: "released" | "refunded"; escrow: any } | null>(null);
@@ -451,6 +455,9 @@ export default function AdminFinance() {
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" onClick={() => handleDownloadInvoice(inv)} title="تحميل PDF">
                                 <Download className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteInvoiceTarget(inv)} title="حذف">
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -907,6 +914,21 @@ export default function AdminFinance() {
           }}
         />
       </div>
+      <ConfirmDialog
+        open={!!deleteInvoiceTarget}
+        onOpenChange={(o) => !o && setDeleteInvoiceTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل الفاتورة "${deleteInvoiceTarget?.invoice_number}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate({ table: "invoices", id: deleteInvoiceTarget.id }, {
+            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteInvoiceTarget(null); },
+            onError: () => toast.error("حدث خطأ"),
+          });
+        }}
+      />
     </DashboardLayout>
   );
 }

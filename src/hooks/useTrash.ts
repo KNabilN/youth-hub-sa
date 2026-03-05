@@ -2,7 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export type TrashTableName = "micro_services" | "projects" | "support_tickets" | "portfolio_items" | "disputes";
+export type TrashTableName =
+  | "micro_services"
+  | "projects"
+  | "support_tickets"
+  | "portfolio_items"
+  | "disputes"
+  | "profiles"
+  | "invoices"
+  | "contracts"
+  | "bids"
+  | "ratings";
 
 const tableConfig: Record<TrashTableName, { label: string; ownerCol: string; titleCol: string }> = {
   micro_services: { label: "خدمات", ownerCol: "provider_id", titleCol: "title" },
@@ -10,6 +20,11 @@ const tableConfig: Record<TrashTableName, { label: string; ownerCol: string; tit
   support_tickets: { label: "تذاكر", ownerCol: "user_id", titleCol: "subject" },
   portfolio_items: { label: "أعمال المعرض", ownerCol: "provider_id", titleCol: "title" },
   disputes: { label: "شكاوى", ownerCol: "raised_by", titleCol: "description" },
+  profiles: { label: "مستخدمين", ownerCol: "id", titleCol: "full_name" },
+  invoices: { label: "فواتير", ownerCol: "issued_to", titleCol: "invoice_number" },
+  contracts: { label: "عقود", ownerCol: "association_id", titleCol: "terms" },
+  bids: { label: "عروض أسعار", ownerCol: "provider_id", titleCol: "cover_letter" },
+  ratings: { label: "تقييمات", ownerCol: "rater_id", titleCol: "comment" },
 };
 
 export interface TrashItem {
@@ -22,9 +37,11 @@ export interface TrashItem {
 }
 
 export function useTrashItems() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isAdmin = role === "super_admin";
+
   return useQuery({
-    queryKey: ["trash-items", user?.id],
+    queryKey: ["trash-items", user?.id, isAdmin],
     enabled: !!user,
     queryFn: async () => {
       const userId = user!.id;
@@ -32,12 +49,16 @@ export function useTrashItems() {
       const now = new Date();
 
       for (const [table, cfg] of Object.entries(tableConfig) as [TrashTableName, typeof tableConfig[TrashTableName]][]) {
-        const { data } = await (supabase
-          .from(table)
-          .select("*") as any)
-          .eq(cfg.ownerCol, userId)
+        let query = (supabase.from(table).select("*") as any)
           .not("deleted_at", "is", null)
           .order("deleted_at", { ascending: false });
+
+        // Non-admin users only see their own items
+        if (!isAdmin) {
+          query = query.eq(cfg.ownerCol, userId);
+        }
+
+        const { data } = await query;
 
         if (data) {
           for (const row of data as any[]) {
@@ -83,6 +104,11 @@ export function useRestoreItem() {
       qc.invalidateQueries({ queryKey: ["portfolio"] });
       qc.invalidateQueries({ queryKey: ["my-disputes"] });
       qc.invalidateQueries({ queryKey: ["admin-services"] });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-invoices"] });
+      qc.invalidateQueries({ queryKey: ["admin-disputes"] });
+      qc.invalidateQueries({ queryKey: ["admin-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
     },
   });
 }
@@ -116,26 +142,45 @@ export function useSoftDelete() {
         qc.invalidateQueries({ queryKey: ["my-services"] });
         qc.invalidateQueries({ queryKey: ["admin-services"] });
       }
-      if (vars.table === "projects") qc.invalidateQueries({ queryKey: ["projects"] });
-      if (vars.table === "support_tickets") qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      if (vars.table === "projects") {
+        qc.invalidateQueries({ queryKey: ["projects"] });
+        qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      }
+      if (vars.table === "support_tickets") {
+        qc.invalidateQueries({ queryKey: ["support-tickets"] });
+        qc.invalidateQueries({ queryKey: ["admin-tickets"] });
+      }
       if (vars.table === "portfolio_items") qc.invalidateQueries({ queryKey: ["portfolio"] });
-      if (vars.table === "disputes") qc.invalidateQueries({ queryKey: ["my-disputes"] });
+      if (vars.table === "disputes") {
+        qc.invalidateQueries({ queryKey: ["my-disputes"] });
+        qc.invalidateQueries({ queryKey: ["admin-disputes"] });
+      }
+      if (vars.table === "profiles") qc.invalidateQueries({ queryKey: ["admin-users"] });
+      if (vars.table === "invoices") qc.invalidateQueries({ queryKey: ["admin-invoices"] });
+      if (vars.table === "contracts") qc.invalidateQueries({ queryKey: ["admin-escrow"] });
+      if (vars.table === "bids") qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      if (vars.table === "ratings") qc.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
 }
 
 export function useEmptyTrash() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isAdmin = role === "super_admin";
+
   return useMutation({
     mutationFn: async () => {
       const userId = user!.id;
       for (const [table, cfg] of Object.entries(tableConfig) as [TrashTableName, typeof tableConfig[TrashTableName]][]) {
-        await (supabase
-          .from(table)
-          .delete() as any)
-          .eq(cfg.ownerCol, userId)
+        let query = (supabase.from(table).delete() as any)
           .not("deleted_at", "is", null);
+
+        if (!isAdmin) {
+          query = query.eq(cfg.ownerCol, userId);
+        }
+
+        await query;
       }
     },
     onSuccess: () => {
@@ -145,6 +190,12 @@ export function useEmptyTrash() {
       qc.invalidateQueries({ queryKey: ["support-tickets"] });
       qc.invalidateQueries({ queryKey: ["portfolio"] });
       qc.invalidateQueries({ queryKey: ["my-disputes"] });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-invoices"] });
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["admin-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-disputes"] });
     },
   });
 }

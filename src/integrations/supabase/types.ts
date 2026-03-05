@@ -159,6 +159,7 @@ export type Database = {
         Row: {
           cover_letter: string
           created_at: string
+          deleted_at: string | null
           id: string
           price: number
           project_id: string
@@ -170,6 +171,7 @@ export type Database = {
         Insert: {
           cover_letter?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           price: number
           project_id: string
@@ -181,6 +183,7 @@ export type Database = {
         Update: {
           cover_letter?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           price?: number
           project_id?: string
@@ -399,6 +402,7 @@ export type Database = {
           association_id: string
           association_signed_at: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           project_id: string
           provider_id: string
@@ -409,6 +413,7 @@ export type Database = {
           association_id: string
           association_signed_at?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           project_id: string
           provider_id: string
@@ -419,6 +424,7 @@ export type Database = {
           association_id?: string
           association_signed_at?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           project_id?: string
           provider_id?: string
@@ -945,6 +951,7 @@ export type Database = {
           archived_at: string | null
           commission_amount: number
           created_at: string
+          deleted_at: string | null
           escrow_id: string | null
           id: string
           invoice_number: string
@@ -957,6 +964,7 @@ export type Database = {
           archived_at?: string | null
           commission_amount: number
           created_at?: string
+          deleted_at?: string | null
           escrow_id?: string | null
           id?: string
           invoice_number: string
@@ -969,6 +977,7 @@ export type Database = {
           archived_at?: string | null
           commission_amount?: number
           created_at?: string
+          deleted_at?: string | null
           escrow_id?: string | null
           id?: string
           invoice_number?: string
@@ -1311,6 +1320,7 @@ export type Database = {
           contact_officer_title: string | null
           cover_image_url: string | null
           created_at: string
+          deleted_at: string | null
           email_notifications: boolean
           full_name: string
           hourly_rate: number | null
@@ -1347,6 +1357,7 @@ export type Database = {
           contact_officer_title?: string | null
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email_notifications?: boolean
           full_name?: string
           hourly_rate?: number | null
@@ -1383,6 +1394,7 @@ export type Database = {
           contact_officer_title?: string | null
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email_notifications?: boolean
           full_name?: string
           hourly_rate?: number | null
@@ -1577,6 +1589,7 @@ export type Database = {
           communication_score: number
           contract_id: string
           created_at: string
+          deleted_at: string | null
           id: string
           quality_score: number
           rater_id: string
@@ -1587,6 +1600,7 @@ export type Database = {
           communication_score: number
           contract_id: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           quality_score: number
           rater_id: string
@@ -1597,6 +1611,7 @@ export type Database = {
           communication_score?: number
           contract_id?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           quality_score?: number
           rater_id?: string
