@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
@@ -49,6 +50,8 @@ export default function Checkout() {
   const [copied, setCopied] = useState(false);
   const [selectedAssociation, setSelectedAssociation] = useState<string>("");
   const [assocOpen, setAssocOpen] = useState(false);
+  const [showMoyasarForm, setShowMoyasarForm] = useState(false);
+  const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
@@ -67,8 +70,14 @@ export default function Checkout() {
 
     try {
       if (paymentMethod === "electronic") {
-        // Moyasar online payment flow
-        const callbackUrl = `${window.location.origin}/payment-callback`;
+        // Fetch Moyasar publishable key and show form
+        const { data, error } = await supabase.functions.invoke("moyasar-get-config");
+        if (error || !data?.publishable_key) {
+          toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
+          setProcessing(false);
+          return;
+        }
+
         const paymentItems = items.map((item) => ({
           service_id: item.micro_services.id,
           provider_id: item.micro_services.provider_id,
@@ -85,27 +94,9 @@ export default function Checkout() {
           total,
         }));
 
-        const { data, error } = await supabase.functions.invoke("moyasar-create-payment", {
-          body: {
-            amount: total,
-            description: `شراء ${items.length} خدمات عبر منصة معين`,
-            callback_url: callbackUrl,
-            metadata: {
-              type: "checkout",
-              items: paymentItems,
-              beneficiary_id: selectedAssociation || null,
-            },
-          },
-        });
-
-        if (error || !data?.transaction_url) {
-          toast.error("حدث خطأ أثناء إنشاء عملية الدفع");
-          setProcessing(false);
-          return;
-        }
-
-        // Redirect to Moyasar 3DS page
-        window.location.href = data.transaction_url;
+        setMoyasarKey(data.publishable_key);
+        setShowMoyasarForm(true);
+        setProcessing(false);
       } else {
         if (!receiptFile) {
           toast.error("يرجى رفع صورة إيصال التحويل");
@@ -399,6 +390,21 @@ export default function Checkout() {
               </Card>
             )}
 
+            {/* Moyasar Payment Form */}
+            {showMoyasarForm && moyasarKey && (
+              <MoyasarPaymentForm
+                amount={total}
+                description={`شراء ${items.length} خدمات عبر منصة معين`}
+                callbackUrl={`${window.location.origin}/payment-callback`}
+                publishableKey={moyasarKey}
+                metadata={{
+                  type: "checkout",
+                  user_id: user?.id,
+                }}
+              />
+            )}
+
+            {!showMoyasarForm && (
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -411,6 +417,7 @@ export default function Checkout() {
                 </div>
               </CardContent>
             </Card>
+            )}
           </div>
 
           {/* Payment Summary */}

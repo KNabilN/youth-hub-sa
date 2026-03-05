@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.notify-deliverable]
 verify_jwt = false
+
+[functions.moyasar-verify-payment]
+verify_jwt = false
+
+[functions.moyasar-get-config]
+verify_jwt = false

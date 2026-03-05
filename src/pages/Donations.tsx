@@ -20,6 +20,7 @@ import { ar } from "date-fns/locale";
 import { HandCoins } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   available: { label: "متاح", variant: "default" },
@@ -51,9 +52,10 @@ export default function Donations() {
   const urlProjectId = searchParams.get("project_id") || undefined;
   const urlGrantRequestId = searchParams.get("grant_request_id") || undefined;
 
-  const [step, setStep] = useState<"form" | "payment">("form");
+  const [step, setStep] = useState<"form" | "payment" | "moyasar">("form");
   const [formData, setFormData] = useState<DonationFormData | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
 
   const handleFormSubmit = (data: DonationFormData) => {
     setFormData(data);
@@ -148,7 +150,12 @@ export default function Donations() {
     if (!user || !formData) return;
     setProcessing(true);
     try {
-      const callbackUrl = `${window.location.origin}/payment-callback`;
+      const { data, error } = await supabase.functions.invoke("moyasar-get-config");
+      if (error || !data?.publishable_key) {
+        toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
+        setProcessing(false);
+        return;
+      }
 
       // Save context for callback verification
       sessionStorage.setItem("moyasar_payment_context", JSON.stringify({
@@ -160,33 +167,11 @@ export default function Donations() {
         total: formData.amount,
       }));
 
-      const { data, error } = await supabase.functions.invoke("moyasar-create-payment", {
-        body: {
-          amount: formData.amount,
-          description: formData.target_type === "association"
-            ? `منحة لجمعية ${formData.association_name}`
-            : `منحة لطلب ${formData.project_title}`,
-          callback_url: callbackUrl,
-          metadata: {
-            type: "donation",
-            target_type: formData.target_type,
-            association_id: formData.association_id,
-            project_id: formData.project_id || null,
-            grant_request_id: urlGrantRequestId || null,
-          },
-        },
-      });
-
-      if (error || !data?.transaction_url) {
-        toast.error("حدث خطأ أثناء إنشاء عملية الدفع");
-        setProcessing(false);
-        return;
-      }
-
-      // Redirect to Moyasar 3DS page
-      window.location.href = data.transaction_url;
+      setMoyasarKey(data.publishable_key);
+      setStep("moyasar");
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
+    } finally {
       setProcessing(false);
     }
   };
@@ -217,7 +202,7 @@ export default function Donations() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
-            <StepProgress steps={donationSteps} currentStep={step === "form" ? 0 : 1} className="mt-2" />
+            <StepProgress steps={donationSteps} currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2} className="mt-2" />
           </CardHeader>
           <CardContent>
             {step === "form" ? (
@@ -227,6 +212,21 @@ export default function Donations() {
                 defaultAmount={urlAmount}
                 defaultProjectId={urlProjectId}
                 defaultTargetType={urlProjectId ? "project" : undefined}
+              />
+            ) : step === "moyasar" && formData && moyasarKey ? (
+              <MoyasarPaymentForm
+                amount={formData.amount}
+                description={
+                  formData.target_type === "association"
+                    ? `منحة لجمعية ${formData.association_name}`
+                    : `منحة لطلب ${formData.project_title}`
+                }
+                callbackUrl={`${window.location.origin}/payment-callback`}
+                publishableKey={moyasarKey}
+                metadata={{
+                  type: "donation",
+                  user_id: user?.id,
+                }}
               />
             ) : formData ? (
               <DonationPaymentStep
