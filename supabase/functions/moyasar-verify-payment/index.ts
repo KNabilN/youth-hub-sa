@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -27,16 +26,15 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
+    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     const { payment_id, context } = await req.json();
 
     if (!payment_id) {
@@ -101,119 +99,12 @@ Deno.serve(async (req) => {
 
     // Context determines what type of payment this is
     const paymentContext = context || paymentData.metadata || {};
-    const contextType = paymentContext.type; // "checkout" or "donation"
+    const contextType = paymentContext.type;
 
     if (contextType === "checkout") {
-      // Process cart checkout items
-      const items = paymentContext.items || [];
-      const beneficiaryId = paymentContext.beneficiary_id || null;
-
-      for (const item of items) {
-        let projectId: string | null = null;
-
-        // Create project if beneficiary is selected
-        if (beneficiaryId) {
-          const title = item.title || "خدمة ممولة من مانح";
-          const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
-          const { data: project, error: projErr } = await adminClient
-            .from("projects")
-            .insert({
-              title: title + hoursNote,
-              description: `خدمة ممولة تلقائياً من مانح — ${title}${hoursNote}`,
-              association_id: beneficiaryId,
-              assigned_provider_id: item.provider_id,
-              status: "in_progress",
-              budget: item.price,
-              is_private: true,
-            })
-            .select("id")
-            .single();
-          if (projErr) {
-            console.error("Project creation error:", projErr);
-          } else {
-            projectId = project.id;
-            // Notify association
-            await adminClient.from("notifications").insert({
-              user_id: beneficiaryId,
-              message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
-              type: "donor_funded_service",
-            });
-          }
-        }
-
-        // Create escrow transaction
-        await adminClient.from("escrow_transactions").insert({
-          service_id: item.service_id,
-          payer_id: userId,
-          payee_id: item.provider_id,
-          amount: item.price,
-          status: "held",
-          project_id: projectId,
-          beneficiary_id: beneficiaryId,
-        });
-
-        // Create donor contribution record
-        await adminClient.from("donor_contributions").insert({
-          donor_id: userId,
-          service_id: item.service_id,
-          association_id: beneficiaryId,
-          amount: item.price,
-        });
-      }
-
-      // Clear cart
-      await adminClient.from("cart_items").delete().eq("user_id", userId);
+      await processCheckout(adminClient, userId, paymentContext);
     } else if (contextType === "donation") {
-      // Process donation
-      const targetType = paymentContext.target_type;
-      const associationId = paymentContext.association_id;
-      const projectId = paymentContext.project_id || null;
-      const grantRequestId = paymentContext.grant_request_id || null;
-
-      if (targetType === "association") {
-        await adminClient.from("escrow_transactions").insert({
-          payer_id: userId,
-          payee_id: associationId,
-          beneficiary_id: associationId,
-          amount: amountSAR,
-          status: "held",
-          grant_request_id: grantRequestId,
-        });
-      } else {
-        // project donation
-        const { data: project } = await adminClient
-          .from("projects")
-          .select("assigned_provider_id")
-          .eq("id", projectId)
-          .single();
-
-        const payeeId = project?.assigned_provider_id || associationId;
-
-        await adminClient.from("escrow_transactions").insert({
-          payer_id: userId,
-          payee_id: payeeId,
-          beneficiary_id: associationId,
-          amount: amountSAR,
-          status: "held",
-          project_id: projectId,
-          grant_request_id: grantRequestId,
-        });
-      }
-
-      await adminClient.from("donor_contributions").insert({
-        donor_id: userId,
-        amount: amountSAR,
-        project_id: projectId,
-        association_id: associationId,
-      });
-
-      // Update grant request status if applicable
-      if (grantRequestId) {
-        await adminClient
-          .from("grant_requests")
-          .update({ status: "funded" })
-          .eq("id", grantRequestId);
-      }
+      await processDonation(adminClient, userId, paymentContext, amountSAR);
     }
 
     return new Response(
@@ -233,3 +124,109 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+async function processCheckout(adminClient: any, userId: string, ctx: any) {
+  const items = ctx.items || [];
+  const beneficiaryId = ctx.beneficiary_id || null;
+
+  for (const item of items) {
+    let projectId: string | null = null;
+
+    if (beneficiaryId) {
+      const title = item.title || "خدمة ممولة من مانح";
+      const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
+      const { data: project, error: projErr } = await adminClient
+        .from("projects")
+        .insert({
+          title: title + hoursNote,
+          description: `خدمة ممولة تلقائياً من مانح — ${title}${hoursNote}`,
+          association_id: beneficiaryId,
+          assigned_provider_id: item.provider_id,
+          status: "in_progress",
+          budget: item.price,
+          is_private: true,
+        })
+        .select("id")
+        .single();
+      if (projErr) {
+        console.error("Project creation error:", projErr);
+      } else {
+        projectId = project.id;
+        await adminClient.from("notifications").insert({
+          user_id: beneficiaryId,
+          message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
+          type: "donor_funded_service",
+        });
+      }
+    }
+
+    await adminClient.from("escrow_transactions").insert({
+      service_id: item.service_id,
+      payer_id: userId,
+      payee_id: item.provider_id,
+      amount: item.price,
+      status: "held",
+      project_id: projectId,
+      beneficiary_id: beneficiaryId,
+    });
+
+    await adminClient.from("donor_contributions").insert({
+      donor_id: userId,
+      service_id: item.service_id,
+      association_id: beneficiaryId,
+      amount: item.price,
+    });
+  }
+
+  await adminClient.from("cart_items").delete().eq("user_id", userId);
+}
+
+async function processDonation(adminClient: any, userId: string, ctx: any, amountSAR: number) {
+  const targetType = ctx.target_type;
+  const associationId = ctx.association_id;
+  const projectId = ctx.project_id || null;
+  const grantRequestId = ctx.grant_request_id || null;
+
+  if (targetType === "association") {
+    await adminClient.from("escrow_transactions").insert({
+      payer_id: userId,
+      payee_id: associationId,
+      beneficiary_id: associationId,
+      amount: amountSAR,
+      status: "held",
+      grant_request_id: grantRequestId,
+    });
+  } else {
+    const { data: project } = await adminClient
+      .from("projects")
+      .select("assigned_provider_id")
+      .eq("id", projectId)
+      .single();
+
+    const payeeId = project?.assigned_provider_id || associationId;
+
+    await adminClient.from("escrow_transactions").insert({
+      payer_id: userId,
+      payee_id: payeeId,
+      beneficiary_id: associationId,
+      amount: amountSAR,
+      status: "held",
+      project_id: projectId,
+      grant_request_id: grantRequestId,
+    });
+  }
+
+  await adminClient.from("donor_contributions").insert({
+    donor_id: userId,
+    amount: amountSAR,
+    project_id: projectId,
+    association_id: associationId,
+  });
+
+  if (grantRequestId) {
+    await adminClient
+      .from("grant_requests")
+      .update({ status: "funded" })
+      .eq("id", grantRequestId);
+  }
+}
