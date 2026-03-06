@@ -1497,6 +1497,7 @@ export type Database = {
           estimated_hours: number | null
           id: string
           is_featured: boolean
+          is_name_visible: boolean
           is_private: boolean
           region_id: string | null
           request_number: string
@@ -1517,6 +1518,7 @@ export type Database = {
           estimated_hours?: number | null
           id?: string
           is_featured?: boolean
+          is_name_visible?: boolean
           is_private?: boolean
           region_id?: string | null
           request_number?: string
@@ -1537,6 +1539,7 @@ export type Database = {
           estimated_hours?: number | null
           id?: string
           is_featured?: boolean
+          is_name_visible?: boolean
           is_private?: boolean
           region_id?: string | null
           request_number?: string

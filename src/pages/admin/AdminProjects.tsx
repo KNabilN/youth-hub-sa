@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleAssociationVisibility } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export default function AdminProjects() {
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
-  const toggleVisibility = useToggleAssociationVisibility();
+  const toggleVisibility = useToggleProjectNameVisibility();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -164,9 +164,9 @@ export default function AdminProjects() {
                       <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>
                         <Switch
-                          checked={p.profiles?.is_name_visible ?? true}
+                          checked={(p as any).is_name_visible ?? true}
                           onCheckedChange={(checked) => {
-                            toggleVisibility.mutate({ profileId: p.association_id, visible: checked }, {
+                            toggleVisibility.mutate({ projectId: p.id, visible: checked }, {
                               onSuccess: () => toast.success(checked ? "تم إظهار اسم الجمعية" : "تم إخفاء اسم الجمعية"),
                               onError: () => toast.error("حدث خطأ"),
                             });

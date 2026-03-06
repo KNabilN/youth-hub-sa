@@ -10,7 +10,7 @@ export function useAdminProjects(from = 0, to = 19) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name, is_name_visible)")
+        .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name)")
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -42,11 +42,11 @@ export function useAdminUpdateProject() {
   });
 }
 
-export function useToggleAssociationVisibility() {
+export function useToggleProjectNameVisibility() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ profileId, visible }: { profileId: string; visible: boolean }) => {
-      const { error } = await supabase.from("profiles").update({ is_name_visible: visible }).eq("id", profileId);
+    mutationFn: async ({ projectId, visible }: { projectId: string; visible: boolean }) => {
+      const { error } = await supabase.from("projects").update({ is_name_visible: visible }).eq("id", projectId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
