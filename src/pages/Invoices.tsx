@@ -42,13 +42,26 @@ export default function Invoices() {
 
   const handleDownloadPDF = async (inv: any) => {
     try {
+      const escrow = inv.escrow_transactions;
+      const hasProject = !!escrow?.project_id;
+      const hasService = !!escrow?.service_id;
+      const hasGrant = !!escrow?.grant_request_id;
+      const invoiceType = hasProject ? "project" : hasService ? "service" : hasGrant ? "grant" : "other";
+      const linkedEntityName = hasProject
+        ? escrow?.projects?.title
+        : hasService
+        ? escrow?.micro_services?.title
+        : undefined;
+
       const invoiceData: InvoiceData = {
         invoiceNumber: inv.invoice_number,
         amount: Number(inv.amount),
         commissionAmount: Number(inv.commission_amount),
         createdAt: inv.created_at,
-        projectTitle: inv.escrow_transactions?.projects?.title ?? "خدمة",
+        projectTitle: linkedEntityName ?? "—",
         recipientName: profile?.full_name ?? "—",
+        invoiceType: invoiceType as any,
+        linkedEntityName,
       };
       await generateInvoicePDF(invoiceData, template);
 
