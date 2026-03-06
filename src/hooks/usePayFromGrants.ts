@@ -47,7 +47,7 @@ export function usePayFromGrants() {
           remaining -= cAmount;
           const { error } = await supabase
             .from("donor_contributions")
-            .update({ donation_status: "consumed" })
+            .update({ donation_status: "consumed", project_id: projectId || null, service_id: serviceId || null })
             .eq("id", c.id);
           if (error) { console.error("consume full contribution error:", error); throw error; }
         } else {
@@ -71,6 +71,8 @@ export function usePayFromGrants() {
               association_id: (c as any).association_id ?? user!.id,
               amount: usedAmount,
               donation_status: "consumed",
+              project_id: projectId || null,
+              service_id: serviceId || null,
             });
           if (insErr) { console.error("insert consumed portion error:", insErr); throw insErr; }
         }
