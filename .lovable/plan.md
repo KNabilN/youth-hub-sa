@@ -1,25 +1,85 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+## خطة تأمين النظام المالي ضد الثغرات وسيناريوهات الخطأ
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+بعد مراجعة شاملة للنظام المالي عبر جميع المسارات (دفع إلكتروني، تحويل بنكي، منح، سحب، ضمان مالي)، وُجدت عدة ثغرات حرجة يجب معالجتها:
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+---
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### الثغرات المكتشفة
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+| # | الثغرة | الخطورة | الوصف |
+|---|--------|---------|-------|
+| 1 | **عدم وجود UNIQUE constraint على `escrow_id` في `withdrawal_requests`** | حرجة | مزود الخدمة يمكنه إرسال طلبات سحب متعددة لنفس الضمان المالي (race condition عند الضغط السريع أو انقطاع النت) |
+| 2 | **عدم وجود idempotency check في `processProjectPayment`** | حرجة | إذا استدعيت الـ edge function مرتين (retry بسبب timeout)، يتم إنشاء escrow مكرر + عقد مكرر + فاتورة مكررة |
+| 3 | **عدم وجود idempotency check في `useCreateEscrow`** | متوسطة | الفحص الحالي يبحث عن أي escrow للمشروع لكن لا يفحص الحالة — escrow بحالة `failed` أو `refunded` يمنع إنشاء واحد جديد |
+| 4 | **Client-side فقط لمنع السحب المكرر** | حرجة | `withdrawnEscrowIds` يتم حسابها في الـ UI فقط — لا يوجد constraint في DB يمنع الإدخال المكرر |
+| 5 | **عدم وجود optimistic locking على تحديث escrow status** | عالية | Admin يمكنه release ثم release مرة أخرى لنفس الضمان (double release) |
+| 6 | **`usePayFromGrants` بدون transaction** | عالية | إذا فشل إنشاء الـ escrow بعد خصم المنح، تضيع الأموال من رصيد المنح بدون إنشاء ضمان |
+| 7 | **Client-side disable فقط لزرار الإتمام** | متوسطة | إذا ضُغط مرتين بسرعة، يتم release الـ escrow مرتين (الثاني سيفشل لكن قد ينشئ فاتورة مكررة) |
+| 8 | **`handleApproveWithdrawal` بدون فحص حالة الطلب** | عالية | Admin يمكنه الموافقة على نفس طلب السحب مرتين إذا فتح التبويب من مكانين |
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+---
 
-### التغييرات
+### التعديلات المطلوبة
 
-| الملف | التغيير |
+#### 1. Database Migration — Constraints حرجة
+
+```sql
+-- منع السحب المكرر لنفس الضمان المالي
+ALTER TABLE withdrawal_requests 
+  ADD CONSTRAINT unique_escrow_withdrawal 
+  UNIQUE (escrow_id) WHERE (status != 'rejected');
+
+-- منع إنشاء escrow مكرر لنفس المشروع بحالة فعالة  
+CREATE UNIQUE INDEX unique_active_project_escrow 
+  ON escrow_transactions(project_id) 
+  WHERE status IN ('held', 'released', 'pending_payment');
+```
+
+#### 2. Edge Function `moyasar-verify-payment` — Idempotency
+
+في `processProjectPayment`: فحص وجود escrow فعال للمشروع قبل الإنشاء. إذا موجود، return بدون إنشاء مكرر.
+
+#### 3. `useEscrow.ts` — إصلاح فحص الوجود
+
+في `useCreateEscrow`: تعديل الفحص ليستثني الحالات الميتة (`failed`, `refunded`) فقط ويمنع الإنشاء إذا كان هناك escrow بحالة فعالة.
+
+#### 4. `useWithdrawals.ts` — Server-side duplicate prevention
+
+إضافة فحص قبل الإدخال: هل يوجد طلب سحب غير مرفوض لنفس الـ `escrow_id`؟
+
+#### 5. `useAdminFinance` — Optimistic locking لتحديث الحالات
+
+عند release/refund: إضافة `.eq("status", "held")` للتأكد من أن الحالة لم تتغير.  
+عند الموافقة على السحب: إضافة `.eq("status", "pending")`.
+
+#### 6. `usePayFromGrants.ts` — إعادة المنح عند الفشل
+
+إضافة try/catch حول إنشاء الـ escrow، وفي حالة الفشل: إعادة حالة المنح المستهلكة إلى `available`.
+
+#### 7. UI — منع الضغط المزدوج
+
+إضافة `loading` state + تعطيل الأزرار أثناء المعالجة في:
+- `handleComplete` (موجود جزئياً)
+- `handleApproveWithdrawal`
+- `handleEscrowWithReceipt`
+
+#### 8. `useReleaseEscrow` — فحص الحالة قبل التحديث
+
+إضافة `.eq("status", "held")` في الـ update بدلاً من الاعتماد على الفحص المنفصل (race condition بين select و update).
+
+---
+
+### ملخص الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
-
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+| Migration SQL | UNIQUE constraint + partial index |
+| `supabase/functions/moyasar-verify-payment/index.ts` | Idempotency check في processProjectPayment |
+| `src/hooks/useEscrow.ts` | إصلاح فحص الوجود + optimistic lock في release |
+| `src/hooks/useWithdrawals.ts` | Server-side duplicate check قبل insert |
+| `src/hooks/usePayFromGrants.ts` | Rollback المنح عند فشل إنشاء escrow |
+| `src/pages/admin/AdminFinance.tsx` | Optimistic locking + منع ضغط مزدوج |
+| `src/pages/ProjectDetails.tsx` | Optimistic lock في release escrow |
 
