@@ -591,7 +591,7 @@ export default function ProjectDetails() {
                               description={`دفع ضمان مالي — ${project.title}`}
                               callbackUrl={moyasarCallbackUrl}
                               publishableKey={moyasarKey}
-                              metadata={useMemo(() => ({ type: "project_payment", user_id: user?.id, project_id: project.id }), [user?.id, project.id])}
+                              metadata={moyasarMetadata}
                             />
                           )}
 
