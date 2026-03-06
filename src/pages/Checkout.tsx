@@ -7,6 +7,8 @@ import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
+import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown } from "lucide-react";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -38,16 +40,18 @@ const BANK_INFO = {
 };
 
 export default function Checkout() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: items, isLoading } = useCartItems();
   const purchase = usePurchaseService();
   const bankTransfer = useCreateBankTransfer();
   const clearCart = useClearCart();
   const navigate = useNavigate();
   const { data: associations } = useVerifiedAssociations();
+  const { data: grantBalance } = useAssociationGrantBalance();
+  const payFromGrants = usePayFromGrants();
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
+  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer" | "grant_balance">("electronic");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedAssociation, setSelectedAssociation] = useState<string>("");
@@ -60,6 +64,7 @@ export default function Checkout() {
   const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
   const { data: commissionRate = 0.05 } = useCommissionRate();
   const pricing = calculatePricing(subtotal, commissionRate);
+  const hasGrantBalance = role === "youth_association" && (grantBalance?.available ?? 0) >= pricing.total;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
@@ -116,6 +121,17 @@ export default function Checkout() {
         setMoyasarCallbackUrl(callbackUrl);
         setShowMoyasarForm(true);
         setProcessing(false);
+      } else if (paymentMethod === "grant_balance") {
+        // Pay from grant balance
+        for (const item of items) {
+          await payFromGrants.mutateAsync({
+            amount: item.micro_services.price * item.quantity,
+            payeeId: item.micro_services.provider_id,
+            serviceId: item.micro_services.id,
+          });
+        }
+        await clearCart.mutateAsync();
+        navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "grant_balance" } });
       } else {
         if (!receiptFile) {
           toast.error("يرجى رفع صورة إيصال التحويل");
@@ -288,7 +304,7 @@ export default function Checkout() {
               <CardContent>
                 <RadioGroup
                   value={paymentMethod}
-                  onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer")}
+                  onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer" | "grant_balance")}
                   className="space-y-3"
                 >
                   <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
@@ -312,6 +328,19 @@ export default function Checkout() {
                       </div>
                     </Label>
                   </div>
+
+                  {hasGrantBalance && (
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "grant_balance" ? "border-primary bg-primary/5" : "border-border"}`}>
+                      <RadioGroupItem value="grant_balance" id="grant_balance" />
+                      <Label htmlFor="grant_balance" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Wallet className="h-5 w-5 text-success" />
+                        <div>
+                          <p className="font-medium">الدفع من رصيد المنح</p>
+                          <p className="text-xs text-muted-foreground">الرصيد المتاح: {grantBalance?.available?.toLocaleString()} ر.س</p>
+                        </div>
+                      </Label>
+                    </div>
+                  )}
                 </RadioGroup>
               </CardContent>
             </Card>
@@ -452,7 +481,7 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
-                      {paymentMethod === "electronic" ? "دفع إلكتروني" : "تحويل بنكي"}
+                      {paymentMethod === "electronic" ? "دفع إلكتروني" : paymentMethod === "grant_balance" ? "رصيد المنح" : "تحويل بنكي"}
                     </Badge>
                   </div>
                 </div>

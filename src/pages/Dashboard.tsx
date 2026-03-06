@@ -8,12 +8,13 @@ import { useDonorStats } from "@/hooks/useDonorStats";
 import { useImpactReportsCount } from "@/hooks/useImpactReports";
 import { usePendingRatings } from "@/hooks/usePendingRatings";
 import { useProfile } from "@/hooks/useProfile";
+import { useAssociationGrantStats } from "@/hooks/useAssociationGrants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays,
+  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays, Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
@@ -76,12 +77,13 @@ function StatsGrid({ items, isLoading }: { items: StatItem[]; isLoading: boolean
 
 function AssociationDashboard() {
   const { data: stats, isLoading } = useProjectStats();
+  const { data: grantStats } = useAssociationGrantStats();
   const items: StatItem[] = [
     { title: "إجمالي الطلبات", value: stats?.totalRequests ?? 0, icon: Layers, color: "accent" },
     { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
-    { title: "ساعات قيد المراجعة", value: stats?.pendingHours ?? 0, icon: ClipboardList, color: "warning" },
-    { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "info" },
-    { title: "متوسط التقييم", value: stats?.avgRating ?? "0", icon: BarChart3, color: "success" },
+    { title: "إجمالي المنح", value: `${(grantStats?.totalGrants ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "info" },
+    { title: "رصيد المنح المتبقي", value: `${(grantStats?.availableBalance ?? 0).toLocaleString()} ر.س`, icon: Wallet, color: "success" },
+    { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "warning" },
   ];
   return <StatsGrid items={items} isLoading={isLoading} />;
 }
