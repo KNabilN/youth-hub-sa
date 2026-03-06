@@ -23,14 +23,12 @@ const Projects = lazy(() => import("./pages/Projects"));
 const ProjectCreate = lazy(() => import("./pages/ProjectCreate"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const ProjectEdit = lazy(() => import("./pages/ProjectEdit"));
-const TimeLogs = lazy(() => import("./pages/TimeLogs"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Ratings = lazy(() => import("./pages/Ratings"));
 const MyServices = lazy(() => import("./pages/MyServices"));
 const AvailableProjects = lazy(() => import("./pages/AvailableProjects"));
 const ProjectBidView = lazy(() => import("./pages/ProjectBidView"));
 const MyBids = lazy(() => import("./pages/MyBids"));
-const TimeTracking = lazy(() => import("./pages/TimeTracking"));
 const Earnings = lazy(() => import("./pages/Earnings"));
 
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
@@ -138,14 +136,12 @@ const App = () => (
                 <Route path="/projects/new" element={<ProtectedRoute><SuspenseWrap><ProjectCreate /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectDetails /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/:id/edit" element={<ProtectedRoute><SuspenseWrap><ProjectEdit /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/time-logs" element={<ProtectedRoute><SuspenseWrap><TimeLogs /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/marketplace" element={<ProtectedRoute><SuspenseWrap><Marketplace /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/ratings" element={<ProtectedRoute><SuspenseWrap><Ratings /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-services" element={<ProtectedRoute><SuspenseWrap><MyServices /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/available-projects" element={<ProtectedRoute><SuspenseWrap><AvailableProjects /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/available-projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectBidView /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-bids" element={<ProtectedRoute><SuspenseWrap><MyBids /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/time-tracking" element={<ProtectedRoute><SuspenseWrap><TimeTracking /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/earnings" element={<ProtectedRoute><SuspenseWrap><Earnings /></SuspenseWrap></ProtectedRoute>} />
                 
                 <Route path="/tickets" element={<ProtectedRoute><SuspenseWrap><SupportTickets /></SuspenseWrap></ProtectedRoute>} />

@@ -28,12 +28,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { DeliverablePanel } from "@/components/deliverables/DeliverablePanel";
 import { useDeliverable } from "@/hooks/useDeliverables";
+import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
+import { WorkTimer } from "@/components/provider/WorkTimer";
+import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +55,8 @@ export default function ProjectDetails() {
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [timerDefaults, setTimerDefaults] = useState<Partial<TimeEntryFormValues>>({});
+  const createTimeLog = useCreateTimeLog();
   const { data: hoursSummary } = useProjectTimeLogs(id);
   const { data: deliverable } = useDeliverable(id);
 
@@ -520,11 +525,58 @@ export default function ProjectDetails() {
             )}
           </TabsContent>
 
-          <TabsContent value="timelogs" className="mt-4">
+          <TabsContent value="timelogs" className="mt-4 space-y-4">
+            {isProvider && project.status === "in_progress" && (
+              <div className="space-y-4">
+                <WorkTimer
+                  onStop={(startTime, endTime, hours) => {
+                    setTimerDefaults({ start_time: startTime, end_time: endTime, hours, project_id: project.id });
+                  }}
+                />
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      تسجيل ساعات عمل
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <TimeEntryForm
+                      projects={[{ id: project.id, title: project.title }]}
+                      defaultValues={{ project_id: project.id, ...timerDefaults }}
+                      isLoading={createTimeLog.isPending}
+                      onSubmit={(values) => {
+                        createTimeLog.mutate({ project_id: values.project_id, log_date: values.log_date, hours: values.hours, description: values.description, start_time: values.start_time, end_time: values.end_time }, {
+                          onSuccess: () => {
+                            toast({ title: "تم تسجيل الساعات بنجاح" });
+                            queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] });
+                            queryClient.invalidateQueries({ queryKey: ["project-time-logs-summary", id] });
+                            setTimerDefaults({});
+                          },
+                          onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+                        });
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Stats summary */}
+            {hoursSummary && (
+              <div className="flex flex-wrap gap-4 text-sm">
+                <Badge variant="secondary" className="gap-1"><Check className="h-3 w-3" /> معتمدة: {hoursSummary.approvedHours} ساعة</Badge>
+                {hoursSummary.pendingHours > 0 && (
+                  <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> قيد المراجعة: {hoursSummary.pendingHours} ساعة</Badge>
+                )}
+                <Badge variant="outline" className="gap-1">إجمالي: {hoursSummary.totalLogged} ساعة</Badge>
+              </div>
+            )}
+
             <TimeLogTable
               logs={(timeLogs as any) ?? []}
-              onApprove={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم اعتماد السجل" }) }); } : undefined}
-              onReject={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast({ title: "تم رفض السجل" }) }); } : undefined}
+              onApprove={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => { toast({ title: "تم اعتماد السجل" }); queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] }); } }); } : undefined}
+              onReject={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => { toast({ title: "تم رفض السجل" }); queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] }); } }); } : undefined}
               isLoading={updateTimeLog.isPending}
             />
           </TabsContent>
