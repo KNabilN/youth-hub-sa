@@ -38,7 +38,10 @@ export function useAdminUpdateProject() {
       const { error } = await supabase.from("projects").update(updates).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["admin-project-detail", variables.id] });
+    },
   });
 }
 
