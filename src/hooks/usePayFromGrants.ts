@@ -27,7 +27,7 @@ export function usePayFromGrants() {
       // 1. Get available contributions for this association, oldest first
       const { data: contributions, error: fetchErr } = await supabase
         .from("donor_contributions")
-        .select("id, amount, donation_status")
+        .select("id, amount, donation_status, donor_id, association_id")
         .eq("association_id", user.id)
         .eq("donation_status", "available")
         .order("created_at", { ascending: true });
