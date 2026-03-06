@@ -255,6 +255,34 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
                 </Button>
               </div>
             )}
+
+            {paymentMethod === "grant_balance" && (
+              <Button
+                className="w-full"
+                disabled={loadingPayment || acceptBid.isPending || payFromGrants.isPending}
+                onClick={async () => {
+                  if (!user) return;
+                  setLoadingPayment(true);
+                  try {
+                    await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id });
+                    await payFromGrants.mutateAsync({
+                      amount: bid.price,
+                      payeeId: bid.provider_id,
+                      projectId,
+                    });
+                    toast({ title: "تم قبول العرض والدفع من رصيد المنح بنجاح" });
+                    onOpenChange(false);
+                  } catch {
+                    toast({ title: "حدث خطأ", variant: "destructive" });
+                  } finally {
+                    setLoadingPayment(false);
+                  }
+                }}
+              >
+                <Wallet className="h-4 w-4 me-1" />
+                {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : "قبول العرض والدفع من المنح"}
+              </Button>
+            )}
           </div>
         )}
 
