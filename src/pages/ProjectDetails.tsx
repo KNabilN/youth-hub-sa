@@ -104,12 +104,15 @@ export default function ProjectDetails() {
 
   const { data: escrow } = useQuery({
     queryKey: ["project-escrow", id],
-    enabled: !!id,
+    enabled: !!id && !!user,
     queryFn: async () => {
       const { data } = await supabase
         .from("escrow_transactions")
         .select("*")
         .eq("project_id", id!)
+        .eq("payer_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },

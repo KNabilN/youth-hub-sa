@@ -49,6 +49,8 @@ export function useReleaseEscrow() {
         .select("*")
         .eq("project_id", projectId)
         .eq("status", "held")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (fetchErr) throw fetchErr;
       if (!escrow) throw new Error("No held escrow found");
