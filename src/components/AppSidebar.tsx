@@ -42,7 +42,7 @@ const menuByRole = {
   service_provider: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "خدماتي", url: "/my-services", icon: Layers },
-    { title: "طلبات الجمعيات المتاحة", url: "/available-projects", icon: FolderKanban },
+    { title: "طلبات الجمعيات", url: "/available-projects", icon: FolderKanban },
     { title: "طلباتي", url: "/my-projects", icon: FolderKanban },
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "عروضي", url: "/my-bids", icon: FileText },
