@@ -7,6 +7,8 @@ import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
+import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown } from "lucide-react";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -38,16 +40,18 @@ const BANK_INFO = {
 };
 
 export default function Checkout() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: items, isLoading } = useCartItems();
   const purchase = usePurchaseService();
   const bankTransfer = useCreateBankTransfer();
   const clearCart = useClearCart();
   const navigate = useNavigate();
   const { data: associations } = useVerifiedAssociations();
+  const { data: grantBalance } = useAssociationGrantBalance();
+  const payFromGrants = usePayFromGrants();
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
+  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer" | "grant_balance">("electronic");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedAssociation, setSelectedAssociation] = useState<string>("");
