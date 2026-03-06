@@ -23,14 +23,12 @@ const Projects = lazy(() => import("./pages/Projects"));
 const ProjectCreate = lazy(() => import("./pages/ProjectCreate"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const ProjectEdit = lazy(() => import("./pages/ProjectEdit"));
-const TimeLogs = lazy(() => import("./pages/TimeLogs"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Ratings = lazy(() => import("./pages/Ratings"));
 const MyServices = lazy(() => import("./pages/MyServices"));
 const AvailableProjects = lazy(() => import("./pages/AvailableProjects"));
 const ProjectBidView = lazy(() => import("./pages/ProjectBidView"));
 const MyBids = lazy(() => import("./pages/MyBids"));
-const TimeTracking = lazy(() => import("./pages/TimeTracking"));
 const Earnings = lazy(() => import("./pages/Earnings"));
 
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
