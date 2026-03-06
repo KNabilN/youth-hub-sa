@@ -11,9 +11,11 @@ import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { useAcceptBid } from "@/hooks/useBids";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
+import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Building2, Shield, Check, Copy, Upload } from "lucide-react";
+import { CreditCard, Building2, Shield, Check, Copy, Upload, Wallet } from "lucide-react";
 
 const BANK_INFO = {
   bank: "مصرف الراجحي",
@@ -36,7 +38,7 @@ interface BidPaymentDialogProps {
 
 export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTitle }: BidPaymentDialogProps) {
   const [step, setStep] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
+  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer" | "grant_balance">("electronic");
   const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState("");
   const [showMoyasarForm, setShowMoyasarForm] = useState(false);
@@ -45,10 +47,13 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: commissionRate = 0.05 } = useCommissionRate();
   const acceptBid = useAcceptBid();
   const bankTransfer = useCreateBankTransfer();
+  const { data: grantBalance } = useAssociationGrantBalance();
+  const payFromGrants = usePayFromGrants();
+  const hasGrantBalance = role === "youth_association" && (grantBalance?.available ?? 0) >= pricing.total;
 
   const pricing = useMemo(() => calculatePricing(bid.price, commissionRate), [bid.price, commissionRate]);
 
@@ -159,7 +164,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             {/* Payment method selection */}
             <RadioGroup
               value={paymentMethod}
-              onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer")}
+              onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer" | "grant_balance")}
               className="space-y-2"
             >
               <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
@@ -182,6 +187,18 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
                   </div>
                 </Label>
               </div>
+              {hasGrantBalance && (
+                <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "grant_balance" ? "border-primary bg-primary/5" : "border-border"}`}>
+                  <RadioGroupItem value="grant_balance" id="bid-grant" />
+                  <Label htmlFor="bid-grant" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <Wallet className="h-5 w-5 text-success" />
+                    <div>
+                      <p className="font-medium text-sm">الدفع من رصيد المنح</p>
+                      <p className="text-xs text-muted-foreground">الرصيد المتاح: {grantBalance?.available?.toLocaleString()} ر.س</p>
+                    </div>
+                  </Label>
+                </div>
+              )}
             </RadioGroup>
 
             {paymentMethod === "electronic" && (
