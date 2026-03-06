@@ -123,6 +123,7 @@ export function useProjectStats() {
         pendingHours,
         activeContracts: contractsRes.count ?? 0,
         avgRating,
+        totalRequests: totalProjectsRes.count ?? 0,
       };
     },
   });
