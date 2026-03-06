@@ -67,7 +67,7 @@ export default function MyGrants() {
         setOpen(false);
         resetForm();
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: (err: any) => toast({ title: "حدث خطأ", description: err?.message || "تعذّر إنشاء طلب المنحة", variant: "destructive" }),
     });
   };
 
