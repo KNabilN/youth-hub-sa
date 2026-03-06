@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleAssociationVisibility } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export default function AdminProjects() {
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
-  const toggleVisibility = useToggleAssociationVisibility();
+  const toggleVisibility = useToggleProjectNameVisibility();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
