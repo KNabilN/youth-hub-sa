@@ -1,41 +1,6 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import QRCode from "qrcode";
 import { BRAND, BASE_FONT, loadArabicFont, getLogoBase64 } from "./pdf-utils";
-
-function encodeTLV(tag: number, value: string): Uint8Array {
-  const encoder = new TextEncoder();
-  const encoded = encoder.encode(value);
-  const result = new Uint8Array(2 + encoded.length);
-  result[0] = tag;
-  result[1] = encoded.length;
-  result.set(encoded, 2);
-  return result;
-}
-
-function generateZatcaTLV(
-  sellerName: string,
-  vatNumber: string,
-  timestamp: string,
-  totalWithVat: string,
-  vatAmount: string
-): string {
-  const parts = [
-    encodeTLV(1, sellerName),
-    encodeTLV(2, vatNumber),
-    encodeTLV(3, timestamp),
-    encodeTLV(4, totalWithVat),
-    encodeTLV(5, vatAmount),
-  ];
-  const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
-  const merged = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const part of parts) {
-    merged.set(part, offset);
-    offset += part.length;
-  }
-  return btoa(String.fromCharCode(...merged));
-}
 
 export interface InvoiceTemplateConfig {
   company_name: string;
@@ -57,6 +22,8 @@ const DEFAULT_TEMPLATE: InvoiceTemplateConfig = {
   logo_url: "",
 };
 
+export type InvoiceType = "project" | "service" | "grant" | "other";
+
 export interface InvoiceData {
   invoiceNumber: string;
   amount: number;
@@ -64,7 +31,16 @@ export interface InvoiceData {
   createdAt: string;
   projectTitle: string;
   recipientName: string;
+  invoiceType: InvoiceType;
+  linkedEntityName?: string;
 }
+
+const INVOICE_TYPE_LABELS: Record<InvoiceType, { ar: string; en: string; color: string }> = {
+  project: { ar: "طلب / مشروع", en: "Project", color: "#0f766e" },
+  service: { ar: "خدمة", en: "Service", color: "#2563eb" },
+  grant: { ar: "منحة / تبرع", en: "Grant", color: "#b59535" },
+  other: { ar: "أخرى", en: "Other", color: "#64748b" },
+};
 
 async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanvasElement> {
   const container = document.createElement("div");
@@ -108,30 +84,15 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
 
   const baseAmount = invoice.amount;
   const commission = invoice.commissionAmount;
-  const vatRate = 0.15;
-  const vatAmount = baseAmount * vatRate;
-  const total = baseAmount + commission + vatAmount;
+  const total = baseAmount + commission;
   const invoiceDate = new Date(invoice.createdAt);
   const formattedDate = invoiceDate.toLocaleDateString("ar-SA", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
-  const isoDate = invoiceDate.toISOString();
 
-  const tlvBase64 = generateZatcaTLV(
-    t.company_name,
-    t.vat_number,
-    isoDate,
-    total.toFixed(2),
-    vatAmount.toFixed(2)
-  );
-
-  const qrDataUrl = await QRCode.toDataURL(tlvBase64, {
-    width: 150,
-    margin: 1,
-    errorCorrectionLevel: "M",
-  });
+  const typeInfo = INVOICE_TYPE_LABELS[invoice.invoiceType] ?? INVOICE_TYPE_LABELS.other;
 
   const fmt = (n: number) => n.toLocaleString("en-SA", { minimumFractionDigits: 2 });
 
@@ -145,7 +106,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
       <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;margin-bottom:10px;background:linear-gradient(135deg, ${BRAND.headerBg} 0%, ${BRAND.white} 100%);border-radius:10px;padding:24px 30px;">
         <div style="text-align:right;flex:1;">
           <h1 style="font-size: 26px; font-weight: 800; margin: 0; color:${BRAND.primary};font-family:${BASE_FONT};">فاتورة</h1>
-           <p style="font-size: 14px; color: ${BRAND.textMuted}; margin: 4px 0 0;direction:ltr;text-align:right;">Invoice</p>
+          <p style="font-size: 14px; color: ${BRAND.textMuted}; margin: 4px 0 0;direction:ltr;text-align:right;">Invoice</p>
         </div>
         <div style="text-align:left;direction:ltr;display:flex;align-items:center;gap:12px;">
           <div>
@@ -162,7 +123,6 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
       <div style="margin-bottom: 20px;background:${BRAND.rowAlt};border-radius:8px;padding:16px 20px;border:1px solid ${BRAND.border};">
         <p style="font-weight: 700; font-size: 13px; margin-bottom: 8px;color:${BRAND.primary};">البائع / Seller</p>
         <p style="margin: 2px 0; font-size: 12px;">الاسم: ${t.company_name_en} / ${t.company_name}</p>
-        <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">VAT No: ${t.vat_number}</p>
         <p style="margin: 2px 0; font-size: 12px; direction: ltr; text-align: right;">CR: ${t.cr_number}</p>
         <p style="margin: 2px 0; font-size: 12px;">العنوان: ${t.address}</p>
       </div>
@@ -174,7 +134,15 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
           <tr><td style="padding: 3px 0; font-weight: 600; width: 130px;">رقم الفاتورة:</td><td style="direction: ltr;">${invoice.invoiceNumber}</td></tr>
           <tr><td style="padding: 3px 0; font-weight: 600;">التاريخ:</td><td>${formattedDate}</td></tr>
           <tr><td style="padding: 3px 0; font-weight: 600;">صادرة إلى:</td><td>${invoice.recipientName}</td></tr>
-          <tr><td style="padding: 3px 0; font-weight: 600;">المشروع/الخدمة:</td><td>${invoice.projectTitle}</td></tr>
+          <tr>
+            <td style="padding: 3px 0; font-weight: 600;">نوع الفاتورة:</td>
+            <td>
+              <span style="display:inline-block;background:${typeInfo.color}15;color:${typeInfo.color};padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid ${typeInfo.color}30;">
+                ${typeInfo.ar}
+              </span>
+            </td>
+          </tr>
+          <tr><td style="padding: 3px 0; font-weight: 600;">${invoice.invoiceType === "service" ? "الخدمة:" : invoice.invoiceType === "grant" ? "المنحة:" : "الطلب/المشروع:"}</td><td>${invoice.linkedEntityName || invoice.projectTitle}</td></tr>
         </table>
       </div>
 
@@ -183,17 +151,15 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
         <thead>
           <tr style="background: ${BRAND.headerBg};">
             <th style="padding: 10px 8px; text-align: right; border: 1px solid ${BRAND.primaryMid};color:${BRAND.primary};font-weight:700;">الوصف</th>
-            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">المبلغ الأساسي (ر.س)</th>
-            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">رسوم المنصة (ر.س)</th>
-            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">الضريبة (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 140px;color:${BRAND.primary};font-weight:700;">المبلغ الأساسي (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 140px;color:${BRAND.primary};font-weight:700;">رسوم المنصة (ر.س)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding: 10px 8px; border: 1px solid ${BRAND.border};">${invoice.projectTitle}</td>
+            <td style="padding: 10px 8px; border: 1px solid ${BRAND.border};">${invoice.linkedEntityName || invoice.projectTitle}</td>
             <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(baseAmount)}</td>
             <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(commission)}</td>
-            <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(vatAmount)}</td>
           </tr>
         </tbody>
       </table>
@@ -205,15 +171,8 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
         <table style="font-size: 12px; border-collapse: collapse;background:${BRAND.headerBg};border-radius:8px;padding:12px 20px;">
           <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">المبلغ الأساسي:</td><td style="direction: ltr; text-align: left;">${fmt(baseAmount)} SAR</td></tr>
           <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">رسوم المنصة:</td><td style="direction: ltr; text-align: left;">${fmt(commission)} SAR</td></tr>
-          <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">ضريبة القيمة المضافة (${(vatRate * 100).toFixed(0)}%):</td><td style="direction: ltr; text-align: left;">${fmt(vatAmount)} SAR</td></tr>
           <tr style="font-weight: 700; font-size: 14px;color:${BRAND.primary};"><td style="padding: 6px 18px 4px 0;">الإجمالي:</td><td style="direction: ltr; text-align: left;">${fmt(total)} SAR</td></tr>
         </table>
-      </div>
-
-      <!-- QR Code -->
-      <div style="margin-bottom: 15px;">
-        <p style="font-weight: 700; font-size: 11px; margin-bottom: 5px;color:${BRAND.primary};">رمز ZATCA:</p>
-        <img src="${qrDataUrl}" style="width: 100px; height: 100px;" />
       </div>
 
       <hr style="border: none; border-top: 3px solid ${BRAND.primary}; margin: 10px 0;" />
