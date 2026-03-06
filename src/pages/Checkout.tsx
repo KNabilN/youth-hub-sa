@@ -481,7 +481,7 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
-                      {paymentMethod === "electronic" ? "دفع إلكتروني" : "تحويل بنكي"}
+                      {paymentMethod === "electronic" ? "دفع إلكتروني" : paymentMethod === "grant_balance" ? "رصيد المنح" : "تحويل بنكي"}
                     </Badge>
                   </div>
                 </div>
