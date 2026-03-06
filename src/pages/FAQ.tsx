@@ -23,7 +23,7 @@ export default function FAQ() {
         <div className="container mx-auto max-w-3xl">
           {faq.categories?.length > 0 ? (
             <Tabs defaultValue="0" dir="rtl">
-              <TabsList className="w-full flex-wrap h-auto gap-1 mb-8">
+              <TabsList className="w-full overflow-x-auto flex-nowrap h-auto gap-1 mb-8 justify-start">
                 {faq.categories.map((cat: any, i: number) => (
                   <TabsTrigger key={i} value={String(i)} className="flex-1 min-w-[120px]">
                     {cat.title}

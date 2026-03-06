@@ -97,7 +97,7 @@ export default function MyServices() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-primary/10">
               <Layers className="h-7 w-7 text-primary" />

@@ -97,7 +97,7 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                     </span>
                     <span className="flex items-center gap-1.5 mr-auto" dir="ltr">
                       <Calendar className="w-3.5 h-3.5" />
-                      {new Date(p.created_at).toLocaleDateString("en-CA").replace(/-/g, "/")}
+                      {new Date(p.created_at).toLocaleDateString("ar-SA")}
                     </span>
                   </div>
                 </Link>
