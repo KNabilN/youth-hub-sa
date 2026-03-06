@@ -46,7 +46,7 @@ export function useToggleProjectNameVisibility() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ projectId, visible }: { projectId: string; visible: boolean }) => {
-      const { error } = await supabase.from("projects").update({ is_name_visible: visible } as any).eq("id", projectId);
+      const { error } = await supabase.from("projects").update({ is_name_visible: visible }).eq("id", projectId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
