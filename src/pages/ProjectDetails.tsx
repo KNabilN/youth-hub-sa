@@ -52,7 +52,6 @@ export default function ProjectDetails() {
   const createDispute = useCreateDispute();
   const releaseEscrow = useReleaseEscrow();
   const refundEscrow = useRefundEscrow();
-  const createEscrow = useCreateEscrow();
   const generateInvoice = useGenerateInvoice();
   const { role, user } = useAuth();
   const queryClient = useQueryClient();
@@ -61,20 +60,9 @@ export default function ProjectDetails() {
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [timerDefaults, setTimerDefaults] = useState<Partial<TimeEntryFormValues>>({});
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
-  const [showMoyasarForm, setShowMoyasarForm] = useState(false);
-  const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
-  const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState("");
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loadingPayment, setLoadingPayment] = useState(false);
-  const moyasarMetadata = useMemo(() => ({ type: "project_payment", user_id: user?.id, project_id: id }), [user?.id, id]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const createTimeLog = useCreateTimeLog();
-  const bankTransfer = useCreateBankTransfer();
   const { data: hoursSummary } = useProjectTimeLogs(id);
   const { data: deliverable } = useDeliverable(id);
-  const { data: commissionRate = 0.05 } = useCommissionRate();
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
