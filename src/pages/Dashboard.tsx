@@ -77,6 +77,7 @@ function StatsGrid({ items, isLoading }: { items: StatItem[]; isLoading: boolean
 function AssociationDashboard() {
   const { data: stats, isLoading } = useProjectStats();
   const items: StatItem[] = [
+    { title: "إجمالي الطلبات", value: stats?.totalRequests ?? 0, icon: Layers, color: "accent" },
     { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
     { title: "ساعات قيد المراجعة", value: stats?.pendingHours ?? 0, icon: ClipboardList, color: "warning" },
     { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "info" },
