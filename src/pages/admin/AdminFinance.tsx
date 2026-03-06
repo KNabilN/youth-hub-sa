@@ -590,7 +590,7 @@ export default function AdminFinance() {
                         {expandedWithdrawalId === w.id && (
                           <TableRow>
                             <TableCell colSpan={7} className="p-0 bg-muted/30 border-b-2 border-primary/20">
-                              <WithdrawalEscrowDetails providerId={w.provider_id} />
+                              <WithdrawalEscrowDetails escrow={(w as any).escrow ?? null} />
                             </TableCell>
                           </TableRow>
                         )}

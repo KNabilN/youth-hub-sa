@@ -10,7 +10,7 @@ export function useWithdrawals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("*")
+        .select("*, profiles:provider_id(full_name, organization_name, bank_name, bank_iban, bank_account_holder)")
         .eq("provider_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -23,16 +23,19 @@ export function useCreateWithdrawal() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (amount: number) => {
+    mutationFn: async ({ amount, escrow_id }: { amount: number; escrow_id: string }) => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .insert({ provider_id: user!.id, amount })
+        .insert({ provider_id: user!.id, amount, escrow_id } as any)
         .select()
         .single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["withdrawals"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["withdrawals"] });
+      qc.invalidateQueries({ queryKey: ["earnings"] });
+    },
   });
 }
 
@@ -45,7 +48,20 @@ export function useAllWithdrawals() {
         .select("*, profiles:provider_id(full_name, organization_name, bank_name, bank_iban, bank_account_holder)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+
+      // Fetch escrow + project details for each withdrawal that has escrow_id
+      const enriched = await Promise.all(
+        (data ?? []).map(async (w: any) => {
+          if (!w.escrow_id) return w;
+          const { data: escrow } = await supabase
+            .from("escrow_transactions")
+            .select("id, amount, status, escrow_number, project_id, service_id, projects:project_id(title, request_number), micro_services:service_id(title, service_number)")
+            .eq("id", w.escrow_id)
+            .single();
+          return { ...w, escrow: escrow ?? null };
+        })
+      );
+      return enriched;
     },
   });
 }

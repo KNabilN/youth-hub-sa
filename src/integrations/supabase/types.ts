@@ -1854,6 +1854,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          escrow_id: string | null
           id: string
           processed_at: string | null
           provider_id: string
@@ -1865,6 +1866,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          escrow_id?: string | null
           id?: string
           processed_at?: string | null
           provider_id: string
@@ -1876,6 +1878,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          escrow_id?: string | null
           id?: string
           processed_at?: string | null
           provider_id?: string
@@ -1885,6 +1888,13 @@ export type Database = {
           withdrawal_number?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "withdrawal_requests_provider_id_fkey"
             columns: ["provider_id"]

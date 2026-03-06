@@ -1,17 +1,14 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Wallet, CircleDollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Wallet, ArrowDownToLine } from "lucide-react";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  held: { label: "جاهز للسحب", variant: "secondary", border: "border-e-4 border-amber-500" },
+  held: { label: "محتجز", variant: "secondary", border: "border-e-4 border-amber-500" },
   released: { label: "صُرف", variant: "default", border: "border-e-4 border-emerald-500" },
   frozen: { label: "مجمّد", variant: "outline", border: "border-e-4 border-blue-500" },
   refunded: { label: "مسترد", variant: "destructive", border: "border-e-4 border-red-500" },
 };
-
-type FilterTab = "all" | "held" | "released";
 
 interface EarningsSummaryProps {
   totalEarnings: number;
@@ -24,19 +21,11 @@ interface EarningsSummaryProps {
     projects?: { title: string; request_number?: string; categories?: { name: string } | null; regions?: { name: string } | null } | null;
     payer?: { full_name: string; organization_name?: string | null } | null;
   }[];
+  withdrawnEscrowIds: Set<string>;
+  onWithdraw: (escrowId: string, amount: number, projectTitle: string) => void;
 }
 
-export function EarningsSummary({ totalEarnings, availableBalance, transactions }: EarningsSummaryProps) {
-  const [filter, setFilter] = useState<FilterTab>("all");
-
-  const heldTotal = transactions
-    .filter((t) => t.status === "held")
-    .reduce((s, t) => s + Number(t.amount), 0);
-
-  const filtered = filter === "all"
-    ? transactions
-    : transactions.filter((t) => t.status === filter);
-
+export function EarningsSummary({ totalEarnings, availableBalance, transactions, withdrawnEscrowIds, onWithdraw }: EarningsSummaryProps) {
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
@@ -62,38 +51,27 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions 
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-amber-600">{availableBalance.toLocaleString()} ر.س</div>
-            {heldTotal > 0 && heldTotal !== availableBalance && (
-              <p className="text-xs text-muted-foreground mt-1">
-                أرباح محتجزة: {heldTotal.toLocaleString()} ر.س
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Transactions */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+        <CardHeader className="pb-3">
           <CardTitle className="text-lg">سجل المعاملات</CardTitle>
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
-            <TabsList className="h-8">
-              <TabsTrigger value="all" className="text-xs px-3 h-7">الكل</TabsTrigger>
-              <TabsTrigger value="held" className="text-xs px-3 h-7">جاهز للسحب</TabsTrigger>
-              <TabsTrigger value="released" className="text-xs px-3 h-7">صُرف</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </CardHeader>
         <CardContent>
-          {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">لا توجد معاملات {filter !== "all" ? "بهذا التصنيف" : "حتى الآن"}</p>
+          {transactions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">لا توجد معاملات حتى الآن</p>
           ) : (
             <div className="space-y-3">
-              {filtered.map(tx => {
+              {transactions.map(tx => {
                 const st = statusLabels[tx.status] ?? statusLabels.held;
                 const associationName = tx.payer?.organization_name || tx.payer?.full_name;
                 const categoryName = tx.projects?.categories?.name;
                 const regionName = tx.projects?.regions?.name;
                 const requestNumber = tx.projects?.request_number;
+                const canWithdraw = tx.status === "released" && !withdrawnEscrowIds.has(tx.id);
 
                 return (
                   <div key={tx.id} className={`p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors ${st.border}`}>
@@ -121,6 +99,17 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions 
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
                         <Badge variant={st.variant}>{st.label}</Badge>
                         <span className="text-sm font-semibold text-primary">{Number(tx.amount).toLocaleString()} ر.س</span>
+                        {canWithdraw && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs mt-1"
+                            onClick={() => onWithdraw(tx.id, Number(tx.amount), tx.projects?.title ?? "—")}
+                          >
+                            <ArrowDownToLine className="h-3 w-3 me-1" />
+                            طلب سحب
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
