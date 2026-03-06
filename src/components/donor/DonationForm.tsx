@@ -271,7 +271,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
               </div>
               <div className="text-center p-2 rounded bg-background">
                 <div className="text-muted-foreground text-xs">المتبقي المطلوب</div>
-                <div className={cn("font-semibold", remaining > 0 ? "text-destructive" : "text-green-600")}>
+                <div className={cn("font-semibold", remaining > 0 ? "text-destructive" : "text-primary")}>
                   {formatCurrency(remaining)} ر.س
                 </div>
               </div>
