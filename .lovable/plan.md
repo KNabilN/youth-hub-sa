@@ -1,25 +1,70 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
-
 ## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+
+### 1. الإشعارات مكررة مرتين
+السبب واضح: يوجد **تريغرين** لكل جدول بنفس الوظيفة لكن بأسماء مختلفة. مثلاً على جدول `bids`:
+- `trg_notify_bid_change` (من الهجرة الأصلية)
+- `trg_notify_on_bid_change` (من هجرة التنظيف)
+
+هجرة التنظيف حذفت فقط النسخ بصيغة `trg_notify_on_*` ثم أعادت إنشاءها، لكن لم تحذف النسخ الأصلية بصيغة `trg_notify_*` (بدون `_on_`). النتيجة: كل حدث يطلق تريغرين = إشعارين.
+
+الجداول المتأثرة (13 تريغر مكرر):
+- `bids`, `contracts`, `escrow_transactions`, `bank_transfers`, `projects`, `disputes`, `time_logs`, `withdrawal_requests`, `messages`, `project_deliverables`, `micro_services`, `grant_requests` + `escrow_transactions` (service_purchase)
+
+### 2. الإشعارات غير قابلة للنقر
+حالياً `NotificationItem` يعرض النص فقط بدون أي رابط للانتقال للكيان المعني.
+
+---
 
 ## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### 1. هجرة SQL لحذف التريغرات المكررة
+حذف جميع التريغرات بصيغة الاسم القديم (بدون `_on_`):
+```sql
+DROP TRIGGER IF EXISTS trg_notify_bid_change ON public.bids;
+DROP TRIGGER IF EXISTS trg_notify_contract_change ON public.contracts;
+DROP TRIGGER IF EXISTS trg_notify_escrow_change ON public.escrow_transactions;
+DROP TRIGGER IF EXISTS trg_notify_bank_transfer_change ON public.bank_transfers;
+DROP TRIGGER IF EXISTS trg_notify_project_status ON public.projects;
+DROP TRIGGER IF EXISTS trg_notify_dispute_change ON public.disputes;
+DROP TRIGGER IF EXISTS trg_notify_timelog_approval ON public.time_logs;
+DROP TRIGGER IF EXISTS trg_notify_withdrawal_change ON public.withdrawal_requests;
+DROP TRIGGER IF EXISTS trg_notify_new_message ON public.messages;
+DROP TRIGGER IF EXISTS trg_notify_deliverable_change ON public.project_deliverables;
+DROP TRIGGER IF EXISTS trg_notify_service_approval ON public.micro_services;
+DROP TRIGGER IF EXISTS trg_notify_service_purchase ON public.escrow_transactions;
+DROP TRIGGER IF EXISTS trg_notify_grant_request ON public.grant_requests;
+DROP TRIGGER IF EXISTS trg_notify_grant_request_change ON public.grant_requests;
+```
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+### 2. تعديل `NotificationItem.tsx` — إضافة التنقل عند الضغط
+إضافة mapping من نوع الإشعار إلى رابط التنقل. يتم استخراج الكيان المعني من نص الإشعار أو إضافة حقل `entity_id` و `entity_type` للإشعارات (الخيار الأفضل).
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+**لكن** بما أن الجدول الحالي لا يحتوي على `entity_id`/`entity_type`، سنضيف هذين العمودين:
 
-### التغييرات
+**هجرة SQL:**
+```sql
+ALTER TABLE notifications ADD COLUMN entity_id uuid;
+ALTER TABLE notifications ADD COLUMN entity_type text;
+```
 
-| الملف | التغيير |
-|---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+**تحديث دوال التريغرات** لتمرير `entity_id` و `entity_type` مع كل إشعار.
 
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+**تحديث `NotificationItem`** لاستخدام `entity_id` + `entity_type` لبناء رابط التنقل:
+- `project` → `/projects/{id}`
+- `contract` → `/contracts`
+- `service` → `/services/{id}`
+- `dispute` → `/disputes/{id}`
+- `bid` → `/projects/{id}`
+- `escrow` → `/admin/finance` (للأدمن) أو `/earnings` (للمزود)
+- `withdrawal` → `/earnings`
+- `message` → `/messages`
+- `ticket` → `/tickets/{id}`
+
+### الملفات المتأثرة
+- **SQL Migration**: حذف التريغرات المكررة + إضافة أعمدة `entity_id`/`entity_type` + تحديث دوال التريغرات
+- `src/components/notifications/NotificationItem.tsx` — جعل الإشعار قابلاً للنقر باستخدام `Link`
+- `src/pages/Notifications.tsx` — تمرير الخصائص الجديدة
+- `supabase/functions/moyasar-verify-payment/index.ts` — إضافة `entity_id`/`entity_type` للإشعارات المُنشأة من الـ Edge Function
 
