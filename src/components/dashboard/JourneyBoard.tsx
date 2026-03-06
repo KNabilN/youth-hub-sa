@@ -13,12 +13,12 @@ interface Step {
 
 function StepPipeline({ steps }: { steps: Step[] }) {
   return (
-    <div className="flex items-center gap-1 overflow-x-auto py-2">
+    <div className="flex items-center gap-1 overflow-x-auto py-2 scrollbar-hide">
       {steps.map((step, i) => (
         <div key={step.label} className="flex items-center gap-1 shrink-0">
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
             step.done
-              ? "bg-emerald-500/10 text-emerald-600 border-emerald-200"
+              ? "bg-success/10 text-success border-success/20"
               : step.count > 0
               ? "bg-primary/10 text-primary border-primary/20"
               : "bg-muted text-muted-foreground border-border"
