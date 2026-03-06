@@ -42,13 +42,26 @@ export default function Invoices() {
 
   const handleDownloadPDF = async (inv: any) => {
     try {
+      const escrow = inv.escrow_transactions;
+      const hasProject = !!escrow?.project_id;
+      const hasService = !!escrow?.service_id;
+      const hasGrant = !!escrow?.grant_request_id;
+      const invoiceType = hasProject ? "project" : hasService ? "service" : hasGrant ? "grant" : "other";
+      const linkedEntityName = hasProject
+        ? escrow?.projects?.title
+        : hasService
+        ? escrow?.micro_services?.title
+        : undefined;
+
       const invoiceData: InvoiceData = {
         invoiceNumber: inv.invoice_number,
         amount: Number(inv.amount),
         commissionAmount: Number(inv.commission_amount),
         createdAt: inv.created_at,
-        projectTitle: inv.escrow_transactions?.projects?.title ?? "خدمة",
+        projectTitle: linkedEntityName ?? "—",
         recipientName: profile?.full_name ?? "—",
+        invoiceType: invoiceType as any,
+        linkedEntityName,
       };
       await generateInvoicePDF(invoiceData, template);
 
@@ -125,7 +138,8 @@ export default function Invoices() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>رقم الفاتورة</TableHead>
-                    <TableHead>الطلب</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>الطلب/الخدمة</TableHead>
                     <TableHead>المبلغ</TableHead>
                     <TableHead>العمولة</TableHead>
                     <TableHead>الإجمالي</TableHead>
@@ -138,10 +152,18 @@ export default function Invoices() {
                   {filtered.map((inv: any) => {
                     const invStatus = (inv as any).status ?? "issued";
                     const st = statusLabels[invStatus] ?? statusLabels.issued;
+                    const escrow = inv.escrow_transactions;
+                    const hasProject = !!escrow?.project_id;
+                    const hasService = !!escrow?.service_id;
+                    const hasGrant = !!escrow?.grant_request_id;
+                    const typeLabel = hasProject ? "طلب" : hasService ? "خدمة" : hasGrant ? "منحة" : "أخرى";
+                    const typeVariant = hasProject ? "default" : hasService ? "secondary" : hasGrant ? "outline" : "outline";
+                    const entityName = hasProject ? escrow?.projects?.title : hasService ? escrow?.micro_services?.title : "—";
                     return (
                       <TableRow key={inv.id} className="hover:bg-muted/50 transition-colors">
                         <TableCell className="font-mono text-sm">{inv.invoice_number}</TableCell>
-                        <TableCell>{inv.escrow_transactions?.projects?.title ?? "—"}</TableCell>
+                        <TableCell><Badge variant={typeVariant as any}>{typeLabel}</Badge></TableCell>
+                        <TableCell>{entityName ?? "—"}</TableCell>
                         <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className="font-semibold text-success">

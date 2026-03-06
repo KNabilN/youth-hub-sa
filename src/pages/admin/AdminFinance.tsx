@@ -208,6 +208,7 @@ export default function AdminFinance() {
         createdAt: inv.created_at,
         projectTitle: "خدمة",
         recipientName: inv.profiles?.full_name ?? "—",
+        invoiceType: "other",
       };
       await generateInvoicePDF(invoiceData, template);
       toast.success("تم تحميل الفاتورة");
