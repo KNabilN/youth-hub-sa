@@ -1161,6 +1161,8 @@ export type Database = {
         Row: {
           created_at: string
           delivery_status: string
+          entity_id: string | null
+          entity_type: string | null
           id: string
           is_read: boolean
           message: string
@@ -1170,6 +1172,8 @@ export type Database = {
         Insert: {
           created_at?: string
           delivery_status?: string
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           is_read?: boolean
           message: string
@@ -1179,6 +1183,8 @@ export type Database = {
         Update: {
           created_at?: string
           delivery_status?: string
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           is_read?: boolean
           message?: string
