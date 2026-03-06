@@ -17,7 +17,7 @@ import { StepProgress } from "@/components/ui/step-progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { HandCoins } from "lucide-react";
+import { HandCoins, FolderKanban, Layers, Building2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
@@ -38,6 +38,70 @@ const donationSteps = [
   { label: "الدفع" },
   { label: "التأكيد" },
 ];
+
+function ConsumedBreakdown() {
+  const { data: consumed, isLoading } = useDonorConsumedBreakdown();
+
+  if (isLoading) return <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>;
+  if (!consumed?.length) return <EmptyState icon={HandCoins} title="لا توجد منح مستهلكة بعد" description="سيظهر هنا تفصيل استخدام منحك عند استهلاكها من قبل الجمعيات" />;
+
+  // Group by association
+  const grouped = consumed.reduce((acc: Record<string, { name: string; total: number; items: typeof consumed }>, c: any) => {
+    const assocId = c.association_id || "unknown";
+    const assocName = c.profiles?.organization_name || c.profiles?.full_name || "غير محدد";
+    if (!acc[assocId]) acc[assocId] = { name: assocName, total: 0, items: [] };
+    acc[assocId].total += Number(c.amount);
+    acc[assocId].items.push(c);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(grouped).map(([assocId, group]: [string, any]) => (
+        <Card key={assocId} className="border-s-4 border-s-primary/30">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm">{group.name}</CardTitle>
+              </div>
+              <Badge variant="outline" className="text-xs font-bold">{group.total.toLocaleString()} ر.س</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">التاريخ</TableHead>
+                  <TableHead className="text-xs">المشروع / الخدمة</TableHead>
+                  <TableHead className="text-xs">المبلغ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {group.items.map((item: any) => {
+                  const target = item.projects?.title || item.micro_services?.title || "دعم عام";
+                  const Icon = item.project_id ? FolderKanban : item.service_id ? Layers : HandCoins;
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="text-xs">{format(new Date(item.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                      <TableCell className="text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {target}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export default function Donations() {
   const { user } = useAuth();
