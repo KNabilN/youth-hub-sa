@@ -238,28 +238,57 @@ export default function ProjectDetails() {
                 إرسال للموافقة
               </Button>
             )}
-            {project.status === "in_progress" && isAssociation && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button disabled={completing} variant="default">
-                    <CheckCircle className="h-4 w-4 me-1" />
-                     إتمام الطلب
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                     <AlertDialogTitle>إتمام الطلب</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      هل أنت متأكد من إتمام هذا الطلب؟ سيتم تحرير المستحقات المالية لمقدم الخدمة وإصدار فاتورة.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleComplete}>تأكيد الإتمام</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+            {project.status === "in_progress" && isAssociation && (() => {
+              const hasEscrow = escrow && escrow.status === "held";
+              const hasAcceptedDeliverable = deliverable && deliverable.status === "accepted";
+              const canComplete = hasEscrow && hasAcceptedDeliverable;
+              return (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button disabled={completing} variant="default">
+                      <CheckCircle className="h-4 w-4 me-1" />
+                       إتمام الطلب
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                       <AlertDialogTitle>إتمام الطلب</AlertDialogTitle>
+                      {canComplete ? (
+                        <AlertDialogDescription>
+                          هل أنت متأكد من إتمام هذا الطلب؟ سيتم تحرير المستحقات المالية لمقدم الخدمة وإصدار فاتورة.
+                        </AlertDialogDescription>
+                      ) : (
+                        <div className="space-y-3 text-sm pt-2">
+                          <p className="text-muted-foreground">لا يمكن إتمام الطلب حتى يتم استيفاء المتطلبات التالية:</p>
+                          <ul className="space-y-2">
+                            <li className="flex items-center gap-2">
+                              {hasEscrow ? <Check className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                              <span className={hasEscrow ? "text-green-700" : "text-destructive font-medium"}>
+                                {hasEscrow ? "الضمان المالي محتجز ✓" : "لا يوجد ضمان مالي محتجز — يجب إنشاء الضمان المالي أولاً"}
+                              </span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              {hasAcceptedDeliverable ? <Check className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                              <span className={hasAcceptedDeliverable ? "text-green-700" : "text-destructive font-medium"}>
+                                {hasAcceptedDeliverable ? "التسليمات مقبولة ✓" : "لا توجد تسليمات مقبولة — يجب قبول التسليمات أولاً"}
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      )}
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{canComplete ? "إلغاء" : "فهمت"}</AlertDialogCancel>
+                      {canComplete && (
+                        <AlertDialogAction onClick={handleComplete} disabled={completing}>
+                          {completing ? "جاري الإتمام..." : "تأكيد الإتمام"}
+                        </AlertDialogAction>
+                      )}
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              );
+            })()}
             {(project.status === "draft" || project.status === "open") && isAssociation && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
