@@ -50,14 +50,14 @@ function StatCard({ stat, index }: { stat: StatItem; index: number }) {
       c.border,
       `stagger-${index + 1}`
     )} style={{ animationFillMode: 'both' }}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-            <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex items-center sm:items-start justify-between gap-3">
+          <div className="space-y-1 sm:space-y-2 min-w-0">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
+            <p className="text-xl sm:text-3xl font-bold tracking-tight truncate">{stat.value}</p>
           </div>
-          <div className={cn("p-3 rounded-xl", c.bg)}>
-            <stat.icon className={cn("h-6 w-6", c.text)} />
+          <div className={cn("p-2.5 sm:p-3 rounded-xl shrink-0", c.bg)}>
+            <stat.icon className={cn("h-5 w-5 sm:h-6 sm:w-6", c.text)} />
           </div>
         </div>
       </CardContent>
@@ -67,7 +67,7 @@ function StatCard({ stat, index }: { stat: StatItem; index: number }) {
 
 function StatsGrid({ items, isLoading }: { items: StatItem[]; isLoading: boolean }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
       {items.map((stat, i) => (
         <StatCard key={stat.title} stat={{ ...stat, value: isLoading ? "..." : stat.value }} index={i} />
       ))}
@@ -113,11 +113,11 @@ function DonorDashboard() {
       <StatsGrid items={items} isLoading={isLoading} />
       {!isLoading && (stats?.totalDonations ?? 0) > 0 && (
         <Card className="border-s-4 border-s-accent bg-accent/5 animate-fade-in">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-accent/10">
-              <HandCoins className="h-6 w-6 text-accent-foreground" />
+          <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+            <div className="p-2.5 sm:p-3 rounded-xl bg-accent/10 shrink-0">
+              <HandCoins className="h-5 w-5 sm:h-6 sm:w-6 text-accent-foreground" />
             </div>
-            <p className="text-sm font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm font-medium leading-relaxed">
               الله يجزاك خير! دعمك وصل وأثره بيّن، شكراً لك من القلب على عطائك الكريم 🤍
             </p>
           </CardContent>
@@ -154,15 +154,13 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Welcome section */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold">{profile?.full_name ? `مرحباً، ${profile.full_name}` : title}</h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4" />
-              <span>{today}</span>
-            </div>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">{profile?.full_name ? `مرحباً، ${profile.full_name}` : title}</h1>
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-1">
+            <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span>{today}</span>
           </div>
         </div>
 
