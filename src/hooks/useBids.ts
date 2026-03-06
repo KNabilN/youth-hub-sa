@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 export function useBids(projectId: string | undefined) {
   return useQuery({
@@ -21,33 +20,23 @@ export function useBids(projectId: string | undefined) {
 
 export function useAcceptBid() {
   const qc = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ bidId, projectId, providerId, price }: {
-      bidId: string; projectId: string; providerId: string; price: number;
+    mutationFn: async ({ bidId, projectId, providerId }: {
+      bidId: string; projectId: string; providerId: string;
     }) => {
       // 1. Accept this bid
       await supabase.from("bids").update({ status: "accepted" }).eq("id", bidId);
       // 2. Reject all others
       await supabase.from("bids").update({ status: "rejected" }).eq("project_id", projectId).neq("id", bidId);
-      // 3. Create contract
-      const { error: contractError } = await supabase.from("contracts").insert({
-        project_id: projectId,
-        association_id: user!.id,
-        provider_id: providerId,
-        terms: `عقد تنفيذ طلب بقيمة ${price} ر.س`,
-        association_signed_at: new Date().toISOString(),
-      });
-      if (contractError) throw contractError;
-      // 4. Update project
+      // 3. Assign provider to project — keep status as 'open' (payment pending)
       const { error: projectError } = await supabase.from("projects").update({
-        status: "in_progress",
         assigned_provider_id: providerId,
       }).eq("id", projectId);
       if (projectError) throw projectError;
 
-      // DB triggers handle all notifications (bid status change + contract creation + project status)
+      // Contract creation and status change to in_progress happen AFTER payment
+      // DB triggers handle bid status notifications
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });
@@ -63,7 +52,6 @@ export function useRejectBid() {
     mutationFn: async (bidId: string) => {
       const { error } = await supabase.from("bids").update({ status: "rejected" }).eq("id", bidId);
       if (error) throw error;
-      // DB trigger notify_on_bid_change handles notification to provider
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bids"] }),
   });
