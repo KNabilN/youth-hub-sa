@@ -304,7 +304,7 @@ export default function Checkout() {
               <CardContent>
                 <RadioGroup
                   value={paymentMethod}
-                  onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer")}
+                  onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer" | "grant_balance")}
                   className="space-y-3"
                 >
                   <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
@@ -328,6 +328,19 @@ export default function Checkout() {
                       </div>
                     </Label>
                   </div>
+
+                  {hasGrantBalance && (
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "grant_balance" ? "border-primary bg-primary/5" : "border-border"}`}>
+                      <RadioGroupItem value="grant_balance" id="grant_balance" />
+                      <Label htmlFor="grant_balance" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Wallet className="h-5 w-5 text-success" />
+                        <div>
+                          <p className="font-medium">الدفع من رصيد المنح</p>
+                          <p className="text-xs text-muted-foreground">الرصيد المتاح: {grantBalance?.available?.toLocaleString()} ر.س</p>
+                        </div>
+                      </Label>
+                    </div>
+                  )
                 </RadioGroup>
               </CardContent>
             </Card>
