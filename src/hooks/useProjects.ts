@@ -102,13 +102,14 @@ export function useProjectStats() {
         .is("deleted_at", null);
       const projectIds = userProjects?.map(p => p.id) ?? [];
 
-      const [projectsRes, timeLogsRes, contractsRes, ratingsRes] = await Promise.all([
+      const [projectsRes, timeLogsRes, contractsRes, ratingsRes, totalProjectsRes] = await Promise.all([
         supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).is("deleted_at", null).eq("status", "in_progress"),
         projectIds.length
           ? supabase.from("time_logs").select("hours").eq("approval", "pending").in("project_id", projectIds)
           : Promise.resolve({ data: [] as { hours: number }[] }),
         supabase.from("contracts").select("id", { count: "exact", head: true }).eq("association_id", user!.id),
         supabase.from("ratings").select("quality_score, timing_score, communication_score").eq("rater_id", user!.id),
+        supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).is("deleted_at", null),
       ]);
 
       const pendingHours = (timeLogsRes.data as { hours: number }[] | null)?.reduce((sum, t) => sum + Number(t.hours), 0) ?? 0;
@@ -122,6 +123,7 @@ export function useProjectStats() {
         pendingHours,
         activeContracts: contractsRes.count ?? 0,
         avgRating,
+        totalRequests: totalProjectsRes.count ?? 0,
       };
     },
   });
