@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, User, Paperclip } from "lucide-react";
+import { Check, X, User, Paperclip, ExternalLink } from "lucide-react";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BidCardProps {
   bid: {
@@ -36,15 +38,22 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
     <Card>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-muted-foreground" />
-            </div>
+          <Link
+            to={`/profile/${bid.provider_id}`}
+            className="flex items-center gap-2 group hover:opacity-80 transition-opacity"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={bid.profiles?.avatar_url ?? undefined} />
+              <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+            </Avatar>
             <div>
-              <p className="font-medium text-sm">{bid.profiles?.full_name || "مقدم خدمة"}</p>
+              <div className="flex items-center gap-1">
+                <p className="font-medium text-sm group-hover:text-primary transition-colors">{bid.profiles?.full_name || "مقدم خدمة"}</p>
+                <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
               <p className="text-xs text-muted-foreground">{new Date(bid.created_at).toLocaleDateString("ar-SA")}</p>
             </div>
-          </div>
+          </Link>
           <Badge variant="outline" className={status.className}>{status.label}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">{bid.cover_letter}</p>
