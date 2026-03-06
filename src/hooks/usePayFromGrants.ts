@@ -49,7 +49,7 @@ export function usePayFromGrants() {
             .from("donor_contributions")
             .update({ donation_status: "consumed" })
             .eq("id", c.id);
-          if (error) throw error;
+          if (error) { console.error("consume full contribution error:", error); throw error; }
         } else {
           // Partially consume: reduce this row's amount to the leftover, create a consumed row for the used portion
           const usedAmount = remaining;
@@ -61,7 +61,7 @@ export function usePayFromGrants() {
             .from("donor_contributions")
             .update({ amount: leftover })
             .eq("id", c.id);
-          if (upErr) throw upErr;
+          if (upErr) { console.error("update leftover error:", upErr); throw upErr; }
 
           // Insert consumed portion as new row
           const { error: insErr } = await supabase
@@ -72,7 +72,7 @@ export function usePayFromGrants() {
               amount: usedAmount,
               donation_status: "consumed",
             });
-          if (insErr) throw insErr;
+          if (insErr) { console.error("insert consumed portion error:", insErr); throw insErr; }
         }
       }
 
