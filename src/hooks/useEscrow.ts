@@ -15,10 +15,12 @@ export function useCreateEscrow() {
       payeeId: string;
       amount: number;
     }) => {
+      // Check for existing ACTIVE escrow (exclude dead states)
       const { data: existing } = await supabase
         .from("escrow_transactions")
         .select("id")
         .eq("project_id", projectId)
+        .in("status", ["held", "released", "pending_payment", "frozen"] as any)
         .maybeSingle();
       if (existing) return existing;
 
@@ -44,16 +46,28 @@ export function useReleaseEscrow() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (projectId: string) => {
-      const { data: escrow, error: fetchErr } = await supabase
+      // Optimistic lock: update only if status is still 'held'
+      const { data: escrows, error: fetchErr } = await supabase
         .from("escrow_transactions")
         .select("*")
         .eq("project_id", projectId)
         .eq("status", "held")
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
       if (fetchErr) throw fetchErr;
+      const escrow = escrows?.[0];
       if (!escrow) throw new Error("No held escrow found");
+
+      // Atomic update with status check (optimistic lock)
+      const { data: updated, error } = await supabase
+        .from("escrow_transactions")
+        .update({ status: "released" } as any)
+        .eq("id", escrow.id)
+        .eq("status", "held")
+        .select("id")
+        .single();
+      if (error) throw error;
+      if (!updated) throw new Error("Escrow status changed concurrently — release aborted");
 
       // Get active commission rate
       const { data: config } = await supabase
@@ -68,14 +82,6 @@ export function useReleaseEscrow() {
       const commissionAmount = Number(escrow.amount) * Number(rate);
       const netAmount = Number(escrow.amount);
 
-      // Keep original amount intact — only update status
-      const { error } = await supabase
-        .from("escrow_transactions")
-        .update({ status: "released" } as any)
-        .eq("id", escrow.id);
-      if (error) throw error;
-
-      // Return amounts for invoice generation
       return { ...escrow, net_amount: netAmount, commission_amount: commissionAmount };
     },
     onSuccess: () => {
@@ -90,12 +96,15 @@ export function useRefundEscrow() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (projectId: string) => {
-      const { error } = await supabase
+      // Optimistic lock: only refund if still held
+      const { data: updated, error } = await supabase
         .from("escrow_transactions")
         .update({ status: "refunded" } as any)
         .eq("project_id", projectId)
-        .eq("status", "held");
+        .eq("status", "held")
+        .select("id");
       if (error) throw error;
+      if (!updated?.length) throw new Error("No held escrow to refund");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["escrow"] }),
   });
