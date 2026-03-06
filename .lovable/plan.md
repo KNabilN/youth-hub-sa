@@ -1,25 +1,69 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
-
 ## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+
+في صفحة `ProjectDetails.tsx`، استعلام الضمان المالي يستخدم `.maybeSingle()` لجلب الضمان:
+
+```typescript
+const { data: escrow } = useQuery({
+  queryFn: async () => {
+    const { data } = await supabase
+      .from("escrow_transactions")
+      .select("*")
+      .eq("project_id", id!)
+      .maybeSingle();  // ← يفشل إذا وُجد أكثر من سجل
+    return data;
+  },
+});
+```
+
+**السبب الجذري**: يوجد سجلان ضمان لنفس المشروع:
+1. ضمان دفع الجمعية لمزود الخدمة (payer = الجمعية، payee = المزود) — وهو الصحيح
+2. ضمان منحة المانح للجمعية (payer = المانح، payee = الجمعية) — هذا ضمان تبرع
+
+الجمعية ترى كلاهما بموجب سياسة RLS (كـ payer في الأول و payee في الثاني)، فيفشل `.maybeSingle()` ويرجع `null` ← "لا يوجد ضمان مالي محتجز".
 
 ## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### تعديل `src/pages/ProjectDetails.tsx`
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+تغيير استعلام الضمان ليجلب فقط الضمان الذي أنشأته الجمعية (حيث `payer_id = user.id`):
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+```typescript
+const { data: escrow } = useQuery({
+  queryKey: ["project-escrow", id],
+  enabled: !!id && !!user,
+  queryFn: async () => {
+    const { data } = await supabase
+      .from("escrow_transactions")
+      .select("*")
+      .eq("project_id", id!)
+      .eq("payer_id", user!.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data;
+  },
+});
+```
 
-### التغييرات
+هذا يضمن جلب ضمان الدفع الخاص بالمشروع فقط، وليس ضمانات المنح الواردة.
 
-| الملف | التغيير |
+### تعديل `src/hooks/useEscrow.ts` (نفس المشكلة في `useReleaseEscrow`)
+
+`useReleaseEscrow` أيضاً يستخدم `.maybeSingle()` بدون فلترة كافية:
+```typescript
+.eq("project_id", projectId)
+.eq("status", "held")
+.maybeSingle();
+```
+
+يجب إضافة ترتيب وحد أو فلترة أدق لتجنب نفس المشكلة عند وجود ضمانين بحالة `held`.
+
+### الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
-
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+| `src/pages/ProjectDetails.tsx` | إضافة `.eq("payer_id", user.id)` لاستعلام الضمان |
+| `src/hooks/useEscrow.ts` | تحسين استعلام `useReleaseEscrow` لتجنب تعدد النتائج |
 
