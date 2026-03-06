@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import logoWhite from "@/assets/logo-white.png";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import { Phone, Instagram } from "lucide-react";
+import { Phone, Instagram, Mail } from "lucide-react";
 
 const topCategories = [
 "الخدمات المالية",
@@ -61,9 +61,8 @@ export default function LandingFooter() {
             <h4 className="font-semibold text-sm text-white">تواصل معنا</h4>
             <div className="space-y-2">
               <a href="mailto:sspf.scy@gmail.com" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-                
-                <span dir="ltr">
-</span>
+                <Mail className="h-4 w-4 shrink-0" />
+                <span dir="ltr">sspf.scy@gmail.com</span>
               </a>
               <a href="tel:0554648475" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                 <Phone className="h-4 w-4 shrink-0" />

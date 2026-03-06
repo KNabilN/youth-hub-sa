@@ -235,7 +235,7 @@ export default function ProjectDetails() {
              </div>
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             {project.status === "draft" && isAssociation && (
               <Button onClick={handlePublish} disabled={updateProject.isPending}>
                 <Send className="h-4 w-4 me-1" />

@@ -38,7 +38,7 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions,
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">{totalEarnings.toLocaleString()} ر.س</div>
+            <div className="text-xl sm:text-3xl font-bold text-primary">{totalEarnings.toLocaleString()} ر.س</div>
           </CardContent>
         </Card>
 
@@ -50,7 +50,7 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions,
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{availableBalance.toLocaleString()} ر.س</div>
+            <div className="text-xl sm:text-3xl font-bold text-amber-600">{availableBalance.toLocaleString()} ر.س</div>
           </CardContent>
         </Card>
       </div>
