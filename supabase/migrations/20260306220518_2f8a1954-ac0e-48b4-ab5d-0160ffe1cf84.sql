@@ -1,0 +1,1 @@
+ALTER TABLE withdrawal_requests ADD COLUMN escrow_id uuid REFERENCES escrow_transactions(id);
