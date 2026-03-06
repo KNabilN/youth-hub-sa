@@ -64,6 +64,7 @@ export default function Checkout() {
   const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
   const { data: commissionRate = 0.05 } = useCommissionRate();
   const pricing = calculatePricing(subtotal, commissionRate);
+  const hasGrantBalance = role === "youth_association" && (grantBalance?.available ?? 0) >= pricing.total;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
