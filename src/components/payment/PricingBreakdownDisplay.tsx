@@ -21,7 +21,7 @@ export function PricingBreakdownDisplay({ pricing, className }: PricingBreakdown
           <span>{pricing.commission.toLocaleString()} ر.س</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">ضريبة القيمة المضافة (15%)</span>
+          <span className="text-muted-foreground">ضريبة القيمة المضافة (15% من المبلغ)</span>
           <span>{pricing.vat.toLocaleString()} ر.س</span>
         </div>
       </div>
