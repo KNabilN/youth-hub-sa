@@ -164,9 +164,9 @@ export default function AdminProjects() {
                       <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>
                         <Switch
-                          checked={p.profiles?.is_name_visible ?? true}
+                          checked={(p as any).is_name_visible ?? true}
                           onCheckedChange={(checked) => {
-                            toggleVisibility.mutate({ profileId: p.association_id, visible: checked }, {
+                            toggleVisibility.mutate({ projectId: p.id, visible: checked }, {
                               onSuccess: () => toast.success(checked ? "تم إظهار اسم الجمعية" : "تم إخفاء اسم الجمعية"),
                               onError: () => toast.error("حدث خطأ"),
                             });
