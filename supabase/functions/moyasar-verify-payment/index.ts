@@ -34,7 +34,7 @@ async function createInvoiceAndNotifyAdmin(
   commissionRate: number
 ) {
   const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vatAmount = Math.round(commissionAmount * VAT_RATE * 100) / 100;
+  const vatAmount = Math.round(baseAmount * VAT_RATE * 100) / 100;
 
   const { error: invErr } = await adminClient.from("invoices").insert({
     invoice_number: generateInvoiceNumber(),
