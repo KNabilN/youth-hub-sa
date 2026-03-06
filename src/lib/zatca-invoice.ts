@@ -106,10 +106,11 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
   const t = template ?? DEFAULT_TEMPLATE;
   const logoBase64 = await getLogoBase64(t.logo_url || undefined);
 
-  const netAmount = invoice.amount - invoice.commissionAmount;
+  const baseAmount = invoice.amount;
+  const commission = invoice.commissionAmount;
   const vatRate = 0.15;
-  const vatAmount = netAmount * vatRate;
-  const totalWithVat = netAmount + vatAmount;
+  const vatAmount = baseAmount * vatRate;
+  const total = baseAmount + commission + vatAmount;
   const invoiceDate = new Date(invoice.createdAt);
   const formattedDate = invoiceDate.toLocaleDateString("ar-SA", {
     year: "numeric",
@@ -122,7 +123,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
     t.company_name,
     t.vat_number,
     isoDate,
-    totalWithVat.toFixed(2),
+    total.toFixed(2),
     vatAmount.toFixed(2)
   );
 
