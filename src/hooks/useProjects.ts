@@ -11,7 +11,7 @@ export function useProjects(statusFilter?: string) {
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(*), regions(*), cities(*)")
+        .select("*, categories(*), regions(*), cities(*), bids!bids_project_id_fkey(id, status)")
         .eq("association_id", user!.id)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
