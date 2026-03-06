@@ -138,22 +138,28 @@ export function useApproveBankTransfer() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ transferId, escrowId }: { transferId: string; escrowId: string }) => {
-      // 1. Update bank_transfer status
-      const { error: btErr } = await supabase
+      // 1. Update bank_transfer status — optimistic lock: only if still pending
+      const { data: btUpdated, error: btErr } = await supabase
         .from("bank_transfers")
         .update({
           status: "approved",
           reviewed_at: new Date().toISOString(),
         })
-        .eq("id", transferId);
+        .eq("id", transferId)
+        .eq("status", "pending")
+        .select("id");
       if (btErr) throw btErr;
+      if (!btUpdated?.length) throw new Error("تمت معالجة هذا التحويل مسبقاً");
 
-      // 2. Update escrow to held
-      const { error: escErr } = await supabase
+      // 2. Update escrow to held — optimistic lock: only if pending_payment
+      const { data: escUpdated, error: escErr } = await supabase
         .from("escrow_transactions")
         .update({ status: "held" as any })
-        .eq("id", escrowId);
+        .eq("id", escrowId)
+        .eq("status", "pending_payment")
+        .select("id");
       if (escErr) throw escErr;
+      if (!escUpdated?.length) throw new Error("تم تعديل حالة الضمان مسبقاً");
 
       // 3. Fetch escrow details (including grant_request_id)
       const { data: escrow } = await supabase
@@ -274,6 +280,13 @@ export function useApproveBankTransfer() {
             });
             // DB trigger notify_on_contract_change handles notifications
           }
+
+          // Update project status to in_progress
+          await supabase
+            .from("projects")
+            .update({ status: "in_progress" as any })
+            .eq("id", escrow.project_id)
+            .in("status", ["draft", "open"] as any);
         }
       }
     },
@@ -304,20 +317,26 @@ export function useRejectBankTransfer() {
       escrowId: string;
       adminNote?: string;
     }) => {
-      const { error: btErr } = await supabase
+      // Optimistic lock: only reject if still pending
+      const { data: btUpdated, error: btErr } = await supabase
         .from("bank_transfers")
         .update({
           status: "rejected",
           admin_note: adminNote || "",
           reviewed_at: new Date().toISOString(),
         })
-        .eq("id", transferId);
+        .eq("id", transferId)
+        .eq("status", "pending")
+        .select("id");
       if (btErr) throw btErr;
+      if (!btUpdated?.length) throw new Error("تمت معالجة هذا التحويل مسبقاً");
 
-      const { error: escErr } = await supabase
+      const { data: escUpdated, error: escErr } = await supabase
         .from("escrow_transactions")
         .update({ status: "failed" as any })
-        .eq("id", escrowId);
+        .eq("id", escrowId)
+        .eq("status", "pending_payment")
+        .select("id");
       if (escErr) throw escErr;
 
       // Update donor_contributions to rejected

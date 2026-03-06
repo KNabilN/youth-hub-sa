@@ -130,15 +130,16 @@ export default function AdminFinance() {
     });
   };
 
-  const handleEscrowStatus = (id: string, status: string) => {
+  const handleEscrowStatus = (id: string, newStatus: string, currentStatus: string) => {
     const labels: Record<string, string> = {
       frozen: "تم تجميد الضمان",
       held: "تم إعادة الضمان للاحتجاز",
       under_review: "تم وضع الضمان قيد المراجعة",
+      pending_payment: "تم إعادة المحاولة",
     };
-    updateEscrow.mutate({ id, status: status as any }, {
-      onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
-      onError: () => toast.error("حدث خطأ"),
+    updateEscrow.mutate({ id, status: newStatus as any, expectedStatus: currentStatus as any }, {
+      onSuccess: () => toast.success(labels[newStatus] || "تم تحديث الحالة"),
+      onError: (err: any) => toast.error(err?.message || "حدث خطأ — ربما تم تعديل الحالة مسبقاً"),
     });
   };
 
@@ -325,7 +326,7 @@ export default function AdminFinance() {
                                 <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen", "held")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
@@ -335,7 +336,7 @@ export default function AdminFinance() {
                             )}
                             {e.status === "frozen" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held", "frozen")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />إعادة احتجاز
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
@@ -348,21 +349,21 @@ export default function AdminFinance() {
                             )}
                             {e.status === "under_review" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleEscrowStatus(e.id, "held")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleEscrowStatus(e.id, "held", "under_review")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />احتجاز
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-blue-600" onClick={() => handleEscrowStatus(e.id, "frozen")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-blue-600" onClick={() => handleEscrowStatus(e.id, "frozen", "under_review")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                               </>
                             )}
                             {e.status === "pending_payment" && (
-                              <Button size="sm" variant="outline" className="text-purple-600" onClick={() => handleEscrowStatus(e.id, "under_review")} disabled={updateEscrow.isPending}>
+                              <Button size="sm" variant="outline" className="text-purple-600" onClick={() => handleEscrowStatus(e.id, "under_review", "pending_payment")} disabled={updateEscrow.isPending}>
                                 <Eye className="h-3.5 w-3.5 me-1" />مراجعة
                               </Button>
                             )}
                             {e.status === "failed" && (
-                              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleEscrowStatus(e.id, "pending_payment")} disabled={updateEscrow.isPending}>
+                              <Button size="sm" variant="outline" className="text-orange-600" onClick={() => handleEscrowStatus(e.id, "pending_payment", "failed")} disabled={updateEscrow.isPending}>
                                 <AlertTriangle className="h-3.5 w-3.5 me-1" />إعادة المحاولة
                               </Button>
                             )}

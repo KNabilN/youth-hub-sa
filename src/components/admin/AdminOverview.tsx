@@ -61,10 +61,10 @@ function HealthMetric({ label, value, color }: { label: string; value: number; c
 }
 
 /* ─── Custom Tooltip ─── */
-function CustomChartTooltip({ active, payload, label }: any) {
+const CustomChartTooltip = React.forwardRef<HTMLDivElement, any>(({ active, payload, label }, ref) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-border/50 bg-popover px-4 py-3 shadow-lg" style={{ direction: "rtl" }}>
+    <div ref={ref} className="rounded-xl border border-border/50 bg-popover px-4 py-3 shadow-lg" style={{ direction: "rtl" }}>
       {label && <p className="mb-1.5 text-xs font-bold text-foreground">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 text-xs">
@@ -77,7 +77,8 @@ function CustomChartTooltip({ active, payload, label }: any) {
       ))}
     </div>
   );
-}
+});
+CustomChartTooltip.displayName = "CustomChartTooltip";
 
 const chartCardCls = "rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border/50 overflow-hidden animate-fade-in";
 const gridProps = { strokeDasharray: "3 3", stroke: "hsl(var(--border))", vertical: false } as const;
