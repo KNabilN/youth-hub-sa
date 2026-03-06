@@ -13,7 +13,7 @@ export interface PricingBreakdown {
 
 export function calculatePricing(baseAmount: number, commissionRate: number): PricingBreakdown {
   const commission = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vat = Math.round(commission * VAT_RATE * 100) / 100;
+  const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
   const total = Math.round((baseAmount + commission + vat) * 100) / 100;
   return {
     subtotal: baseAmount,
