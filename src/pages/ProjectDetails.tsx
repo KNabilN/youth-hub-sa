@@ -414,6 +414,31 @@ export default function ProjectDetails() {
             </CardContent>
           </Card>
         )}
+        {/* Pending payment banner — bid accepted but no escrow yet */}
+        {project.status === "open" && project.assigned_provider_id && !escrow && isAssociation && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Shield className="h-5 w-5 text-warning shrink-0" />
+              <div>
+                <p className="font-medium text-sm">بانتظار إتمام الدفع</p>
+                <p className="text-xs text-muted-foreground">تم قبول العرض وتعيين مقدم الخدمة. يرجى إتمام عملية الدفع لإنشاء الضمان المالي وبدء العمل.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Bank transfer under review banner */}
+        {project.status === "open" && project.assigned_provider_id && escrow && escrow.status === "pending_payment" && isAssociation && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Clock className="h-5 w-5 text-warning shrink-0" />
+              <div>
+                <p className="font-medium text-sm">التحويل البنكي قيد المراجعة</p>
+                <p className="text-xs text-muted-foreground">تم رفع إيصال التحويل وهو بانتظار مراجعة الإدارة. سيبدأ العمل فور الموافقة.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="bids" dir="rtl">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
