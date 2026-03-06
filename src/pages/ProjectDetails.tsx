@@ -76,6 +76,7 @@ export default function ProjectDetails() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const moyasarMetadata = useMemo(() => ({ type: "project_payment", user_id: user?.id, project_id: id }), [user?.id, id]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createTimeLog = useCreateTimeLog();
   const bankTransfer = useCreateBankTransfer();
