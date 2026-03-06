@@ -24,34 +24,66 @@ export function usePayFromGrants() {
     mutationFn: async ({ amount, payeeId, projectId, serviceId }: PayFromGrantsInput) => {
       if (!user) throw new Error("Not authenticated");
 
-      // 1. Get available contributions for this association, oldest first
-      const { data: contributions, error: fetchErr } = await supabase
+      // --- Fetch eligible contributions in priority order ---
+      // Priority 1: Grants specific to this project/service
+      // Priority 2: General grants (no project_id AND no service_id)
+      // NEVER use grants assigned to a different project/service
+
+      let specificContributions: any[] = [];
+
+      if (projectId) {
+        const { data, error } = await supabase
+          .from("donor_contributions")
+          .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
+          .eq("association_id", user.id)
+          .eq("donation_status", "available")
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        specificContributions = data ?? [];
+      } else if (serviceId) {
+        const { data, error } = await supabase
+          .from("donor_contributions")
+          .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
+          .eq("association_id", user.id)
+          .eq("donation_status", "available")
+          .eq("service_id", serviceId)
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        specificContributions = data ?? [];
+      }
+
+      // General grants (not assigned to any project or service)
+      const { data: generalContributions, error: genErr } = await supabase
         .from("donor_contributions")
-        .select("id, amount, donation_status, donor_id, association_id")
+        .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
         .eq("association_id", user.id)
         .eq("donation_status", "available")
+        .is("project_id", null)
+        .is("service_id", null)
         .order("created_at", { ascending: true });
-      if (fetchErr) throw fetchErr;
+      if (genErr) throw genErr;
 
-      const available = (contributions ?? []).reduce((s, c) => s + Number(c.amount), 0);
+      // Combine: specific first, then general (FIFO within each group)
+      const contributions = [...specificContributions, ...(generalContributions ?? [])];
+
+      const available = contributions.reduce((s, c) => s + Number(c.amount), 0);
       if (available < amount) throw new Error("رصيد المنح غير كافٍ");
 
-      // 2. Mark contributions as consumed (FIFO), splitting partial ones
+      // Mark contributions as consumed (FIFO), splitting partial ones
       let remaining = amount;
-      for (const c of contributions ?? []) {
+      for (const c of contributions) {
         if (remaining <= 0) break;
         const cAmount = Number(c.amount);
 
         if (cAmount <= remaining) {
-          // Fully consume this contribution
           remaining -= cAmount;
           const { error } = await supabase
             .from("donor_contributions")
-            .update({ donation_status: "consumed", project_id: projectId || null, service_id: serviceId || null })
+            .update({ donation_status: "consumed", project_id: projectId || c.project_id || null, service_id: serviceId || c.service_id || null })
             .eq("id", c.id);
           if (error) { console.error("consume full contribution error:", error); throw error; }
         } else {
-          // Partially consume: reduce this row's amount to the leftover, create a consumed row for the used portion
           const usedAmount = remaining;
           const leftover = cAmount - usedAmount;
           remaining = 0;
@@ -67,18 +99,18 @@ export function usePayFromGrants() {
           const { error: insErr } = await supabase
             .from("donor_contributions")
             .insert({
-              donor_id: (c as any).donor_id ?? user!.id,
-              association_id: (c as any).association_id ?? user!.id,
+              donor_id: c.donor_id ?? user.id,
+              association_id: c.association_id ?? user.id,
               amount: usedAmount,
               donation_status: "consumed",
-              project_id: projectId || null,
-              service_id: serviceId || null,
+              project_id: projectId || c.project_id || null,
+              service_id: serviceId || c.service_id || null,
             });
           if (insErr) { console.error("insert consumed portion error:", insErr); throw insErr; }
         }
       }
 
-      // 3. Create escrow with status 'held'
+      // Create escrow with status 'held'
       const { data: escrow, error: escrowErr } = await supabase
         .from("escrow_transactions")
         .insert({
@@ -93,7 +125,7 @@ export function usePayFromGrants() {
         .single();
       if (escrowErr) throw escrowErr;
 
-      // 4. Get active commission rate and create invoice
+      // Get active commission rate and create invoice
       const { data: config } = await supabase
         .from("commission_config")
         .select("rate")
@@ -122,6 +154,7 @@ export function usePayFromGrants() {
       qc.invalidateQueries({ queryKey: ["association-grant-balance"] });
       qc.invalidateQueries({ queryKey: ["association-received-grants"] });
       qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
+      qc.invalidateQueries({ queryKey: ["project-grant-balance"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["my-invoices"] });
