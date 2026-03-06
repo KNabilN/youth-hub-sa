@@ -25,7 +25,7 @@ const escrowExportCols: ExportColumnDef[] = [
 ];
 const invoiceExportCols: ExportColumnDef[] = [
   { key: "invoice_number", label: "رقم الفاتورة" }, { key: "recipient", label: "المستلم" }, { key: "amount", label: "المبلغ" },
-  { key: "commission", label: "العمولة" }, { key: "net", label: "الصافي" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+  { key: "commission", label: "العمولة" }, { key: "net", label: "الإجمالي" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
 ];
 const withdrawalExportCols: ExportColumnDef[] = [
   { key: "provider", label: "مقدم الخدمة" }, { key: "amount", label: "المبلغ" }, { key: "bank", label: "البنك" },
@@ -438,7 +438,7 @@ export default function AdminFinance() {
                       <TableHead>التاريخ</TableHead>
                       <TableHead>ملاحظات</TableHead>
                       <TableHead>الحالة</TableHead>
-                      <TableHead>الصافي</TableHead>
+                      <TableHead>الإجمالي</TableHead>
                       <TableHead>العمولة</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>المستلم</TableHead>
@@ -464,7 +464,7 @@ export default function AdminFinance() {
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{inv.notes || "—"}</TableCell>
                           <TableCell><Badge variant={statusVariant}>{statusLabel}</Badge></TableCell>
-                          <TableCell className="font-semibold">{(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-semibold">{(Number(inv.amount) + Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
                           <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>
@@ -863,7 +863,7 @@ export default function AdminFinance() {
               recipient: (inv) => inv.profiles?.full_name || "",
               amount: (inv) => String(inv.amount),
               commission: (inv) => String(inv.commission_amount),
-              net: (inv) => String(Number(inv.amount) - Number(inv.commission_amount)),
+              net: (inv) => String(Number(inv.amount) + Number(inv.commission_amount)),
               status: (inv) => inv.status || "",
               created_at: (inv) => inv.created_at?.slice(0, 10) || "",
             };

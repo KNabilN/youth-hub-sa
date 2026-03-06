@@ -128,7 +128,7 @@ export default function Invoices() {
                     <TableHead>الطلب</TableHead>
                     <TableHead>المبلغ</TableHead>
                     <TableHead>العمولة</TableHead>
-                    <TableHead>الصافي</TableHead>
+                    <TableHead>الإجمالي</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>التاريخ</TableHead>
                     <TableHead>إجراءات</TableHead>
@@ -145,7 +145,7 @@ export default function Invoices() {
                         <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className="font-semibold text-success">
-                          {(Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()} ر.س
+                          {(Number(inv.amount) + Number(inv.commission_amount)).toLocaleString()} ر.س
                         </TableCell>
                         <TableCell><Badge variant={st.variant}>{st.label}</Badge></TableCell>
                         <TableCell className="text-muted-foreground text-sm">
