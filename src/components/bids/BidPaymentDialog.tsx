@@ -53,9 +53,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   const bankTransfer = useCreateBankTransfer();
   const { data: grantBalance } = useAssociationGrantBalance();
   const payFromGrants = usePayFromGrants();
-  const hasGrantBalance = role === "youth_association" && (grantBalance?.available ?? 0) >= pricing.total;
 
   const pricing = useMemo(() => calculatePricing(bid.price, commissionRate), [bid.price, commissionRate]);
+  const hasGrantBalance = role === "youth_association" && (grantBalance?.available ?? 0) >= pricing.total;
 
   const moyasarMetadata = useMemo(() => ({
     type: "project_payment",
