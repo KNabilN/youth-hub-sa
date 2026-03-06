@@ -48,6 +48,8 @@ const GrantRequests = lazy(() => import("./pages/GrantRequests"));
 const MyGrantRequests = lazy(() => import("./pages/MyGrantRequests"));
 const DonorsPage = lazy(() => import("./pages/Donors"));
 const MyGrants = lazy(() => import("./pages/MyGrants"));
+const ReceivedGrants = lazy(() => import("./pages/ReceivedGrants"));
+const AssociationImpactReports = lazy(() => import("./pages/AssociationImpactReports"));
 
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
@@ -160,6 +162,8 @@ const App = () => (
                 <Route path="/my-grant-requests" element={<ProtectedRoute><SuspenseWrap><MyGrantRequests /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/donors" element={<ProtectedRoute><SuspenseWrap><DonorsPage /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-grants" element={<ProtectedRoute><SuspenseWrap><MyGrants /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/received-grants" element={<ProtectedRoute><SuspenseWrap><ReceivedGrants /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/association-impact" element={<ProtectedRoute><SuspenseWrap><AssociationImpactReports /></SuspenseWrap></ProtectedRoute>} />
                 
                 <Route path="/cart" element={<SuspenseWrap><Cart /></SuspenseWrap>} />
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
