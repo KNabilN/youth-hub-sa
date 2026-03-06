@@ -116,7 +116,7 @@ export default function AdminFinance() {
       if (uploadErr) throw uploadErr;
       updateW.mutate({ id: wTargetId, status: "approved", receipt_url: filePath }, {
         onSuccess: () => { toast.success("تمت الموافقة وإرفاق الإيصال"); setWApproveDialogOpen(false); setWReceiptFile(null); },
-        onError: () => toast.error("حدث خطأ"),
+        onError: (err: any) => toast.error(err?.message || "حدث خطأ — ربما تم معالجة الطلب مسبقاً"),
       });
     } catch { toast.error("فشل رفع الملف"); }
     finally { setWUploading(false); }
@@ -126,7 +126,7 @@ export default function AdminFinance() {
     if (!wRejectReason.trim()) { toast.error("يرجى كتابة سبب الرفض"); return; }
     updateW.mutate({ id: wTargetId, status: "rejected", rejection_reason: wRejectReason }, {
       onSuccess: () => { toast.success("تم الرفض وإرسال السبب"); setWRejectDialogOpen(false); setWRejectReason(""); },
-      onError: () => toast.error("حدث خطأ"),
+      onError: (err: any) => toast.error(err?.message || "حدث خطأ — ربما تم معالجة الطلب مسبقاً"),
     });
   };
 
@@ -147,13 +147,26 @@ export default function AdminFinance() {
     setEscrowUploading(true);
     try {
       const { id, action, escrow } = escrowActionDialog;
+      const expectedStatus = action === "released" ? "held" : "held";
+
       const filePath = `${id}/${Date.now()}_${escrowReceiptFile.name}`;
       const { error: uploadErr } = await supabase.storage.from("escrow-receipts").upload(filePath, escrowReceiptFile);
       if (uploadErr) throw uploadErr;
 
-      // Update escrow status with receipt
-      const { error: updateErr } = await supabase.from("escrow_transactions").update({ status: action, receipt_url: filePath }).eq("id", id);
+      // Optimistic lock: only update if status hasn't changed
+      const { data: updated, error: updateErr } = await supabase
+        .from("escrow_transactions")
+        .update({ status: action, receipt_url: filePath })
+        .eq("id", id)
+        .eq("status", expectedStatus)
+        .select("id");
       if (updateErr) throw updateErr;
+      if (!updated?.length) {
+        toast.error("تم تعديل حالة الضمان بالفعل من مكان آخر");
+        setEscrowActionDialog(null);
+        queryClient.invalidateQueries({ queryKey: ["admin-escrow"] });
+        return;
+      }
 
       // Fetch commission rate
       const { data: config } = await supabase.from("commission_config").select("rate").eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -174,8 +187,6 @@ export default function AdminFinance() {
         escrow_id: id,
         notes: notesText,
       });
-
-      // Note: notifications are handled by the database trigger `notify_on_escrow_change`
 
       queryClient.invalidateQueries({ queryKey: ["admin-escrow"] });
       queryClient.invalidateQueries({ queryKey: ["admin-invoices"] });

@@ -24,12 +24,25 @@ export function useCreateWithdrawal() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ amount, escrow_id }: { amount: number; escrow_id: string }) => {
+      // Server-side duplicate check before insert
+      const { data: existing } = await supabase
+        .from("withdrawal_requests")
+        .select("id")
+        .eq("escrow_id", escrow_id)
+        .neq("status", "rejected")
+        .maybeSingle();
+      if (existing) throw new Error("يوجد طلب سحب مسبق لهذه المعاملة");
+
       const { data, error } = await supabase
         .from("withdrawal_requests")
         .insert({ provider_id: user!.id, amount, escrow_id } as any)
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation gracefully
+        if (error.code === "23505") throw new Error("يوجد طلب سحب مسبق لهذه المعاملة");
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -70,14 +83,18 @@ export function useUpdateWithdrawalStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status, receipt_url, rejection_reason }: { id: string; status: string; receipt_url?: string; rejection_reason?: string }) => {
+      // Optimistic lock: only update if status is still 'pending'
       const updateData: Record<string, any> = { status, processed_at: new Date().toISOString() };
       if (receipt_url) updateData.receipt_url = receipt_url;
       if (rejection_reason) updateData.rejection_reason = rejection_reason;
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("withdrawal_requests")
         .update(updateData)
-        .eq("id", id);
+        .eq("id", id)
+        .eq("status", "pending")
+        .select("id");
       if (error) throw error;
+      if (!updated?.length) throw new Error("تم معالجة هذا الطلب مسبقاً");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-withdrawals"] });

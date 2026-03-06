@@ -323,6 +323,19 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
+  // Idempotency: check if an active escrow already exists for this project
+  const { data: existingEscrow } = await adminClient
+    .from("escrow_transactions")
+    .select("id")
+    .eq("project_id", projectId)
+    .in("status", ["held", "pending_payment"])
+    .maybeSingle();
+
+  if (existingEscrow) {
+    console.log("Idempotency: active escrow already exists for project", projectId);
+    return;
+  }
+
   // 1. Create escrow with status 'held' (payment already completed)
   const { data: escrow, error: escrowErr } = await adminClient
     .from("escrow_transactions")
