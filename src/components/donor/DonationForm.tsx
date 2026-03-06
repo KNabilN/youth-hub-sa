@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 
 const donationSchema = z.object({
-  amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
+  amount: z.coerce.number().min(1, "المبلغ يجب أن يكون أكبر من صفر"),
   target_type: z.enum(["association", "project"]),
   association_id: z.string().min(1, "يرجى اختيار الجمعية"),
   project_id: z.string().optional(),
@@ -51,7 +51,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
   const form = useForm<DonationFormValues>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
-      amount: defaultAmount || (undefined as any),
+      amount: defaultAmount || undefined,
       target_type: defaultTargetType || "association",
       association_id: defaultAssociationId || "",
       project_id: defaultProjectId || "",
@@ -85,6 +85,25 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
   const selectedProjectId = form.watch("project_id");
   const selectedProject = associationProjects?.find((p) => p.id === selectedProjectId);
 
+  // Query to fetch existing grants for the selected project
+  const { data: projectGrants } = useQuery({
+    queryKey: ["project-grants-summary", selectedProjectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("donor_contributions")
+        .select("amount, donation_status")
+        .eq("project_id", selectedProjectId!)
+        .in("donation_status", ["available", "reserved", "pending"]);
+      const totalAvailable = (data ?? []).reduce((s, c) => s + Number(c.amount), 0);
+      return { totalAvailable };
+    },
+    enabled: !!selectedProjectId && targetType === "project",
+  });
+
+  const projectBudget = selectedProject?.budget ? Number(selectedProject.budget) : 0;
+  const grantsAvailable = projectGrants?.totalAvailable ?? 0;
+  const remaining = Math.max(0, projectBudget - grantsAvailable);
+
   const handleSubmit = (values: DonationFormValues) => {
     const assoc = associations?.find((a) => a.id === values.association_id);
     const associationName = assoc?.organization_name || assoc?.full_name;
@@ -110,17 +129,11 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
     }
   };
 
+  const formatCurrency = (v: number) => v.toLocaleString("ar-SA");
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField control={form.control} name="amount" render={({ field }) => (
-          <FormItem>
-            <FormLabel required>المبلغ (ر.س)</FormLabel>
-            <FormControl><Input type="number" min={1} step="0.01" placeholder="أدخل المبلغ" {...field} value={field.value || ""} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-
         <FormField control={form.control} name="target_type" render={({ field }) => (
           <FormItem>
             <FormLabel required>نوع المنحة</FormLabel>
@@ -215,11 +228,19 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
                             value={project.title}
                             onSelect={() => {
                               field.onChange(project.id);
+                              if (project.budget) {
+                                form.setValue("amount", Number(project.budget));
+                              }
                               setProjectOpen(false);
                             }}
                           >
                             <Check className={cn("me-2 h-4 w-4", field.value === project.id ? "opacity-100" : "opacity-0")} />
-                            {project.title}
+                            <span className="flex-1">{project.title}</span>
+                            {project.budget && (
+                              <span className="text-xs text-muted-foreground ms-2">
+                                {Number(project.budget).toLocaleString("ar-SA")} ر.س
+                              </span>
+                            )}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -231,6 +252,40 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
             </FormItem>
           )} />
         )}
+
+        {/* Project Grant Summary Card */}
+        {targetType === "project" && selectedProjectId && selectedProject && (
+          <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Info className="h-4 w-4 text-primary" />
+              معلومات المنحة لهذا الطلب
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="text-center p-2 rounded bg-background">
+                <div className="text-muted-foreground text-xs">ميزانية الطلب</div>
+                <div className="font-semibold text-foreground">{formatCurrency(projectBudget)} ر.س</div>
+              </div>
+              <div className="text-center p-2 rounded bg-background">
+                <div className="text-muted-foreground text-xs">المنح المتاحة</div>
+                <div className="font-semibold text-primary">{formatCurrency(grantsAvailable)} ر.س</div>
+              </div>
+              <div className="text-center p-2 rounded bg-background">
+                <div className="text-muted-foreground text-xs">المتبقي المطلوب</div>
+                <div className={cn("font-semibold", remaining > 0 ? "text-destructive" : "text-green-600")}>
+                  {formatCurrency(remaining)} ر.س
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <FormField control={form.control} name="amount" render={({ field }) => (
+          <FormItem>
+            <FormLabel required>المبلغ (ر.س)</FormLabel>
+            <FormControl><Input type="number" min={1} step="0.01" placeholder="أدخل المبلغ" {...field} value={field.value ?? ""} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
 
         <Button type="submit" disabled={isLoading}>{isLoading ? "جاري التحضير..." : "متابعة للدفع"}</Button>
       </form>
