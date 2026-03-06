@@ -64,7 +64,7 @@ export function useReleaseEscrow() {
 
       const rate = config?.rate ?? 0.05;
       const commissionAmount = Number(escrow.amount) * Number(rate);
-      const netAmount = Number(escrow.amount) - commissionAmount;
+      const netAmount = Number(escrow.amount);
 
       // Keep original amount intact — only update status
       const { error } = await supabase
