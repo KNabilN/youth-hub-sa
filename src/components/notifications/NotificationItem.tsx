@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -12,6 +12,8 @@ interface NotificationItemProps {
   type: string;
   is_read: boolean;
   created_at: string;
+  entity_id?: string | null;
+  entity_type?: string | null;
   onMarkRead: (id: string) => void;
   onDelete?: (id: string) => void;
 }
@@ -53,6 +55,28 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   time_log_approval: { icon: Clock, label: "اعتماد وقت" },
 };
 
+function getEntityLink(entityType?: string | null, entityId?: string | null): string | null {
+  if (!entityType || !entityId) return null;
+  switch (entityType) {
+    case "project":
+      return `/projects/${entityId}`;
+    case "service":
+      return `/services/${entityId}`;
+    case "dispute":
+      return `/disputes/${entityId}`;
+    case "message":
+      return `/messages`;
+    case "ticket":
+      return `/tickets/${entityId}`;
+    case "withdrawal":
+      return `/earnings`;
+    case "grant_request":
+      return `/my-grant-requests`;
+    default:
+      return null;
+  }
+}
+
 function renderMessage(message: string) {
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: (string | JSX.Element)[] = [];
@@ -71,14 +95,25 @@ function renderMessage(message: string) {
   return parts.length > 0 ? parts : message;
 }
 
-export function NotificationItem({ id, message, type, is_read, created_at, onMarkRead, onDelete }: NotificationItemProps) {
+export function NotificationItem({ id, message, type, is_read, created_at, entity_id, entity_type, onMarkRead, onDelete }: NotificationItemProps) {
   const config = typeConfig[type] || { icon: Bell, label: type };
   const Icon = config.icon;
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const navigate = useNavigate();
+
+  const link = getEntityLink(entity_type, entity_id);
+
+  const handleClick = () => {
+    if (!is_read) onMarkRead(id);
+    if (link) navigate(link);
+  };
 
   return (
     <>
-      <div className={`flex items-start gap-3 p-4 rounded-lg border transition-all duration-200 ${is_read ? "bg-card" : "bg-accent/30 border-primary/20"}`}>
+      <div
+        onClick={handleClick}
+        className={`flex items-start gap-3 p-4 rounded-lg border transition-all duration-200 ${link ? "cursor-pointer hover:shadow-md" : ""} ${is_read ? "bg-card" : "bg-accent/30 border-primary/20"}`}
+      >
         <div className="shrink-0 mt-0.5">
           <div className={`rounded-full p-1.5 ${is_read ? "bg-muted" : "bg-primary/10"}`}>
             <Icon className={`h-4 w-4 ${is_read ? "text-muted-foreground" : "text-primary"}`} />
@@ -93,7 +128,7 @@ export function NotificationItem({ id, message, type, is_read, created_at, onMar
             {formatDistanceToNow(new Date(created_at), { addSuffix: true, locale: ar })}
           </p>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           {!is_read && (
             <Button variant="ghost" size="sm" onClick={() => onMarkRead(id)}>
               تم القراءة
