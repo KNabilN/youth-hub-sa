@@ -1,25 +1,84 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+## مراجعة شاملة للموقع — النتائج والخطة
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+بعد مراجعة مفصلة لجميع الملفات الرئيسية في النظام، إليك الملاحظات مصنفة حسب الأولوية:
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+---
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### 1. ثغرات أمنية ومالية (حرجة)
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+| # | المشكلة | الملف | الوصف |
+|---|---------|-------|-------|
+| 1 | **`useUpdateEscrowStatus` بدون optimistic locking** | `src/hooks/useAdminFinance.ts:24-31` | الـ `handleEscrowStatus` (تجميد، إعادة احتجاز، مراجعة) لا يتحقق من الحالة الحالية قبل التحديث. الأدمن يمكنه تجميد escrow محرر بالفعل. يجب إضافة `.eq("status", currentStatus)` |
+| 2 | **`useApproveBankTransfer` بدون فحص حالة التحويل** | `src/hooks/useBankTransfer.ts:140-148` | لا يتحقق أن `status = 'pending'` قبل الموافقة. إذا فتح أدمنان نفس الصفحة يمكن الموافقة مرتين |
+| 3 | **`useRejectBankTransfer` بدون فحص حالة** | `src/hooks/useBankTransfer.ts:296-321` | نفس المشكلة — لا يوجد `.eq("status", "pending")` |
+| 4 | **Grant payment يكرر `assigned_provider_id` update** | `src/components/bids/BidPaymentDialog.tsx:162-164` | بعد `acceptBid` (التي تحدث `assigned_provider_id` و `budget`)، يقوم `handleGrantPayment` بتحديث المشروع مرة أخرى مع `assigned_provider_id` + `status`. هذا يعمل لكنه redundant ويمكن أن يسبب race condition |
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+### 2. مشاكل في الاتساق (عالية)
 
-### التغييرات
+| # | المشكلة | الملف | الوصف |
+|---|---------|-------|-------|
+| 5 | **Mixed payment: escrow مكرر محتمل** | `BidPaymentDialog.tsx:176-240` | عند الدفع المختلط، يتم إنشاء escrow من `payFromGrants` ثم إذا اختار المستخدم دفع إلكتروني، يتم إنشاء escrow ثاني من `moyasar-verify-payment` (processProjectPayment). الـ unique index يمنع ذلك لكن سيسبب خطأ للمستخدم |
+| 6 | **Bank transfer في BidPaymentDialog لا يحدث status to in_progress** | `BidPaymentDialog.tsx:120-141` | عند التحويل البنكي، لا يتم تغيير حالة المشروع لـ `in_progress` ولا إنشاء عقد — يتم ذلك فقط عند موافقة الأدمن. لكن `handleGrantPayment` ينشئ العقد ويحدث الحالة فوراً. هذا سلوك مقصود لكن يجب التأكد من أن `useApproveBankTransfer` يحدث status المشروع لـ `in_progress` |
 
-| الملف | التغيير |
+### 3. مشاكل UI/UX (متوسطة)
+
+| # | المشكلة | الملف | الوصف |
+|---|---------|-------|-------|
+| 7 | **Console warning: CustomChartTooltip forwardRef** | `AdminOverview.tsx:183` | Component يُمرر كـ ref بدون `forwardRef`. ليس خطأ وظيفي لكنه يسبب warning مستمر |
+| 8 | **Earnings يعرض جميع الضمانات بما فيها `held`** | `useEarnings.ts` | الاستعلام يجلب جميع الضمانات للمزود بدون فلترة. المستخدم يرى ضمانات `held` (محتجزة) مع زر سحب معطل وهذا واضح، لكن الأفضل توضيح أن المحتجزة "قيد التنفيذ" |
+
+### 4. تعديلات مطلوبة
+
+#### التعديل 1: إضافة optimistic locking لـ `useUpdateEscrowStatus`
+**الملف:** `src/hooks/useAdminFinance.ts`
+```typescript
+// إضافة expectedStatus كمعامل وتضمينه في الاستعلام
+mutationFn: async ({ id, status, receipt_url, expectedStatus }) => {
+  const query = supabase.from("escrow_transactions").update(update).eq("id", id);
+  if (expectedStatus) query.eq("status", expectedStatus);
+  const { data, error } = await query.select("id");
+  if (!data?.length) throw new Error("تم تعديل الحالة مسبقاً");
+}
+```
+ثم تحديث `handleEscrowStatus` في `AdminFinance.tsx` لتمرير `expectedStatus` بناءً على الحالة الحالية.
+
+#### التعديل 2: إضافة optimistic locking لـ Bank Transfer approval/rejection
+**الملف:** `src/hooks/useBankTransfer.ts`
+- إضافة `.eq("status", "pending")` في `useApproveBankTransfer` و `useRejectBankTransfer`
+- إضافة `.select("id")` وفحص عدم وجود نتيجة = تمت المعالجة مسبقاً
+
+#### التعديل 3: إصلاح CustomChartTooltip forwardRef
+**الملف:** `src/components/admin/AdminOverview.tsx`
+- لف الـ component بـ `React.forwardRef`
+
+#### التعديل 4: إضافة project status update عند الموافقة على bank transfer
+**الملف:** `src/hooks/useBankTransfer.ts` — `useApproveBankTransfer`
+- بعد إنشاء العقد (عند وجود `project_id`)، يجب تحديث حالة المشروع إلى `in_progress`:
+```typescript
+await supabase.from("projects").update({ status: "in_progress" }).eq("id", escrow.project_id);
+```
+*ملاحظة: هذا موجود بالفعل ضمنياً في بعض المسارات لكن يجب التأكد من تغطيته في جميع الحالات.*
+
+---
+
+### ملخص الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+| `src/hooks/useAdminFinance.ts` | Optimistic locking لـ `useUpdateEscrowStatus` |
+| `src/hooks/useBankTransfer.ts` | Optimistic locking + project status update |
+| `src/pages/admin/AdminFinance.tsx` | تمرير `expectedStatus` مع كل إجراء |
+| `src/components/admin/AdminOverview.tsx` | إصلاح forwardRef warning |
 
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+### ما هو سليم بالفعل ✓
+- RLS policies شاملة ومحكمة على جميع الجداول
+- Unique indexes تمنع تكرار الضمانات والسحب
+- Optimistic locking موجود في `useEscrow.ts`, `useWithdrawals.ts`
+- Rollback المنح عند فشل إنشاء الضمان
+- Idempotency في edge function
+- ProtectedRoute يتحقق من التعليق
+- AdminRoute يتحقق من الدور server-side
+- DB triggers تدير الإشعارات بشكل موثوق
 
