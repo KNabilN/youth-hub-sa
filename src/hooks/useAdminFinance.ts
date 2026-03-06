@@ -21,16 +21,24 @@ export function useEscrowTransactions() {
 export function useUpdateEscrowStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, receipt_url }: { id: string; status: EscrowStatus; receipt_url?: string }) => {
+    mutationFn: async ({ id, status, receipt_url, expectedStatus }: { id: string; status: EscrowStatus; receipt_url?: string; expectedStatus?: EscrowStatus }) => {
       const update: Record<string, any> = { status };
       if (receipt_url) update.receipt_url = receipt_url;
-      const { error } = await supabase
+      let query = supabase
         .from("escrow_transactions")
         .update(update)
         .eq("id", id);
+      if (expectedStatus) {
+        query = query.eq("status", expectedStatus);
+      }
+      const { data, error } = await query.select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("تم تعديل حالة الضمان مسبقاً من مكان آخر");
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-escrow"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-escrow"] });
+      qc.invalidateQueries({ queryKey: ["admin-finance-pending"] });
+    },
   });
 }
 
