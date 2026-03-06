@@ -131,7 +131,8 @@ export default function ProjectDetails() {
     try {
       // 0. Verify escrow exists and is held
       if (!escrow || escrow.status !== "held") {
-        toast({ title: "لا يمكن إتمام الطلب بدون ضمان مالي محتجز", variant: "destructive" });
+        console.error("Escrow check failed:", { escrow: escrow?.status });
+        toast({ title: "لا يمكن إتمام الطلب", description: "لا يوجد ضمان مالي محتجز. يرجى التأكد من إنشاء الضمان المالي أولاً.", variant: "destructive" });
         setCompleting(false);
         return;
       }
@@ -144,7 +145,8 @@ export default function ProjectDetails() {
         .eq("status", "accepted")
         .limit(1);
       if (!allDeliverables?.length) {
-        toast({ title: "لا يمكن إتمام الطلب قبل قبول التسليمات", variant: "destructive" });
+        console.error("No accepted deliverables found for project", id);
+        toast({ title: "لا يمكن إتمام الطلب", description: "يجب قبول التسليمات أولاً قبل إتمام الطلب.", variant: "destructive" });
         setCompleting(false);
         return;
       }
@@ -163,17 +165,20 @@ export default function ProjectDetails() {
 
       // DB triggers handle notifications (project status + escrow release)
 
-      toast({ title: "تم إتمام الطلب وتحرير المستحقات" });
-      // Invalidate all relevant queries instead of full reload
+      toast({ title: "تم إتمام الطلب وتحرير المستحقات بنجاح ✅", description: "سيتم إشعار مقدم الخدمة ويمكنه الآن طلب سحب المستحقات." });
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ["project", id] });
       queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
       queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] });
       queryClient.invalidateQueries({ queryKey: ["project-disputes", id] });
       queryClient.invalidateQueries({ queryKey: ["contract", id] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-    } catch (err) {
-      console.error("Project completion failed");
-      toast({ title: "حدث خطأ أثناء إتمام الطلب", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+      queryClient.invalidateQueries({ queryKey: ["earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["provider-stats"] });
+    } catch (err: any) {
+      console.error("Project completion failed:", err);
+      toast({ title: "حدث خطأ أثناء إتمام الطلب", description: err?.message || "يرجى المحاولة مرة أخرى", variant: "destructive" });
     } finally {
       setCompleting(false);
     }
