@@ -15,6 +15,22 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
   reserved: { label: "محجوز", variant: "outline" },
 };
 
+function getDonationType(g: any): { label: string; className: string } {
+  if (g.project_id && g.projects?.title) {
+    return { label: `مخصص لطلب`, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" };
+  }
+  if (g.service_id && g.micro_services?.title) {
+    return { label: `مخصص لخدمة`, className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
+  }
+  return { label: "دعم عام", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" };
+}
+
+function getLinkedEntityName(g: any): string | null {
+  if (g.project_id && g.projects?.title) return g.projects.title;
+  if (g.service_id && g.micro_services?.title) return g.micro_services.title;
+  return null;
+}
+
 export default function ReceivedGrants() {
   const { data: grants, isLoading } = useReceivedGrants();
   const { data: balance } = useAssociationGrantBalance();
@@ -69,11 +85,13 @@ export default function ReceivedGrants() {
         ) : (
           <Card>
             <CardHeader><CardTitle>سجل المنح الواردة</CardTitle></CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>المانح</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>المرتبط بـ</TableHead>
                     <TableHead>المبلغ</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>التاريخ</TableHead>
@@ -82,10 +100,20 @@ export default function ReceivedGrants() {
                 <TableBody>
                   {grants.map((g: any) => {
                     const s = statusLabels[g.donation_status] || statusLabels.available;
+                    const dtype = getDonationType(g);
+                    const linkedName = getLinkedEntityName(g);
                     return (
                       <TableRow key={g.id}>
                         <TableCell className="font-medium">
                           {g.profiles?.organization_name || g.profiles?.full_name || "مانح"}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${dtype.className}`}>
+                            {dtype.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">
+                          {linkedName || "—"}
                         </TableCell>
                         <TableCell>{Number(g.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell><Badge variant={s.variant}>{s.label}</Badge></TableCell>
