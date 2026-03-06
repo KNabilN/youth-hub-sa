@@ -34,12 +34,45 @@ export function useDonorConsumedBreakdown() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("id, amount, created_at, donation_status, project_id, service_id, association_id, projects(title), micro_services(title), profiles:association_id(full_name, organization_name)")
+        .select(`
+          id, amount, created_at, donation_status, project_id, service_id, association_id,
+          projects(title, status, assigned_provider_id, request_number),
+          micro_services(title, service_number, provider_id),
+          profiles:association_id(full_name, organization_name)
+        `)
         .eq("donor_id", user!.id)
         .eq("donation_status", "consumed")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+
+      // Fetch provider names for projects and services
+      const providerIds = new Set<string>();
+      for (const c of data ?? []) {
+        const proj = c.projects as any;
+        const svc = c.micro_services as any;
+        if (proj?.assigned_provider_id) providerIds.add(proj.assigned_provider_id);
+        if (svc?.provider_id) providerIds.add(svc.provider_id);
+      }
+
+      let providerMap: Record<string, string> = {};
+      if (providerIds.size > 0) {
+        const { data: providers } = await supabase
+          .from("profiles")
+          .select("id, full_name, organization_name")
+          .in("id", Array.from(providerIds));
+        for (const p of providers ?? []) {
+          providerMap[p.id] = p.organization_name || p.full_name || "";
+        }
+      }
+
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        provider_name: c.projects?.assigned_provider_id
+          ? providerMap[c.projects.assigned_provider_id]
+          : c.micro_services?.provider_id
+            ? providerMap[c.micro_services.provider_id]
+            : null,
+      }));
     },
     enabled: !!user,
   });

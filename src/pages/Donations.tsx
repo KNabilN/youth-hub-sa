@@ -73,22 +73,54 @@ function ConsumedBreakdown() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs">التاريخ</TableHead>
-                  <TableHead className="text-xs">المشروع / الخدمة</TableHead>
+                  <TableHead className="text-xs">النوع</TableHead>
+                  <TableHead className="text-xs">الطلب / الخدمة</TableHead>
+                  <TableHead className="text-xs">مزود الخدمة</TableHead>
                   <TableHead className="text-xs">المبلغ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {group.items.map((item: any) => {
-                  const target = item.projects?.title || item.micro_services?.title || "دعم عام";
-                  const Icon = item.project_id ? FolderKanban : item.service_id ? Layers : HandCoins;
+                  const hasProject = !!item.project_id && item.projects?.title;
+                  const hasService = !!item.service_id && item.micro_services?.title;
+                  const targetLabel = hasProject
+                    ? item.projects.title
+                    : hasService
+                      ? item.micro_services.title
+                      : "دعم عام";
+                  const targetRef = hasProject
+                    ? item.projects.request_number
+                    : hasService
+                      ? item.micro_services.service_number
+                      : null;
+                  const Icon = hasProject ? FolderKanban : hasService ? Layers : HandCoins;
+                  const typeLabel = hasProject ? "طلب مشروع" : hasService ? "خدمة" : "دعم عام";
+
                   return (
                     <TableRow key={item.id}>
                       <TableCell className="text-xs">{format(new Date(item.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                      <TableCell>
+                        <Badge variant={hasProject ? "default" : hasService ? "secondary" : "outline"} className="text-[10px]">
+                          {typeLabel}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-xs">
                         <div className="flex items-center gap-1.5">
-                          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                          {target}
+                          <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <div>
+                            <span className="font-medium">{targetLabel}</span>
+                            {targetRef && (
+                              <span className="text-muted-foreground mr-1 text-[10px]">({targetRef})</span>
+                            )}
+                          </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {item.provider_name ? (
+                          <span className="text-foreground">{item.provider_name}</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-xs font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
                     </TableRow>
