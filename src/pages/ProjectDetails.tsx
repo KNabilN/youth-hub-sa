@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -13,9 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
@@ -24,18 +21,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval, useProjectTimeLogs } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
-import { useCreateEscrow, useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
+import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
-import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
-import { calculatePricing, useCommissionRate } from "@/lib/pricing";
-import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
-import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 // Notifications are handled by database triggers — no client-side sendNotification needed
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, CreditCard, Building2, Upload, Copy } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -44,7 +37,6 @@ import { useDeliverable } from "@/hooks/useDeliverables";
 import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
 import { WorkTimer } from "@/components/provider/WorkTimer";
 import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
-
 const BANK_INFO = {
   bank: "مصرف الراجحي",
   accountName: "شركة معين التنموية لحلول الاعمال",
