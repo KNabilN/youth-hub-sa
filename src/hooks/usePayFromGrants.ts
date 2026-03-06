@@ -27,7 +27,7 @@ export function usePayFromGrants() {
       // 1. Get available contributions for this association, oldest first
       const { data: contributions, error: fetchErr } = await supabase
         .from("donor_contributions")
-        .select("id, amount, donation_status")
+        .select("id, amount, donation_status, donor_id, association_id")
         .eq("association_id", user.id)
         .eq("donation_status", "available")
         .order("created_at", { ascending: true });
@@ -36,16 +36,44 @@ export function usePayFromGrants() {
       const available = (contributions ?? []).reduce((s, c) => s + Number(c.amount), 0);
       if (available < amount) throw new Error("رصيد المنح غير كافٍ");
 
-      // 2. Mark contributions as consumed (FIFO)
+      // 2. Mark contributions as consumed (FIFO), splitting partial ones
       let remaining = amount;
       for (const c of contributions ?? []) {
         if (remaining <= 0) break;
-        remaining -= Number(c.amount);
-        const { error } = await supabase
-          .from("donor_contributions")
-          .update({ donation_status: "consumed" })
-          .eq("id", c.id);
-        if (error) throw error;
+        const cAmount = Number(c.amount);
+
+        if (cAmount <= remaining) {
+          // Fully consume this contribution
+          remaining -= cAmount;
+          const { error } = await supabase
+            .from("donor_contributions")
+            .update({ donation_status: "consumed" })
+            .eq("id", c.id);
+          if (error) throw error;
+        } else {
+          // Partially consume: reduce this row's amount to the leftover, create a consumed row for the used portion
+          const usedAmount = remaining;
+          const leftover = cAmount - usedAmount;
+          remaining = 0;
+
+          // Update original to leftover (still available)
+          const { error: upErr } = await supabase
+            .from("donor_contributions")
+            .update({ amount: leftover })
+            .eq("id", c.id);
+          if (upErr) throw upErr;
+
+          // Insert consumed portion as new row
+          const { error: insErr } = await supabase
+            .from("donor_contributions")
+            .insert({
+              donor_id: (c as any).donor_id ?? user!.id,
+              association_id: (c as any).association_id ?? user!.id,
+              amount: usedAmount,
+              donation_status: "consumed",
+            });
+          if (insErr) throw insErr;
+        }
       }
 
       // 3. Create escrow with status 'held'
