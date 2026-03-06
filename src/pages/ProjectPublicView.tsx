@@ -22,9 +22,10 @@ export default function ProjectPublicView() {
         status: string;
         required_skills: string[] | null;
         created_at: string;
+        is_name_visible: boolean;
         category: { name: string } | null;
         region: { name: string } | null;
-        association: { full_name: string; organization_name: string | null; avatar_url: string | null; is_name_visible: boolean } | null;
+        association: { full_name: string; organization_name: string | null; avatar_url: string | null } | null;
       } | null;
     },
     enabled: !!id,
@@ -51,7 +52,7 @@ export default function ProjectPublicView() {
     );
   }
 
-  const assocName = (project.association?.is_name_visible !== false)
+  const assocName = (project.is_name_visible !== false)
     ? (project.association?.organization_name || project.association?.full_name || "—")
     : "جمعية مجهولة";
 
