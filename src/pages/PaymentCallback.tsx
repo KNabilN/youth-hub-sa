@@ -25,7 +25,7 @@ export default function PaymentCallback() {
     return {};
   };
   const paymentContext = getPaymentContext();
-  const retryPath = paymentContext?.type === "donation" ? "/donations" : "/checkout";
+  const retryPath = paymentContext?.type === "donation" ? "/donations" : paymentContext?.type === "project_payment" ? `/projects/${paymentContext.project_id}` : "/checkout";
 
   useEffect(() => {
     const paymentId = searchParams.get("id");
@@ -73,12 +73,19 @@ export default function PaymentCallback() {
 
         if (data?.verified) {
           sessionStorage.removeItem("moyasar_payment_context");
-          const total = data.amount || context.total || 0;
-          const count = context.items?.length || 1;
-          navigate("/payment-success", {
-            replace: true,
-            state: { total, count, method: "electronic" },
-          });
+          if (context.type === "project_payment") {
+            navigate(`/projects/${context.project_id}`, {
+              replace: true,
+              state: { paymentSuccess: true },
+            });
+          } else {
+            const total = data.amount || context.total || 0;
+            const count = context.items?.length || 1;
+            navigate("/payment-success", {
+              replace: true,
+              state: { total, count, method: "electronic" },
+            });
+          }
         } else {
           setStatus("failed");
           setErrorMsg(data?.message || "فشل التحقق من الدفع");

@@ -169,6 +169,8 @@ Deno.serve(async (req) => {
       // For donations, use the subtotal (base amount) from context, not the total charged
       const donationBaseAmount = paymentContext.subtotal || amountSAR;
       await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate);
+    } else if (contextType === "project_payment") {
+      await processProjectPayment(adminClient, userId, paymentContext, commissionRate);
     }
 
     return new Response(
@@ -315,4 +317,36 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
       .update({ status: "funded" })
       .eq("id", grantRequestId);
   }
+}
+
+async function processProjectPayment(adminClient: any, userId: string, ctx: any, commissionRate: number) {
+  const projectId = ctx.project_id;
+  const providerId = ctx.provider_id;
+  const baseAmount = ctx.subtotal || 0;
+
+  if (!projectId || !providerId) {
+    console.error("Missing project_id or provider_id in project_payment context");
+    return;
+  }
+
+  // Create escrow with status 'held' (payment already completed)
+  const { data: escrow, error: escrowErr } = await adminClient
+    .from("escrow_transactions")
+    .insert({
+      project_id: projectId,
+      payer_id: userId,
+      payee_id: providerId,
+      amount: baseAmount,
+      status: "held",
+    })
+    .select("id")
+    .single();
+
+  if (escrowErr) {
+    console.error("Escrow creation error:", escrowErr);
+    return;
+  }
+
+  // Auto-generate invoice
+  await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, baseAmount, commissionRate);
 }
