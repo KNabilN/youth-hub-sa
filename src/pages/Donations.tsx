@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useDonorContributions, useCreateContribution } from "@/hooks/useDonorContributions";
+import { useDonorContributions, useCreateContribution, useDonorConsumedBreakdown } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
 import { useAuth } from "@/hooks/useAuth";
 import { DonationForm, DonationFormData } from "@/components/donor/DonationForm";
@@ -267,6 +267,7 @@ export default function Donations() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="timeline">السجل الزمني</TabsTrigger>
                   <TabsTrigger value="table">جدول</TabsTrigger>
+                  <TabsTrigger value="consumed">استخدام المنح</TabsTrigger>
                 </TabsList>
                 <TabsContent value="timeline">
                   <DonationTimeline contributions={contributions as any} />
@@ -296,6 +297,9 @@ export default function Donations() {
                       })}
                     </TableBody>
                   </Table></div>
+                </TabsContent>
+                <TabsContent value="consumed">
+                  <ConsumedBreakdown />
                 </TabsContent>
               </Tabs>
             )}
