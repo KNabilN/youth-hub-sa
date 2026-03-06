@@ -3,10 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { useAddToCart } from "@/hooks/useCart";
+import { useAddToCart, useCartItems } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, ArrowLeft } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -24,8 +24,10 @@ const typeLabel: Record<string, string> = {
 export function ServiceCard({ service }: { service: Service }) {
   const { user, role } = useAuth();
   const addToCart = useAddToCart();
+  const { data: cartItems } = useCartItems();
 
   const canPurchase = role === "youth_association" || role === "donor";
+  const isInCart = cartItems?.some(item => item.service_id === service.id);
 
   const handleAddToCart = () => {
     if (!user) return;
@@ -81,10 +83,19 @@ export function ServiceCard({ service }: { service: Service }) {
                 التفاصيل
               </Link>
             </Button>
-            <Button size="sm" className="flex-1" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
-              <ShoppingCart className="h-4 w-4 me-1" />
-              {addToCart.isPending ? "إضافة..." : "أضف للسلة"}
-            </Button>
+            {isInCart ? (
+              <Button size="sm" className="flex-1" variant="secondary" asChild>
+                <Link to="/cart">
+                  <ArrowLeft className="h-4 w-4 me-1" />
+                  اذهب للسلة
+                </Link>
+              </Button>
+            ) : (
+              <Button size="sm" className="flex-1" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
+                <ShoppingCart className="h-4 w-4 me-1" />
+                {addToCart.isPending ? "إضافة..." : "أضف للسلة"}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
