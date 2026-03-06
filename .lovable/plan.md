@@ -1,25 +1,42 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
-
 ## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+
+عند استهلاك المنح عبر `usePayFromGrants`، لا يتم تسجيل `project_id` أو `service_id` في صفوف المساهمات المستهلكة:
+
+1. **الاستهلاك الكامل** (سطر 48-52): يُحدّث `donation_status` فقط إلى `consumed` بدون تعيين `project_id`/`service_id`
+2. **الاستهلاك الجزئي** (سطر 67-74): يُنشئ صف جديد بدون `project_id`/`service_id`
+
+النتيجة: كل المنح المستهلكة تظهر كـ "دعم عام" في تبويب "استخدام المنح" لأن الحقول فارغة.
 
 ## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### تعديل `src/hooks/usePayFromGrants.ts`
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+تمرير `projectId` و `serviceId` عند استهلاك المساهمات:
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+1. **الاستهلاك الكامل**: إضافة `project_id` و `service_id` في `update` بجانب `donation_status`
+2. **الاستهلاك الجزئي**: إضافة `project_id` و `service_id` في `insert` للصف المستهلك الجديد
 
-### التغييرات
+```typescript
+// Full consumption
+.update({ 
+  donation_status: "consumed",
+  project_id: projectId || null,
+  service_id: serviceId || null,
+})
 
-| الملف | التغيير |
-|---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+// Partial consumption - new consumed row
+.insert({
+  donor_id: c.donor_id,
+  association_id: c.association_id,
+  amount: usedAmount,
+  donation_status: "consumed",
+  project_id: projectId || null,
+  service_id: serviceId || null,
+})
+```
 
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+### الملفات المتأثرة
+- `src/hooks/usePayFromGrants.ts`
 
