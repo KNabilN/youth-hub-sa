@@ -545,8 +545,8 @@ export default function ProjectDetails() {
                       projects={[{ id: project.id, title: project.title }]}
                       defaultValues={{ project_id: project.id, ...timerDefaults }}
                       isLoading={createTimeLog.isPending}
-                      onSubmit={(values: TimeEntryFormValues) => {
-                        createTimeLog.mutate({ ...values, project_id: project.id }, {
+                      onSubmit={(values) => {
+                        createTimeLog.mutate({ project_id: values.project_id, log_date: values.log_date, hours: values.hours, description: values.description, start_time: values.start_time, end_time: values.end_time }, {
                           onSuccess: () => {
                             toast({ title: "تم تسجيل الساعات بنجاح" });
                             queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] });
