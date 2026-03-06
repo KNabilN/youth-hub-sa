@@ -92,6 +92,11 @@ export default function PaymentSuccess() {
                   })}
                 </div>
               </>
+            ) : state?.method === "grant_balance" ? (
+              <SuccessAnimation
+                title="تم الدفع من رصيد المنح!"
+                description="تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي"
+              />
             ) : (
               <SuccessAnimation
                 title="تم الدفع بنجاح!"

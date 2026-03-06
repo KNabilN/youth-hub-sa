@@ -2,6 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+function generateInvoiceNumber(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `INV-${date}-${rand}`;
+}
+
 interface PayFromGrantsInput {
   amount: number;
   payeeId: string;
@@ -56,6 +63,29 @@ export function usePayFromGrants() {
         .single();
       if (escrowErr) throw escrowErr;
 
+      // 4. Get active commission rate and create invoice
+      const { data: config } = await supabase
+        .from("commission_config")
+        .select("rate")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const rate = config?.rate ?? 0.05;
+      const commissionAmount = Math.round(amount * Number(rate) * 100) / 100;
+
+      const { error: invError } = await supabase
+        .from("invoices")
+        .insert({
+          invoice_number: generateInvoiceNumber(),
+          amount,
+          commission_amount: commissionAmount,
+          issued_to: user.id,
+          escrow_id: escrow.id,
+        });
+      if (invError) throw invError;
+
       return escrow;
     },
     onSuccess: () => {
@@ -63,6 +93,8 @@ export function usePayFromGrants() {
       qc.invalidateQueries({ queryKey: ["association-received-grants"] });
       qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
       qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["my-invoices"] });
     },
   });
 }
