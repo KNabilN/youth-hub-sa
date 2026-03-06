@@ -49,7 +49,6 @@ async function createInvoiceAndNotifyAdmin(
     return;
   }
 
-  // Notify all super_admin users
   const { data: admins } = await adminClient
     .from("user_roles")
     .select("user_id")
@@ -111,7 +110,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify payment with Moyasar
     const verifyRes = await fetch(`https://api.moyasar.com/v1/payments/${payment_id}`, {
       headers: {
         Authorization: `Basic ${btoa(MOYASAR_SECRET_KEY + ":")}`,
@@ -128,7 +126,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify that the payment user matches
     if (paymentData.metadata?.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Payment user mismatch" }), {
         status: 403,
@@ -147,26 +144,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Payment is verified — amount is in halalas, convert to SAR
     const amountSAR = paymentData.amount / 100;
 
-    // Use service role to create escrow records
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get commission rate once
     const commissionRate = await getCommissionRate(adminClient);
 
-    // Context determines what type of payment this is
     const paymentContext = context || paymentData.metadata || {};
     const contextType = paymentContext.type;
 
     if (contextType === "checkout") {
       await processCheckout(adminClient, userId, paymentContext, commissionRate);
     } else if (contextType === "donation") {
-      // For donations, use the subtotal (base amount) from context, not the total charged
       const donationBaseAmount = paymentContext.subtotal || amountSAR;
       await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate);
     } else if (contextType === "project_payment") {
@@ -243,7 +235,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
     if (escrowErr) {
       console.error("Escrow creation error:", escrowErr);
     } else {
-      // Auto-generate invoice
       await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate);
     }
 
@@ -299,7 +290,6 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
     else escrowData = data;
   }
 
-  // Auto-generate invoice for donation
   if (escrowData) {
     await createInvoiceAndNotifyAdmin(adminClient, escrowData.id, userId, amountSAR, commissionRate);
   }
@@ -329,7 +319,7 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // Create escrow with status 'held' (payment already completed)
+  // 1. Create escrow with status 'held' (payment already completed)
   const { data: escrow, error: escrowErr } = await adminClient
     .from("escrow_transactions")
     .insert({
@@ -347,6 +337,26 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // Auto-generate invoice
+  // 2. Create contract (association already signed by paying)
+  const { error: contractErr } = await adminClient.from("contracts").insert({
+    project_id: projectId,
+    association_id: userId,
+    provider_id: providerId,
+    terms: `عقد تنفيذ طلب بقيمة ${baseAmount} ر.س`,
+    association_signed_at: new Date().toISOString(),
+  });
+  if (contractErr) {
+    console.error("Contract creation error:", contractErr);
+  }
+
+  // 3. Update project status to in_progress
+  const { error: projErr } = await adminClient.from("projects").update({
+    status: "in_progress",
+  }).eq("id", projectId);
+  if (projErr) {
+    console.error("Project status update error:", projErr);
+  }
+
+  // 4. Auto-generate invoice
   await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, baseAmount, commissionRate);
 }
