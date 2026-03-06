@@ -1,70 +1,25 @@
 
 
-## المشكلة
+# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
 
-1. **خطأ "Expected number, received nan"**: حقل المبلغ يبدأ بقيمة `undefined as any` مما يسبب خطأ عند الإرسال
-2. **المبلغ لا يتعبأ تلقائياً**: عند اختيار طلب جمعية، يجب تعبئة المبلغ بميزانية الطلب تلقائياً
-3. **لا توجد معلومات عن المنح المتاحة**: المانح لا يرى كم تم التبرع لهذا المشروع من قبل، ليحدد المبلغ المناسب
+## المشكلة
+حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
 
 ## الحل
+تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-### تعديل `src/components/donor/DonationForm.tsx`
+**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
 
-1. **إصلاح خطأ NaN**: تغيير `defaultValues.amount` من `undefined as any` إلى `undefined` مع تعديل schema ليقبل NaN gracefully (استخدام `.min(1)` بدل `.positive()` أو معالجة الحالة)
+**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
 
-2. **تعبئة المبلغ تلقائياً عند اختيار الطلب**: عند اختيار مشروع من القائمة، تعيين `form.setValue("amount", project.budget)` تلقائياً إذا كان للمشروع ميزانية
+**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
 
-3. **عرض بطاقة معلومات المنحة للمشروع**: إضافة query جديد يجلب إجمالي المنح المتاحة لهذا المشروع من `donor_contributions` (بحالة `available`) وعرض:
-   - ميزانية المشروع
-   - إجمالي المنح المتاحة من جميع المانحين
-   - المبلغ المتبقي المطلوب
+### التغييرات
 
-```text
-┌────────────────────────────────────┐
-│ معلومات المنحة لهذا الطلب          │
-│ ميزانية الطلب:     10,000 ر.س     │
-│ المنح المتاحة:      6,000 ر.س     │
-│ المتبقي المطلوب:    4,000 ر.س     │
-└────────────────────────────────────┘
-```
+| الملف | التغيير |
+|---|---|
+| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
+| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
 
-4. **تحسين اختيار المشروع**: في `onSelect` للمشروع، استدعاء `form.setValue("amount", project.budget)` وإظهار الميزانية بجانب اسم المشروع في القائمة
-
-### التفاصيل التقنية
-
-**Query جديد داخل DonationForm** لجلب المنح الموجودة للمشروع:
-```typescript
-const { data: projectGrants } = useQuery({
-  queryKey: ["project-grants-summary", selectedProjectId],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from("donor_contributions")
-      .select("amount, donation_status")
-      .eq("project_id", selectedProjectId!)
-      .in("donation_status", ["available", "reserved", "pending"]);
-    const totalAvailable = (data ?? []).reduce((s, c) => s + Number(c.amount), 0);
-    return { totalAvailable };
-  },
-  enabled: !!selectedProjectId,
-});
-```
-
-**تعبئة المبلغ التلقائية**: في `onSelect` للمشروع
-```typescript
-onSelect={() => {
-  field.onChange(project.id);
-  if (project.budget) {
-    form.setValue("amount", project.budget);
-  }
-  setProjectOpen(false);
-}}
-```
-
-**عرض اسم المشروع + الميزانية** في القائمة المنسدلة:
-```
-اسم المشروع — 10,000 ر.س
-```
-
-### الملفات المتأثرة
-- `src/components/donor/DonationForm.tsx` — كل التعديلات في هذا الملف
+الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
 
