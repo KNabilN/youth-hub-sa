@@ -115,7 +115,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField control={form.control} name="amount" render={({ field }) => (
           <FormItem>
-            <FormLabel>المبلغ (ر.س)</FormLabel>
+            <FormLabel required>المبلغ (ر.س)</FormLabel>
             <FormControl><Input type="number" min={1} step="0.01" placeholder="أدخل المبلغ" {...field} value={field.value || ""} /></FormControl>
             <FormMessage />
           </FormItem>
@@ -123,7 +123,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
 
         <FormField control={form.control} name="target_type" render={({ field }) => (
           <FormItem>
-            <FormLabel>نوع المنحة</FormLabel>
+            <FormLabel required>نوع المنحة</FormLabel>
             <Select onValueChange={(v) => { field.onChange(v); form.setValue("association_id", defaultAssociationId || ""); form.setValue("project_id", ""); }} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
@@ -138,7 +138,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
         {/* Searchable Association Combobox */}
         <FormField control={form.control} name="association_id" render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>الجمعية المستفيدة</FormLabel>
+            <FormLabel required>الجمعية المستفيدة</FormLabel>
             <Popover open={assocOpen} onOpenChange={setAssocOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -188,7 +188,7 @@ export function DonationForm({ onSubmit, isLoading, defaultAssociationId, defaul
         {targetType === "project" && selectedAssociationId && (
           <FormField control={form.control} name="project_id" render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>طلب الجمعية</FormLabel>
+              <FormLabel required>طلب الجمعية</FormLabel>
               <Popover open={projectOpen} onOpenChange={setProjectOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>

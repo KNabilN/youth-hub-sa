@@ -33,14 +33,14 @@ export function BidForm({ onSubmit, isLoading }: BidFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="price" render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-primary" />السعر المقترح (ر.س)</FormLabel>
+              <FormLabel required className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-primary" />السعر المقترح (ر.س)</FormLabel>
               <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="timeline_days" render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" />المدة (بالأيام)</FormLabel>
+              <FormLabel required className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" />المدة (بالأيام)</FormLabel>
               <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -48,7 +48,7 @@ export function BidForm({ onSubmit, isLoading }: BidFormProps) {
         </div>
         <FormField control={form.control} name="cover_letter" render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />خطاب التقديم</FormLabel>
+            <FormLabel required className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />خطاب التقديم</FormLabel>
             <FormControl><Textarea placeholder="اكتب خطاب التقديم الخاص بك..." rows={5} maxLength={5000} {...field} /></FormControl>
             <CharCounter current={field.value?.length ?? 0} max={5000} />
             <FormMessage />

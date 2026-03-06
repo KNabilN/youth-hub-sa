@@ -154,7 +154,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
 
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
-            <FormLabel>عنوان الخدمة</FormLabel>
+            <FormLabel required>عنوان الخدمة</FormLabel>
             <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={200} {...field} /></FormControl>
             <CharCounter current={field.value?.length ?? 0} max={200} />
             <FormMessage />
@@ -162,7 +162,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         )} />
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
-            <FormLabel>وصف مختصر</FormLabel>
+            <FormLabel required>وصف مختصر</FormLabel>
             <FormControl><Textarea placeholder="وصف مختصر يظهر في بطاقة الخدمة" rows={3} maxLength={5000} {...field} /></FormControl>
             <CharCounter current={field.value?.length ?? 0} max={5000} />
             <FormMessage />
@@ -179,7 +179,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="category_id" render={({ field }) => (
             <FormItem>
-              <FormLabel>التصنيف</FormLabel>
+              <FormLabel required>التصنيف</FormLabel>
               <FormControl>
                 <CategorySelectWithOther categories={categories ?? []} value={field.value} onChange={field.onChange} entityType="service" />
               </FormControl>
@@ -188,7 +188,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
           )} />
           <FormField control={form.control} name="region_id" render={({ field }) => (
             <FormItem>
-              <FormLabel>المنطقة</FormLabel>
+              <FormLabel required>المنطقة</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl><SelectTrigger><SelectValue placeholder="اختر المنطقة" /></SelectTrigger></FormControl>
                 <SelectContent>
@@ -216,7 +216,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="service_type" render={({ field }) => (
             <FormItem>
-              <FormLabel>نوع الخدمة</FormLabel>
+              <FormLabel required>نوع الخدمة</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                 <SelectContent>
@@ -229,7 +229,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
           )} />
           <FormField control={form.control} name="price" render={({ field }) => (
             <FormItem>
-              <FormLabel>السعر الأساسي (ر.س)</FormLabel>
+              <FormLabel required>السعر الأساسي (ر.س)</FormLabel>
               <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
               <FormMessage />
             </FormItem>

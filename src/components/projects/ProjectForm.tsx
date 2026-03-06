@@ -87,9 +87,17 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
     form.setValue("required_skills", values.required_skills.filter(s => s !== skill));
   };
 
-  const canNext = () => {
-    if (step === 0) return values.title.length >= 5 && values.description.length >= 20;
+  const canNext = async () => {
+    if (step === 0) {
+      const valid = await form.trigger(["title", "description"]);
+      return valid;
+    }
     return true;
+  };
+
+  const handleNext = async () => {
+    const valid = await canNext();
+    if (valid) setStep(step + 1);
   };
 
   return (
@@ -120,7 +128,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
             <CardContent className="space-y-4">
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>عنوان المشروع</FormLabel>
+                  <FormLabel required>عنوان المشروع</FormLabel>
                   <FormControl><Input placeholder="أدخل عنوان المشروع" maxLength={200} {...field} /></FormControl>
                   <CharCounter current={field.value?.length ?? 0} max={200} />
                   <FormMessage />
@@ -128,7 +136,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
               )} />
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>وصف المشروع</FormLabel>
+                  <FormLabel required>وصف المشروع</FormLabel>
                   <FormControl><Textarea placeholder="اكتب وصفاً تفصيلياً للمشروع" rows={5} maxLength={5000} {...field} /></FormControl>
                   <CharCounter current={field.value?.length ?? 0} max={5000} />
                   <FormMessage />
@@ -261,7 +269,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
               </Button>
             )}
             {step < 2 && (
-              <Button type="button" onClick={() => setStep(step + 1)} disabled={!canNext()}>التالي</Button>
+              <Button type="button" onClick={handleNext}>التالي</Button>
             )}
             {step === 2 && (
               <Button type="submit" disabled={isLoading}>

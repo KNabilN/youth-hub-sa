@@ -56,7 +56,7 @@ export function TimeEntryForm({ projects, onSubmit, isLoading, defaultValues }: 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField control={form.control} name="project_id" render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center gap-1.5"><FolderKanban className="h-3.5 w-3.5 text-primary" />المشروع</FormLabel>
+            <FormLabel required className="flex items-center gap-1.5"><FolderKanban className="h-3.5 w-3.5 text-primary" />المشروع</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl><SelectTrigger><SelectValue placeholder="اختر المشروع" /></SelectTrigger></FormControl>
               <SelectContent>
@@ -69,14 +69,14 @@ export function TimeEntryForm({ projects, onSubmit, isLoading, defaultValues }: 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField control={form.control} name="log_date" render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" />التاريخ</FormLabel>
+              <FormLabel required className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" />التاريخ</FormLabel>
               <FormControl><Input type="date" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="hours" render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-primary" />عدد الساعات</FormLabel>
+              <FormLabel required className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-primary" />عدد الساعات</FormLabel>
               <FormControl><Input type="number" step="0.25" placeholder="0" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
@@ -100,7 +100,7 @@ export function TimeEntryForm({ projects, onSubmit, isLoading, defaultValues }: 
         </div>
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />وصف العمل</FormLabel>
+            <FormLabel required className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-primary" />وصف العمل</FormLabel>
             <FormControl><Textarea placeholder="اكتب وصفاً للعمل المنجز" rows={3} {...field} /></FormControl>
             <FormMessage />
           </FormItem>
