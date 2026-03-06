@@ -340,7 +340,7 @@ export default function Checkout() {
                         </div>
                       </Label>
                     </div>
-                  )
+                  )}
                 </RadioGroup>
               </CardContent>
             </Card>
