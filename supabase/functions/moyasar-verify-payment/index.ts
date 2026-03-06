@@ -216,6 +216,8 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
           user_id: beneficiaryId,
           message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
           type: "donor_funded_service",
+          entity_id: project.id,
+          entity_type: "project",
         });
       }
     }
