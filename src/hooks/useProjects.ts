@@ -109,6 +109,7 @@ export function useProjectStats() {
           : Promise.resolve({ data: [] as { hours: number }[] }),
         supabase.from("contracts").select("id", { count: "exact", head: true }).eq("association_id", user!.id),
         supabase.from("ratings").select("quality_score, timing_score, communication_score").eq("rater_id", user!.id),
+        supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).is("deleted_at", null),
       ]);
 
       const pendingHours = (timeLogsRes.data as { hours: number }[] | null)?.reduce((sum, t) => sum + Number(t.hours), 0) ?? 0;
