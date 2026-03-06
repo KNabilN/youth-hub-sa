@@ -27,6 +27,24 @@ export function useDonorContributions() {
   });
 }
 
+export function useDonorConsumedBreakdown() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["donor-consumed-breakdown", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donor_contributions")
+        .select("id, amount, created_at, donation_status, project_id, service_id, association_id, projects(title), micro_services(title), profiles:association_id(full_name, organization_name)")
+        .eq("donor_id", user!.id)
+        .eq("donation_status", "consumed")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+}
+
 export function useCreateContribution() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
