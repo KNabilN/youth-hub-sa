@@ -51,12 +51,12 @@ function StatCard({ stat, index }: { stat: StatItem; index: number }) {
       `stagger-${index + 1}`
     )} style={{ animationFillMode: 'both' }}>
       <CardContent className="p-4 sm:p-5">
-        <div className="flex items-center sm:items-start justify-between gap-3">
-          <div className="space-y-1 sm:space-y-2 min-w-0">
+        <div className="flex items-center sm:items-start justify-between gap-2">
+          <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
-            <p className="text-xl sm:text-3xl font-bold tracking-tight truncate">{stat.value}</p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight">{stat.value}</p>
           </div>
-          <div className={cn("p-2.5 sm:p-3 rounded-xl shrink-0", c.bg)}>
+          <div className={cn("p-2 sm:p-3 rounded-xl shrink-0", c.bg)}>
             <stat.icon className={cn("h-5 w-5 sm:h-6 sm:w-6", c.text)} />
           </div>
         </div>
