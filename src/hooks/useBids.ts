@@ -22,16 +22,17 @@ export function useAcceptBid() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ bidId, projectId, providerId }: {
-      bidId: string; projectId: string; providerId: string;
+    mutationFn: async ({ bidId, projectId, providerId, bidPrice }: {
+      bidId: string; projectId: string; providerId: string; bidPrice: number;
     }) => {
       // 1. Accept this bid
       await supabase.from("bids").update({ status: "accepted" }).eq("id", bidId);
       // 2. Reject all others
       await supabase.from("bids").update({ status: "rejected" }).eq("project_id", projectId).neq("id", bidId);
-      // 3. Assign provider to project — keep status as 'open' (payment pending)
+      // 3. Assign provider to project and update budget to match accepted bid price
       const { error: projectError } = await supabase.from("projects").update({
         assigned_provider_id: providerId,
+        budget: bidPrice,
       }).eq("id", projectId);
       if (projectError) throw projectError;
 
