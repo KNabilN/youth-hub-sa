@@ -37,11 +37,8 @@ import { useDeliverable } from "@/hooks/useDeliverables";
 import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
 import { WorkTimer } from "@/components/provider/WorkTimer";
 import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
-const BANK_INFO = {
-  bank: "مصرف الراجحي",
-  accountName: "شركة معين التنموية لحلول الاعمال",
-  accountNumber: "161000010006080221187",
-};
+
+
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
