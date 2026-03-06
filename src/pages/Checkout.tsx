@@ -122,12 +122,41 @@ export default function Checkout() {
         setShowMoyasarForm(true);
         setProcessing(false);
       } else if (paymentMethod === "grant_balance") {
-        // Pay from grant balance
+        // Pay from grant balance — create project if beneficiary selected
         for (const item of items) {
+          let projectId: string | undefined;
+
+          if (selectedAssociation) {
+            // Create an auto-project for the beneficiary association
+            const { data: proj, error: projErr } = await supabase
+              .from("projects")
+              .insert({
+                title: item.micro_services.title,
+                description: `مشروع تلقائي — شراء خدمة "${item.micro_services.title}"`,
+                association_id: selectedAssociation,
+                assigned_provider_id: item.micro_services.provider_id,
+                status: "in_progress" as any,
+                budget: item.micro_services.price * item.quantity,
+              })
+              .select("id")
+              .single();
+            if (!projErr && proj) {
+              projectId = proj.id;
+              // Create contract
+              await supabase.from("contracts").insert({
+                project_id: proj.id,
+                provider_id: item.micro_services.provider_id,
+                association_id: selectedAssociation,
+                terms: `عقد تنفيذ خدمة "${item.micro_services.title}" بقيمة ${item.micro_services.price * item.quantity} ر.س`,
+              });
+            }
+          }
+
           await payFromGrants.mutateAsync({
             amount: item.micro_services.price * item.quantity,
             payeeId: item.micro_services.provider_id,
             serviceId: item.micro_services.id,
+            projectId,
           });
         }
         await clearCart.mutateAsync();

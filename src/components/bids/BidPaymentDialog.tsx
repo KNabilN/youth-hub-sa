@@ -270,6 +270,21 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
                       payeeId: bid.provider_id,
                       projectId,
                     });
+
+                    // Create contract (same as electronic payment flow)
+                    await supabase.from("contracts").insert({
+                      project_id: projectId,
+                      provider_id: bid.provider_id,
+                      association_id: user.id,
+                      terms: `عقد تنفيذ مشروع "${projectTitle}" بقيمة ${bid.price} ر.س`,
+                    });
+
+                    // Update project status to in_progress
+                    await supabase
+                      .from("projects")
+                      .update({ status: "in_progress" as any, assigned_provider_id: bid.provider_id })
+                      .eq("id", projectId);
+
                     toast({ title: "تم قبول العرض والدفع من رصيد المنح بنجاح" });
                     onOpenChange(false);
                   } catch {
