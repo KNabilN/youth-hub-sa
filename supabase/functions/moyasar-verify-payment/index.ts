@@ -59,6 +59,8 @@ async function createInvoiceAndNotifyAdmin(
       user_id: a.user_id,
       message: `فاتورة إلكترونية جديدة بمبلغ ${baseAmount} ر.س تم إنشاؤها تلقائياً بعد دفع إلكتروني`,
       type: "payment",
+      entity_id: escrowId,
+      entity_type: "escrow",
     }));
     await adminClient.from("notifications").insert(notifications);
   }

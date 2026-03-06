@@ -52,6 +52,8 @@ export default function Notifications() {
                 type={n.type}
                 is_read={n.is_read}
                 created_at={n.created_at}
+                entity_id={n.entity_id}
+                entity_type={n.entity_type}
                 onMarkRead={() => markAsRead.mutate(n.id)}
                 onDelete={() => deleteNotification.mutate(n.id)}
               />
