@@ -33,7 +33,7 @@ export function TicketForm({ onSubmit, isLoading, children }: TicketFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField control={form.control} name="subject" render={({ field }) => (
           <FormItem>
-            <FormLabel>الموضوع</FormLabel>
+            <FormLabel required>الموضوع</FormLabel>
             <FormControl><Input placeholder="أدخل موضوع التذكرة" maxLength={200} {...field} /></FormControl>
             <CharCounter current={field.value?.length ?? 0} max={200} />
             <FormMessage />
@@ -41,7 +41,7 @@ export function TicketForm({ onSubmit, isLoading, children }: TicketFormProps) {
         )} />
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
-            <FormLabel>الوصف</FormLabel>
+            <FormLabel required>الوصف</FormLabel>
             <FormControl><Textarea placeholder="اشرح المشكلة بالتفصيل" rows={5} maxLength={2000} {...field} /></FormControl>
             <CharCounter current={field.value?.length ?? 0} max={2000} />
             <FormMessage />
@@ -49,7 +49,7 @@ export function TicketForm({ onSubmit, isLoading, children }: TicketFormProps) {
         )} />
         <FormField control={form.control} name="priority" render={({ field }) => (
           <FormItem>
-            <FormLabel>الأولوية</FormLabel>
+            <FormLabel required>الأولوية</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>

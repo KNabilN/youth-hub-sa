@@ -91,18 +91,18 @@ export function ContactForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
-            <Label htmlFor="contact-name" className="text-sm font-medium">الاسم الكامل</Label>
+            <Label htmlFor="contact-name" className="text-sm font-medium">الاسم الكامل <span className="text-destructive">*</span></Label>
             <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="أدخل اسمك الكامل" maxLength={100} />
             <CharCounter current={name.length} max={100} />
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="contact-email" className="text-sm font-medium">البريد الإلكتروني</Label>
+            <Label htmlFor="contact-email" className="text-sm font-medium">البريد الإلكتروني <span className="text-destructive">*</span></Label>
             <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" />
             {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="contact-message" className="text-sm font-medium">الرسالة</Label>
+            <Label htmlFor="contact-message" className="text-sm font-medium">الرسالة <span className="text-destructive">*</span></Label>
             <Textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="اكتب رسالتك هنا..." rows={5} maxLength={1000} />
             <CharCounter current={message.length} max={1000} />
             {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
