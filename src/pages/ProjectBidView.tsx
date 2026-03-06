@@ -10,21 +10,36 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
+import { useUploadAttachment } from "@/hooks/useAttachments";
 
 export default function ProjectBidView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: project, isLoading } = useAvailableProject(id);
   const submitBid = useSubmitBid();
+  const uploadAttachment = useUploadAttachment();
   const { toast } = useToast();
   const [createdBidId, setCreatedBidId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const handleSubmit = (values: BidFormValues) => {
+  const handleSubmit = async (values: BidFormValues, files: File[]) => {
     if (!id) return;
     submitBid.mutate({ project_id: id, price: values.price, timeline_days: values.timeline_days, cover_letter: values.cover_letter }, {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
+        // Upload files if any
+        if (files.length > 0) {
+          setUploading(true);
+          try {
+            for (const file of files) {
+              await uploadAttachment.mutateAsync({ file, entityType: "bid", entityId: data.id });
+            }
+          } catch {
+            toast({ title: "تم تقديم العرض لكن فشل رفع بعض المرفقات", variant: "destructive" });
+          } finally {
+            setUploading(false);
+          }
+        }
         toast({ title: "تم تقديم العرض بنجاح" });
         setCreatedBidId(data.id);
       },
@@ -83,16 +98,15 @@ export default function ProjectBidView() {
 
         {createdBidId ? (
           <>
-            <div className="flex items-center gap-3 text-success">
+            <div className="flex items-center gap-3 text-emerald-600">
               <CheckCircle className="h-6 w-6" />
               <h2 className="text-xl font-bold">تم تقديم العرض بنجاح</h2>
             </div>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">إرفاق ملفات</CardTitle>
+                <CardTitle className="text-lg">المرفقات</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <FileUploader entityType="bid" entityId={createdBidId} />
+              <CardContent>
                 <AttachmentList entityType="bid" entityId={createdBidId} />
               </CardContent>
             </Card>
@@ -105,7 +119,7 @@ export default function ProjectBidView() {
           <Card>
             <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
             <CardContent>
-              <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending} />
+              <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
             </CardContent>
           </Card>
         )}
