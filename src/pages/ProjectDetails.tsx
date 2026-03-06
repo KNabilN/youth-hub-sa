@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState } from "react";
 
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -13,9 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
@@ -24,18 +21,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
 import { useUpdateTimeLogApproval, useProjectTimeLogs } from "@/hooks/useTimeLogs";
 import { useCreateDispute } from "@/hooks/useDisputes";
-import { useCreateEscrow, useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
+import { useReleaseEscrow, useRefundEscrow } from "@/hooks/useEscrow";
 import { useGenerateInvoice } from "@/hooks/useInvoices";
-import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
-import { calculatePricing, useCommissionRate } from "@/lib/pricing";
-import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
-import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 // Notifications are handled by database triggers — no client-side sendNotification needed
 import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, CreditCard, Building2, Upload, Copy } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus } from "lucide-react";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -45,11 +38,7 @@ import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/T
 import { WorkTimer } from "@/components/provider/WorkTimer";
 import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
 
-const BANK_INFO = {
-  bank: "مصرف الراجحي",
-  accountName: "شركة معين التنموية لحلول الاعمال",
-  accountNumber: "161000010006080221187",
-};
+
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +49,6 @@ export default function ProjectDetails() {
   const createDispute = useCreateDispute();
   const releaseEscrow = useReleaseEscrow();
   const refundEscrow = useRefundEscrow();
-  const createEscrow = useCreateEscrow();
   const generateInvoice = useGenerateInvoice();
   const { role, user } = useAuth();
   const queryClient = useQueryClient();
@@ -69,20 +57,9 @@ export default function ProjectDetails() {
   const [completing, setCompleting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [timerDefaults, setTimerDefaults] = useState<Partial<TimeEntryFormValues>>({});
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
-  const [showMoyasarForm, setShowMoyasarForm] = useState(false);
-  const [moyasarKey, setMoyasarKey] = useState<string | null>(null);
-  const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState("");
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loadingPayment, setLoadingPayment] = useState(false);
-  const moyasarMetadata = useMemo(() => ({ type: "project_payment", user_id: user?.id, project_id: id }), [user?.id, id]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const createTimeLog = useCreateTimeLog();
-  const bankTransfer = useCreateBankTransfer();
   const { data: hoursSummary } = useProjectTimeLogs(id);
   const { data: deliverable } = useDeliverable(id);
-  const { data: commissionRate = 0.05 } = useCommissionRate();
 
   const { data: contract } = useQuery({
     queryKey: ["contract", id],
@@ -414,6 +391,31 @@ export default function ProjectDetails() {
             </CardContent>
           </Card>
         )}
+        {/* Pending payment banner — bid accepted but no escrow yet */}
+        {project.status === "open" && project.assigned_provider_id && !escrow && isAssociation && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Shield className="h-5 w-5 text-warning shrink-0" />
+              <div>
+                <p className="font-medium text-sm">بانتظار إتمام الدفع</p>
+                <p className="text-xs text-muted-foreground">تم قبول العرض وتعيين مقدم الخدمة. يرجى إتمام عملية الدفع لإنشاء الضمان المالي وبدء العمل.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Bank transfer under review banner */}
+        {project.status === "open" && project.assigned_provider_id && escrow && escrow.status === "pending_payment" && isAssociation && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Clock className="h-5 w-5 text-warning shrink-0" />
+              <div>
+                <p className="font-medium text-sm">التحويل البنكي قيد المراجعة</p>
+                <p className="text-xs text-muted-foreground">تم رفع إيصال التحويل وهو بانتظار مراجعة الإدارة. سيبدأ العمل فور الموافقة.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="bids" dir="rtl">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
@@ -435,7 +437,7 @@ export default function ProjectDetails() {
           </TabsList>
 
           <TabsContent value="bids" className="mt-4">
-            <BidList projectId={project.id} role={role} userId={user?.id} />
+            <BidList projectId={project.id} projectTitle={project.title} role={role} userId={user?.id} />
           </TabsContent>
 
           <TabsContent value="contract" className="mt-4">
@@ -496,174 +498,7 @@ export default function ProjectDetails() {
                         توقيع العقد
                       </Button>
                     )}
-                    {/* Escrow creation / payment section */}
-                    {isAssociation && contract.association_signed_at && contract.provider_signed_at && !escrow && (
-                      <div className="mt-4 space-y-4">
-                        <div className="p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-4">
-                          <div className="flex items-center gap-2">
-                            <Shield className="h-5 w-5 text-primary" />
-                            <span className="font-medium text-sm">الدفع وإنشاء الضمان المالي</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            تم توقيع العقد من الطرفين. اختر طريقة الدفع لإنشاء الضمان المالي وبدء العمل.
-                          </p>
-
-                          {/* Pricing breakdown */}
-                          {project.budget && (
-                            <PricingBreakdownDisplay pricing={calculatePricing(project.budget, commissionRate)} />
-                          )}
-
-                          {/* Payment method selection */}
-                          <RadioGroup
-                            value={paymentMethod}
-                            onValueChange={(v) => { setPaymentMethod(v as "electronic" | "bank_transfer"); setShowMoyasarForm(false); }}
-                            className="space-y-2"
-                          >
-                            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
-                              <RadioGroupItem value="electronic" id="proj-electronic" />
-                              <Label htmlFor="proj-electronic" className="flex items-center gap-2 cursor-pointer flex-1">
-                                <CreditCard className="h-5 w-5 text-primary" />
-                                <div>
-                                  <p className="font-medium text-sm">دفع إلكتروني</p>
-                                  <p className="text-xs text-muted-foreground">يتم الدفع فوراً وحجز المبلغ في الضمان</p>
-                                </div>
-                              </Label>
-                            </div>
-                            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-border"}`}>
-                              <RadioGroupItem value="bank_transfer" id="proj-bank" />
-                              <Label htmlFor="proj-bank" className="flex items-center gap-2 cursor-pointer flex-1">
-                                <Building2 className="h-5 w-5 text-primary" />
-                                <div>
-                                  <p className="font-medium text-sm">تحويل بنكي</p>
-                                  <p className="text-xs text-muted-foreground">حوّل المبلغ وارفع إيصال التحويل للمراجعة</p>
-                                </div>
-                              </Label>
-                            </div>
-                          </RadioGroup>
-
-                          {/* Electronic payment */}
-                          {paymentMethod === "electronic" && !showMoyasarForm && (
-                            <Button
-                              className="w-full"
-                              disabled={loadingPayment || !project.budget}
-                              onClick={async () => {
-                                if (!project.budget || !project.assigned_provider_id || !user) return;
-                                setLoadingPayment(true);
-                                try {
-                                  const { data, error } = await supabase.functions.invoke("moyasar-get-config");
-                                  if (error || !data?.publishable_key) {
-                                    toast({ title: "حدث خطأ أثناء تحميل بوابة الدفع", variant: "destructive" });
-                                    return;
-                                  }
-                                  const pricing = calculatePricing(project.budget, commissionRate);
-                                  const paymentContext = {
-                                    type: "project_payment",
-                                    project_id: project.id,
-                                    provider_id: project.assigned_provider_id,
-                                    association_id: user.id,
-                                    subtotal: project.budget,
-                                    total: pricing.total,
-                                    commission: pricing.commission,
-                                    vat: pricing.vat,
-                                    commission_rate: commissionRate,
-                                  };
-                                  sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
-                                  const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
-                                  const callbackUrl = `${window.location.origin}/payment-callback?ctx=${ctxParam}`;
-                                  setMoyasarKey(data.publishable_key);
-                                  setMoyasarCallbackUrl(callbackUrl);
-                                  setShowMoyasarForm(true);
-                                } catch {
-                                  toast({ title: "حدث خطأ", variant: "destructive" });
-                                } finally {
-                                  setLoadingPayment(false);
-                                }
-                              }}
-                            >
-                              <CreditCard className="h-4 w-4 me-1" />
-                              {loadingPayment ? "جاري التحميل..." : "المتابعة للدفع الإلكتروني"}
-                            </Button>
-                          )}
-
-                          {paymentMethod === "electronic" && showMoyasarForm && moyasarKey && project.budget && (
-                            <MoyasarPaymentForm
-                              amount={calculatePricing(project.budget, commissionRate).total}
-                              description={`دفع ضمان مالي — ${project.title}`}
-                              callbackUrl={moyasarCallbackUrl}
-                              publishableKey={moyasarKey}
-                              metadata={moyasarMetadata}
-                            />
-                          )}
-
-                          {/* Bank transfer */}
-                          {paymentMethod === "bank_transfer" && (
-                            <div className="space-y-3">
-                              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
-                                <div className="flex justify-between"><span className="text-muted-foreground">البنك</span><span className="font-medium">{BANK_INFO.bank}</span></div>
-                                <Separator />
-                                <div className="flex justify-between"><span className="text-muted-foreground">اسم الحساب</span><span className="font-medium text-xs">{BANK_INFO.accountName}</span></div>
-                                <Separator />
-                                <div className="flex justify-between items-center gap-2">
-                                  <span className="text-muted-foreground">رقم الحساب</span>
-                                  <div className="flex items-center gap-1">
-                                    <span className="font-mono text-xs">{BANK_INFO.accountNumber}</span>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { navigator.clipboard.writeText(BANK_INFO.accountNumber); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>
-                                      {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
-                                    </Button>
-                                  </div>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between"><span className="text-muted-foreground">المبلغ</span><span className="font-bold text-primary">{project.budget ? calculatePricing(project.budget, commissionRate).total.toLocaleString() : 0} ر.س</span></div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-sm">إيصال التحويل</Label>
-                                <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { if (f.size > 5 * 1024 * 1024) { toast({ title: "الحد الأقصى 5 ميجابايت", variant: "destructive" }); return; } setReceiptFile(f); } }} />
-                                {receiptFile ? (
-                                  <div className="flex items-center gap-2 p-2 rounded border bg-muted/30 text-sm">
-                                    <Upload className="h-4 w-4 text-primary" />
-                                    <span className="flex-1 truncate">{receiptFile.name}</span>
-                                    <Button variant="ghost" size="sm" onClick={() => setReceiptFile(null)}>تغيير</Button>
-                                  </div>
-                                ) : (
-                                  <Button variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
-                                    <Upload className="h-4 w-4 me-1" /> رفع إيصال التحويل
-                                  </Button>
-                                )}
-                              </div>
-                              <Button
-                                className="w-full"
-                                disabled={!receiptFile || bankTransfer.isPending || !project.budget}
-                                onClick={async () => {
-                                  if (!receiptFile || !project.budget || !project.assigned_provider_id || !user) return;
-                                  const pricing = calculatePricing(project.budget, commissionRate);
-                                  try {
-                                    await bankTransfer.mutateAsync({
-                                      receiptFile,
-                                      amount: pricing.total,
-                                      baseAmount: project.budget,
-                                      userId: user.id,
-                                      items: [{
-                                        serviceId: project.id,
-                                        providerId: project.assigned_provider_id,
-                                        price: project.budget,
-                                        title: project.title,
-                                      }],
-                                    });
-                                    toast({ title: "تم رفع إيصال التحويل بنجاح", description: "سيتم مراجعته من قبل الإدارة" });
-                                    queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
-                                    setReceiptFile(null);
-                                  } catch {
-                                    toast({ title: "حدث خطأ", variant: "destructive" });
-                                  }
-                                }}
-                              >
-                                {bankTransfer.isPending ? "جاري الإرسال..." : "إرسال إيصال التحويل"}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    {/* Escrow status note - payment now happens at bid acceptance */}
                     {contract.association_signed_at && contract.provider_signed_at && escrow && (
                       <div className="mt-4 p-4 rounded-lg border border-primary/20 bg-accent/30">
                         <div className="flex items-center gap-2">
