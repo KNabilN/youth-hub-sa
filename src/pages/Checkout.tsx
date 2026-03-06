@@ -121,6 +121,17 @@ export default function Checkout() {
         setMoyasarCallbackUrl(callbackUrl);
         setShowMoyasarForm(true);
         setProcessing(false);
+      } else if (paymentMethod === "grant_balance") {
+        // Pay from grant balance
+        for (const item of items) {
+          await payFromGrants.mutateAsync({
+            amount: item.micro_services.price * item.quantity,
+            payeeId: item.micro_services.provider_id,
+            serviceId: item.micro_services.id,
+          });
+        }
+        await clearCart.mutateAsync();
+        navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "grant_balance" } });
       } else {
         if (!receiptFile) {
           toast.error("يرجى رفع صورة إيصال التحويل");
