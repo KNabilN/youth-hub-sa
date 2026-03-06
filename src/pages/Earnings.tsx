@@ -80,7 +80,7 @@ export default function Earnings() {
         !transactions?.length ?
         <EmptyState icon={Receipt} title="لا توجد أرباح بعد" description="ستظهر أرباحك هنا بعد إتمام مشاريعك بنجاح" /> :
 
-        <EarningsSummary totalEarnings={totalEarnings} transactions={transactions ?? []} />
+        <EarningsSummary totalEarnings={totalEarnings} availableBalance={availableBalance} transactions={transactions ?? []} />
         }
 
         {/* Withdrawal requests */}
