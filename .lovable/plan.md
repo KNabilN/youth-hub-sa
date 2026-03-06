@@ -1,25 +1,56 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
-
 ## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+نموذج التسعير في المنصة يضيف العمولة **فوق** المبلغ الأساسي (Add-on model). يعني:
+- المبلغ الأساسي (ما يحصل عليه المزود) = 500,000
+- العمولة = 500,000 × 10% = 50,000 (يدفعها الدافع فوق المبلغ)
+- **الصافي للمزود = 500,000** (وليس 450,000)
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+لكن الكود الحالي يحسب "الصافي" كـ `amount - commission` في عدة أماكن، وكأن العمولة تُخصم من المبلغ الأساسي. هذا خطأ.
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+## الأماكن المتأثرة (5 مواقع)
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+### 1. صفحة الفواتير — `src/pages/Invoices.tsx` (سطر 148)
+```
+الحالي: (Number(inv.amount) - Number(inv.commission_amount)).toLocaleString()
+المطلوب: Number(inv.amount).toLocaleString()
+```
+وتغيير عنوان العمود من "الصافي" إلى "الإجمالي" وحسابه = `amount + commission`
 
-### التغييرات
+### 2. صفحة الأدمن المالية — `src/pages/admin/AdminFinance.tsx` (سطر 467)
+نفس المشكلة — "الصافي" يُحسب كـ `amount - commission`
 
-| الملف | التغيير |
-|---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+### 3. تصدير CSV للفواتير — `src/pages/admin/AdminFinance.tsx` (سطر 866)
+```
+net: (inv) => String(Number(inv.amount) - Number(inv.commission_amount))
+```
 
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+### 4. `useReleaseEscrow` — `src/hooks/useEscrow.ts` (سطر 67)
+```
+netAmount = Number(escrow.amount) - commissionAmount
+```
+هذا يُرجع الصافي للمزود بعد خصم العمولة، لكن في نموذج Add-on المزود يحصل على كامل المبلغ.
+
+### 5. عناوين أعمدة التصدير — `src/pages/admin/AdminFinance.tsx` (سطر 28)
+تغيير تسمية "الصافي" إلى "الإجمالي"
+
+## التعديلات
+
+### `src/pages/Invoices.tsx`
+- تغيير عنوان العمود "الصافي" → "الإجمالي"
+- الحساب: `amount + commission` بدل `amount - commission`
+
+### `src/pages/admin/AdminFinance.tsx`
+- نفس التغيير في جدول الفواتير (عنوان + حساب)
+- تصدير CSV: `net` → `amount + commission`
+- تسمية عمود التصدير
+
+### `src/hooks/useEscrow.ts`
+- `netAmount = escrow.amount` (المزود يحصل على كامل المبلغ)
+
+### الملفات
+- `src/pages/Invoices.tsx`
+- `src/pages/admin/AdminFinance.tsx`
+- `src/hooks/useEscrow.ts`
 
