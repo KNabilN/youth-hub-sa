@@ -138,14 +138,12 @@ const App = () => (
                 <Route path="/projects/new" element={<ProtectedRoute><SuspenseWrap><ProjectCreate /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectDetails /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/projects/:id/edit" element={<ProtectedRoute><SuspenseWrap><ProjectEdit /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/time-logs" element={<ProtectedRoute><SuspenseWrap><TimeLogs /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/marketplace" element={<ProtectedRoute><SuspenseWrap><Marketplace /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/ratings" element={<ProtectedRoute><SuspenseWrap><Ratings /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-services" element={<ProtectedRoute><SuspenseWrap><MyServices /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/available-projects" element={<ProtectedRoute><SuspenseWrap><AvailableProjects /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/available-projects/:id" element={<ProtectedRoute><SuspenseWrap><ProjectBidView /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/my-bids" element={<ProtectedRoute><SuspenseWrap><MyBids /></SuspenseWrap></ProtectedRoute>} />
-                <Route path="/time-tracking" element={<ProtectedRoute><SuspenseWrap><TimeTracking /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/earnings" element={<ProtectedRoute><SuspenseWrap><Earnings /></SuspenseWrap></ProtectedRoute>} />
                 
                 <Route path="/tickets" element={<ProtectedRoute><SuspenseWrap><SupportTickets /></SuspenseWrap></ProtectedRoute>} />
