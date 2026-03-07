@@ -166,15 +166,7 @@ export function getDefaultForType(role: AppRole, type: string): boolean {
   return true;
 }
 
-export function isNotificationEnabled(
-  preferences: Record<string, boolean>,
-  type: string
-): boolean {
-  // If key is explicitly set, use that value
-  if (type in preferences) return preferences[type];
-  // Otherwise, default to true (backend handles real defaults)
-  return true;
-}
+
 
 export function getAllKeysForRole(role: AppRole): string[] {
   return getPreferencesForRole(role).flatMap((g) => g.types.map((t) => t.key));
