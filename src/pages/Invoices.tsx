@@ -33,7 +33,7 @@ export default function Invoices() {
   const [notesText, setNotesText] = useState("");
 
   // Mark all issued invoices as viewed on page load
-  useState(() => {
+  useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -45,7 +45,7 @@ export default function Invoices() {
       queryClient.invalidateQueries({ queryKey: ["my-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["sidebar-new-invoices"] });
     })();
-  });
+  }, []);
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 
