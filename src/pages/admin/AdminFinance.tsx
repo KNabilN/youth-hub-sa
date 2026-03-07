@@ -880,7 +880,8 @@ export default function AdminFinance() {
               recipient: (inv) => inv.profiles?.full_name || "",
               amount: (inv) => String(inv.amount),
               commission: (inv) => String(inv.commission_amount),
-              net: (inv) => String(Number(inv.amount) + Number(inv.commission_amount)),
+              vat: (inv) => String(inv.vat_amount ?? 0),
+              net: (inv) => String(Number(inv.amount) + Number(inv.commission_amount) + Number(inv.vat_amount ?? 0)),
               status: (inv) => inv.status || "",
               created_at: (inv) => inv.created_at?.slice(0, 10) || "",
             };
