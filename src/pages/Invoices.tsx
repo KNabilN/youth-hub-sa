@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyInvoices } from "@/hooks/useMyInvoices";
 import { useProfile } from "@/hooks/useProfile";
@@ -31,6 +31,21 @@ export default function Invoices() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [notesDialog, setNotesDialog] = useState<{ open: boolean; invoice: any | null }>({ open: false, invoice: null });
   const [notesText, setNotesText] = useState("");
+
+  // Mark all issued invoices as viewed on page load
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from("invoices")
+        .update({ status: "viewed" } as any)
+        .eq("issued_to", user.id)
+        .eq("status", "issued");
+      queryClient.invalidateQueries({ queryKey: ["my-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebar-new-invoices"] });
+    })();
+  }, []);
 
   const template = (templateContent?.content as unknown as InvoiceTemplateConfig) ?? undefined;
 

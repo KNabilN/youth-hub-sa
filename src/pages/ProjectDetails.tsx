@@ -558,7 +558,22 @@ export default function ProjectDetails() {
           </TabsContent>
 
           <TabsContent value="timelogs" className="mt-4 space-y-4">
-            {isProvider && project.status === "in_progress" && (
+            {isProvider && project.status === "in_progress" && (() => {
+              const isContractSigned = contract?.association_signed_at && contract?.provider_signed_at;
+              if (!isContractSigned) {
+                return (
+                  <Card className="border-warning/30 bg-warning/5">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm">يجب توقيع العقد أولاً</p>
+                        <p className="text-xs text-muted-foreground">لا يمكنك تسجيل ساعات عمل قبل توقيع العقد من الطرفين. يرجى الانتقال لتبويب "العقد" لتوقيعه.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              return (
               <div className="space-y-4">
                 <WorkTimer
                   onStop={(startTime, endTime, hours) => {
@@ -592,7 +607,8 @@ export default function ProjectDetails() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+              );
+            })()}
 
             {/* Stats summary */}
             {hoursSummary && (
@@ -608,7 +624,7 @@ export default function ProjectDetails() {
             <TimeLogTable
               logs={(timeLogs as any) ?? []}
               onApprove={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => { toast({ title: "تم اعتماد السجل" }); queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] }); } }); } : undefined}
-              onReject={isAssociation ? (logId) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "" }, { onSuccess: () => { toast({ title: "تم رفض السجل" }); queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] }); } }); } : undefined}
+              onReject={isAssociation ? (logId, reason) => { const log = ((timeLogs as any) ?? []).find((l: any) => l.id === logId); updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "", rejectionReason: reason }, { onSuccess: () => { toast({ title: "تم رفض السجل" }); queryClient.invalidateQueries({ queryKey: ["project-time-logs", id] }); } }); } : undefined}
               isLoading={updateTimeLog.isPending}
             />
           </TabsContent>
@@ -656,11 +672,23 @@ export default function ProjectDetails() {
 
           {(project.status === "in_progress" || project.status === "completed") && (
             <TabsContent value="deliverables" className="mt-4">
-              <DeliverablePanel
-                projectId={project.id}
-                isProvider={isProvider}
-                isAssociation={isAssociation}
-              />
+              {isProvider && !(contract?.association_signed_at && contract?.provider_signed_at) ? (
+                <Card className="border-warning/30 bg-warning/5">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">يجب توقيع العقد أولاً</p>
+                      <p className="text-xs text-muted-foreground">لا يمكنك تقديم تسليمات قبل توقيع العقد من الطرفين.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <DeliverablePanel
+                  projectId={project.id}
+                  isProvider={isProvider}
+                  isAssociation={isAssociation}
+                />
+              )}
             </TabsContent>
           )}
 
