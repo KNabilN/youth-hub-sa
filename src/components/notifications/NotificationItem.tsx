@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail, ClipboardList } from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail, ClipboardList, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
@@ -55,6 +55,7 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   service_purchased: { icon: HandCoins, label: "شراء خدمة" },
   time_log_approval: { icon: Clock, label: "اعتماد وقت" },
   timelog_submitted: { icon: ClipboardList, label: "تسجيل ساعات" },
+  bid_comment: { icon: MessageCircle, label: "تعليق على عرض" },
 };
 
 function getEntityLink(entityType?: string | null, entityId?: string | null): string | null {
