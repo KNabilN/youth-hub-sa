@@ -138,6 +138,7 @@ export default function ProjectDetails() {
     },
   });
 
+  const handlePublish = () => {
     if (!id) return;
     updateProject.mutate(
       { id, status: "pending_approval" as any },
