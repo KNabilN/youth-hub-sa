@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail } from "lucide-react";
+import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface NotificationItemProps {
   id: string;
@@ -53,6 +54,7 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   service_suspended: { icon: AlertTriangle, label: "خدمة معلقة" },
   service_purchased: { icon: HandCoins, label: "شراء خدمة" },
   time_log_approval: { icon: Clock, label: "اعتماد وقت" },
+  timelog_submitted: { icon: ClipboardList, label: "تسجيل ساعات" },
 };
 
 function getEntityLink(entityType?: string | null, entityId?: string | null): string | null {
@@ -100,11 +102,14 @@ export function NotificationItem({ id, message, type, is_read, created_at, entit
   const Icon = config.icon;
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const link = getEntityLink(entity_type, entity_id);
 
   const handleClick = () => {
     if (!is_read) onMarkRead(id);
+    // Invalidate queries so target page shows fresh data
+    queryClient.invalidateQueries();
     if (link) navigate(link);
   };
 

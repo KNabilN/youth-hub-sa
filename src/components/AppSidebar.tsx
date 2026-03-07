@@ -123,6 +123,38 @@ export function AppSidebar() {
     enabled: !!user,
   });
 
+  // New invoices count (status = 'issued')
+  const { data: newInvoicesCount } = useQuery({
+    queryKey: ["sidebar-new-invoices", user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("issued_to", user!.id)
+        .eq("status", "issued")
+        .is("deleted_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!user,
+  });
+
+  // Unsigned contracts count (for service_provider)
+  const { data: unsignedContractsCount } = useQuery({
+    queryKey: ["sidebar-unsigned-contracts", user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("contracts")
+        .select("id", { count: "exact", head: true })
+        .eq("provider_id", user!.id)
+        .is("provider_signed_at", null)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!user && role === "service_provider",
+  });
+
   // Pending grant requests counts
   const { data: grantRequestsCounts } = useQuery({
     queryKey: ["sidebar-grant-counts", user?.id, role],
@@ -212,6 +244,8 @@ export function AppSidebar() {
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
     if (url === "/cart" && cartCount > 0) return cartCount;
     if (url === "/admin/finance" && (financePending?.total ?? 0) > 0) return financePending!.total;
+    if (url === "/invoices" && (newInvoicesCount ?? 0) > 0) return newInvoicesCount;
+    if (url === "/contracts" && role === "service_provider" && (unsignedContractsCount ?? 0) > 0) return unsignedContractsCount;
     const grantCount = grantRequestsCounts?.[url];
     if (grantCount && grantCount > 0) return grantCount;
     return 0;
