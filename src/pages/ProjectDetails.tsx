@@ -425,10 +425,16 @@ export default function ProjectDetails() {
           <Card className="border-warning/30 bg-warning/5">
             <CardContent className="p-4 flex items-center gap-3">
               <Shield className="h-5 w-5 text-warning shrink-0" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-sm">بانتظار إتمام الدفع</p>
                 <p className="text-xs text-muted-foreground">تم قبول العرض وتعيين مقدم الخدمة. يرجى إتمام عملية الدفع لإنشاء الضمان المالي وبدء العمل.</p>
               </div>
+              {acceptedBid && (
+                <Button size="sm" onClick={() => setResumePaymentOpen(true)}>
+                  <CreditCard className="h-4 w-4 me-1" />
+                  متابعة الدفع
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
