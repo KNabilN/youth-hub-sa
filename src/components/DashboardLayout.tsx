@@ -115,7 +115,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               aria-label="الملف الشخصي"
             >
               <div className="text-end hidden sm:block">
-                <p className="text-sm font-medium leading-none">{profile?.full_name || user?.email}</p>
+                <p className="text-sm font-medium leading-none">{profile?.organization_name || profile?.full_name || user?.email}</p>
                 {profile?.full_name && (
                   <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
                 )}

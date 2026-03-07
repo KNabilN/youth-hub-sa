@@ -35,11 +35,12 @@ interface BidPaymentDialogProps {
   };
   projectId: string;
   projectTitle: string;
+  skipAcceptBid?: boolean;
 }
 
 type PaymentMethod = "electronic" | "bank_transfer" | "grant_balance" | "mixed_grant";
 
-export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTitle }: BidPaymentDialogProps) {
+export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTitle, skipAcceptBid = false }: BidPaymentDialogProps) {
   const [step, setStep] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("electronic");
   const [mixedRemainingMethod, setMixedRemainingMethod] = useState<"electronic" | "bank_transfer">("electronic");
