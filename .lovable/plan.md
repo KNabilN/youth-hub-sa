@@ -1,17 +1,19 @@
 
-# خطة: إرسال إيميلات الإشعارات عبر PHP Relay
 
-## الحالة: ✅ تم التنفيذ
+## تمييز المشاريع التي قدّم عليها المزود مسبقاً
 
-### ما تم تنفيذه
+### الفكرة
+عند تصفح المزود للمشاريع المتاحة، إذا كان قد قدّم عرضاً مسبقاً على مشروع ما، يتغير نص الزر من "عرض التفاصيل وتقديم عرض" إلى "عرض التفاصيل (تم التقديم)" مع تمييز بصري.
 
-1. **Edge Function `send-notification-email`** — تستخدم `fetch()` لإرسال البريد عبر PHP Relay على `api.sharedservices.solutions`
-2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
-3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
-   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
-   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
-4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
-5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` + حذف `isNotificationEnabled` (dead code)
-6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
-7. **Error Handling** — عند فشل الإرسال يتم تحديث `delivery_status` إلى `failed` في قاعدة البيانات
-8. **Secret `RELAY_API_KEY`** — مفتاح المصادقة مع PHP Relay
+### التغييرات
+
+| # | الملف | التعديل |
+|---|---|---|
+| 1 | `src/pages/AvailableProjects.tsx` | إضافة استعلام لجلب `project_id` لجميع العروض الخاصة بالمزود الحالي (`bids` where `provider_id = user.id`). تمرير set من IDs المشاريع المُقدَّم عليها إلى `ProviderProjectCard`. |
+| 2 | `src/components/provider/ProviderProjectCard.tsx` | إضافة prop `hasBid?: boolean`. إذا `true`: تغيير نص الزر + تغيير لون الزر (outline بدل filled) + إضافة badge صغير "تم التقديم" على البطاقة. |
+
+### التفاصيل
+- الاستعلام الإضافي خفيف: `select("project_id").eq("provider_id", user.id).is("deleted_at", null)` من جدول `bids`
+- نص الزر عند وجود عرض سابق: **"عرض التفاصيل (تم التقديم)"**
+- Badge على البطاقة: "تم التقديم مسبقاً" بلون أخضر/مميز
+
