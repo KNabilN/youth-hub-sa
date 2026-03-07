@@ -1,25 +1,40 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+## خطة: تحسين تصميم محادثة العرض + إصلاح التنقل من الإشعارات
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+### المشكلتان
+1. **تصميم المحادثة**: `BidCommentThread` بسيط جداً مقارنة بـ `ChatThread` — فقاعات باهتة، لا auto-scroll، لا `ScrollArea`
+2. **إشعارات تعليقات العرض**: الـ trigger يرسل `entity_type: 'bid'` لكن `NotificationItem.getEntityLink()` لا يتعامل مع نوع `bid` — فالإشعار لا ينقل لأي مكان
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+### التعديلات
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+#### 1. `src/components/bids/BidCommentThread.tsx` — إعادة تصميم كاملة
+- فقاعات `rounded-2xl` مع `bg-primary text-primary-foreground` للمستخدم الحالي و`bg-muted` للطرف الآخر (نفس نمط ChatThread)
+- `ScrollArea` بارتفاع ثابت بدل `overflow-y-auto`
+- Auto-scroll لآخر رسالة عند التحميل وعند إرسال رسالة جديدة (`useEffect` + `scrollRef`)
+- اسم المرسل فوق الفقاعة + وقت بـ `formatDistanceToNow` بالعربي
+- حالة فارغة محسّنة بأيقونة `MessageCircle` + نص
+- `Input` في سطر واحد بدل `Textarea` مع form submit
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+#### 2. `src/components/notifications/NotificationItem.tsx` — إضافة نوع `bid`
+- إضافة `bid_comment` في `typeConfig` بأيقونة `MessageCircle` ولابل "تعليق على عرض"
+- إضافة `case "bid"` في `getEntityLink`:
+  - المشكلة: الإشعار يحتوي على `bid_id` لكن الصفحة تعرض العروض ضمن المشروع `/projects/{projectId}`
+  - الحل: جلب `project_id` من جدول `bids` عند النقر على الإشعار، ثم التنقل لـ `/projects/{projectId}`
+  - سيتم تحويل `getEntityLink` لتكون async عند نوع `bid` — أو الأبسط: تعديل الـ trigger ليرسل `entity_type: 'project'` و`entity_id: project_id` بدل `bid_id`
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+**القرار الأفضل**: تعديل trigger `notify_on_bid_comment` ليرسل `entity_type: 'project'` و`entity_id: project_id` — هذا يجعل الإشعار ينقل مباشرة لصفحة المشروع حيث تظهر العروض والمحادثة، بدون أي fetch إضافي عند النقر.
 
-### التغييرات
+#### 3. Migration: تعديل trigger `notify_on_bid_comment`
+```sql
+-- تغيير entity_type من 'bid' إلى 'project' و entity_id من bid_id إلى project_id
+```
 
-| الملف | التغيير |
+### الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
-
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+| `src/components/bids/BidCommentThread.tsx` | إعادة تصميم كاملة (فقاعات، ScrollArea، auto-scroll) |
+| `src/components/notifications/NotificationItem.tsx` | إضافة `bid_comment` في typeConfig |
+| DB Migration | تعديل trigger `notify_on_bid_comment` ليرسل project entity |
 
