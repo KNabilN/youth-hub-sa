@@ -72,6 +72,7 @@ export default function Invoices() {
         invoiceNumber: inv.invoice_number,
         amount: Number(inv.amount),
         commissionAmount: Number(inv.commission_amount),
+        vatAmount: Number(inv.vat_amount ?? 0),
         createdAt: inv.created_at,
         projectTitle: linkedEntityName ?? "—",
         recipientName: profile?.full_name ?? "—",
@@ -157,6 +158,7 @@ export default function Invoices() {
                     <TableHead>الطلب/الخدمة</TableHead>
                     <TableHead>المبلغ</TableHead>
                     <TableHead>العمولة</TableHead>
+                    <TableHead>الضريبة (15%)</TableHead>
                     <TableHead>الإجمالي</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>التاريخ</TableHead>
@@ -181,8 +183,9 @@ export default function Invoices() {
                         <TableCell>{entityName ?? "—"}</TableCell>
                         <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell className="text-muted-foreground">{Number(inv.vat_amount ?? 0).toLocaleString()} ر.س</TableCell>
                         <TableCell className="font-semibold text-success">
-                          {(Number(inv.amount) + Number(inv.commission_amount)).toLocaleString()} ر.س
+                          {(Number(inv.amount) + Number(inv.commission_amount) + Number(inv.vat_amount ?? 0)).toLocaleString()} ر.س
                         </TableCell>
                         <TableCell><Badge variant={st.variant}>{st.label}</Badge></TableCell>
                         <TableCell className="text-muted-foreground text-sm">

@@ -30,7 +30,8 @@ export function useGenerateInvoice() {
         .maybeSingle();
 
       const rate = config?.rate ?? 0.05;
-      const commissionAmount = amount * rate;
+      const commissionAmount = Math.round(amount * rate * 100) / 100;
+      const vatAmount = Math.round(amount * 0.15 * 100) / 100;
 
       const { data, error } = await supabase
         .from("invoices")
@@ -38,6 +39,7 @@ export function useGenerateInvoice() {
           invoice_number: generateInvoiceNumber(),
           amount,
           commission_amount: commissionAmount,
+          vat_amount: vatAmount,
           issued_to: issuedTo,
           escrow_id: escrowId,
         })

@@ -155,6 +155,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
       }
       await payFromGrants.mutateAsync({
         amount: bid.price,
+        totalAmount: pricing.total,
         payeeId: bid.provider_id,
         projectId,
       });
@@ -188,9 +189,12 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
         await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
       }
 
-      // Pay the grant portion
+      // Pay the grant portion — deduct full grant portion from balance
+      // Calculate the base amount corresponding to the grant portion
+      const grantPortionBase = pricing.total > 0 ? Math.round(bid.price * (grantPortionForMixed / pricing.total) * 100) / 100 : 0;
       await payFromGrants.mutateAsync({
-        amount: grantPortionForMixed,
+        amount: grantPortionBase,
+        totalAmount: grantPortionForMixed,
         payeeId: bid.provider_id,
         projectId,
       });
