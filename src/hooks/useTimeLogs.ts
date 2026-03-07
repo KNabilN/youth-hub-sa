@@ -1,9 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useAssociationTimeLogs(approvalFilter?: string, projectFilter?: string) {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-timelogs-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "time_logs" },
+        () => qc.invalidateQueries({ queryKey: ["time-logs"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["time-logs", user?.id, approvalFilter, projectFilter],
     enabled: !!user,
@@ -73,7 +86,6 @@ export function useUpdateTimeLogApproval() {
       }
       const { error } = await supabase.from("time_logs").update(update).eq("id", id);
       if (error) throw error;
-      // DB trigger notify_on_timelog_approval handles notification to provider
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["time-logs"] }),
   });

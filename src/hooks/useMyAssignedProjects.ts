@@ -1,9 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useMyAssignedProjects(statusFilter?: string) {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-assigned-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects", filter: `assigned_provider_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["my-assigned-projects"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["my-assigned-projects", user?.id, statusFilter],
     enabled: !!user,

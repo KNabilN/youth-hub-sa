@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import type { Database } from "@/integrations/supabase/types";
 
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
@@ -13,6 +14,18 @@ interface CreateTicketInput {
 
 export function useSupportTickets() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-tickets-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets", filter: `user_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["support-tickets"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["support-tickets", user?.id],
     queryFn: async () => {

@@ -1,9 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useContracts(filter = "all") {
   const { user, role } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-contracts-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "contracts" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["contracts"] });
+          qc.invalidateQueries({ queryKey: ["contract"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["contracts", user?.id, role, filter],
     enabled: !!user,
@@ -55,7 +71,6 @@ export function useSignContract() {
         .eq("id", contractId);
       if (error) throw error;
 
-      // Re-fetch contract to check if both signed
       const { data: contract } = await supabase
         .from("contracts")
         .select("*")
@@ -64,9 +79,7 @@ export function useSignContract() {
 
       if (!contract) return;
 
-      // If both signed, check if escrow already exists (bank transfer flow) or create new
       if (contract.association_signed_at && contract.provider_signed_at) {
-        // Check if a held escrow already exists for this project
         const { data: existingEscrow } = await supabase
           .from("escrow_transactions")
           .select("id, status")
@@ -74,14 +87,11 @@ export function useSignContract() {
           .maybeSingle();
 
         if (existingEscrow && (existingEscrow.status === "held" || existingEscrow.status === "pending_payment")) {
-          // Bank transfer flow — escrow already exists, start the project
           await supabase
             .from("projects")
             .update({ status: "in_progress" as any })
             .eq("id", contract.project_id);
-          // DB trigger notify_on_project_status_change handles notifications
         } else if (!existingEscrow) {
-          // Regular flow — create escrow from accepted bid
           const { data: bid } = await supabase
             .from("bids")
             .select("price")

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import { toast } from "sonner";
-
 
 export interface Deliverable {
   id: string;
@@ -16,8 +16,19 @@ export interface Deliverable {
   updated_at: string;
 }
 
-/** Fetch ALL deliverable records for a project, newest first */
 export function useDeliverables(projectId: string | undefined) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!projectId) return;
+    const channel = supabase
+      .channel(`rt-deliverables-${projectId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "project_deliverables", filter: `project_id=eq.${projectId}` },
+        () => qc.invalidateQueries({ queryKey: ["deliverables", projectId] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [projectId, qc]);
+
   return useQuery({
     queryKey: ["deliverables", projectId],
     enabled: !!projectId,
@@ -33,7 +44,6 @@ export function useDeliverables(projectId: string | undefined) {
   });
 }
 
-/** Backward-compat: fetch only the latest deliverable */
 export function useDeliverable(projectId: string | undefined) {
   const query = useDeliverables(projectId);
   return {
@@ -49,8 +59,6 @@ export function useSubmitDeliverable() {
   return useMutation({
     mutationFn: async ({ projectId, notes }: { projectId: string; notes: string }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
-
-      // Always insert a new row — each submission is a new version
       const { error } = await (supabase as any)
         .from("project_deliverables")
         .insert({
@@ -64,7 +72,6 @@ export function useSubmitDeliverable() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success("تم تقديم التسليمات للمراجعة");
-      
     },
     onError: (err: Error) => {
       toast.error(err.message || "حدث خطأ");
@@ -101,7 +108,6 @@ export function useReviewDeliverable() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success(variables.action === "accepted" ? "تم قبول التسليمات" : "تم طلب التعديلات");
-      
     },
     onError: () => {
       toast.error("حدث خطأ");

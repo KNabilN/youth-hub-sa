@@ -1,9 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useAvailableProjects(filters?: { category_id?: string; region_id?: string }, from = 0, to = 19) {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("rt-available-projects")
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects" },
+        () => qc.invalidateQueries({ queryKey: ["available-projects"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["available-projects", user?.id, filters, from, to],
     enabled: !!user,

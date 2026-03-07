@@ -1,10 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useProjects(statusFilter?: string) {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-projects-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects", filter: `association_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["projects"] });
+          qc.invalidateQueries({ queryKey: ["project-stats"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["projects", user?.id, statusFilter],
     enabled: !!user,
@@ -26,6 +42,18 @@ export function useProjects(statusFilter?: string) {
 }
 
 export function useProject(id: string | undefined) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`rt-project-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "projects", filter: `id=eq.${id}` },
+        () => qc.invalidateQueries({ queryKey: ["project", id] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, qc]);
+
   return useQuery({
     queryKey: ["project", id],
     enabled: !!id,
