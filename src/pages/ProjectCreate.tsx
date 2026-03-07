@@ -4,71 +4,95 @@ import { ProjectForm, type ProjectFormValues } from "@/components/projects/Proje
 import { useCreateProject } from "@/hooks/useProjects";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { FileUploader } from "@/components/attachments/FileUploader";
-import { AttachmentList } from "@/components/attachments/AttachmentList";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
-  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
 
-  const handleSubmit = (values: ProjectFormValues) => {
-    createProject.mutate({ ...values, status: "pending_approval" } as any, {
-      onSuccess: (data) => {
-        toast({ title: "تم إنشاء الطلب بنجاح" });
-        setCreatedId(data.id);
-      },
-      onError: () => toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" }),
+  // Create draft so attachments can be uploaded in step 3
+  const handleCreateDraft = async (values: ProjectFormValues): Promise<string> => {
+    if (draftId) return draftId; // Already created
+    return new Promise((resolve, reject) => {
+      createProject.mutate({ ...values, status: "draft" } as any, {
+        onSuccess: (data) => {
+          setDraftId(data.id);
+          resolve(data.id);
+        },
+        onError: () => {
+          toast({ title: "حدث خطأ أثناء حفظ المسودة", variant: "destructive" });
+          reject(new Error("Draft creation failed"));
+        },
+      });
     });
+  };
+
+  // Final submit: update draft to pending_approval
+  const handleSubmit = async (values: ProjectFormValues) => {
+    if (draftId) {
+      // Update existing draft
+      const { error } = await supabase
+        .from("projects")
+        .update({ ...values, status: "pending_approval" as any })
+        .eq("id", draftId);
+      if (error) {
+        toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" });
+        return;
+      }
+      toast({ title: "تم إنشاء الطلب بنجاح" });
+      navigate(`/projects/${draftId}`);
+    } else {
+      // No draft created (skipped attachments step somehow)
+      createProject.mutate({ ...values, status: "pending_approval" } as any, {
+        onSuccess: (data) => {
+          toast({ title: "تم إنشاء الطلب بنجاح" });
+          navigate(`/projects/${data.id}`);
+        },
+        onError: () => toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" }),
+      });
+    }
   };
 
   const handleSaveDraft = (values: ProjectFormValues) => {
-    createProject.mutate({ ...values, status: "draft" } as any, {
-      onSuccess: (data) => {
-        toast({ title: "تم حفظ الطلب كمسودة" });
-        setCreatedId(data.id);
-      },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-    });
+    if (draftId) {
+      // Update existing draft
+      supabase
+        .from("projects")
+        .update({ ...values, status: "draft" as any })
+        .eq("id", draftId)
+        .then(({ error }) => {
+          if (error) toast({ title: "حدث خطأ", variant: "destructive" });
+          else {
+            toast({ title: "تم حفظ الطلب كمسودة" });
+            navigate(`/projects/${draftId}`);
+          }
+        });
+    } else {
+      createProject.mutate({ ...values, status: "draft" } as any, {
+        onSuccess: (data) => {
+          toast({ title: "تم حفظ الطلب كمسودة" });
+          navigate(`/projects/${data.id}`);
+        },
+        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      });
+    }
   };
-
-  if (createdId) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="flex items-center gap-3 text-success">
-            <CheckCircle className="h-6 w-6" />
-            <h2 className="text-xl font-bold">تم إنشاء الطلب بنجاح</h2>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">إرفاق ملفات</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FileUploader entityType="project" entityId={createdId} />
-              <AttachmentList entityType="project" entityId={createdId} />
-            </CardContent>
-          </Card>
-          <Button onClick={() => navigate(`/projects/${createdId}`)}>
-            <ArrowLeft className="h-4 w-4 me-2" />
-            الانتقال لتفاصيل الطلب
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-         <h1 className="text-2xl font-bold">إنشاء طلب جديد</h1>
+          <h1 className="text-2xl font-bold">إنشاء طلب جديد</h1>
           <p className="text-sm text-muted-foreground mt-1">أضف تفاصيل الطلب وانشره لمقدمي الخدمات</p>
         </div>
-        <ProjectForm onSubmit={handleSubmit} onSaveDraft={handleSaveDraft} isLoading={createProject.isPending} submitLabel="إنشاء طلب" />
+        <ProjectForm
+          onSubmit={handleSubmit}
+          onSaveDraft={handleSaveDraft}
+          onCreateDraft={handleCreateDraft}
+          isLoading={createProject.isPending}
+          submitLabel="إنشاء طلب"
+        />
       </div>
     </DashboardLayout>
   );

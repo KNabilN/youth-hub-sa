@@ -57,6 +57,7 @@ export default function ProjectEdit() {
             budget: project.budget,
             is_private: project.is_private,
           }}
+          existingProjectId={project.id}
           onSubmit={handleSubmit}
           isLoading={updateProject.isPending}
           submitLabel="حفظ التعديلات"
