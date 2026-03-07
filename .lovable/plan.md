@@ -1,25 +1,48 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+## خطة: إضافة إشعار تلقائي عند إصدار فاتورة لمزود الخدمة
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+### الوضع الحالي
+- الفواتير **تُصدر بالفعل** لمزود الخدمة عند تحرير الضمان (سواء من إتمام المشروع أو من لوحة الأدمن)
+- الفواتير **تظهر** في صفحة `/invoices` وفي شارة الشريط الجانبي
+- **لا يوجد إشعار** يُرسل لمزود الخدمة عند إصدار الفاتورة — لذلك لا يعرف إن في فاتورة جديدة إلا إذا دخل الصفحة
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+### الحل
+إضافة **trigger على جدول `invoices`** يُرسل إشعاراً تلقائياً للمستخدم (`issued_to`) عند إنشاء فاتورة جديدة.
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+### التعديلات
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+#### 1. Migration: إنشاء trigger `notify_on_invoice_create`
+```sql
+CREATE OR REPLACE FUNCTION public.notify_on_invoice_create()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public' AS $$
+BEGIN
+  INSERT INTO notifications (user_id, message, type, entity_id, entity_type)
+  VALUES (
+    NEW.issued_to,
+    'تم إصدار فاتورة جديدة رقم ' || NEW.invoice_number || ' بمبلغ ' || NEW.amount || ' ر.س',
+    'invoice_created',
+    NEW.id,
+    'invoice'
+  );
+  RETURN NEW;
+END;
+$$;
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+CREATE TRIGGER trg_notify_on_invoice_create
+AFTER INSERT ON public.invoices
+FOR EACH ROW EXECUTE FUNCTION public.notify_on_invoice_create();
+```
 
-### التغييرات
+#### 2. `NotificationItem.tsx` — إضافة نوع `invoice`
+- إضافة `invoice_created` في `typeConfig` بأيقونة `Receipt`
+- إضافة `case "invoice"` في `getEntityLink` → `/invoices`
 
-| الملف | التغيير |
+### الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
-
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+| DB Migration | إنشاء trigger `notify_on_invoice_create` |
+| `src/components/notifications/NotificationItem.tsx` | إضافة نوع الإشعار وربط التنقل |
 
