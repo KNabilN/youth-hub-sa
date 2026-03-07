@@ -96,7 +96,7 @@ export default function ServiceDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gallery */}
         <div className="lg:col-span-2">
-          <ServiceGallery mainImage={service.image_url} gallery={gallery} />
+          <ServiceGallery mainImage={service.image_url || (service.categories as any)?.image_url} gallery={gallery} />
         </div>
 
         {/* Sidebar */}

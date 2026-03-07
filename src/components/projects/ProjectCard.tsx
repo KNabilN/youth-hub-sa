@@ -37,7 +37,12 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
   const pendingBidsCount = (project.bids ?? []).filter(b => b.status === "pending").length;
 
   return (
-    <Card className={`card-hover border-t-4 ${borderColor}`}>
+    <Card className={`card-hover border-t-4 ${borderColor} overflow-hidden`}>
+      {(project.categories as any)?.image_url && (
+        <div className="w-full h-36 overflow-hidden">
+          <img src={(project.categories as any).image_url} alt={project.title} className="w-full h-full object-cover" />
+        </div>
+      )}
       <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
          <div className="space-y-1 min-w-0">
            {(project as any).request_number && <span className="text-xs font-mono text-muted-foreground">{(project as any).request_number}</span>}
