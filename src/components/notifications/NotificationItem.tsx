@@ -55,6 +55,7 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   service_purchased: { icon: HandCoins, label: "شراء خدمة" },
   time_log_approval: { icon: Clock, label: "اعتماد وقت" },
   timelog_submitted: { icon: ClipboardList, label: "تسجيل ساعات" },
+  bid_comment: { icon: MessageCircle, label: "تعليق على عرض" },
 };
 
 function getEntityLink(entityType?: string | null, entityId?: string | null): string | null {
