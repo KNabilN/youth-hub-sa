@@ -202,6 +202,9 @@ export function CategoryManager() {
                   {editId === c.id ? (
                     <>
                       <TableCell>
+                        <CategoryImageUpload categoryId={c.id} categoryName={c.name} currentImageUrl={c.image_url} />
+                      </TableCell>
+                      <TableCell>
                         <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} />
                       </TableCell>
                       <TableCell>
