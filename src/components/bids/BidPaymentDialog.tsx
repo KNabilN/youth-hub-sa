@@ -35,11 +35,12 @@ interface BidPaymentDialogProps {
   };
   projectId: string;
   projectTitle: string;
+  skipAcceptBid?: boolean;
 }
 
 type PaymentMethod = "electronic" | "bank_transfer" | "grant_balance" | "mixed_grant";
 
-export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTitle }: BidPaymentDialogProps) {
+export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTitle, skipAcceptBid = false }: BidPaymentDialogProps) {
   const [step, setStep] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("electronic");
   const [mixedRemainingMethod, setMixedRemainingMethod] = useState<"electronic" | "bank_transfer">("electronic");
@@ -83,7 +84,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       if (paymentMethod === "electronic") {
         const { data, error } = await supabase.functions.invoke("moyasar-get-config");
@@ -120,7 +123,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   const handleBankTransfer = async () => {
     if (!receiptFile || !user) return;
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       await bankTransfer.mutateAsync({
         receiptFile,
@@ -145,7 +150,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
       await payFromGrants.mutateAsync({
         amount: bid.price,
         payeeId: bid.provider_id,
@@ -177,7 +184,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       // Pay the grant portion
       await payFromGrants.mutateAsync({
@@ -320,7 +329,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            قبول العرض والدفع
+            {skipAcceptBid ? "متابعة الدفع" : "قبول العرض والدفع"}
           </DialogTitle>
         </DialogHeader>
 
@@ -405,7 +414,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             {paymentMethod === "electronic" && (
               <Button className="w-full" disabled={loadingPayment || acceptBid.isPending} onClick={handleAcceptAndPay}>
                 <CreditCard className="h-4 w-4 me-1" />
-                {loadingPayment || acceptBid.isPending ? "جاري المعالجة..." : "قبول العرض والمتابعة للدفع"}
+                {loadingPayment || acceptBid.isPending ? "جاري المعالجة..." : skipAcceptBid ? "المتابعة للدفع" : "قبول العرض والمتابعة للدفع"}
               </Button>
             )}
 
@@ -414,7 +423,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
               <div className="space-y-3">
                 <BankTransferSection amount={pricing.total} />
                 <Button className="w-full" disabled={!receiptFile || bankTransfer.isPending || acceptBid.isPending} onClick={handleBankTransfer}>
-                  {bankTransfer.isPending || acceptBid.isPending ? "جاري المعالجة..." : "قبول العرض وإرسال الإيصال"}
+                  {bankTransfer.isPending || acceptBid.isPending ? "جاري المعالجة..." : skipAcceptBid ? "إرسال الإيصال" : "قبول العرض وإرسال الإيصال"}
                 </Button>
               </div>
             )}
@@ -423,7 +432,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             {paymentMethod === "grant_balance" && (
               <Button className="w-full" disabled={loadingPayment || acceptBid.isPending || payFromGrants.isPending} onClick={handleGrantPayment}>
                 <Wallet className="h-4 w-4 me-1" />
-                {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : "قبول العرض والدفع من المنح"}
+                {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : skipAcceptBid ? "الدفع من المنح" : "قبول العرض والدفع من المنح"}
               </Button>
             )}
 
@@ -475,7 +484,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
                   onClick={handleMixedPayment}
                 >
                   <Wallet className="h-4 w-4 me-1" />
-                  {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : "قبول العرض والدفع المختلط"}
+                  {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : skipAcceptBid ? "الدفع المختلط" : "قبول العرض والدفع المختلط"}
                 </Button>
               </div>
             )}

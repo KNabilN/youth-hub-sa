@@ -28,9 +28,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil, CreditCard } from "lucide-react";
 
 import { FileUploader } from "@/components/attachments/FileUploader";
+import { BidPaymentDialog } from "@/components/bids/BidPaymentDialog";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { DeliverablePanel } from "@/components/deliverables/DeliverablePanel";
@@ -60,6 +61,7 @@ export default function ProjectDetails() {
   const [cancelling, setCancelling] = useState(false);
   const [timerDefaults, setTimerDefaults] = useState<Partial<TimeEntryFormValues>>({});
   const createTimeLog = useCreateTimeLog();
+  const [resumePaymentOpen, setResumePaymentOpen] = useState(false);
   const { data: hoursSummary } = useProjectTimeLogs(id);
   const { data: deliverable } = useDeliverable(id);
 
@@ -115,6 +117,22 @@ export default function ProjectDetails() {
         .eq("payer_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Query accepted bid for resume-payment flow
+  const { data: acceptedBid } = useQuery({
+    queryKey: ["accepted-bid", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bids")
+        .select("*, profiles:provider_id(full_name)")
+        .eq("project_id", id!)
+        .eq("status", "accepted")
+        .is("deleted_at", null)
         .maybeSingle();
       return data;
     },
@@ -407,10 +425,16 @@ export default function ProjectDetails() {
           <Card className="border-warning/30 bg-warning/5">
             <CardContent className="p-4 flex items-center gap-3">
               <Shield className="h-5 w-5 text-warning shrink-0" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-sm">بانتظار إتمام الدفع</p>
                 <p className="text-xs text-muted-foreground">تم قبول العرض وتعيين مقدم الخدمة. يرجى إتمام عملية الدفع لإنشاء الضمان المالي وبدء العمل.</p>
               </div>
+              {acceptedBid && (
+                <Button size="sm" onClick={() => setResumePaymentOpen(true)}>
+                  <CreditCard className="h-4 w-4 me-1" />
+                  متابعة الدفع
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
@@ -704,6 +728,18 @@ export default function ProjectDetails() {
           )}
         </Tabs>
       </div>
+
+      {/* Resume payment dialog for accepted bids without escrow */}
+      {acceptedBid && (
+        <BidPaymentDialog
+          open={resumePaymentOpen}
+          onOpenChange={setResumePaymentOpen}
+          bid={acceptedBid}
+          projectId={id!}
+          projectTitle={project.title}
+          skipAcceptBid
+        />
+      )}
     </DashboardLayout>
   );
 }
