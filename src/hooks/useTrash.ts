@@ -117,7 +117,10 @@ export function usePermanentDelete() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ table, id }: { table: TrashTableName; id: string }) => {
-      const { error } = await supabase.from(table).delete().eq("id", id);
+      const { error } = await supabase.rpc("cascade_permanent_delete", {
+        p_table: table,
+        p_id: id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
