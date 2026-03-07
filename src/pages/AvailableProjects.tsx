@@ -41,6 +41,20 @@ export default function AvailableProjects() {
     }, 400);
   };
 
+  const { data: myBidProjectIds } = useQuery({
+    queryKey: ["my-bid-project-ids", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bids")
+        .select("project_id")
+        .eq("provider_id", user!.id)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return new Set(data.map(b => b.project_id));
+    },
+  });
+
   const { data: projects, isLoading } = useQuery({
     queryKey: ["available-projects", user?.id, categoryId, regionId, debouncedSearch, budgetMin, budgetMax, sortBy, pagination.from, pagination.to],
     enabled: !!user,
@@ -161,7 +175,7 @@ export default function AvailableProjects() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (
-              <ProviderProjectCard key={p.id} project={p} onViewDetails={(id) => navigate(`/available-projects/${id}`)} />
+              <ProviderProjectCard key={p.id} project={p} hasBid={myBidProjectIds?.has(p.id)} onViewDetails={(id) => navigate(`/available-projects/${id}`)} />
             ))}
           </div>
         )}

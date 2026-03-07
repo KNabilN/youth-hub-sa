@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, DollarSign, Building2, ExternalLink } from "lucide-react";
+import { MapPin, Clock, DollarSign, Building2, ExternalLink, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -20,16 +20,25 @@ interface ProviderProjectCardProps {
     cities?: { name: string } | null;
     profiles?: { full_name: string; avatar_url: string | null; organization_name: string | null } | null;
   };
+  hasBid?: boolean;
   onViewDetails: (id: string) => void;
 }
 
-export function ProviderProjectCard({ project, onViewDetails }: ProviderProjectCardProps) {
+export function ProviderProjectCard({ project, hasBid, onViewDetails }: ProviderProjectCardProps) {
   const assocName = project.profiles?.organization_name || project.profiles?.full_name || "جمعية";
 
   return (
     <Card className="card-hover border-t-4 border-primary/60">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">{project.title}</CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base">{project.title}</CardTitle>
+          {hasBid && (
+            <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 shrink-0">
+              <CheckCircle2 className="h-3 w-3" />
+              تم التقديم
+            </Badge>
+          )}
+        </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
           {project.is_name_visible && project.profiles ? (
             <Link to={`/profile/${project.association_id}`} className="flex items-center gap-1 group hover:text-primary transition-colors">
@@ -68,8 +77,13 @@ export function ProviderProjectCard({ project, onViewDetails }: ProviderProjectC
             {project.required_skills.map(s => <Badge key={s} variant="outline" className="text-xs">{s}</Badge>)}
           </div>
         )}
-        <Button size="sm" className="w-full bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-sm" onClick={() => onViewDetails(project.id)}>
-          عرض التفاصيل وتقديم عرض
+        <Button
+          size="sm"
+          variant={hasBid ? "outline" : "default"}
+          className={hasBid ? "w-full" : "w-full bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-sm"}
+          onClick={() => onViewDetails(project.id)}
+        >
+          {hasBid ? "عرض التفاصيل (تم التقديم)" : "عرض التفاصيل وتقديم عرض"}
         </Button>
       </CardContent>
     </Card>
