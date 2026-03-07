@@ -146,11 +146,11 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% بلا نزاع" value={m.noDisputePct} suffix="%" icon={ShieldCheck} color="text-emerald-600" />
+            <MiniKPI label="% بلا شكوى" value={m.noDisputePct} suffix="%" icon={ShieldCheck} color="text-emerald-600" />
             <MiniKPI label="متوسط أيام الحل" value={m.avgResolutionDays} suffix=" يوم" icon={Clock} color="text-primary" />
             <MiniKPI label="% حُلت ≤7 أيام" value={m.pctResolvedIn7} suffix="%" icon={TrendingUp} color="text-amber-600" />
           </div>
-          <ProgressToTarget label="% بلا نزاع → الهدف 90%" current={m.noDisputePct} target={90} />
+          <ProgressToTarget label="% بلا شكوى → الهدف 90%" current={m.noDisputePct} target={90} />
         </div>
       );
     },
@@ -273,7 +273,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="متوسط أيام الحل" value={m.avgResolutionDays} suffix=" يوم" icon={Clock} color="text-primary" />
             <MiniKPI label="% حُلت ≤7 أيام" value={m.pctIn7Days} suffix="%" icon={ShieldCheck} color="text-emerald-600" />
-            <MiniKPI label="نزاعات محلولة" value={m.totalResolved} icon={BarChart3} />
+            <MiniKPI label="شكاوى محلولة" value={m.totalResolved} icon={BarChart3} />
           </div>
           <ProgressToTarget label="% حل ≤7 أيام → الهدف 80%" current={m.pctIn7Days} target={80} />
         </div>
@@ -284,7 +284,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <CompareBar labelA={`إغلاق مع ضمان (${m.projectsWithEscrow})`} labelB={`إغلاق بدون (${m.projectsWithout})`} valueA={m.closureWithEscrow} valueB={m.closureWithout} />
-          <CompareBar labelA="نزاعات مع ضمان" labelB="نزاعات بدون" valueA={m.disputesWithEscrowPct} valueB={m.disputesWithoutPct} />
+          <CompareBar labelA="شكاوى مع ضمان" labelB="شكاوى بدون" valueA={m.disputesWithEscrowPct} valueB={m.disputesWithoutPct} />
         </div>
       );
     },

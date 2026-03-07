@@ -60,7 +60,7 @@ export default function Projects() {
                 <SelectItem value="open">مفتوح</SelectItem>
                 <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                 <SelectItem value="completed">مكتمل</SelectItem>
-                <SelectItem value="disputed">متنازع</SelectItem>
+                <SelectItem value="disputed">مُشتكى عليه</SelectItem>
                 <SelectItem value="cancelled">ملغي</SelectItem>
                 <SelectItem value="suspended">معلق</SelectItem>
               </SelectContent>

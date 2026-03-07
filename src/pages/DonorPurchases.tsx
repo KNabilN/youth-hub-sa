@@ -23,7 +23,7 @@ const projectStatusLabel: Record<string, string> = {
   in_progress: "قيد التنفيذ",
   completed: "مكتمل",
   cancelled: "ملغى",
-  disputed: "متنازع",
+  disputed: "مُشتكى عليه",
   draft: "مسودة",
   open: "مفتوح",
   pending_approval: "بانتظار الموافقة",

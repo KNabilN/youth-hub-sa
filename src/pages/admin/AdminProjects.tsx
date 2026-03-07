@@ -41,7 +41,7 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
-  completed: "مكتمل", disputed: "متنازع", cancelled: "ملغي",
+  completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
   suspended: "معلق", archived: "مؤرشف",
 };
 

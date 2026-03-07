@@ -20,7 +20,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
       { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: false },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
-      { key: "project_disputed", label: "فتح نزاع", defaultEnabled: true },
+      { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
     ],
   },
   {
@@ -80,7 +80,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
       { key: "project_in_progress", label: "بدء العمل", defaultEnabled: false },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
-      { key: "project_disputed", label: "فتح نزاع", defaultEnabled: true },
+      { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
     ],
   },
   {
@@ -139,7 +139,7 @@ const SUPER_ADMIN_GROUPS: NotificationGroup[] = [
     groupLabel: "الإدارة",
     types: [
       { key: "bank_transfer_pending", label: "تحويل بنكي جديد بانتظار المراجعة", defaultEnabled: true },
-      { key: "dispute_opened", label: "نزاع جديد", defaultEnabled: true },
+      { key: "dispute_opened", label: "شكوى جديدة", defaultEnabled: true },
       { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: false },
     ],
   },

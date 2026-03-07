@@ -34,7 +34,7 @@ const typeLabels: Record<string, string> = {
   project_in_progress: "طلب قيد التنفيذ",
   project_completed: "طلب مكتمل",
   project_cancelled: "طلب ملغي",
-  project_disputed: "طلب متنازع عليه",
+  project_disputed: "طلب مُشتكى عليه",
   purchase: "عملية شراء",
   purchase_confirmation: "تأكيد شراء",
   edit_request: "طلب تعديل",
