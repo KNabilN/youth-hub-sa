@@ -1,17 +1,41 @@
 
-# خطة: إرسال إيميلات الإشعارات عبر PHP Relay
 
-## الحالة: ✅ تم التنفيذ
+## إلغاء التوثيق عند تعديل الملف الشخصي + إشعار الأدمن
 
-### ما تم تنفيذه
+### الفكرة
+عند حفظ المستخدم لتعديلات على بياناته الأساسية، يتم تلقائياً:
+1. تحويل حسابه إلى "غير موثق" (`is_verified = false`)
+2. إرسال إشعار لجميع الأدمن لمراجعة التعديلات وإعادة التوثيق
 
-1. **Edge Function `send-notification-email`** — تستخدم `fetch()` لإرسال البريد عبر PHP Relay على `api.sharedservices.solutions`
-2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
-3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
-   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
-   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
-4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
-5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` + حذف `isNotificationEnabled` (dead code)
-6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
-7. **Error Handling** — عند فشل الإرسال يتم تحديث `delivery_status` إلى `failed` في قاعدة البيانات
-8. **Secret `RELAY_API_KEY`** — مفتاح المصادقة مع PHP Relay
+### الحقول التي تُفعّل إلغاء التوثيق
+فقط البيانات الجوهرية (ليس إعدادات الإشعارات):
+- `full_name`, `phone`, `organization_name`, `license_number`, `bio`
+- `contact_officer_*` (الاسم، الهاتف، البريد، المسمى)
+- `hourly_rate`, `skills`, `qualifications`
+- `bank_*` (البنك، رقم الحساب، IBAN، اسم صاحب الحساب)
+- `region_id`, `city_id`
+
+الحقول المستثناة (لا تُلغي التوثيق): `email_notifications`, `notification_preferences`
+
+### التغييرات
+
+| # | الملف | التعديل |
+|---|---|---|
+| 1 | `src/hooks/useProfile.ts` | في `useUpdateProfile`: إذا كان الحساب موثقاً وتغيرت حقول جوهرية، يُضاف `is_verified: false` للتحديث + يُرسل إشعار للأدمن |
+| 2 | `src/pages/Profile.tsx` | إضافة رسالة تنبيه بعد الحفظ توضح أن التوثيق سيُراجع مجدداً |
+
+### منطق التنفيذ
+```text
+عند الحفظ:
+1. مقارنة القيم الجديدة بالقيم الحالية في profile
+2. إذا تغير أي حقل جوهري AND profile.is_verified === true:
+   - إضافة is_verified: false للتحديث
+   - جلب أدمن IDs من user_roles
+   - إدراج إشعار لكل أدمن: "قام [اسم المستخدم] بتعديل ملفه الشخصي ويحتاج مراجعة"
+3. إذا لم يتغير شيء جوهري: حفظ عادي بدون إلغاء توثيق
+```
+
+### ملاحظة
+- الأدمن عند تعديل بيانات المستخدمين عبر `AdminDirectEditDialog` لن يتأثر بهذا المنطق (لأنه يستخدم `useAdminUpdateProfile` وليس `useUpdateProfile`)
+- المستخدم سيرى رسالة واضحة بعد الحفظ تُعلمه أن حسابه بحاجة لإعادة توثيق
+
