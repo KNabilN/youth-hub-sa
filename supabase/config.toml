@@ -3,10 +3,7 @@ project_id = "nuneqhhampikooviiphf"
 [functions.bulk-create-associations]
 verify_jwt = false
 
-[functions.send-email]
-verify_jwt = false
-
-[functions.notify-deliverable]
+[functions.send-notification-email]
 verify_jwt = false
 
 [functions.moyasar-verify-payment]

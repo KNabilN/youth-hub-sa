@@ -3,17 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-async function sendDeliverableEmail(projectId: string, action: "submitted" | "accepted" | "revision_requested") {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    await supabase.functions.invoke("notify-deliverable", {
-      body: { project_id: projectId, action },
-    });
-  } catch (e) {
-    console.error("Email notification failed:", e);
-  }
-}
 
 export interface Deliverable {
   id: string;
@@ -75,7 +64,7 @@ export function useSubmitDeliverable() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success("تم تقديم التسليمات للمراجعة");
-      sendDeliverableEmail(variables.projectId, "submitted");
+      
     },
     onError: (err: Error) => {
       toast.error(err.message || "حدث خطأ");
@@ -112,7 +101,7 @@ export function useReviewDeliverable() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
       toast.success(variables.action === "accepted" ? "تم قبول التسليمات" : "تم طلب التعديلات");
-      sendDeliverableEmail(variables.projectId, variables.action === "accepted" ? "accepted" : "revision_requested");
+      
     },
     onError: () => {
       toast.error("حدث خطأ");
