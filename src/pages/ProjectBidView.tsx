@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle } from "lucide-react";
+import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle, Building2, ExternalLink } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { useUploadAttachment } from "@/hooks/useAttachments";
@@ -77,7 +79,19 @@ export default function ProjectBidView() {
         <Card>
           <CardHeader>
             <CardTitle>{project.title}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+              {project.is_name_visible && project.profiles ? (
+                <Link to={`/profile/${project.association_id}`} className="flex items-center gap-1.5 group hover:text-primary transition-colors">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={project.profiles.avatar_url ?? undefined} />
+                    <AvatarFallback><Building2 className="h-3 w-3" /></AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{project.profiles.organization_name || project.profiles.full_name}</span>
+                  <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-4 w-4" />جمعية مجهولة</span>
+              )}
               {project.categories?.name && <Badge variant="secondary">{project.categories.name}</Badge>}
               {project.regions?.name && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{project.regions.name}</span>}
             </div>

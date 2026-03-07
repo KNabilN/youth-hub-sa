@@ -155,6 +155,38 @@ export type Database = {
           },
         ]
       }
+      bid_comments: {
+        Row: {
+          author_id: string
+          bid_id: string
+          content: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          bid_id: string
+          content?: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          bid_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_comments_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "bids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bids: {
         Row: {
           cover_letter: string

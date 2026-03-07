@@ -1,76 +1,25 @@
 
 
-## خطة: رابط بروفايل الجمعية + نظام تعليقات العروض
+# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
 
-### الميزة 1: رابط بروفايل الجمعية (حسب إعداد الأدمن)
+## المشكلة
+حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
 
-**الفكرة:** عند عرض تفاصيل الطلب لمزود الخدمة، إذا كان `is_name_visible = true`، يظهر اسم الجمعية كرابط قابل للنقر يوجه لبروفايلها العام. إذا `false`، يظهر "جمعية مجهولة" بدون رابط.
+## الحل
+تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
 
-**التعديلات:**
+**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
 
-1. **`src/hooks/useAvailableProjects.ts`** — `useAvailableProject`: إضافة join على profiles للحصول على اسم الجمعية وصورتها:
-   ```
-   .select("*, categories(*), regions(*), cities(*), profiles:association_id(full_name, avatar_url, organization_name)")
-   ```
+**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
 
-2. **`src/pages/ProjectBidView.tsx`** — إضافة قسم يعرض معلومات الجمعية:
-   - إذا `project.is_name_visible`: عرض اسم الجمعية + أيقونة + رابط `/profile/{association_id}`
-   - إذا لا: عرض "جمعية مجهولة" بدون رابط
+**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
 
-3. **`src/components/provider/ProviderProjectCard.tsx`** — نفس المنطق في بطاقة الطلب بقائمة الطلبات المتاحة
+### التغييرات
 
-4. **`src/pages/AvailableProjects.tsx`** — تحديث الاستعلام ليشمل profiles join
-
----
-
-### الميزة 2: نظام تعليقات/ردود على العروض (Bid Comments)
-
-**الفكرة:** إضافة نظام محادثة على كل عرض بين الجمعية ومزود الخدمة. يتوقف عند قبول أو رفض العرض.
-
-#### تغييرات قاعدة البيانات:
-1. **جدول جديد `bid_comments`:**
-   ```sql
-   CREATE TABLE bid_comments (
-     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-     bid_id uuid NOT NULL REFERENCES bids(id) ON DELETE CASCADE,
-     author_id uuid NOT NULL,
-     content text NOT NULL DEFAULT '',
-     created_at timestamptz NOT NULL DEFAULT now()
-   );
-   ```
-
-2. **RLS policies:**
-   - SELECT: الجمعية (صاحبة المشروع) + مزود الخدمة (صاحب العرض) + الأدمن
-   - INSERT: نفس الأطراف، بشرط أن العرض لا يزال `pending` وأن المستخدم غير معلق
-   - لا UPDATE أو DELETE
-
-3. **إشعار تلقائي (trigger):** عند إضافة تعليق جديد، يتم إرسال إشعار للطرف الآخر
-
-#### تغييرات الكود:
-
-1. **`src/hooks/useBidComments.ts`** (ملف جديد):
-   - `useBidComments(bidId)` — جلب التعليقات مع بيانات الكاتب
-   - `useAddBidComment()` — إضافة تعليق جديد
-
-2. **`src/components/bids/BidCommentThread.tsx`** (ملف جديد):
-   - عرض التعليقات بتنسيق محادثة (chat-like)
-   - حقل إدخال + زر إرسال
-   - يظهر فقط إذا العرض `pending`، وإلا يعرض التعليقات السابقة كقراءة فقط
-
-3. **`src/components/bids/BidCard.tsx`** — إضافة زر "المحادثة" أو عرض `BidCommentThread` مباشرة أسفل العرض
-
----
-
-### ملخص الملفات المتأثرة
-
-| الملف | التعديل |
+| الملف | التغيير |
 |---|---|
-| Migration SQL | جدول `bid_comments` + RLS + trigger إشعارات |
-| `src/hooks/useAvailableProjects.ts` | join profiles |
-| `src/pages/AvailableProjects.tsx` | join profiles في الاستعلام |
-| `src/pages/ProjectBidView.tsx` | عرض اسم الجمعية مع/بدون رابط |
-| `src/components/provider/ProviderProjectCard.tsx` | عرض اسم الجمعية |
-| `src/hooks/useBidComments.ts` | hook جديد |
-| `src/components/bids/BidCommentThread.tsx` | مكون محادثة جديد |
-| `src/components/bids/BidCard.tsx` | دمج المحادثة |
+| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
+| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+
+الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
 

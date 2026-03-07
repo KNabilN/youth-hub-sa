@@ -10,7 +10,7 @@ export function useAvailableProjects(filters?: { category_id?: string; region_id
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(*), regions(*), cities(*)")
+        .select("*, categories(*), regions(*), cities(*), profiles!projects_association_id_fkey(full_name, avatar_url, organization_name)")
         .eq("status", "open")
         .eq("is_private", false)
         .is("deleted_at", null)
@@ -32,7 +32,7 @@ export function useAvailableProject(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(*), regions(*), cities(*)")
+        .select("*, categories(*), regions(*), cities(*), profiles!projects_association_id_fkey(full_name, avatar_url, organization_name)")
         .eq("id", id!)
         .single();
       if (error) throw error;
