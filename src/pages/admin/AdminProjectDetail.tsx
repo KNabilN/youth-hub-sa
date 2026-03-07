@@ -33,7 +33,13 @@ const statusLabels: Record<string, string> = {
   suspended: "معلق", archived: "مؤرشف",
 };
 
-const statusColors: Record<string, string> = {
+/** Admin can only: pending_approval→open, and any active status→cancelled */
+function getAdminAllowedStatuses(current: string): string[] {
+  if (current === "pending_approval") return ["open"];
+  if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
+  return [];
+}
+
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
