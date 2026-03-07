@@ -43,6 +43,7 @@ import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
@@ -237,6 +238,12 @@ export default function ProjectDetails() {
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            {!project.assigned_provider_id && isAssociation && (
+              <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/edit`)}>
+                <Pencil className="h-4 w-4 me-1" />
+                تعديل الطلب
+              </Button>
+            )}
             {project.status === "draft" && isAssociation && (
               <Button onClick={handlePublish} disabled={updateProject.isPending}>
                 <Send className="h-4 w-4 me-1" />
