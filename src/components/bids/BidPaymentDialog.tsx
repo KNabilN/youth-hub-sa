@@ -345,7 +345,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             <div className="p-3 rounded-lg bg-muted/50 space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">مقدم الخدمة</span>
-                <span className="font-medium">{bid.profiles?.full_name || "مقدم خدمة"}</span>
+                <span className="font-medium">{(bid.profiles as any)?.organization_name || bid.profiles?.full_name || "مقدم خدمة"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">سعر العرض</span>

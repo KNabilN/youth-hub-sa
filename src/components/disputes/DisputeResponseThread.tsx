@@ -68,7 +68,7 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarFallback className="text-xs">
-                    {r.profiles?.full_name?.charAt(0) ?? "؟"}
+                    {r.profiles?.organization_name?.charAt(0) || r.profiles?.full_name?.charAt(0) || "؟"}
                   </AvatarFallback>
                 </Avatar>
                 <div
@@ -79,7 +79,7 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
                   }`}
                 >
                   <p className="font-medium text-xs mb-1 opacity-80">
-                    {r.profiles?.full_name ?? "مستخدم"}
+                    {r.profiles?.organization_name || r.profiles?.full_name || "مستخدم"}
                   </p>
                   <p>{r.message}</p>
                   <p className="text-[10px] opacity-60 mt-1">

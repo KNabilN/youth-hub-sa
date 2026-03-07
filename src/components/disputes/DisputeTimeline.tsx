@@ -30,7 +30,7 @@ export function DisputeTimeline({ disputeId }: { disputeId: string }) {
                 <span className="font-medium">{disputeStatusLabels[log.new_status] || log.new_status}</span>
               </div>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                {log.profiles?.full_name || "النظام"} · {format(new Date(log.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+                {log.profiles?.organization_name || log.profiles?.full_name || "النظام"} · {format(new Date(log.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
               </p>
               {log.note && <p className="text-xs mt-0.5">{log.note}</p>}
             </div>

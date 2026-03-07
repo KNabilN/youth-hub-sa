@@ -85,7 +85,8 @@ export default function AdminProjects() {
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
-    if (search && !p.title.toLowerCase().includes(q) && !(p.request_number ?? '').toLowerCase().includes(q) && !(p.profiles?.full_name || "").toLowerCase().includes(q)) return false;
+    const displayName = p.profiles?.organization_name || p.profiles?.full_name || "";
+    if (search && !p.title.toLowerCase().includes(q) && !(p.request_number ?? '').toLowerCase().includes(q) && !displayName.toLowerCase().includes(q)) return false;
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (categoryFilter !== "all" && p.category_id !== categoryFilter) return false;
     return true;
@@ -168,7 +169,7 @@ export default function AdminProjects() {
                         <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
                       </TableCell>
                       <TableCell className="font-medium">{p.title}</TableCell>
-                      <TableCell>{p.profiles?.full_name ?? "—"}</TableCell>
+                      <TableCell>{p.profiles?.organization_name || p.profiles?.full_name || "—"}</TableCell>
                       <TableCell>
                         <Switch
                           checked={(p as any).is_name_visible ?? true}
@@ -267,13 +268,13 @@ export default function AdminProjects() {
           options: Object.entries(statusLabels).map(([k, v]) => ({ value: k, label: v })),
         }]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name), categories(name), regions(name), cities(name)");
+          const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name, organization_name), categories(name), regions(name), cities(name)");
           let rows = data ?? [];
           if (filters.status !== "all") rows = rows.filter((p: any) => p.status === filters.status);
           const colMap: Record<string, (p: any) => string> = {
             request_number: (p) => p.request_number || "",
             title: (p) => p.title || "",
-            association: (p) => (p.profiles as any)?.full_name || "",
+            association: (p) => (p.profiles as any)?.organization_name || (p.profiles as any)?.full_name || "",
             category: (p) => (p.categories as any)?.name || "",
             region: (p) => (p.regions as any)?.name || "",
             city: (p) => (p.cities as any)?.name || "",

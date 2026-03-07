@@ -96,7 +96,7 @@ export function ServiceApprovalCard({ service }: { service: any }) {
           <div>
             <CardTitle className="text-base">{service.title}</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
-              {service.profiles?.full_name ?? "—"} · {service.categories?.name ?? "—"} · {Number(service.price).toLocaleString()} ر.س
+              {service.profiles?.organization_name || service.profiles?.full_name || "—"} · {service.categories?.name ?? "—"} · {Number(service.price).toLocaleString()} ر.س
             </p>
           </div>
           <Badge className={approvalColors[service.approval]}>{approvalLabels[service.approval]}</Badge>

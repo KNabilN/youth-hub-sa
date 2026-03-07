@@ -12,7 +12,7 @@ export interface Message {
   attachment_name: string | null;
   is_read: boolean;
   created_at: string;
-  sender?: { full_name: string; avatar_url: string | null };
+  sender?: { full_name: string; avatar_url: string | null; organization_name?: string | null };
 }
 
 export function useMessages(projectId: string | undefined) {
@@ -25,7 +25,7 @@ export function useMessages(projectId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url)")
+        .select("*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url, organization_name)")
         .eq("project_id", projectId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -153,7 +153,7 @@ export function useConversations() {
 
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url")
+        .select("id, full_name, avatar_url, organization_name")
         .in("id", [...new Set(otherPartyIds)]);
 
       const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
@@ -173,7 +173,7 @@ export function useConversations() {
         conversations.push({
           project_id: project.id,
           project_title: project.title,
-          other_party_name: otherProfile?.full_name ?? "مستخدم",
+          other_party_name: otherProfile?.organization_name || otherProfile?.full_name || "مستخدم",
           other_party_avatar: otherProfile?.avatar_url ?? null,
           last_message: lastMsg?.content ?? "",
           last_message_at: lastMsg?.created_at ?? project.id,

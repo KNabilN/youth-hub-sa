@@ -8,7 +8,7 @@ export function useBids(projectId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bids")
-        .select("*, profiles:provider_id(full_name, avatar_url)")
+        .select("*, profiles:provider_id(full_name, avatar_url, organization_name)")
         .eq("project_id", projectId!)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });

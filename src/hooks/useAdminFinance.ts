@@ -10,7 +10,7 @@ export function useEscrowTransactions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escrow_transactions")
-        .select("*, projects(title), payer:profiles!escrow_transactions_payer_id_fkey(full_name), payee:profiles!escrow_transactions_payee_id_fkey(full_name)")
+        .select("*, projects(title), payer:profiles!escrow_transactions_payer_id_fkey(full_name, organization_name), payee:profiles!escrow_transactions_payee_id_fkey(full_name, organization_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -48,7 +48,7 @@ export function useInvoices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, profiles!invoices_issued_to_fkey(full_name)")
+        .select("*, profiles!invoices_issued_to_fkey(full_name, organization_name)")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;

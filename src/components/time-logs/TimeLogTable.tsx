@@ -68,7 +68,7 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
               const status = approvalMap[log.approval] ?? approvalMap.pending;
               return (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.profiles?.full_name || "-"}</TableCell>
+                  <TableCell className="font-medium">{(log.profiles as any)?.organization_name || log.profiles?.full_name || "-"}</TableCell>
                   <TableCell>{log.projects?.title || "-"}</TableCell>
                   <TableCell>{new Date(log.log_date).toLocaleDateString("ar-SA")}</TableCell>
                   <TableCell className="text-xs">

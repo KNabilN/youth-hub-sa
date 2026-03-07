@@ -9,7 +9,7 @@ export function useBidComments(bidId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bid_comments")
-        .select("*, profiles:author_id(full_name, avatar_url)")
+        .select("*, profiles:author_id(full_name, avatar_url, organization_name)")
         .eq("bid_id", bidId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
