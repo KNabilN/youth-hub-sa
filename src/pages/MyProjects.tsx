@@ -42,7 +42,7 @@ export default function MyProjects() {
                 <SelectItem value="all">جميع الطلبات</SelectItem>
                 <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                 <SelectItem value="completed">مكتملة</SelectItem>
-                <SelectItem value="disputed">متنازع عليها</SelectItem>
+                <SelectItem value="disputed">مُشتكى عليها</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>

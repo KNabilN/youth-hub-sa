@@ -124,7 +124,7 @@ export default function AdminDisputeDetail() {
       const now = new Date();
       const invoiceNumber = `INV-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
       const issuedTo = action === "released" ? esc.payee_id : esc.payer_id;
-      const notesText = action === "released" ? "فاتورة تحرير ضمان مالي (نزاع)" : "فاتورة استرداد ضمان مالي (نزاع)";
+      const notesText = action === "released" ? "فاتورة تحرير ضمان مالي (شكوى)" : "فاتورة استرداد ضمان مالي (شكوى)";
 
       await supabase.from("invoices").insert({
         invoice_number: invoiceNumber,

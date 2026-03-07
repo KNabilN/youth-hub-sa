@@ -61,7 +61,7 @@ export default function PublicProfile() {
     completed: "مكتمل",
     pending_approval: "بانتظار الموافقة",
     cancelled: "ملغي",
-    disputed: "متنازع عليه",
+    disputed: "مُشتكى عليه",
     suspended: "معلق",
     archived: "مؤرشف",
   };
