@@ -1,17 +1,30 @@
 
-# خطة: إرسال إيميلات الإشعارات عبر PHP Relay
 
-## الحالة: ✅ تم التنفيذ
+## إضافة صورة افتراضية للتصنيفات
 
-### ما تم تنفيذه
+### الفكرة
+إضافة عمود `image_url` لجدول `categories` يحمل صورة افتراضية للتصنيف. هذه الصورة تُستخدم كصورة رئيسية لأي خدمة أو طلب ينتمي لهذا التصنيف إذا لم يُرفق صورة خاصة. مقدمو الخدمات والجمعيات يمكنهم إضافة صور إضافية (gallery) تظهر في صفحة التفاصيل.
 
-1. **Edge Function `send-notification-email`** — تستخدم `fetch()` لإرسال البريد عبر PHP Relay على `api.sharedservices.solutions`
-2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
-3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
-   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
-   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
-4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
-5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` + حذف `isNotificationEnabled` (dead code)
-6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
-7. **Error Handling** — عند فشل الإرسال يتم تحديث `delivery_status` إلى `failed` في قاعدة البيانات
-8. **Secret `RELAY_API_KEY`** — مفتاح المصادقة مع PHP Relay
+### التغييرات
+
+| # | المهمة | التفاصيل |
+|---|---|---|
+| 1 | **إضافة عمود `image_url`** | Migration: `ALTER TABLE categories ADD COLUMN image_url text DEFAULT NULL` |
+| 2 | **إنشاء storage bucket** | bucket اسمه `category-images` عام للقراءة، الأدمن فقط يرفع |
+| 3 | **تحديث `CategoryManager.tsx`** | إضافة زر رفع/تغيير الصورة لكل تصنيف في جدول الإدارة + معاينة مصغرة |
+| 4 | **تحديث `ServiceCard.tsx`** | عرض `category.image_url` كـ fallback إذا لم تكن `service.image_url` موجودة |
+| 5 | **تحديث `ProjectCard.tsx`** | عرض صورة التصنيف كصورة رئيسية للطلب (الطلبات ليس لها `image_url` حالياً) |
+| 6 | **تحديث صفحات التفاصيل** | في `ServiceDetail` و `ProjectDetails`: عرض صورة التصنيف كصورة رئيسية + صور gallery الخاصة بالمزود/الجمعية كصور إضافية |
+| 7 | **تحديث الاستعلامات** | تعديل queries لتشمل `categories(name, image_url)` بدلاً من `categories(name)` فقط |
+
+### منطق عرض الصورة
+```text
+الصورة الرئيسية = service.image_url ?? category.image_url ?? placeholder
+الصور الإضافية = service.gallery (يرفعها المزود/الجمعية)
+```
+
+### واجهة رفع الصورة في إدارة التصنيفات
+- أيقونة صورة صغيرة بجانب كل تصنيف في الجدول
+- عند الضغط يفتح dialog لرفع صورة أو تغييرها
+- معاينة مصغرة للصورة الحالية في عمود جديد بالجدول
+
