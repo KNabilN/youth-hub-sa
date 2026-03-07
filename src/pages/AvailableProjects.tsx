@@ -47,7 +47,7 @@ export default function AvailableProjects() {
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(*), regions(*), profiles:association_id(full_name, avatar_url, organization_name)")
+        .select("*, categories(*), regions(*), profiles!projects_association_id_fkey(full_name, avatar_url, organization_name)")
         .eq("status", "open")
         .eq("is_private", false)
         .range(pagination.from, pagination.to);
