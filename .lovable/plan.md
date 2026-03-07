@@ -1,29 +1,17 @@
 
+# خطة: إرسال إيميلات الإشعارات عبر PHP Relay
 
-## إصلاح محادثة العروض (Bid Comments)
+## الحالة: ✅ تم التنفيذ
 
-### المشكلة الجذرية
-جدول `bid_comments` لا يحتوي على Foreign Key من `author_id` إلى `profiles.id`. عند تنفيذ استعلام Supabase:
-```
-.select("*, profiles:author_id(full_name, avatar_url, organization_name)")
-```
-PostgREST يحتاج FK لحل الـ join — بدونه الاستعلام يفشل والتعليقات تظهر فارغة أو "تتمسح".
+### ما تم تنفيذه
 
-### التغييرات المطلوبة
-
-| # | النوع | التفاصيل |
-|---|---|---|
-| 1 | **Migration** | إضافة FK: `ALTER TABLE bid_comments ADD CONSTRAINT bid_comments_author_id_fkey FOREIGN KEY (author_id) REFERENCES profiles(id)` + تفعيل Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE bid_comments` |
-| 2 | **`useBidComments.ts`** | إضافة Realtime subscription للتعليقات الجديدة (invalidate on INSERT) + إزالة `.select().single()` من mutation لأنها غير ضرورية وممكن تسبب مشاكل |
-| 3 | **`BidCommentThread.tsx`** | تحسين الشكل: رسالة فارغة أوضح، حجم أكبر لمنطقة الرسائل، تحسين تباين الألوان، إظهار حالة الإرسال |
-| 4 | **`BidCard.tsx`** | تحسين تبويبات المرفقات/المحادثة بشكل tabs واضحة بدل أزرار منفصلة |
-
-### سياسات الأمان (RLS)
-السياسات الحالية صحيحة — التعليقات مرئية فقط للجمعية (صاحبة المشروع) ومقدم الخدمة (صاحب العرض) + الأدمن. لا حاجة لتعديلها.
-
-### الملفات المتأثرة
-- Migration جديد (FK + Realtime)
-- `src/hooks/useBidComments.ts`
-- `src/components/bids/BidCommentThread.tsx`
-- `src/components/bids/BidCard.tsx`
-
+1. **Edge Function `send-notification-email`** — تستخدم `fetch()` لإرسال البريد عبر PHP Relay على `api.sharedservices.solutions`
+2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
+3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
+   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
+   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
+4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
+5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` + حذف `isNotificationEnabled` (dead code)
+6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
+7. **Error Handling** — عند فشل الإرسال يتم تحديث `delivery_status` إلى `failed` في قاعدة البيانات
+8. **Secret `RELAY_API_KEY`** — مفتاح المصادقة مع PHP Relay

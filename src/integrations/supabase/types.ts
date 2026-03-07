@@ -179,6 +179,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bid_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bid_comments_bid_id_fkey"
             columns: ["bid_id"]
             isOneToOne: false
