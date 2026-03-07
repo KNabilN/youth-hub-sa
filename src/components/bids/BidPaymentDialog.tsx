@@ -84,7 +84,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       if (paymentMethod === "electronic") {
         const { data, error } = await supabase.functions.invoke("moyasar-get-config");
@@ -121,7 +123,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   const handleBankTransfer = async () => {
     if (!receiptFile || !user) return;
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       await bankTransfer.mutateAsync({
         receiptFile,
@@ -146,7 +150,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
       await payFromGrants.mutateAsync({
         amount: bid.price,
         payeeId: bid.provider_id,
@@ -178,7 +184,9 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
     if (!user) return;
     setLoadingPayment(true);
     try {
-      await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      if (!skipAcceptBid) {
+        await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
+      }
 
       // Pay the grant portion
       await payFromGrants.mutateAsync({
