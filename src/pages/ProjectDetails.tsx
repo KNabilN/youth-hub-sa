@@ -122,7 +122,22 @@ export default function ProjectDetails() {
     },
   });
 
-  const handlePublish = () => {
+  // Query accepted bid for resume-payment flow
+  const { data: acceptedBid } = useQuery({
+    queryKey: ["accepted-bid", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bids")
+        .select("*, profiles:provider_id(full_name)")
+        .eq("project_id", id!)
+        .eq("status", "accepted")
+        .is("deleted_at", null)
+        .maybeSingle();
+      return data;
+    },
+  });
+
     if (!id) return;
     updateProject.mutate(
       { id, status: "pending_approval" as any },
