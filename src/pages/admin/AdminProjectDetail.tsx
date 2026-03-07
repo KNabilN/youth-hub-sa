@@ -302,14 +302,20 @@ export default function AdminProjectDetail() {
               <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
-                <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const opts = getAdminAllowedStatuses(project.status);
+                  return opts.length > 0 ? (
+                    <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={project.status}>{statusLabels[project.status]}</SelectItem>
+                        {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>
+                  );
+                })()}
               </CardContent>
             </Card>
 
