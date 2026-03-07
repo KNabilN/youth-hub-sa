@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyInvoices } from "@/hooks/useMyInvoices";
 import { useProfile } from "@/hooks/useProfile";
