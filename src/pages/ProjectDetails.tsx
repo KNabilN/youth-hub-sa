@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -138,7 +138,26 @@ export default function ProjectDetails() {
     },
   });
 
-  const handlePublish = () => {
+  // Realtime: auto-refresh when escrow or project changes
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`project-realtime-${id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'escrow_transactions', filter: `project_id=eq.${id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
+        queryClient.invalidateQueries({ queryKey: ["escrow"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `id=eq.${id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["project", id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts', filter: `project_id=eq.${id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["contract", id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, queryClient]);
+
+
     if (!id) return;
     updateProject.mutate(
       { id, status: "pending_approval" as any },
