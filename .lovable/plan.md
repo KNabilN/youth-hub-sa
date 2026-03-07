@@ -1,25 +1,71 @@
 
 
-# خطة: جعل الترتيب 0 بدون تأثير (الخدمات بدون ترتيب تظهر في الأخير)
+## خطة محدّثة: إرسال إيميلات الإشعارات عبر SMTP من cPanel
 
-## المشكلة
-حالياً `display_order = 0` يعني أن الخدمة تظهر أولاً لأن الترتيب تصاعدي (0 < 1 < 2). المطلوب: الخدمات بقيمة 0 تظهر في النهاية، والقيم 1، 2، 3... تظهر بالترتيب.
+### الفكرة
+بدلاً من Resend API، نستخدم SMTP الخاص بسيرفر cPanel مباشرة. هذا يعني:
+- لا حاجة لمفتاح Resend API
+- الإيميلات تُرسل من بريدك الرسمي (مثل `notifications@yourdomain.com`)
+- تحكم كامل من cPanel
 
-## الحل
-تغيير الاستعلامات في 3 ملفات لاستخدام ترتيب مخصص: القيمة 0 تُعامل كـ "بدون ترتيب" وتذهب للنهاية. سيتم ذلك عبر إضافة عمود محسوب في الاستعلام أو ببساطة استخدام `nullsFirst: false` مع تحويل 0 إلى null على مستوى قاعدة البيانات.
+### المتطلبات من عندك
+ستحتاج إنشاء بريد إلكتروني من cPanel (مثل `notifications@yourdomain.com`) وتزويدنا بـ 4 معلومات:
 
-**الطريقة الأبسط:** تغيير القيمة الافتراضية إلى `999999` (رقم كبير) بدلاً من `0`، وتحديث الـ UI ليعرض فراغ بدل 0 للقيمة الافتراضية.
+| Secret | مثال | من وين تجيبه |
+|---|---|---|
+| `SMTP_HOST` | `mail.yourdomain.com` | cPanel → Email Accounts |
+| `SMTP_PORT` | `465` | عادةً 465 (SSL) أو 587 (TLS) |
+| `SMTP_USER` | `notifications@yourdomain.com` | البريد اللي أنشأته |
+| `SMTP_PASS` | كلمة مرور البريد | نفس كلمة المرور اللي حطيتها |
 
-**الطريقة الأفضل:** إنشاء database function `service_sort_order` أو ببساطة تعديل الاستعلامات لترتيب بحيث 0 = آخر شيء. لكن Supabase JS client لا يدعم `CASE WHEN` في `order()`.
+### التعديلات التقنية
 
-**الحل العملي:** تغيير القيمة الافتراضية من 0 إلى `999` عبر migration، وتحديث جميع السجلات الحالية التي قيمتها 0 إلى 999. هكذا الخدمات بترتيب 1، 2، 3 تظهر أولاً، والباقي (999) في الأخير.
+#### 1. Edge Function `send-notification-email`
+- تستخدم مكتبة `denomailer` (SMTP client لـ Deno) لإرسال البريد فعلياً عبر SMTP
+- تُستدعى من trigger على جدول `notifications`
+- تتحقق من تفضيلات المستخدم قبل الإرسال
 
-### التغييرات
+#### 2. DB Trigger على `notifications` AFTER INSERT
+- يستدعي Edge Function عبر `pg_net` HTTP POST
+- يمرر `notification_id` فقط
 
-| الملف | التغيير |
+#### 3. تصنيف الإشعارات (مفعّل/معطّل افتراضياً)
+
+**مفعّل افتراضياً (مهم):**
+- `bid_accepted`, `bid_rejected`, `project_completed`, `project_cancelled`, `project_disputed`
+- `contract_created`, `contract_signed`
+- `escrow_released`, `escrow_refunded`
+- `withdrawal_approved/rejected/processed`
+- `service_approved`, `service_rejected`
+- `bank_transfer_approved/rejected`
+- `invoice_created`, `dispute_opened`
+
+**معطّل افتراضياً (غير مهم / كثير التكرار):**
+- `message_received`, `bid_received`, `escrow_created`
+- `timelog_approved/rejected`, `project_in_progress`, `project_open`
+- `service_purchased`, `deliverable_submitted`
+
+#### 4. تحديث `notification-preferences.ts`
+- إضافة `defaultEnabled: boolean` لكل نوع
+- تعديل `isNotificationEnabled()` ليستخدم القيمة الافتراضية
+
+#### 5. حذف Edge Functions القديمة
+- `send-email` و `notify-deliverable` — لم تعد مطلوبة
+
+### الملفات المتأثرة
+
+| الملف | التعديل |
 |---|---|
-| Migration | `ALTER TABLE micro_services ALTER COLUMN display_order SET DEFAULT 999` + `UPDATE micro_services SET display_order = 999 WHERE display_order = 0` |
-| `AdminServices.tsx` | عرض الحقل فارغ عندما تكون القيمة 999، وعند الحفظ بقيمة فارغة يرجع 999 |
+| `supabase/functions/send-notification-email/index.ts` | Edge function جديدة (SMTP via denomailer) |
+| DB Migration | Trigger على `notifications` + تفعيل `pg_net` |
+| `src/lib/notification-preferences.ts` | `defaultEnabled` + تحديث `isNotificationEnabled` |
+| `src/components/notifications/NotificationPreferences.tsx` | استخدام القيم الافتراضية الجديدة |
+| `supabase/config.toml` | إضافة config للـ function الجديدة |
+| حذف `supabase/functions/send-email/` | لم تعد مطلوبة |
+| حذف `supabase/functions/notify-deliverable/` | لم تعد مطلوبة |
 
-الاستعلامات الحالية (تصاعدي) ستعمل بشكل صحيح تلقائياً: 1 → 2 → 3 → ... → 999 (بدون ترتيب).
+### الخطوة الأولى
+قبل البدء بالتنفيذ، أحتاج منك:
+1. إنشاء بريد من cPanel (مثل `notifications@yourdomain.com`)
+2. تزويدي بـ: SMTP Host، Port، Username، Password
 
