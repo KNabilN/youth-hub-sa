@@ -1,15 +1,24 @@
 
-# خطة: إرسال إيميلات الإشعارات عبر SMTP من cPanel
 
-## الحالة: ✅ تم التنفيذ
+## Plan: Refactor to PHP Relay + Error Handling + Cleanup
 
-### ما تم تنفيذه
+### 1. Refactor `supabase/functions/send-notification-email/index.ts`
+- Remove `denomailer` import and all SMTP code (lines 3, 242-269)
+- Replace with `fetch()` POST to `https://api.sharedservices.solutions/send-email.php`
+- Send JSON payload: `{ to, subject, body }` with `Authorization: Bearer ${RELAY_API_KEY}`
+- On non-200 response or fetch error: update `delivery_status` to `'failed'` in notifications table and log error
+- On success: keep existing `delivery_status = 'email_sent'` update
+- Need to add `RELAY_API_KEY` secret
 
-1. **Edge Function `send-notification-email`** — تستخدم `denomailer` لإرسال البريد عبر SMTP من cPanel
-2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
-3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
-   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
-   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
-4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
-5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` في كل نوع
-6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
+### 2. Cleanup `src/lib/notification-preferences.ts`
+- Remove `isNotificationEnabled` function (lines 169-177) — confirmed dead code, zero imports
+
+### 3. Secret Required
+- `RELAY_API_KEY` — the Bearer token your PHP relay validates
+
+### Files Changed
+| File | Change |
+|---|---|
+| `supabase/functions/send-notification-email/index.ts` | Replace SMTP with fetch to PHP relay + error handling |
+| `src/lib/notification-preferences.ts` | Remove dead `isNotificationEnabled` function |
+
