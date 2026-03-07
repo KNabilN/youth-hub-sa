@@ -28,6 +28,7 @@ export interface InvoiceData {
   invoiceNumber: string;
   amount: number;
   commissionAmount: number;
+  vatAmount?: number;
   createdAt: string;
   projectTitle: string;
   recipientName: string;
@@ -84,7 +85,8 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
 
   const baseAmount = invoice.amount;
   const commission = invoice.commissionAmount;
-  const total = baseAmount + commission;
+  const vat = invoice.vatAmount ?? Math.round(baseAmount * 0.15 * 100) / 100;
+  const total = baseAmount + commission + vat;
   const invoiceDate = new Date(invoice.createdAt);
   const formattedDate = invoiceDate.toLocaleDateString("ar-SA", {
     year: "numeric",
@@ -151,8 +153,9 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
         <thead>
           <tr style="background: ${BRAND.headerBg};">
             <th style="padding: 10px 8px; text-align: right; border: 1px solid ${BRAND.primaryMid};color:${BRAND.primary};font-weight:700;">الوصف</th>
-            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 140px;color:${BRAND.primary};font-weight:700;">المبلغ الأساسي (ر.س)</th>
-            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 140px;color:${BRAND.primary};font-weight:700;">رسوم المنصة (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">المبلغ الأساسي (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">رسوم المنصة (ر.س)</th>
+            <th style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.primaryMid}; width: 120px;color:${BRAND.primary};font-weight:700;">ضريبة 15% (ر.س)</th>
           </tr>
         </thead>
         <tbody>
@@ -160,6 +163,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
             <td style="padding: 10px 8px; border: 1px solid ${BRAND.border};">${invoice.linkedEntityName || invoice.projectTitle}</td>
             <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(baseAmount)}</td>
             <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(commission)}</td>
+            <td style="padding: 10px 8px; text-align: center; border: 1px solid ${BRAND.border}; direction: ltr;font-weight:600;">${fmt(vat)}</td>
           </tr>
         </tbody>
       </table>
@@ -171,6 +175,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
         <table style="font-size: 12px; border-collapse: collapse;background:${BRAND.headerBg};border-radius:8px;padding:12px 20px;">
           <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">المبلغ الأساسي:</td><td style="direction: ltr; text-align: left;">${fmt(baseAmount)} SAR</td></tr>
           <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">رسوم المنصة:</td><td style="direction: ltr; text-align: left;">${fmt(commission)} SAR</td></tr>
+          <tr><td style="padding: 4px 18px 4px 0;font-weight:600;">ضريبة القيمة المضافة (15%):</td><td style="direction: ltr; text-align: left;">${fmt(vat)} SAR</td></tr>
           <tr style="font-weight: 700; font-size: 14px;color:${BRAND.primary};"><td style="padding: 6px 18px 4px 0;">الإجمالي:</td><td style="direction: ltr; text-align: left;">${fmt(total)} SAR</td></tr>
         </table>
       </div>
