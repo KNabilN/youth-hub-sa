@@ -40,11 +40,14 @@ export function ServiceCard({ service }: { service: Service }) {
   return (
     <>
       <Card className="card-hover group overflow-hidden">
-        {(service as any).image_url && (
-          <div className="w-full h-40 overflow-hidden">
-            <img src={(service as any).image_url} alt={service.title} className="w-full h-full object-cover" />
-          </div>
-        )}
+        {(() => {
+          const displayImage = service.image_url || (service.categories as any)?.image_url;
+          return displayImage ? (
+            <div className="w-full h-40 overflow-hidden">
+              <img src={displayImage} alt={service.title} className="w-full h-full object-cover" />
+            </div>
+          ) : null;
+        })()}
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

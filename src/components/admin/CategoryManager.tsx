@@ -12,6 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Trash2, Plus, Tag, Pencil, Check, X, FolderOpen, Loader2, Download, Upload, Lightbulb } from "lucide-react";
+import { CategoryImageUpload } from "./CategoryImageUpload";
 import { toast } from "sonner";
 
 function exportCSV(items: any[], filename: string) {
@@ -189,6 +190,7 @@ export function CategoryManager() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">صورة</TableHead>
                 <TableHead>الاسم</TableHead>
                 <TableHead>الوصف</TableHead>
                 <TableHead className="w-24"></TableHead>
@@ -214,6 +216,9 @@ export function CategoryManager() {
                     </>
                   ) : (
                     <>
+                      <TableCell>
+                        <CategoryImageUpload categoryId={c.id} categoryName={c.name} currentImageUrl={c.image_url} />
+                      </TableCell>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
                       <TableCell>
