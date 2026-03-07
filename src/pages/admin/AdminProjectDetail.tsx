@@ -40,6 +40,7 @@ function getAdminAllowedStatuses(current: string): string[] {
   return [];
 }
 
+const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
