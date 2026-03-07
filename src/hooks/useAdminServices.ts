@@ -10,7 +10,7 @@ export function useAdminServices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)")
+        .select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name, organization_name)")
         .is("deleted_at", null)
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: false });

@@ -10,7 +10,7 @@ export function useAdminTickets() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
-        .select("*, profiles:user_id(full_name)")
+        .select("*, profiles:user_id(full_name, organization_name)")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;

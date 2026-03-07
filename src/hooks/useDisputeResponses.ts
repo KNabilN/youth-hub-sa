@@ -9,7 +9,7 @@ export function useDisputeResponses(disputeId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dispute_responses" as any)
-        .select("*, profiles:author_id(full_name)")
+        .select("*, profiles:author_id(full_name, organization_name)")
         .eq("dispute_id", disputeId!)
         .order("created_at", { ascending: true });
       if (error) throw error;

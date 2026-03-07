@@ -10,7 +10,7 @@ export function useContracts(filter = "all") {
     queryFn: async () => {
       let query = supabase
         .from("contracts")
-        .select("*, projects(title, status), profiles:provider_id(full_name)")
+        .select("*, projects(title, status), profiles:provider_id(full_name, organization_name)")
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 

@@ -9,7 +9,7 @@ export function useContractVersions(contractId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contract_versions")
-        .select("*, profiles:changed_by(full_name)")
+        .select("*, profiles:changed_by(full_name, organization_name)")
         .eq("contract_id", contractId!)
         .order("version_number", { ascending: false });
       if (error) throw error;
