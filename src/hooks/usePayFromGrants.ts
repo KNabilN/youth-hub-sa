@@ -10,7 +10,8 @@ function generateInvoiceNumber(): string {
 }
 
 interface PayFromGrantsInput {
-  amount: number;
+  amount: number;       // base amount for escrow (provider gets this)
+  totalAmount: number;  // total to deduct from grants (base + commission + VAT)
   payeeId: string;
   projectId?: string;
   serviceId?: string;
@@ -21,7 +22,7 @@ export function usePayFromGrants() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ amount, payeeId, projectId, serviceId }: PayFromGrantsInput) => {
+    mutationFn: async ({ amount, totalAmount, payeeId, projectId, serviceId }: PayFromGrantsInput) => {
       if (!user) throw new Error("Not authenticated");
 
       // --- Fetch eligible contributions in priority order ---
@@ -64,14 +65,15 @@ export function usePayFromGrants() {
       const contributions = [...specificContributions, ...(generalContributions ?? [])];
 
       const available = contributions.reduce((s, c) => s + Number(c.amount), 0);
-      if (available < amount) throw new Error("رصيد المنح غير كافٍ");
+      if (available < totalAmount) throw new Error("رصيد المنح غير كافٍ");
 
       // Track consumed contribution IDs for rollback
       const consumedIds: string[] = [];
       const splitRecords: { originalId: string; originalAmount: number }[] = [];
 
       // Mark contributions as consumed (FIFO), splitting partial ones
-      let remaining = amount;
+      // Consume totalAmount (the full cost including commission + VAT)
+      let remaining = totalAmount;
       try {
         for (const c of contributions) {
           if (remaining <= 0) break;
@@ -113,7 +115,7 @@ export function usePayFromGrants() {
           }
         }
 
-        // Create escrow with status 'held'
+        // Create escrow with status 'held' — escrow holds the BASE amount (provider's share)
         const { data: escrow, error: escrowErr } = await supabase
           .from("escrow_transactions")
           .insert({
@@ -144,6 +146,7 @@ export function usePayFromGrants() {
 
         const rate = config?.rate ?? 0.05;
         const commissionAmount = Math.round(amount * Number(rate) * 100) / 100;
+        const vatAmount = Math.round(amount * 0.15 * 100) / 100;
 
         const { error: invError } = await supabase
           .from("invoices")
@@ -151,6 +154,7 @@ export function usePayFromGrants() {
             invoice_number: generateInvoiceNumber(),
             amount,
             commission_amount: commissionAmount,
+            vat_amount: vatAmount,
             issued_to: user.id,
             escrow_id: escrow.id,
           });
@@ -158,8 +162,6 @@ export function usePayFromGrants() {
 
         return escrow;
       } catch (err) {
-        // If escrow was never created (error happened during grant consumption),
-        // rollback is already handled above. Re-throw for caller.
         throw err;
       }
     },
@@ -193,6 +195,4 @@ async function rollbackGrants(
       .update({ amount: rec.originalAmount })
       .eq("id", rec.originalId);
   }
-  // Note: we can't easily delete the inserted "consumed" split rows without their IDs,
-  // but the rollback of the original amount + status makes the balance correct.
 }

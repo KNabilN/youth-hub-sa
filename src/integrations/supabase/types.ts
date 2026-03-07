@@ -990,6 +990,7 @@ export type Database = {
           issued_to: string
           notes: string | null
           status: string
+          vat_amount: number
         }
         Insert: {
           amount: number
@@ -1003,6 +1004,7 @@ export type Database = {
           issued_to: string
           notes?: string | null
           status?: string
+          vat_amount?: number
         }
         Update: {
           amount?: number
@@ -1016,6 +1018,7 @@ export type Database = {
           issued_to?: string
           notes?: string | null
           status?: string
+          vat_amount?: number
         }
         Relationships: [
           {

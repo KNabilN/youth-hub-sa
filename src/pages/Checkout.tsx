@@ -152,8 +152,11 @@ export default function Checkout() {
             }
           }
 
+          const itemBase = item.micro_services.price * item.quantity;
+          const itemPricing = calculatePricing(itemBase, commissionRate);
           await payFromGrants.mutateAsync({
-            amount: item.micro_services.price * item.quantity,
+            amount: itemBase,
+            totalAmount: itemPricing.total,
             payeeId: item.micro_services.provider_id,
             serviceId: item.micro_services.id,
             projectId,

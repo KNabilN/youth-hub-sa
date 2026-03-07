@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN vat_amount numeric NOT NULL DEFAULT 0;

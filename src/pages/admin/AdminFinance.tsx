@@ -25,7 +25,7 @@ const escrowExportCols: ExportColumnDef[] = [
 ];
 const invoiceExportCols: ExportColumnDef[] = [
   { key: "invoice_number", label: "رقم الفاتورة" }, { key: "recipient", label: "المستلم" }, { key: "amount", label: "المبلغ" },
-  { key: "commission", label: "العمولة" }, { key: "net", label: "الإجمالي" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
+  { key: "commission", label: "العمولة" }, { key: "vat", label: "الضريبة (15%)" }, { key: "net", label: "الإجمالي" }, { key: "status", label: "الحالة" }, { key: "created_at", label: "التاريخ" },
 ];
 const withdrawalExportCols: ExportColumnDef[] = [
   { key: "provider", label: "مقدم الخدمة" }, { key: "amount", label: "المبلغ" }, { key: "bank", label: "البنك" },
@@ -169,10 +169,10 @@ export default function AdminFinance() {
         return;
       }
 
-      // Fetch commission rate
       const { data: config } = await supabase.from("commission_config").select("rate").eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
       const rate = config?.rate ?? 0.05;
       const commissionAmount = Number(escrow.amount) * Number(rate);
+      const vatAmount = Math.round(Number(escrow.amount) * 0.15 * 100) / 100;
 
       // Generate invoice
       const now = new Date();
@@ -184,6 +184,7 @@ export default function AdminFinance() {
         invoice_number: invoiceNumber,
         amount: Number(escrow.amount),
         commission_amount: commissionAmount,
+        vat_amount: vatAmount,
         issued_to: issuedTo,
         escrow_id: id,
         notes: notesText,
@@ -217,6 +218,7 @@ export default function AdminFinance() {
         invoiceNumber: inv.invoice_number,
         amount: Number(inv.amount),
         commissionAmount: Number(inv.commission_amount),
+        vatAmount: Number(inv.vat_amount ?? 0),
         createdAt: inv.created_at,
         projectTitle: "خدمة",
         recipientName: inv.profiles?.full_name ?? "—",
@@ -452,6 +454,7 @@ export default function AdminFinance() {
                       <TableHead>ملاحظات</TableHead>
                       <TableHead>الحالة</TableHead>
                       <TableHead>الإجمالي</TableHead>
+                      <TableHead>الضريبة</TableHead>
                       <TableHead>العمولة</TableHead>
                       <TableHead>المبلغ</TableHead>
                       <TableHead>المستلم</TableHead>
@@ -477,7 +480,8 @@ export default function AdminFinance() {
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(inv.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{inv.notes || "—"}</TableCell>
                           <TableCell><Badge variant={statusVariant}>{statusLabel}</Badge></TableCell>
-                          <TableCell className="font-semibold">{(Number(inv.amount) + Number(inv.commission_amount)).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-semibold">{(Number(inv.amount) + Number(inv.commission_amount) + Number(inv.vat_amount ?? 0)).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-muted-foreground">{Number(inv.vat_amount ?? 0).toLocaleString()} ر.س</TableCell>
                           <TableCell className="text-destructive">{Number(inv.commission_amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>
@@ -489,7 +493,7 @@ export default function AdminFinance() {
                         </TableRow>
                       );
                     })}
-                    {filteredInvoices.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
+                    {filteredInvoices.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
@@ -876,7 +880,8 @@ export default function AdminFinance() {
               recipient: (inv) => inv.profiles?.full_name || "",
               amount: (inv) => String(inv.amount),
               commission: (inv) => String(inv.commission_amount),
-              net: (inv) => String(Number(inv.amount) + Number(inv.commission_amount)),
+              vat: (inv) => String(inv.vat_amount ?? 0),
+              net: (inv) => String(Number(inv.amount) + Number(inv.commission_amount) + Number(inv.vat_amount ?? 0)),
               status: (inv) => inv.status || "",
               created_at: (inv) => inv.created_at?.slice(0, 10) || "",
             };
