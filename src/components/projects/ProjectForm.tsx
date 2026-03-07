@@ -14,8 +14,10 @@ import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Paperclip } from "lucide-react";
 import { CharCounter } from "@/components/ui/char-counter";
+import { FileUploader } from "@/components/attachments/FileUploader";
+import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 const projectSchema = z.object({
   title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
@@ -35,13 +37,19 @@ interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormValues>;
   onSubmit: (values: ProjectFormValues) => void;
   onSaveDraft?: (values: ProjectFormValues) => void;
+  /** Called when we need a draft ID for attachments. Returns the created project ID. */
+  onCreateDraft?: (values: ProjectFormValues) => Promise<string>;
+  /** If editing an existing project, pass its ID to enable attachments immediately */
+  existingProjectId?: string;
   isLoading?: boolean;
   submitLabel?: string;
 }
 
-export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, submitLabel = "حفظ" }: ProjectFormProps) {
+export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraft, existingProjectId, isLoading, submitLabel = "حفظ" }: ProjectFormProps) {
   const [step, setStep] = useState(0);
   const [skillInput, setSkillInput] = useState("");
+  const [draftProjectId, setDraftProjectId] = useState<string | null>(existingProjectId ?? null);
+  const [creatingDraft, setCreatingDraft] = useState(false);
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
 
@@ -73,7 +81,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
     }
   }, [selectedRegionId, cities]);
 
-  const steps = ["المعلومات الأساسية", "التفاصيل", "المراجعة"];
+  const steps = ["المعلومات الأساسية", "التفاصيل", "المرفقات", "المراجعة"];
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -97,7 +105,23 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
 
   const handleNext = async () => {
     const valid = await canNext();
-    if (valid) setStep(step + 1);
+    if (!valid) return;
+
+    // When moving to attachments step (step 2), create draft if needed
+    if (step === 1 && !draftProjectId && onCreateDraft) {
+      setCreatingDraft(true);
+      try {
+        const id = await onCreateDraft(form.getValues());
+        setDraftProjectId(id);
+      } catch {
+        // Error handled by parent
+        setCreatingDraft(false);
+        return;
+      }
+      setCreatingDraft(false);
+    }
+
+    setStep(step + 1);
   };
 
   return (
@@ -242,6 +266,28 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
 
         {step === 2 && (
           <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Paperclip className="h-5 w-5" />
+                المرفقات
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {draftProjectId ? (
+                <>
+                  <p className="text-sm text-muted-foreground">أرفق الملفات المتعلقة بالمشروع (اختياري)</p>
+                  <FileUploader entityType="project" entityId={draftProjectId} />
+                  <AttachmentList entityType="project" entityId={draftProjectId} />
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">جاري التحضير...</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {step === 3 && (
+          <Card>
             <CardHeader><CardTitle className="text-lg">مراجعة المشروع</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2">
@@ -263,15 +309,17 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, isLoading, s
         <div className="flex gap-3 justify-between">
           {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>السابق</Button>}
           <div className="flex gap-2 mr-auto">
-            {onSaveDraft && (
+            {onSaveDraft && step < 2 && (
               <Button type="button" variant="outline" disabled={isLoading} onClick={() => onSaveDraft(form.getValues())}>
                 حفظ كمسودة
               </Button>
             )}
-            {step < 2 && (
-              <Button type="button" onClick={handleNext}>التالي</Button>
+            {step < 3 && (
+              <Button type="button" onClick={handleNext} disabled={creatingDraft}>
+                {creatingDraft ? "جاري الحفظ..." : "التالي"}
+              </Button>
             )}
-            {step === 2 && (
+            {step === 3 && (
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "جارٍ الحفظ..." : submitLabel}
               </Button>
