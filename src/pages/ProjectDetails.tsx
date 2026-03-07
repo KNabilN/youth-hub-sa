@@ -157,7 +157,7 @@ export default function ProjectDetails() {
     return () => { supabase.removeChannel(channel); };
   }, [id, queryClient]);
 
-
+  const handlePublish = () => {
     if (!id) return;
     updateProject.mutate(
       { id, status: "pending_approval" as any },
