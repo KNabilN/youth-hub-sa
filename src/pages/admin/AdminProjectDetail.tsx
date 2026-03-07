@@ -33,6 +33,13 @@ const statusLabels: Record<string, string> = {
   suspended: "معلق", archived: "مؤرشف",
 };
 
+/** Admin can only: pending_approval→open, and any active status→cancelled */
+function getAdminAllowedStatuses(current: string): string[] {
+  if (current === "pending_approval") return ["open"];
+  if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
+  return [];
+}
+
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
@@ -302,14 +309,20 @@ export default function AdminProjectDetail() {
               <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
-                <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const opts = getAdminAllowedStatuses(project.status);
+                  return opts.length > 0 ? (
+                    <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={project.status}>{statusLabels[project.status]}</SelectItem>
+                        {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>
+                  );
+                })()}
               </CardContent>
             </Card>
 
