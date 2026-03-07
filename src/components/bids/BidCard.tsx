@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, User, Paperclip, ExternalLink } from "lucide-react";
+import { Check, X, User, Paperclip, ExternalLink, MessageCircle } from "lucide-react";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
+import { BidCommentThread } from "@/components/bids/BidCommentThread";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,6 +34,7 @@ const statusMap: Record<string, { label: string; className: string }> = {
 export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true }: BidCardProps) {
   const status = statusMap[bid.status] ?? statusMap.pending;
   const [showAttachments, setShowAttachments] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   return (
     <Card>
@@ -74,6 +76,20 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
 
         {showAttachments && (
           <AttachmentList entityType="bid" entityId={bid.id} />
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs gap-1"
+          onClick={() => setShowComments(!showComments)}
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          المحادثة
+        </Button>
+
+        {showComments && (
+          <BidCommentThread bidId={bid.id} bidStatus={bid.status} />
         )}
 
         {showActions && bid.status === "pending" && (
