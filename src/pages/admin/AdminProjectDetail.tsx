@@ -53,10 +53,28 @@ const projectFields: DirectEditFieldConfig[] = [
 export default function AdminProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
   const updateTimeLog = useUpdateTimeLogApproval();
   const [editOpen, setEditOpen] = useState(false);
+
+  // Realtime subscription for project status changes
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`project-detail-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "projects", filter: `id=eq.${id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["admin-project-detail", id] });
+          qc.invalidateQueries({ queryKey: ["admin-projects"] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, qc]);
   const { data: hoursSummary } = useProjectTimeLogs(id);
 
   const { data: project, isLoading, error } = useQuery({
