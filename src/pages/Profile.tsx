@@ -148,8 +148,12 @@ export default function Profile() {
         city_id: cityId || null,
       },
       {
-        onSuccess: () => {
-          toast({ title: "تم تحديث الملف الشخصي" });
+        onSuccess: (result) => {
+          if (result?.wasVerified) {
+            toast({ title: "تم تحديث الملف الشخصي", description: "سيتم مراجعة التعديلات من قبل الإدارة وإعادة توثيق حسابك." });
+          } else {
+            toast({ title: "تم تحديث الملف الشخصي" });
+          }
         },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
