@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,9 +7,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const RELAY_URL = "https://api.sharedservices.solutions/send-email.php";
+
 /* ─── defaults per notification type ─── */
 const DEFAULT_ENABLED: Record<string, boolean> = {
-  // Important — enabled by default
   bid_accepted: true,
   bid_rejected: true,
   project_completed: true,
@@ -37,8 +37,6 @@ const DEFAULT_ENABLED: Record<string, boolean> = {
   bank_transfer_pending: true,
   deliverable_accepted: true,
   deliverable_revision: true,
-
-  // Non-critical — disabled by default
   message_received: false,
   bid_received: false,
   escrow_created: false,
@@ -162,19 +160,23 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  let notificationId: string | undefined;
+
   try {
     const { notification_id } = await req.json();
+    notificationId = notification_id;
+
     if (!notification_id) {
       return new Response(JSON.stringify({ error: "Missing notification_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     // Fetch the notification
     const { data: notification, error: nErr } = await supabaseAdmin
@@ -191,7 +193,7 @@ serve(async (req) => {
       });
     }
 
-    // Fetch user profile + email
+    // Fetch user profile
     const { data: profile, error: pErr } = await supabaseAdmin
       .from("profiles")
       .select("full_name, email_notifications, notification_preferences")
@@ -239,36 +241,40 @@ serve(async (req) => {
 
     const userEmail = authUser.user.email;
     const userName = profile.full_name || "";
-    const smtpUser = Deno.env.get("SMTP_USER")!;
 
     // Build email
     const subject = `${typeLabels[notification.type] || "إشعار"} - منصة الشباب`;
     const html = buildEmailHTML(userName, notification.message, notification.type);
 
-    // Send via SMTP
-    const client = new SMTPClient({
-      connection: {
-        hostname: Deno.env.get("SMTP_HOST")!,
-        port: parseInt(Deno.env.get("SMTP_PORT") || "465"),
-        tls: true,
-        auth: {
-          username: smtpUser,
-          password: Deno.env.get("SMTP_PASS")!,
-        },
+    // Send via PHP relay
+    const relayApiKey = Deno.env.get("RELAY_API_KEY");
+    if (!relayApiKey) {
+      throw new Error("RELAY_API_KEY secret is not configured");
+    }
+
+    const relayResponse = await fetch(RELAY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${relayApiKey}`,
       },
+      body: JSON.stringify({
+        to: userEmail,
+        subject,
+        body: html,
+      }),
     });
 
-    await client.send({
-      from: `منصة الشباب <${smtpUser}>`,
-      to: userEmail,
-      subject,
-      content: "auto",
-      html,
-    });
+    if (!relayResponse.ok) {
+      const errorText = await relayResponse.text();
+      throw new Error(`Relay returned ${relayResponse.status}: ${errorText}`);
+    }
 
-    await client.close();
+    // Consume response body
+    const relayResult = await relayResponse.text();
+    console.log(`📧 Relay response: ${relayResult}`);
 
-    // Update delivery_status
+    // Update delivery_status to sent
     await supabaseAdmin
       .from("notifications")
       .update({ delivery_status: "email_sent" })
@@ -282,6 +288,20 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in send-notification-email:", error);
+
+    // Mark as failed in DB
+    if (notificationId) {
+      try {
+        await supabaseAdmin
+          .from("notifications")
+          .update({ delivery_status: "failed" })
+          .eq("id", notificationId);
+        console.log(`❌ Marked notification ${notificationId} as failed`);
+      } catch (dbErr) {
+        console.error("Failed to update delivery_status:", dbErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({ error: "Internal server error", details: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
