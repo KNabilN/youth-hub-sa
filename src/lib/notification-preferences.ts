@@ -3,6 +3,7 @@ export type AppRole = "super_admin" | "youth_association" | "service_provider" |
 export interface NotificationType {
   key: string;
   label: string;
+  defaultEnabled: boolean;
 }
 
 export interface NotificationGroup {
@@ -14,51 +15,58 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "العروض والمشاريع",
     types: [
-      { key: "bid_accepted", label: "قبول عرض السعر" },
-      { key: "bid_rejected", label: "رفض عرض السعر" },
-      { key: "project_in_progress", label: "بدء العمل على مشروع" },
-      { key: "project_completed", label: "إكمال المشروع" },
-      { key: "project_cancelled", label: "إلغاء المشروع" },
-      { key: "project_disputed", label: "فتح نزاع" },
+      { key: "bid_accepted", label: "قبول عرض السعر", defaultEnabled: true },
+      { key: "bid_rejected", label: "رفض عرض السعر", defaultEnabled: true },
+      { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: false },
+      { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
+      { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
+      { key: "project_disputed", label: "فتح نزاع", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "العقود",
     types: [
-      { key: "contract_created", label: "إنشاء عقد جديد" },
-      { key: "contract_signed", label: "توقيع عقد" },
+      { key: "contract_created", label: "إنشاء عقد جديد", defaultEnabled: true },
+      { key: "contract_signed", label: "توقيع عقد", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي" },
-      { key: "escrow_released", label: "تحرير ضمان مالي" },
-      { key: "escrow_refunded", label: "استرداد ضمان مالي" },
-      { key: "withdrawal_approved", label: "الموافقة على طلب سحب" },
-      { key: "withdrawal_rejected", label: "رفض طلب سحب" },
-      { key: "withdrawal_processed", label: "تحويل مبلغ السحب" },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_released", label: "تحرير ضمان مالي", defaultEnabled: true },
+      { key: "escrow_refunded", label: "استرداد ضمان مالي", defaultEnabled: true },
+      { key: "withdrawal_approved", label: "الموافقة على طلب سحب", defaultEnabled: true },
+      { key: "withdrawal_rejected", label: "رفض طلب سحب", defaultEnabled: true },
+      { key: "withdrawal_processed", label: "تحويل مبلغ السحب", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "الخدمات",
     types: [
-      { key: "service_approved", label: "الموافقة على خدمة" },
-      { key: "service_rejected", label: "رفض خدمة" },
-      { key: "service_purchased", label: "شراء خدمة" },
+      { key: "service_approved", label: "الموافقة على خدمة", defaultEnabled: true },
+      { key: "service_rejected", label: "رفض خدمة", defaultEnabled: true },
+      { key: "service_purchased", label: "شراء خدمة", defaultEnabled: false },
     ],
   },
   {
     groupLabel: "سجل الوقت",
     types: [
-      { key: "timelog_approved", label: "الموافقة على سجل الوقت" },
-      { key: "timelog_rejected", label: "رفض سجل الوقت" },
+      { key: "timelog_approved", label: "الموافقة على سجل الوقت", defaultEnabled: false },
+      { key: "timelog_rejected", label: "رفض سجل الوقت", defaultEnabled: false },
+    ],
+  },
+  {
+    groupLabel: "التسليمات",
+    types: [
+      { key: "deliverable_accepted", label: "قبول التسليمات", defaultEnabled: true },
+      { key: "deliverable_revision", label: "طلب تعديلات على التسليمات", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة" },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
     ],
   },
 ];
@@ -67,45 +75,61 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "العروض والمشاريع",
     types: [
-      { key: "bid_received", label: "استلام عرض سعر جديد" },
-      { key: "project_open", label: "الموافقة على المشروع" },
-      { key: "project_in_progress", label: "بدء العمل" },
-      { key: "project_completed", label: "إكمال المشروع" },
-      { key: "project_cancelled", label: "إلغاء المشروع" },
-      { key: "project_disputed", label: "فتح نزاع" },
+      { key: "bid_received", label: "استلام عرض سعر جديد", defaultEnabled: false },
+      { key: "project_open", label: "الموافقة على المشروع", defaultEnabled: false },
+      { key: "project_in_progress", label: "بدء العمل", defaultEnabled: false },
+      { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
+      { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
+      { key: "project_disputed", label: "فتح نزاع", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "العقود",
     types: [
-      { key: "contract_created", label: "إنشاء عقد" },
-      { key: "contract_signed", label: "توقيع عقد" },
+      { key: "contract_created", label: "إنشاء عقد", defaultEnabled: true },
+      { key: "contract_signed", label: "توقيع عقد", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي" },
-      { key: "escrow_released", label: "تحرير ضمان" },
-      { key: "escrow_refunded", label: "استرداد ضمان" },
-      { key: "bank_transfer_approved", label: "الموافقة على تحويل بنكي" },
-      { key: "bank_transfer_rejected", label: "رفض تحويل بنكي" },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_released", label: "تحرير ضمان", defaultEnabled: true },
+      { key: "escrow_refunded", label: "استرداد ضمان", defaultEnabled: true },
+      { key: "bank_transfer_approved", label: "الموافقة على تحويل بنكي", defaultEnabled: true },
+      { key: "bank_transfer_rejected", label: "رفض تحويل بنكي", defaultEnabled: true },
+      { key: "invoice_created", label: "فاتورة جديدة", defaultEnabled: true },
+    ],
+  },
+  {
+    groupLabel: "التسليمات",
+    types: [
+      { key: "deliverable_submitted", label: "تسليم ملفات جديدة", defaultEnabled: false },
+    ],
+  },
+  {
+    groupLabel: "المنح",
+    types: [
+      { key: "grant_request_approved", label: "الموافقة على طلب منحة", defaultEnabled: true },
+      { key: "grant_request_rejected", label: "رفض طلب منحة", defaultEnabled: true },
+      { key: "grant_request_funded", label: "تمويل طلب منحة", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة" },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
     ],
   },
 ];
 
 const DONOR_GROUPS: NotificationGroup[] = [
   {
-    groupLabel: "التبرعات",
+    groupLabel: "التبرعات والمنح",
     types: [
-      { key: "donation_received", label: "تأكيد استلام تبرع" },
-      { key: "project_completed", label: "إكمال مشروع مدعوم" },
+      { key: "donation_received", label: "تأكيد استلام تبرع", defaultEnabled: false },
+      { key: "project_completed", label: "إكمال مشروع مدعوم", defaultEnabled: true },
+      { key: "grant_request_received", label: "طلب منحة جديد", defaultEnabled: true },
     ],
   },
 ];
@@ -114,8 +138,9 @@ const SUPER_ADMIN_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "الإدارة",
     types: [
-      { key: "bank_transfer_pending", label: "تحويل بنكي جديد بانتظار المراجعة" },
-      { key: "dispute_opened", label: "نزاع جديد" },
+      { key: "bank_transfer_pending", label: "تحويل بنكي جديد بانتظار المراجعة", defaultEnabled: true },
+      { key: "dispute_opened", label: "نزاع جديد", defaultEnabled: true },
+      { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: false },
     ],
   },
 ];
@@ -131,12 +156,24 @@ export function getPreferencesForRole(role: AppRole): NotificationGroup[] {
   return ROLE_GROUPS[role] ?? [];
 }
 
+export function getDefaultForType(role: AppRole, type: string): boolean {
+  const groups = ROLE_GROUPS[role] ?? [];
+  for (const g of groups) {
+    for (const t of g.types) {
+      if (t.key === type) return t.defaultEnabled;
+    }
+  }
+  return true;
+}
+
 export function isNotificationEnabled(
   preferences: Record<string, boolean>,
   type: string
 ): boolean {
-  // If key is missing, default to enabled
-  return preferences[type] !== false;
+  // If key is explicitly set, use that value
+  if (type in preferences) return preferences[type];
+  // Otherwise, default to true (backend handles real defaults)
+  return true;
 }
 
 export function getAllKeysForRole(role: AppRole): string[] {

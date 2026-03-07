@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { BellRing } from "lucide-react";
-import { getPreferencesForRole, getAllKeysForRole, isNotificationEnabled } from "@/lib/notification-preferences";
+import { getPreferencesForRole, getAllKeysForRole } from "@/lib/notification-preferences";
 import type { AppRole } from "@/lib/notification-preferences";
 
 interface NotificationPreferencesProps {
@@ -24,6 +24,12 @@ export function NotificationPreferences({
 
   const groups = getPreferencesForRole(role as AppRole);
   const allKeys = getAllKeysForRole(role as AppRole);
+
+  // Resolve the effective value: explicit pref > defaultEnabled
+  const isEnabled = (key: string, defaultEnabled: boolean) => {
+    if (key in preferences) return preferences[key];
+    return defaultEnabled;
+  };
 
   const togglePref = (key: string, value: boolean) => {
     onPreferencesChange({ ...preferences, [key]: value });
@@ -83,7 +89,7 @@ export function NotificationPreferences({
                     <div key={type.key} className="flex items-center justify-between py-1.5">
                       <span className="text-sm">{type.label}</span>
                       <Switch
-                        checked={isNotificationEnabled(preferences, type.key)}
+                        checked={isEnabled(type.key, type.defaultEnabled)}
                         onCheckedChange={(v) => togglePref(type.key, v)}
                       />
                     </div>
