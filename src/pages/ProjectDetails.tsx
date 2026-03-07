@@ -31,6 +31,7 @@ import { ContractVersionsList } from "@/components/contracts/ContractVersionsLis
 import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil } from "lucide-react";
 
 import { FileUploader } from "@/components/attachments/FileUploader";
+import { BidPaymentDialog } from "@/components/bids/BidPaymentDialog";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
 import { DeliverablePanel } from "@/components/deliverables/DeliverablePanel";
@@ -60,6 +61,7 @@ export default function ProjectDetails() {
   const [cancelling, setCancelling] = useState(false);
   const [timerDefaults, setTimerDefaults] = useState<Partial<TimeEntryFormValues>>({});
   const createTimeLog = useCreateTimeLog();
+  const [resumePaymentOpen, setResumePaymentOpen] = useState(false);
   const { data: hoursSummary } = useProjectTimeLogs(id);
   const { data: deliverable } = useDeliverable(id);
 
