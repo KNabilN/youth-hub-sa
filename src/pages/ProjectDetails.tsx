@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
 import { useSignContract } from "@/hooks/useContracts";
@@ -28,7 +28,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil } from "lucide-react";
+
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -42,6 +43,7 @@ import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
@@ -236,6 +238,12 @@ export default function ProjectDetails() {
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            {!project.assigned_provider_id && isAssociation && (
+              <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/edit`)}>
+                <Pencil className="h-4 w-4 me-1" />
+                تعديل الطلب
+              </Button>
+            )}
             {project.status === "draft" && isAssociation && (
               <Button onClick={handlePublish} disabled={updateProject.isPending}>
                 <Send className="h-4 w-4 me-1" />
