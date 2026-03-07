@@ -414,7 +414,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             {paymentMethod === "electronic" && (
               <Button className="w-full" disabled={loadingPayment || acceptBid.isPending} onClick={handleAcceptAndPay}>
                 <CreditCard className="h-4 w-4 me-1" />
-                {loadingPayment || acceptBid.isPending ? "جاري المعالجة..." : "قبول العرض والمتابعة للدفع"}
+                {loadingPayment || acceptBid.isPending ? "جاري المعالجة..." : skipAcceptBid ? "المتابعة للدفع" : "قبول العرض والمتابعة للدفع"}
               </Button>
             )}
 
@@ -423,7 +423,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
               <div className="space-y-3">
                 <BankTransferSection amount={pricing.total} />
                 <Button className="w-full" disabled={!receiptFile || bankTransfer.isPending || acceptBid.isPending} onClick={handleBankTransfer}>
-                  {bankTransfer.isPending || acceptBid.isPending ? "جاري المعالجة..." : "قبول العرض وإرسال الإيصال"}
+                  {bankTransfer.isPending || acceptBid.isPending ? "جاري المعالجة..." : skipAcceptBid ? "إرسال الإيصال" : "قبول العرض وإرسال الإيصال"}
                 </Button>
               </div>
             )}
@@ -432,7 +432,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
             {paymentMethod === "grant_balance" && (
               <Button className="w-full" disabled={loadingPayment || acceptBid.isPending || payFromGrants.isPending} onClick={handleGrantPayment}>
                 <Wallet className="h-4 w-4 me-1" />
-                {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : "قبول العرض والدفع من المنح"}
+                {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : skipAcceptBid ? "الدفع من المنح" : "قبول العرض والدفع من المنح"}
               </Button>
             )}
 
@@ -484,7 +484,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
                   onClick={handleMixedPayment}
                 >
                   <Wallet className="h-4 w-4 me-1" />
-                  {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : "قبول العرض والدفع المختلط"}
+                  {loadingPayment || payFromGrants.isPending ? "جاري المعالجة..." : skipAcceptBid ? "الدفع المختلط" : "قبول العرض والدفع المختلط"}
                 </Button>
               </div>
             )}
