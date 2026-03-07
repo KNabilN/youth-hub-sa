@@ -1,10 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Check, X, User, Paperclip, ExternalLink, MessageCircle } from "lucide-react";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { BidCommentThread } from "@/components/bids/BidCommentThread";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -24,6 +24,7 @@ interface BidCardProps {
   isLoading?: boolean;
   showActions?: boolean;
 }
+
 const statusMap: Record<string, { label: string; className: string }> = {
   pending: { label: "قيد المراجعة", className: "bg-warning/15 text-warning border-warning/30" },
   accepted: { label: "مقبول", className: "bg-success/15 text-success border-success/30" },
@@ -33,12 +34,11 @@ const statusMap: Record<string, { label: string; className: string }> = {
 
 export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true }: BidCardProps) {
   const status = statusMap[bid.status] ?? statusMap.pending;
-  const [showAttachments, setShowAttachments] = useState(false);
-  const [showComments, setShowComments] = useState(false);
 
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
+        {/* Header */}
         <div className="flex items-start justify-between">
           <Link
             to={`/profile/${bid.provider_id}`}
@@ -50,7 +50,9 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
             </Avatar>
             <div>
               <div className="flex items-center gap-1">
-                <p className="font-medium text-sm group-hover:text-primary transition-colors">{(bid.profiles as any)?.organization_name || bid.profiles?.full_name || "مقدم خدمة"}</p>
+                <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                  {(bid.profiles as any)?.organization_name || bid.profiles?.full_name || "مقدم خدمة"}
+                </p>
                 <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-xs text-muted-foreground">{new Date(bid.created_at).toLocaleDateString("ar-SA")}</p>
@@ -58,42 +60,39 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
           </Link>
           <Badge variant="outline" className={status.className}>{status.label}</Badge>
         </div>
+
+        {/* Cover letter */}
         <p className="text-sm text-muted-foreground">{bid.cover_letter}</p>
+
+        {/* Price & timeline */}
         <div className="flex items-center gap-4 text-sm">
           <span className="font-medium">{bid.price} ر.س</span>
           <span className="text-muted-foreground">{bid.timeline_days} يوم</span>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs gap-1"
-          onClick={() => setShowAttachments(!showAttachments)}
-        >
-          <Paperclip className="h-3.5 w-3.5" />
-          المرفقات
-        </Button>
+        {/* Tabs: Attachments & Conversation */}
+        <Tabs defaultValue="attachments" dir="rtl">
+          <TabsList className="w-full grid grid-cols-2 h-9">
+            <TabsTrigger value="attachments" className="text-xs gap-1.5">
+              <Paperclip className="h-3.5 w-3.5" />
+              المرفقات
+            </TabsTrigger>
+            <TabsTrigger value="conversation" className="text-xs gap-1.5">
+              <MessageCircle className="h-3.5 w-3.5" />
+              المحادثة
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="attachments" className="mt-3">
+            <AttachmentList entityType="bid" entityId={bid.id} />
+          </TabsContent>
+          <TabsContent value="conversation" className="mt-3">
+            <BidCommentThread bidId={bid.id} bidStatus={bid.status} />
+          </TabsContent>
+        </Tabs>
 
-        {showAttachments && (
-          <AttachmentList entityType="bid" entityId={bid.id} />
-        )}
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs gap-1"
-          onClick={() => setShowComments(!showComments)}
-        >
-          <MessageCircle className="h-3.5 w-3.5" />
-          المحادثة
-        </Button>
-
-        {showComments && (
-          <BidCommentThread bidId={bid.id} bidStatus={bid.status} />
-        )}
-
+        {/* Actions */}
         {showActions && bid.status === "pending" && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1" onClick={() => onAccept?.(bid)} disabled={isLoading}>
               <Check className="h-3.5 w-3.5 me-1" />
               قبول
