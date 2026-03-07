@@ -12,7 +12,7 @@ export interface Message {
   attachment_name: string | null;
   is_read: boolean;
   created_at: string;
-  sender?: { full_name: string; avatar_url: string | null };
+  sender?: { full_name: string; avatar_url: string | null; organization_name?: string | null };
 }
 
 export function useMessages(projectId: string | undefined) {
