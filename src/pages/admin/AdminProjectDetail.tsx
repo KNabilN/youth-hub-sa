@@ -12,8 +12,8 @@ import { ArrowRight, FileEdit, Tag, MapPin, Calendar, DollarSign, Clock, Users, 
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { BidList } from "@/components/bids/BidList";
