@@ -1954,6 +1954,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cascade_permanent_delete: {
+        Args: { p_id: string; p_table: string }
+        Returns: undefined
+      }
       get_landing_stats: { Args: never; Returns: Json }
       get_public_profile: { Args: { p_id: string }; Returns: Json }
       get_public_project: { Args: { p_id: string }; Returns: Json }
