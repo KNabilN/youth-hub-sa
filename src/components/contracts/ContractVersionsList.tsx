@@ -95,8 +95,8 @@ export function ContractVersionsList({ contractId, currentTerms, canEdit }: Cont
                 {v.change_note && (
                   <p className="text-xs"><strong>السبب:</strong> {v.change_note}</p>
                 )}
-                {v.profiles?.full_name && (
-                  <p className="text-xs text-muted-foreground">بواسطة: {v.profiles.full_name}</p>
+                {(v.profiles?.organization_name || v.profiles?.full_name) && (
+                  <p className="text-xs text-muted-foreground">بواسطة: {v.profiles.organization_name || v.profiles.full_name}</p>
                 )}
               </div>
             ))}

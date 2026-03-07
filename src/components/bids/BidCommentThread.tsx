@@ -45,7 +45,7 @@ export function BidCommentThread({ bidId, bidStatus }: BidCommentThreadProps) {
             {comments.map((c) => {
               const isMe = c.author_id === user?.id;
               const profile = c as any;
-              const name = profile.profiles?.full_name || "مستخدم";
+              const name = profile.profiles?.organization_name || profile.profiles?.full_name || "مستخدم";
               const avatar = profile.profiles?.avatar_url;
 
               return (

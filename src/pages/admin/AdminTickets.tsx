@@ -140,7 +140,7 @@ export default function AdminTickets() {
                         <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
                       </TableCell>
                      <TableCell className="font-medium">{t.subject}</TableCell>
-                    <TableCell>{t.profiles?.full_name ?? "—"}</TableCell>
+                    <TableCell>{t.profiles?.organization_name || t.profiles?.full_name || "—"}</TableCell>
                     <TableCell><Badge className={priorityColors[t.priority]}>{priorityLabels[t.priority]}</Badge></TableCell>
                     <TableCell><Badge className={statusColors[t.status]}>{statusLabels[t.status]}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{format(new Date(t.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
@@ -177,14 +177,14 @@ export default function AdminTickets() {
           { key: "priority", label: "فلتر حسب الأولوية", options: Object.entries(priorityLabels).map(([k, v]) => ({ value: k, label: v })) },
         ]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("support_tickets").select("ticket_number, subject, priority, status, created_at, profiles!support_tickets_user_id_fkey(full_name)");
+          const { data } = await supabase.from("support_tickets").select("ticket_number, subject, priority, status, created_at, profiles!support_tickets_user_id_fkey(full_name, organization_name)");
           let rows = data ?? [];
           if (filters.status !== "all") rows = rows.filter((t: any) => t.status === filters.status);
           if (filters.priority !== "all") rows = rows.filter((t: any) => t.priority === filters.priority);
           const colMap: Record<string, (t: any) => string> = {
             ticket_number: (t) => t.ticket_number || "",
             subject: (t) => t.subject || "",
-            user: (t) => (t.profiles as any)?.full_name || "",
+            user: (t) => (t.profiles as any)?.organization_name || (t.profiles as any)?.full_name || "",
             priority: (t) => priorityLabels[t.priority] || t.priority,
             status: (t) => statusLabels[t.status] || t.status,
             created_at: (t) => t.created_at?.slice(0, 10) || "",

@@ -199,12 +199,12 @@ function MessageBubble({
       <Avatar className="h-8 w-8 shrink-0 mt-1">
         <AvatarImage src={message.sender?.avatar_url || undefined} />
         <AvatarFallback className="text-xs">
-          {message.sender?.full_name?.[0] ?? "؟"}
+          {(message.sender?.organization_name || message.sender?.full_name)?.[0] ?? "؟"}
         </AvatarFallback>
       </Avatar>
       <div className={cn("max-w-[70%] space-y-1")}>
         <p className={cn("text-[11px] font-medium", isOwn ? "text-end" : "text-start")}>
-          {message.sender?.full_name}
+          {message.sender?.organization_name || message.sender?.full_name}
         </p>
         <div
           className={cn(
