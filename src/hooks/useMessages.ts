@@ -33,7 +33,6 @@ export function useMessages(projectId: string | undefined) {
     },
   });
 
-  // Realtime subscription
   useEffect(() => {
     if (!user || !projectId) return;
     const channel = supabase
@@ -58,15 +57,9 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      projectId,
-      content,
-      attachmentUrl,
-      attachmentName,
+      projectId, content, attachmentUrl, attachmentName,
     }: {
-      projectId: string;
-      content: string;
-      attachmentUrl?: string;
-      attachmentName?: string;
+      projectId: string; content: string; attachmentUrl?: string; attachmentName?: string;
     }) => {
       const { error } = await supabase.from("messages").insert({
         project_id: projectId,
@@ -116,11 +109,23 @@ export interface Conversation {
 
 export function useConversations() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime for conversation list — listen to all messages for user's projects
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-conversations-${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
+        () => qc.invalidateQueries({ queryKey: ["conversations"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["conversations", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Get projects where user is involved and has assigned provider
       const { data: projects, error: pErr } = await supabase
         .from("projects")
         .select("id, title, association_id, assigned_provider_id")
@@ -131,7 +136,6 @@ export function useConversations() {
 
       const projectIds = projects.map((p) => p.id);
 
-      // Get recent messages per project (limited to avoid hitting row limits)
       type MsgRow = { project_id: string; content: string; created_at: string; sender_id: string; is_read: boolean };
       const allMessages: MsgRow[] = [];
       for (const pid of projectIds) {
@@ -146,7 +150,6 @@ export function useConversations() {
       }
       const messages = allMessages;
 
-      // Get other party profiles
       const otherPartyIds = projects.map((p) =>
         p.association_id === user!.id ? p.assigned_provider_id : p.association_id
       ).filter(Boolean) as string[];

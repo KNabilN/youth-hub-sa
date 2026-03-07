@@ -1,7 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export function useBids(projectId: string | undefined) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!projectId) return;
+    const channel = supabase
+      .channel(`rt-bids-${projectId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `project_id=eq.${projectId}` },
+        () => qc.invalidateQueries({ queryKey: ["bids", projectId] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [projectId, qc]);
+
   return useQuery({
     queryKey: ["bids", projectId],
     enabled: !!projectId,
@@ -25,19 +38,13 @@ export function useAcceptBid() {
     mutationFn: async ({ bidId, projectId, providerId, bidPrice }: {
       bidId: string; projectId: string; providerId: string; bidPrice: number;
     }) => {
-      // 1. Accept this bid
       await supabase.from("bids").update({ status: "accepted" }).eq("id", bidId);
-      // 2. Reject all others
       await supabase.from("bids").update({ status: "rejected" }).eq("project_id", projectId).neq("id", bidId);
-      // 3. Assign provider to project and update budget to match accepted bid price
       const { error: projectError } = await supabase.from("projects").update({
         assigned_provider_id: providerId,
         budget: bidPrice,
       }).eq("id", projectId);
       if (projectError) throw projectError;
-
-      // Contract creation and status change to in_progress happen AFTER payment
-      // DB triggers handle bid status notifications
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bids"] });

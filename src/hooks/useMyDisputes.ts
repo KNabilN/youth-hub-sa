@@ -1,15 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useMyDisputes() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-disputes-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "disputes" },
+        () => qc.invalidateQueries({ queryKey: ["my-disputes"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["my-disputes", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // RLS policy "Involved parties view disputes" already filters to only
-      // disputes where user is raised_by or involved via the project
       const { data, error } = await supabase
         .from("disputes")
         .select("*, projects(title, assigned_provider_id, association_id), profiles:raised_by(full_name)")
