@@ -14,6 +14,7 @@ export default function LandingHeader() {
   const { data: header } = useSiteContent("header");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
