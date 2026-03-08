@@ -2,6 +2,7 @@ import React from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
 import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
+import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { useAllWithdrawals, useUpdateWithdrawalStatus } from "@/hooks/useWithdrawals";
 import { useAdminBankTransfers, useApproveBankTransfer, useRejectBankTransfer } from "@/hooks/useBankTransfer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
