@@ -57,7 +57,7 @@ export default function AdminNotifications() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((s, i) => (
             <Card key={i}>
               <CardContent className="flex items-center gap-3 p-4">
