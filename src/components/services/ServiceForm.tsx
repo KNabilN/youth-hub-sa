@@ -112,7 +112,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {/* Main image */}
         <div>
-          <label className="text-sm font-medium mb-2 block">صورة الخدمة الرئيسية</label>
+          <label className="text-sm font-medium mb-2 block">صورة الخدمة الرئيسية (اختياري)</label>
           {imageUrl ? (
             <div className="relative w-full h-40 rounded-lg overflow-hidden border">
               <img src={imageUrl} alt="صورة الخدمة" className="w-full h-full object-cover" />
@@ -132,7 +132,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
 
         {/* Gallery */}
         <div>
-          <label className="text-sm font-medium mb-1 block">معرض الصور (حتى 5 صور إضافية)</label>
+          <label className="text-sm font-medium mb-1 block">معرض الصور (اختياري - حتى 5 صور إضافية)</label>
           <p className="text-xs text-muted-foreground mb-2">الأبعاد المُوصى بها: 800×500 بكسل</p>
           <div className="flex gap-2 flex-wrap">
             {galleryUrls.map((url, i) => (
