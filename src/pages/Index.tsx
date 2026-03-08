@@ -94,11 +94,21 @@ export default function Index() {
               <Button
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
-                onClick={() => navigate("/auth")}>
-                
-                {h.cta_text}
+                onClick={() => navigate(user ? "/dashboard" : "/auth")}>
+                {user ? "لوحة التحكم" : h.cta_text}
                 <ArrowLeft className="me-2 h-4 w-4" />
               </Button>
+              {!user && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-base px-8 font-bold backdrop-blur-sm"
+                  onClick={() => {
+                    document.getElementById("services-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}>
+                  تصفح الخدمات
+                </Button>
+              )}
             </div>
           </div>
         </section>
