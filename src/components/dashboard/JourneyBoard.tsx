@@ -40,27 +40,33 @@ function AssociationJourney() {
     queryKey: ["journey-association", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const [projects, bids, contracts, completed] = await Promise.all([
+      const [projects, bids, contracts, completed, grants] = await Promise.all([
         supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id),
         supabase.from("bids").select("id", { count: "exact", head: true }).in("project_id",
           (await supabase.from("projects").select("id").eq("association_id", user!.id)).data?.map((p: any) => p.id) || []
         ),
         supabase.from("contracts").select("id", { count: "exact", head: true }).eq("association_id", user!.id),
         supabase.from("projects").select("id", { count: "exact", head: true }).eq("association_id", user!.id).eq("status", "completed"),
+        supabase.from("donor_contributions").select("amount").eq("association_id", user!.id).eq("donation_status", "available"),
       ]);
+      const grantBalance = (grants.data ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0);
       return {
         projects: projects.count ?? 0,
         bids: bids.count ?? 0,
         contracts: contracts.count ?? 0,
         completed: completed.count ?? 0,
+        grantBalance,
       };
     },
   });
+
+  const formattedGrants = `${(data?.grantBalance ?? 0).toLocaleString()} ر.س`;
 
   const steps: Step[] = [
     { label: "مشاريع مقدمة", count: data?.projects ?? 0, done: (data?.projects ?? 0) > 0 },
     { label: "عروض مستلمة", count: data?.bids ?? 0, done: (data?.bids ?? 0) > 0 },
     { label: "عقود", count: data?.contracts ?? 0, done: (data?.contracts ?? 0) > 0 },
+    { label: "منح متاحة", count: formattedGrants, done: (data?.grantBalance ?? 0) > 0 },
     { label: "مكتملة", count: data?.completed ?? 0, done: (data?.completed ?? 0) > 0 },
   ];
 
