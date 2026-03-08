@@ -29,6 +29,7 @@ interface LandingServicesGridProps {
   title?: string;
   subtitle?: string;
   buttonText?: string;
+  isLoggedIn?: boolean;
 }
 
 const typeLabel: Record<string, string> = {
