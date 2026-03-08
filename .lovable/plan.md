@@ -1,17 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إصلاح خطأ تصدير PDF — مشكلة تحميل الخط
+## الحالة: ✅ تم التنفيذ
 
-## السبب
-`@react-pdf/renderer` لا يستطيع تحميل الخط من مسار نسبي (`/fonts/Cairo-Variable.ttf`) — يحتاج رابط مطلق (absolute URL) أو رابط CDN.
+### ما تم تنفيذه
 
-## الحل
-تغيير مصدر الخط في `src/lib/pdf-fonts.ts` لاستخدام رابط TTF مباشر من Google Fonts CDN:
-
-```
-https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrSQRIl0HxtFhn5kZg.ttf
-```
-
-### الملف المتأثر:
-- `src/lib/pdf-fonts.ts` — تغيير `src` في `Font.register` من المسار النسبي إلى رابط CDN
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
