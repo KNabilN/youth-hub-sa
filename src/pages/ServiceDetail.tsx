@@ -7,7 +7,7 @@ import { ServiceFAQ } from "@/components/services/ServiceFAQ";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, ShoppingBag, Star, Paperclip } from "lucide-react";
+import { Eye, ShoppingBag, Star, Paperclip, Home, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
 import { useGuestCart } from "@/hooks/useGuestCart";
