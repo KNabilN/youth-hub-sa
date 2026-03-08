@@ -17,60 +17,6 @@ export const BRAND = {
   confidential: "#991b1b",   // red-800
 };
 
-export const BASE_FONT = `'Cairo', 'Noto Sans Arabic', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif`;
-
-/* ── Arabic font loader (singleton) ── */
-let fontLoaded = false;
-
-const FONT_WEIGHTS: { weight: string; url: string }[] = [
-  {
-    weight: "400",
-    url: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLKoN-at6p1N2aQ.woff2",
-  },
-  {
-    weight: "700",
-    url: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLI4I-at6p1N2aQ.woff2",
-  },
-  {
-    weight: "900",
-    url: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrCeLJII-at6p1N2aQ.woff2",
-  },
-];
-
-export async function loadArabicFont(): Promise<void> {
-  if (fontLoaded) return;
-  try {
-    const promises = FONT_WEIGHTS.map(async ({ weight, url }) => {
-      const font = new FontFace("Cairo", `url(${url})`, {
-        weight,
-        style: "normal",
-      });
-      const loaded = await font.load();
-      document.fonts.add(loaded);
-    });
-    await Promise.all(promises);
-    await document.fonts.ready;
-    fontLoaded = true;
-  } catch {
-    console.warn("Failed to load Cairo font, falling back to system fonts");
-  }
-}
-
-/* ── Bidi helpers for RTL text isolation ── */
-const RLM = "\u200F";
-const RLI = "\u2067";
-const PDI = "\u2069";
-
-/** Wrap Arabic text with Unicode bidi isolation marks */
-export function bidi(text: string): string {
-  return `${RLI}${text}${RLM}${PDI}`;
-}
-
-/** Wrap text in an HTML <bdi> tag for RTL isolation */
-export function bdiTag(text: string): string {
-  return `<bdi dir="rtl">${text}</bdi>`;
-}
-
 /* ── Logo to Base64 data URL ── */
 let cachedLogoBase64: string | null = null;
 
