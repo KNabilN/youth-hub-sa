@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
 import { useSignContract } from "@/hooks/useContracts";
+import { ContractReviewPanel } from "@/components/contracts/ContractReviewPanel";
 import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
 import { BidList } from "@/components/bids/BidList";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ export default function ProjectDetails() {
     queryFn: async () => {
       const { data } = await supabase
         .from("contracts")
-        .select("*, profiles:provider_id(full_name)")
+        .select("*, profiles:provider_id(full_name), association_profiles:association_id(full_name, organization_name)")
         .eq("project_id", id!)
         .maybeSingle();
       return data;
@@ -497,75 +498,12 @@ export default function ProjectDetails() {
           <TabsContent value="contract" className="mt-4">
             {contract ? (
               <div className="space-y-4">
-                <Card>
-                  <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" /> تفاصيل العقد</CardTitle></CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <p>{contract.terms}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">مقدم الخدمة:</span>
-                      <span>{(contract as any).profiles?.full_name || "-"}</span>
-                      <span className="text-muted-foreground">توقيع الجمعية:</span>
-                      <span className="flex items-center gap-1">
-                        {contract.association_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.association_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
-                      </span>
-                      <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
-                      <span className="flex items-center gap-1">
-                        {contract.provider_signed_at ? <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</> : "لم يوقّع بعد"}
-                      </span>
-                      {escrow && (
-                        <>
-                          <span className="text-muted-foreground">الضمان المالي:</span>
-                          <span className="flex items-center gap-1">
-                            {escrow.amount} ر.س
-                            <Badge variant={escrow.status === "released" ? "default" : escrow.status === "held" ? "secondary" : "outline"} className="me-1 text-xs">
-                              {escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status}
-                            </Badge>
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    {isAssociation && !contract.association_signed_at && (
-                      <Button
-                        size="sm"
-                        className="mt-3"
-                        onClick={() => signContract.mutate(contract.id, {
-                          onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
-                          onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                        })}
-                        disabled={signContract.isPending}
-                      >
-                        <PenLine className="h-4 w-4 me-1" />
-                        توقيع العقد
-                      </Button>
-                    )}
-                    {isProvider && !contract.provider_signed_at && (
-                      <Button
-                        size="sm"
-                        className="mt-3"
-                        onClick={() => signContract.mutate(contract.id, {
-                          onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
-                          onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-                        })}
-                        disabled={signContract.isPending}
-                      >
-                        <PenLine className="h-4 w-4 me-1" />
-                        توقيع العقد
-                      </Button>
-                    )}
-                    {/* Escrow status note - payment now happens at bid acceptance */}
-                    {contract.association_signed_at && contract.provider_signed_at && escrow && (
-                      <div className="mt-4 p-4 rounded-lg border border-primary/20 bg-accent/30">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5 text-primary" />
-                          <span className="font-medium text-sm">تم إنشاء الضمان المالي</span>
-                          <Badge variant="secondary" className="mr-auto text-xs">
-                            {escrow.amount} ر.س — {escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <ContractReviewPanel
+                  contract={contract}
+                  escrow={escrow}
+                  isAssociation={isAssociation}
+                  isProvider={isProvider}
+                />
 
                 <ContractVersionsList
                   contractId={contract.id}
