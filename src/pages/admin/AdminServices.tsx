@@ -102,7 +102,21 @@ export default function AdminServices() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">إدارة الخدمات</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <Layers className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                إدارة الخدمات
+                {(() => { const pending = (services ?? []).filter((s: any) => s.approval === "pending").length; return pending > 0 ? <Badge className="bg-warning/15 text-warning border-warning/30">{pending} بانتظار الموافقة</Badge> : null; })()}
+              </h1>
+              <p className="text-sm text-muted-foreground">عرض وإدارة جميع الخدمات المصغرة</p>
+            </div>
+          </div>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
