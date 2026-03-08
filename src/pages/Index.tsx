@@ -30,6 +30,7 @@ const featureColors = [
 
 export default function Index() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: hero } = useSiteContent("hero");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
