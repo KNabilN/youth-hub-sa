@@ -665,7 +665,7 @@ export default function AdminFinance() {
                                   onClick={() => {
                                     approveBT.mutate({ transferId: bt.id, escrowId: bt.escrow_id }, {
                                       onSuccess: () => toast.success("تمت الموافقة — تم إصدار الفاتورة وإنشاء العقد تلقائياً"),
-                                      onError: () => toast.error("حدث خطأ"),
+                                       onError: (err: any) => toast.error(err?.message || "حدث خطأ"),
                                     });
                                   }}
                                   disabled={approveBT.isPending}
@@ -796,7 +796,7 @@ export default function AdminFinance() {
                       toast.success("تم رفض التحويل");
                       setRejectDialogOpen(false);
                     },
-                    onError: () => toast.error("حدث خطأ"),
+                    onError: (err: any) => toast.error(err?.message || "حدث خطأ"),
                   });
                 }}
               >
