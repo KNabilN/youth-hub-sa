@@ -31,7 +31,7 @@ function createOffscreenContainer(): HTMLDivElement {
   const el = document.createElement("div");
   el.setAttribute("dir", "rtl");
   el.style.cssText = `
-    position: fixed; top: -99999px; left: -99999px;
+    position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -1; overflow: hidden;
     width: ${CONTAINER_WIDTH}px; background: ${BRAND.white}; color: ${BRAND.text};
     font-family: ${BASE_FONT};
     direction: rtl; unicode-bidi: isolate; text-align: right;
