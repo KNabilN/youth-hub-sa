@@ -5,12 +5,12 @@ Font.register({
   family: "Cairo",
   fonts: [
     {
-      src: "/fonts/Cairo-Variable.ttf",
+      src: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrSQRIl0HxtFhn5kZg.ttf",
       fontWeight: 400,
       fontStyle: "normal",
     },
     {
-      src: "/fonts/Cairo-Variable.ttf",
+      src: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrSQRIl0HxtFhn5kZg.ttf",
       fontWeight: 700,
       fontStyle: "normal",
     },
