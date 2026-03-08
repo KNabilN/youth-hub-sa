@@ -74,6 +74,7 @@ export default function ProjectDetails() {
         .from("contracts")
         .select("*, profiles:provider_id(full_name), association_profiles:association_id(full_name, organization_name)")
         .eq("project_id", id!)
+        .is("deleted_at", null)
         .maybeSingle();
       return data;
     },

@@ -130,7 +130,8 @@ export function useConversations() {
         .from("projects")
         .select("id, title, association_id, assigned_provider_id")
         .or(`association_id.eq.${user!.id},assigned_provider_id.eq.${user!.id}`)
-        .not("assigned_provider_id", "is", null);
+        .not("assigned_provider_id", "is", null)
+        .is("deleted_at", null);
       if (pErr) throw pErr;
       if (!projects?.length) return [];
 
