@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function ProjectPublicView() {
   const { id } = useParams<{ id: string }>();
+  const { user, role } = useAuth();
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["project-public", id],
