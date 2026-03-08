@@ -18,7 +18,7 @@ import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
@@ -76,6 +76,7 @@ export default function AdminServices() {
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
+  const navigate = useNavigate();
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
@@ -179,7 +180,7 @@ export default function AdminServices() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((s: any) => (
-                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.href = `/admin/services/${s.id}`}>
+                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/services/${s.id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">{s.service_number || "—"}</TableCell>
                       <TableCell className="font-medium max-w-[120px] truncate" title={s.title}>{s.title}</TableCell>
                       <TableCell className="max-w-[100px] truncate" title={s.profiles?.full_name ?? "—"}>{s.profiles?.full_name ?? "—"}</TableCell>
