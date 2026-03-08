@@ -258,6 +258,25 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
           provider_id: item.provider_id,
           terms: contractTerms,
         });
+
+        // Create auto-accepted bid so provider appears in bids tab
+        await adminClient.from("bids").insert({
+          project_id: project.id,
+          provider_id: item.provider_id,
+          price: item.price,
+          timeline_days: 30,
+          cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+          status: "accepted",
+        });
+
+        // Notify provider about the purchase and assignment
+        await adminClient.from("notifications").insert({
+          user_id: item.provider_id,
+          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+          type: "service_purchased_assigned",
+          entity_id: project.id,
+          entity_type: "project",
+        });
       }
     }
 
