@@ -157,7 +157,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const PasswordInput = ({ id, value, onChange, error }: { id: string; value: string; onChange: (v: string) => void; error?: string }) => (
     <div className="space-y-2">
       <Label htmlFor={id}>كلمة المرور <span className="text-destructive">*</span></Label>
-      <div className="relative">
+      <div className="flex gap-2">
         <Input
           id={id}
           type={showPassword ? "text" : "password"}
@@ -166,17 +166,19 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
           placeholder="••••••••"
           required
           dir="ltr"
-          className={cn("text-start h-11 pe-10", error && "border-destructive")}
+          className={cn("text-start h-11 flex-1", error && "border-destructive")}
           minLength={6}
         />
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          className="h-11 w-11 shrink-0"
           tabIndex={-1}
         >
           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
