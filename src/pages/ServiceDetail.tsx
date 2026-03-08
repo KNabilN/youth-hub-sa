@@ -90,6 +90,7 @@ export default function ServiceDetail() {
       </nav>
 
       {/* Header */}
+      <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold">{service.title}</h1>
         {(service as any).service_number && (
           <span className="text-sm font-semibold font-mono text-primary">{(service as any).service_number}</span>
