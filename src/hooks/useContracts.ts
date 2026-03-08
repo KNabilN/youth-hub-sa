@@ -59,6 +59,25 @@ export function useContracts(filter = "all") {
   });
 }
 
+export function useUpdateContractTerms() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ contractId, scope }: { contractId: string; scope: string }) => {
+      // Build structured terms with scope
+      const terms = `نطاق العمل:\n${scope}`;
+      const { error } = await supabase
+        .from("contracts")
+        .update({ terms } as any)
+        .eq("id", contractId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["contract"] });
+    },
+  });
+}
+
 export function useSignContract() {
   const qc = useQueryClient();
   const { role } = useAuth();
