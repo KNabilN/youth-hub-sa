@@ -23,6 +23,21 @@ export interface GrantRequest {
 /** Association's own grant requests */
 export function useMyGrants() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-my-grants-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "grant_requests" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-grants"] });
+          qc.invalidateQueries({ queryKey: ["assoc-pending-grants"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["my-grants", user?.id],
     enabled: !!user,

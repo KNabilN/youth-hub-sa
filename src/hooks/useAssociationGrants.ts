@@ -5,6 +5,22 @@ import { useEffect } from "react";
 
 export function useReceivedGrants() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-received-grants-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "donor_contributions" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["association-received-grants"] });
+          qc.invalidateQueries({ queryKey: ["association-grant-balance"] });
+          qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["association-received-grants", user?.id],
     enabled: !!user,
