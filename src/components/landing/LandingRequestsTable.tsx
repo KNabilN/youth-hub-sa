@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FolderKanban, Calendar, Building2, Tag, Banknote, ArrowLeft } from "lucide-react";
+import { FolderKanban, Calendar, Building2, Tag, Banknote, ArrowLeft, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,10 +52,9 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
             {projects.map((p) => {
               const assocName = p.association?.organization_name || p.association?.full_name || "—";
               return (
-                <Link
-                  to={`/projects/public/${p.id}`}
+                <div
                   key={p.id}
-                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 block"
+                  className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/20 flex flex-col"
                 >
                   <div className="flex items-center justify-between gap-3">
                     {p.category && (
@@ -101,7 +100,22 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                       {new Date(p.created_at).toLocaleDateString("ar-SA")}
                     </span>
                   </div>
-                </Link>
+                  {/* Action buttons */}
+                  <div className="flex gap-2 pt-2 mt-auto">
+                    <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
+                      <Link to={isLoggedIn ? `/projects/public/${p.id}` : "/auth?mode=register"}>
+                        {isLoggedIn ? "قدّم عرضك" : "سجّل لتقديم عرضك"}
+                        <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="gap-1.5 rounded-lg text-sm">
+                      <Link to={`/projects/public/${p.id}`}>
+                        <Eye className="w-3.5 h-3.5" />
+                        التفاصيل
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               );
             })}
           </div>
