@@ -22,9 +22,24 @@ interface LandingRequestsTableProps {
   subtitle?: string;
   buttonText?: string;
   isLoggedIn?: boolean;
+  role?: string | null;
 }
 
-export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn, role }: LandingRequestsTableProps) {
+  const isDisabled = role === "youth_association" || role === "super_admin";
+  const isDonor = role === "donor";
+
+  const getActionLabel = () => {
+    if (!isLoggedIn) return "سجّل لتقديم عرضك";
+    if (isDonor) return "قدّم منحة";
+    return "قدّم عرضك";
+  };
+
+  const getActionLink = (projectId: string) => {
+    if (!isLoggedIn) return "/auth?mode=register";
+    if (isDonor) return `/donations`;
+    return `/projects/public/${projectId}`;
+  };
   if (!loading && projects.length === 0) return null;
 
   return (
