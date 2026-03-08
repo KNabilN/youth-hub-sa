@@ -51,7 +51,7 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
             <div>
               <div className="flex items-center gap-1">
                 <p className="font-medium text-sm group-hover:text-primary transition-colors">
-                  {(bid.profiles as any)?.organization_name || bid.profiles?.full_name || "مقدم خدمة"}
+                  {bid.profiles?.full_name || "مقدم خدمة"}
                 </p>
                 <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
