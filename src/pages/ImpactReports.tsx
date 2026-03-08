@@ -122,13 +122,28 @@ export default function ImpactReports() {
         <SummaryCards
           totalDonations={stats?.totalDonations ?? 0}
           associationsSupported={stats?.associationsSupported ?? 0}
-          reportsCount={reports?.length ?? 0}
+          reportsCount={filteredReports.length}
           isLoading={isLoading}
         />
 
-        {/* Reports List */}
+        {/* Filter + Reports List */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">التقارير المرفوعة</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">التقارير المرفوعة</h2>
+            {associations.length > 1 && (
+              <Select value={assocFilter} onValueChange={setAssocFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="فلتر حسب الجمعية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الجمعيات</SelectItem>
+                  {associations.map(a => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
 
           {reportsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
