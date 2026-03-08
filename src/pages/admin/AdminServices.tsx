@@ -180,7 +180,7 @@ export default function AdminServices() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((s: any) => (
-                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.href = `/admin/services/${s.id}`}>
+                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/services/${s.id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">{s.service_number || "—"}</TableCell>
                       <TableCell className="font-medium max-w-[120px] truncate" title={s.title}>{s.title}</TableCell>
                       <TableCell className="max-w-[100px] truncate" title={s.profiles?.full_name ?? "—"}>{s.profiles?.full_name ?? "—"}</TableCell>
