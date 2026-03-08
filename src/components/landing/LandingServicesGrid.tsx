@@ -16,6 +16,8 @@ interface Service {
   service_type: string;
   image_url: string | null;
   approval: string;
+  is_featured?: boolean;
+  sales_count?: number | null;
   category: { name: string } | null;
   region: { name: string } | null;
   provider: { full_name: string } | null;
