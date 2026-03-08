@@ -29,10 +29,18 @@ export function useCreateBankTransfer() {
         .upload(filePath, receiptFile);
       if (uploadErr) throw uploadErr;
 
+      // Check if buyer is an association
+      const { data: buyerRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
+      const isAssociation = buyerRole?.role === "youth_association";
+
       // Create escrow transactions for each item with pending_payment status
       const escrowIds: string[] = [];
       for (const item of items) {
-        // Create project if beneficiary selected
+        // Create project if beneficiary selected OR buyer is association
         let projectId: string | null = null;
         if (beneficiaryId) {
           const title = item.title || "خدمة ممولة من مانح";
@@ -43,7 +51,7 @@ export function useCreateBankTransfer() {
               description: `خدمة ممولة تلقائياً من مانح — ${title}`,
               association_id: beneficiaryId,
               assigned_provider_id: item.providerId,
-              status: "draft" as any, // pending_payment — will move to in_progress after contract signing
+              status: "draft" as any,
               budget: item.price,
               is_private: true,
             })
@@ -57,6 +65,23 @@ export function useCreateBankTransfer() {
             message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
             type: "donor_funded_service",
           });
+        } else if (isAssociation) {
+          const title = item.title || "خدمة من السوق";
+          const { data: project, error: projErr } = await supabase
+            .from("projects")
+            .insert({
+              title,
+              description: `شراء مباشر من السوق — ${title}`,
+              association_id: userId,
+              assigned_provider_id: item.providerId,
+              status: "draft" as any,
+              budget: item.price,
+              is_private: true,
+            })
+            .select("id")
+            .single();
+          if (projErr) throw projErr;
+          projectId = project.id;
         }
 
         const { data: escrow, error: escrowErr } = await supabase

@@ -122,34 +122,35 @@ export default function Checkout() {
         setShowMoyasarForm(true);
         setProcessing(false);
       } else if (paymentMethod === "grant_balance") {
-        // Pay from grant balance — create project if beneficiary selected
+        // Pay from grant balance — association is the buyer (grant_balance only available for associations)
         for (const item of items) {
           let projectId: string | undefined;
 
-          if (selectedAssociation) {
-            // Create an auto-project for the beneficiary association
-            const { data: proj, error: projErr } = await supabase
-              .from("projects")
-              .insert({
-                title: item.micro_services.title,
-                description: `مشروع تلقائي — شراء خدمة "${item.micro_services.title}"`,
-                association_id: selectedAssociation,
-                assigned_provider_id: item.micro_services.provider_id,
-                status: "in_progress" as any,
-                budget: item.micro_services.price * item.quantity,
-              })
-              .select("id")
-              .single();
-            if (!projErr && proj) {
-              projectId = proj.id;
-              // Create contract
-              await supabase.from("contracts").insert({
-                project_id: proj.id,
-                provider_id: item.micro_services.provider_id,
-                association_id: selectedAssociation,
-                terms: `عقد تنفيذ خدمة "${item.micro_services.title}" بقيمة ${item.micro_services.price * item.quantity} ر.س`,
-              });
-            }
+          // Association buying directly — auto-create project + contract
+          const assocId = selectedAssociation || user.id;
+          const { data: proj, error: projErr } = await supabase
+            .from("projects")
+            .insert({
+              title: item.micro_services.title,
+              description: `شراء مباشر من السوق — "${item.micro_services.title}"`,
+              association_id: assocId,
+              assigned_provider_id: item.micro_services.provider_id,
+              status: "in_progress" as any,
+              budget: item.micro_services.price * item.quantity,
+              is_private: true,
+            })
+            .select("id")
+            .single();
+          if (!projErr && proj) {
+            projectId = proj.id;
+            // Create contract with association auto-signed
+            await supabase.from("contracts").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              association_id: assocId,
+              terms: `عقد تنفيذ خدمة "${item.micro_services.title}" بقيمة ${item.micro_services.price * item.quantity} ر.س`,
+              association_signed_at: new Date().toISOString(),
+            });
           }
 
           const itemBase = item.micro_services.price * item.quantity;
@@ -270,7 +271,8 @@ export default function Checkout() {
               </CardContent>
             </Card>
 
-            {/* Beneficiary Association Selector */}
+            {/* Beneficiary Association Selector — only for donors */}
+            {role !== "youth_association" && (
             <Card className="border-primary/30">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -327,6 +329,7 @@ export default function Checkout() {
                 )}
               </CardContent>
             </Card>
+            )}
 
             {/* Payment Method Selection */}
             <Card>
