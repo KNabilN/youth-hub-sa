@@ -6,14 +6,18 @@ import { ServiceForm, type ServiceFormValues } from "@/components/services/Servi
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Layers, AlertTriangle } from "lucide-react";
+import { Plus, Layers, AlertTriangle, Filter, ArrowUpDown } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyServices() {
-  const { data: services, isLoading } = useMyServices();
+  const [approvalFilter, setApprovalFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const { data: services, isLoading } = useMyServices(approvalFilter, sortBy);
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
@@ -23,7 +27,6 @@ export default function MyServices() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
@@ -65,7 +68,6 @@ export default function MyServices() {
     });
   };
 
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -84,6 +86,35 @@ export default function MyServices() {
           </Button>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+
+        {/* Filter & Sort */}
+        <Card className="bg-muted/30 border-dashed">
+          <CardContent className="flex flex-wrap items-center gap-3 p-4">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={approvalFilter} onValueChange={setApprovalFilter}>
+              <SelectTrigger className="w-[150px] h-9 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الحالات</SelectItem>
+                <SelectItem value="approved">معتمدة</SelectItem>
+                <SelectItem value="pending">قيد المراجعة</SelectItem>
+                <SelectItem value="draft">مسودة</SelectItem>
+                <SelectItem value="suspended">موقوفة</SelectItem>
+                <SelectItem value="rejected">مرفوضة</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1.5 ms-auto">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[150px] h-9 bg-background"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">الأحدث</SelectItem>
+                  <SelectItem value="sales">الأكثر مبيعاً</SelectItem>
+                  <SelectItem value="views">الأكثر مشاهدة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

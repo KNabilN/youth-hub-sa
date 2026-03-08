@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, DollarSign, Building2, ExternalLink, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Building2, ExternalLink, CheckCircle2, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -13,6 +13,7 @@ interface ProviderProjectCardProps {
     budget: number | null;
     estimated_hours: number | null;
     required_skills: string[] | null;
+    created_at?: string;
     is_name_visible?: boolean;
     association_id?: string;
     categories?: { name: string } | null;
@@ -27,17 +28,30 @@ interface ProviderProjectCardProps {
 export function ProviderProjectCard({ project, hasBid, onViewDetails }: ProviderProjectCardProps) {
   const assocName = project.profiles?.organization_name || project.profiles?.full_name || "جمعية";
 
+  // Check if project is less than 24 hours old
+  const isNew = project.created_at
+    ? (Date.now() - new Date(project.created_at).getTime()) < 24 * 60 * 60 * 1000
+    : false;
+
   return (
     <Card className="card-hover border-t-4 border-primary/60">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base">{project.title}</CardTitle>
-          {hasBid && (
-            <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 shrink-0">
-              <CheckCircle2 className="h-3 w-3" />
-              تم التقديم
-            </Badge>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isNew && (
+              <Badge className="gap-1 bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1.5">
+                <Sparkles className="h-2.5 w-2.5" />
+                جديد
+              </Badge>
+            )}
+            {hasBid && (
+              <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200">
+                <CheckCircle2 className="h-3 w-3" />
+                تم التقديم
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
           {project.is_name_visible && project.profiles ? (

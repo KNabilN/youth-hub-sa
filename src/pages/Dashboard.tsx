@@ -13,8 +13,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays, Wallet,
+  Clock, FileSignature, AlertCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
@@ -30,7 +33,7 @@ interface StatItem {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  color: string; // tailwind color token e.g. "primary", "info"
+  color: string;
 }
 
 function StatCard({ stat, index }: { stat: StatItem; index: number }) {
@@ -95,8 +98,68 @@ function ProviderDashboard() {
     { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "info" },
     { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: ClipboardList, color: "warning" },
     { title: "إجمالي الأرباح", value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
+    { title: "ساعات هذا الشهر", value: stats?.hoursThisMonth ?? 0, icon: Clock, color: "accent" },
   ];
   return <StatsGrid items={items} isLoading={isLoading} />;
+}
+
+/** Provider action items: unsigned contracts, pending withdrawals */
+function ProviderActionItems() {
+  const { user } = useAuth();
+
+  const { data: unsignedContracts } = useQuery({
+    queryKey: ["provider-unsigned-contracts", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("id, project_id, projects:project_id(title)")
+        .eq("provider_id", user!.id)
+        .is("provider_signed_at", null)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: pendingWithdrawals } = useQuery({
+    queryKey: ["provider-pending-withdrawals-count", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("withdrawal_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("provider_id", user!.id)
+        .eq("status", "pending");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  if (!unsignedContracts?.length && !pendingWithdrawals) return null;
+
+  return (
+    <div className="space-y-2">
+      {(unsignedContracts?.length ?? 0) > 0 && (
+        <Alert className="border-primary bg-primary/5 animate-fade-in">
+          <FileSignature className="h-4 w-4 text-primary" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>لديك {unsignedContracts!.length} عقود بحاجة إلى توقيعك</span>
+            <Link to="/my-bids" className="text-sm font-medium text-primary underline">عرض العروض</Link>
+          </AlertDescription>
+        </Alert>
+      )}
+      {(pendingWithdrawals ?? 0) > 0 && (
+        <Alert className="border-warning bg-warning/5 animate-fade-in">
+          <AlertCircle className="h-4 w-4 text-warning" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{pendingWithdrawals} طلب سحب قيد المراجعة</span>
+            <Link to="/earnings" className="text-sm font-medium text-primary underline">المعاملات</Link>
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
 }
 
 function DonorDashboard() {
@@ -140,7 +203,7 @@ function DashboardStats({ role }: { role: string }) {
 }
 
 export default function Dashboard() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const { data: profile } = useProfile();
   const { data: pendingRatings } = usePendingRatings();
   const title = role ? roleTitles[role] : "لوحة التحكم";
@@ -163,6 +226,9 @@ export default function Dashboard() {
             <span>{today}</span>
           </div>
         </div>
+
+        {/* Provider action items */}
+        {role === "service_provider" && <ProviderActionItems />}
 
         {pendingRatings && pendingRatings.length > 0 && (
           <Alert className="border-warning bg-warning/10 animate-fade-in">

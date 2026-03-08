@@ -1,9 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useEarnings() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime for escrow changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-earnings-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "escrow_transactions", filter: `payee_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["earnings"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["earnings", user?.id],
     enabled: !!user,
