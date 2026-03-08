@@ -428,7 +428,26 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     console.error("Contract creation error:", contractErr);
   }
 
-  // 3. Update project status to in_progress
+  // 3. Create auto-accepted bid so provider appears in bids tab
+  const { data: existingBid } = await adminClient
+    .from("bids")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("provider_id", providerId)
+    .maybeSingle();
+
+  if (!existingBid) {
+    await adminClient.from("bids").insert({
+      project_id: projectId,
+      provider_id: providerId,
+      price: baseAmount,
+      timeline_days: 30,
+      cover_letter: "عرض تلقائي — دفع مشروع",
+      status: "accepted",
+    });
+  }
+
+  // 4. Update project status to in_progress
   const { error: projErr } = await adminClient.from("projects").update({
     status: "in_progress",
   }).eq("id", projectId);
@@ -436,6 +455,6 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     console.error("Project status update error:", projErr);
   }
 
-  // 4. Auto-generate invoice
+  // 5. Auto-generate invoice
   await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, baseAmount, commissionRate);
 }
