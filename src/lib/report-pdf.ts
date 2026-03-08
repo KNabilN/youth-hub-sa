@@ -34,9 +34,11 @@ function createOffscreenContainer(): HTMLDivElement {
     position: fixed; top: -99999px; left: -99999px;
     width: ${CONTAINER_WIDTH}px; background: ${BRAND.white}; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: rtl; unicode-bidi: bidi-override; text-align: right;
+    direction: rtl; unicode-bidi: isolate; text-align: right;
     padding: 0; line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    word-spacing: 2px;
   `;
   document.body.appendChild(el);
   return el;

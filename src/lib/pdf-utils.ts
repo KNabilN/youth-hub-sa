@@ -68,7 +68,7 @@ export function bidi(text: string): string {
 
 /** Wrap text in an HTML <bdi> tag for RTL isolation */
 export function bdiTag(text: string): string {
-  return `<bdi dir="rtl" style="unicode-bidi:isolate;">${text}</bdi>`;
+  return `<bdi dir="rtl" style="unicode-bidi:embed;direction:rtl;">${text}</bdi>`;
 }
 
 /* ── Logo to Base64 data URL ── */

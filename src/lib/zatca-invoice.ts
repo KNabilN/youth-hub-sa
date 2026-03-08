@@ -53,7 +53,8 @@ async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanva
     position: fixed; top: -99999px; left: -99999px;
     width: ${width}px; background: #ffffff; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: rtl; unicode-bidi: bidi-override; text-align: right;
+    direction: rtl; unicode-bidi: isolate; text-align: right;
+    text-rendering: optimizeLegibility; word-spacing: 2px;
     padding: 0;
   `;
   container.innerHTML = html;
