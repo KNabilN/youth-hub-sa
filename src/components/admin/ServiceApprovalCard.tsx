@@ -104,9 +104,13 @@ export function ServiceApprovalCard({ service }: { service: any }) {
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
           <div className="flex gap-2 flex-wrap">
-            <Button size="sm" onClick={() => handleApproval("approved")} disabled={update.isPending || service.approval === "approved"}>موافقة</Button>
-            <Button size="sm" variant="destructive" onClick={() => handleApproval("rejected")} disabled={update.isPending || service.approval === "rejected"}>رفض</Button>
-            {(service.approval === "approved" || service.approval === "pending") && (
+            {service.approval === "pending" && (
+              <>
+                <Button size="sm" onClick={() => handleApproval("approved")} disabled={update.isPending}>موافقة</Button>
+                <Button size="sm" variant="destructive" onClick={() => handleApproval("rejected")} disabled={update.isPending}>رفض</Button>
+              </>
+            )}
+            {service.approval === "approved" && (
               <Button size="sm" variant="outline" className="text-orange-600" onClick={() => openReasonDialog("suspended")} disabled={update.isPending}>
                 <Pause className="h-4 w-4 me-1" />تعليق
               </Button>

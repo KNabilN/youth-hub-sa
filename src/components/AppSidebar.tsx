@@ -232,6 +232,14 @@ export function AppSidebar() {
           .is("deleted_at", null)
           .eq("is_verified", false);
         counts["/admin/users"] = newUsers ?? 0;
+
+        // خدمات بانتظار الموافقة
+        const { count: pendingServices } = await supabase
+          .from("micro_services")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null)
+          .eq("approval", "pending");
+        counts["/admin/services"] = pendingServices ?? 0;
       }
 
       return counts;
