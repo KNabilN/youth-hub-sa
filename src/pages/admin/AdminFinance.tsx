@@ -260,7 +260,12 @@ export default function AdminFinance() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
         <FinanceSummary />
-        <Tabs defaultValue="escrow">
+        <Tabs defaultValue="escrow" onValueChange={(val) => {
+          if (val === "invoices") {
+            markInvoicesSeen();
+            queryClient.invalidateQueries({ queryKey: ["admin-finance-pending"] });
+          }
+        }}>
           <div className="flex justify-end overflow-x-auto">
             <TabsList className="flex-nowrap scrollbar-hide">
               <TabsTrigger value="escrow" className="gap-1.5">
@@ -269,7 +274,12 @@ export default function AdminFinance() {
                   <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">{pendingCounts!.escrow}</Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="invoices">الفواتير</TabsTrigger>
+              <TabsTrigger value="invoices" className="gap-1.5">
+                الفواتير
+                {(pendingCounts?.invoices ?? 0) > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full">{pendingCounts!.invoices}</Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="withdrawals" className="gap-1.5">
                 طلبات السحب
                 {(pendingCounts?.withdrawals ?? 0) > 0 && (
