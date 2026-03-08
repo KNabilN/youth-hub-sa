@@ -189,10 +189,19 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
   const items = ctx.items || [];
   const beneficiaryId = ctx.beneficiary_id || null;
 
+  // Check if buyer is a youth_association
+  const { data: buyerRole } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .single();
+  const isAssociation = buyerRole?.role === "youth_association";
+
   for (const item of items) {
     let projectId: string | null = null;
 
     if (beneficiaryId) {
+      // Donor buying for a beneficiary association
       const title = item.title || "خدمة ممولة من مانح";
       const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
       const { data: project, error: projErr } = await adminClient
@@ -220,6 +229,36 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
           entity_type: "project",
         });
       }
+    } else if (isAssociation) {
+      // Association buying directly — auto-create project + contract
+      const title = item.title || "خدمة من السوق";
+      const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
+      const { data: project, error: projErr } = await adminClient
+        .from("projects")
+        .insert({
+          title: title + hoursNote,
+          description: `شراء مباشر من السوق — ${title}${hoursNote}`,
+          association_id: userId,
+          assigned_provider_id: item.provider_id,
+          status: "in_progress",
+          budget: item.price,
+          is_private: true,
+        })
+        .select("id")
+        .single();
+      if (projErr) {
+        console.error("Project creation error (association):", projErr);
+      } else {
+        projectId = project.id;
+        // Create contract with association auto-signed
+        await adminClient.from("contracts").insert({
+          project_id: project.id,
+          association_id: userId,
+          provider_id: item.provider_id,
+          terms: `عقد تنفيذ خدمة "${title}" بقيمة ${item.price} ر.س`,
+          association_signed_at: new Date().toISOString(),
+        });
+      }
     }
 
     const { data: escrow, error: escrowErr } = await adminClient
@@ -242,12 +281,15 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
       await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate);
     }
 
-    await adminClient.from("donor_contributions").insert({
-      donor_id: userId,
-      service_id: item.service_id,
-      association_id: beneficiaryId,
-      amount: item.price,
-    });
+    // Only create donor_contributions for donors, not associations
+    if (!isAssociation) {
+      await adminClient.from("donor_contributions").insert({
+        donor_id: userId,
+        service_id: item.service_id,
+        association_id: beneficiaryId,
+        amount: item.price,
+      });
+    }
   }
 
   await adminClient.from("cart_items").delete().eq("user_id", userId);
