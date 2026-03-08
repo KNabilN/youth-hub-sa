@@ -37,7 +37,7 @@ const typeLabel: Record<string, string> = {
   hourly: "بالساعة",
 };
 
-export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText }: LandingServicesGridProps) {
+export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
