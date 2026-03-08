@@ -157,14 +157,25 @@ export default function AdminServiceDetail() {
               <CardHeader><CardTitle className="text-sm">حالة الموافقة</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Badge className={approvalColors[service.approval]}>{approvalLabels[service.approval]}</Badge>
-                <Select value={service.approval} onValueChange={(v) => handleApprovalChange(v as ApprovalStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(approvalLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const transitions: Record<string, string[]> = {
+                    pending: ["approved", "rejected"],
+                    approved: ["suspended"],
+                    suspended: ["approved"],
+                  };
+                  const allowed = transitions[service.approval] || [];
+                  if (allowed.length === 0) return null;
+                  return (
+                    <Select onValueChange={(v) => handleApprovalChange(v as ApprovalStatus)}>
+                      <SelectTrigger><SelectValue placeholder="تغيير الحالة" /></SelectTrigger>
+                      <SelectContent>
+                        {allowed.map((k) => (
+                          <SelectItem key={k} value={k}>{approvalLabels[k]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
               </CardContent>
             </Card>
 
