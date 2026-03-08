@@ -1,12 +1,12 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+## تطبيق نفس تعديلات جدول الخدمات على جدول طلبات الجمعيات
 
-### ما تم تنفيذه
+### التغييرات على `src/pages/admin/AdminProjects.tsx`:
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+1. **إضافة `useNavigate`** من `react-router-dom`
+2. **الصف كامل قابل للنقر**: إضافة `onClick={() => navigate(`/admin/projects/${p.id}`)}` و `cursor-pointer hover:bg-muted/50` على `TableRow`
+3. **اقتصاص العنوان**: إضافة `max-w-[120px] truncate` مع `title` attribute على خلية العنوان (سطر 185)
+4. **اقتصاص اسم الجمعية**: إضافة `max-w-[100px] truncate` مع `title` على خلية الجمعية (سطر 186)
+5. **`stopPropagation`** على العناصر التفاعلية: إظهار الاسم (Switch)، مميز (Switch)، تغيير الحالة (Select)، وأزرار الإجراءات
+
