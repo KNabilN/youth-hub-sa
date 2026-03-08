@@ -155,6 +155,7 @@ export default function Index() {
           title={rs.title}
           subtitle={rs.subtitle}
           buttonText={rs.button_text}
+          isLoggedIn={!!user}
         />
       )}
 
