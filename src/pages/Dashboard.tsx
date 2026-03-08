@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
+import { AssociationActionItems } from "@/components/dashboard/AssociationActionItems";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
@@ -227,8 +228,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Provider action items */}
+        {/* Action items */}
         {role === "service_provider" && <ProviderActionItems />}
+        {role === "youth_association" && <AssociationActionItems />}
 
         {pendingRatings && pendingRatings.length > 0 && (
           <Alert className="border-warning bg-warning/10 animate-fade-in">
