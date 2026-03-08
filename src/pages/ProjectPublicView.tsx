@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Building2, MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { Tag, Building2, MapPin, Calendar, ArrowLeft, Home, ChevronLeft } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProjectPublicView() {
   const { id } = useParams<{ id: string }>();
