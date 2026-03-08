@@ -204,6 +204,7 @@ Deno.serve(async (req) => {
 async function processCheckout(adminClient: any, userId: string, ctx: any, commissionRate: number, paymentId?: string) {
   const items = ctx.items || [];
   const beneficiaryId = ctx.beneficiary_id || null;
+  const skipProjectCreation = ctx.skip_project_creation === true;
 
   // Check if buyer is a youth_association
   const { data: buyerRole } = await adminClient
@@ -214,9 +215,11 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
   const isAssociation = buyerRole?.role === "youth_association";
 
   for (const item of items) {
-    let projectId: string | null = null;
+    let projectId: string | null = item.project_id || null;
 
-    if (beneficiaryId) {
+    if (skipProjectCreation) {
+      console.log("Skipping project/contract/bid creation as requested by context (hybrid payment)");
+    } else if (beneficiaryId) {
       // Donor buying for a beneficiary association
       const title = item.title || "خدمة ممولة من مانح";
       const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
