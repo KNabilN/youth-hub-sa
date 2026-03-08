@@ -76,6 +76,7 @@ export default function AdminServices() {
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
+  const navigate = useNavigate();
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
