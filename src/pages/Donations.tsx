@@ -360,40 +360,10 @@ export default function Donations() {
             ) : !contributions?.length ? (
               <EmptyState icon={HandCoins} title="لا توجد منح سابقة" description="قدّم منحتك الأولى من النموذج أعلاه" />
             ) : (
-              <Tabs defaultValue="timeline" dir="rtl">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="timeline">السجل الزمني</TabsTrigger>
-                  <TabsTrigger value="table">جدول</TabsTrigger>
-                  <TabsTrigger value="consumed">استخدام المنح</TabsTrigger>
-                </TabsList>
-                <TabsContent value="timeline">
-                  <DonationTimeline contributions={contributions as any} />
-                </TabsContent>
-                <TabsContent value="table">
-                  <div className="overflow-x-auto"><Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>التاريخ</TableHead>
-                        <TableHead>الوجهة</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>المبلغ</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {contributions.map((c: any) => {
-                        const st = statusConfig[c.donation_status] ?? statusConfig.available;
-                        const target = c.projects?.title || (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name || "منحة عامة";
-                        return (
-                          <TableRow key={c.id}>
-                            <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                            <TableCell>{target}</TableCell>
-                            <TableCell><Badge variant={st.variant} className="text-[10px]">{st.label}</Badge></TableCell>
-                            <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table></div>
+              <DonationsLog contributions={contributions} />
+            )}
+          </CardContent>
+        </Card>
                 </TabsContent>
                 <TabsContent value="consumed">
                   <ConsumedBreakdown />
