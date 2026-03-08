@@ -72,7 +72,15 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {services.map((s) => (
-              <Card key={s.id} className="card-hover group overflow-hidden">
+              <Card key={s.id} className="card-hover group overflow-hidden relative">
+                {(s as any).is_featured && (
+                  <div className="absolute top-2 start-2 z-10">
+                    <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-500 text-white border-0 text-xs">
+                      <Star className="w-3 h-3 fill-white" />
+                      مميزة
+                    </Badge>
+                  </div>
+                )}
                 {s.image_url && (
                   <div className="w-full h-40 overflow-hidden">
                     <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
