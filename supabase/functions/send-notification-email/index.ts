@@ -256,7 +256,7 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${relayApiKey}`,
+        "X-API-Key": relayApiKey,
       },
       body: JSON.stringify({
         to: userEmail,
