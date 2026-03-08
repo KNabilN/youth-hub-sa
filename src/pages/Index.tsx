@@ -160,6 +160,7 @@ export default function Index() {
 
       {/* 5. الخدمات المتوفرة */}
       {ss.visible !== false && (
+        <div id="services-section">
         <LandingServicesGrid
           services={services}
           loading={servicesLoading}
