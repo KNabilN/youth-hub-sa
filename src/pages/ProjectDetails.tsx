@@ -259,7 +259,14 @@ export default function ProjectDetails() {
   const isProvider = role === "service_provider" && user?.id === project?.assigned_provider_id;
 
   if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
-  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
+  if (!project) return (
+    <DashboardLayout>
+      <div className="text-center py-16 space-y-4">
+        <p className="text-lg text-muted-foreground">هذا الطلب غير موجود أو تم حذفه</p>
+        <Button variant="outline" onClick={() => navigate("/projects")}>العودة لقائمة الطلبات</Button>
+      </div>
+    </DashboardLayout>
+  );
 
   return (
     <DashboardLayout>
