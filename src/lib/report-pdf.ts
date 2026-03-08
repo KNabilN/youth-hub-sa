@@ -4,7 +4,7 @@ import React from "react";
 import { getLogoBase64, generateRefNumber } from "./pdf-utils";
 import "@/lib/pdf-fonts"; // registers Cairo font
 import { ReportDocument } from "@/components/pdf/ReportDocument";
-import { toPng } from "html-to-image";
+
 
 interface ReportSection {
   title: string;
