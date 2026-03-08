@@ -1,12 +1,38 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+## إصلاح: فواتير طلبات السحب المقبولة لا تظهر عند مزود الخدمة
 
-### ما تم تنفيذه
+### المشكلة
+عند الموافقة على طلب سحب لمزود خدمة، لا يتم إصدار فاتورة له. السبب:
+- دالة `handleApproveWithdrawal` في `AdminFinance.tsx` تحدث حالة السحب فقط وترفق الإيصال، لكنها **لا تنشئ فاتورة** لمزود الخدمة.
+- الفواتير الموجودة مربوطة بالجمعية (الدافع) عبر `issued_to = payer_id`، وليس بمزود الخدمة.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+### الحل
+عند الموافقة على طلب السحب، نُصدر فاتورة جديدة لمزود الخدمة تحتوي على تفاصيل المبلغ المحول.
+
+#### التعديلات:
+
+**1. `src/pages/admin/AdminFinance.tsx`** — في `handleApproveWithdrawal`:
+- بعد نجاح تحديث حالة السحب، استدعاء `useGenerateInvoice` لإصدار فاتورة باسم مزود الخدمة (`provider_id`).
+- نحتاج جلب `escrow_id` و `provider_id` من بيانات طلب السحب المتاحة.
+
+```typescript
+// بعد نجاح updateW.mutate:
+const withdrawal = withdrawals?.find(w => w.id === wTargetId);
+if (withdrawal?.escrow_id) {
+  generateInvoice.mutate({
+    escrowId: withdrawal.escrow_id,
+    amount: Number(withdrawal.amount),
+    issuedTo: withdrawal.provider_id,
+  });
+}
+```
+
+**2. `src/hooks/useMyInvoices.ts`** — لا تحتاج تعديل، لأنها تستعلم بناءً على `issued_to = user.id` وستعرض الفاتورة الجديدة تلقائياً.
+
+### ملخص الملفات المتأثرة
+
+| الملف | التعديل |
+|---|---|
+| `src/pages/admin/AdminFinance.tsx` | إضافة استدعاء `useGenerateInvoice` عند الموافقة على طلب السحب |
+
