@@ -187,6 +187,7 @@ async function executeGrantPayment(userId: string, amount: number, totalAmount: 
       } catch (err) {
         throw err;
       }
+}
 
 async function rollbackGrants(
   consumedIds: string[],
