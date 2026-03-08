@@ -1,17 +1,12 @@
 
-# خطة: إرسال إيميلات الإشعارات عبر PHP Relay
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
 ## الحالة: ✅ تم التنفيذ
 
 ### ما تم تنفيذه
 
-1. **Edge Function `send-notification-email`** — تستخدم `fetch()` لإرسال البريد عبر PHP Relay على `api.sharedservices.solutions`
-2. **DB Trigger `trg_send_notification_email`** — يستدعي Edge Function عبر `pg_net` عند كل إشعار جديد
-3. **تصنيف الإشعارات** — إضافة `defaultEnabled` لكل نوع:
-   - مفعّل افتراضياً: الإشعارات المهمة (قبول/رفض عروض، عقود، مالية، نزاعات)
-   - معطّل افتراضياً: الإشعارات المتكررة (رسائل، عروض واردة، ضمان جديد)
-4. **حذف Edge Functions القديمة** — `send-email` و `notify-deliverable`
-5. **تحديث `notification-preferences.ts`** — دعم `defaultEnabled` + حذف `isNotificationEnabled` (dead code)
-6. **تحديث `NotificationPreferences.tsx`** — عرض القيم الافتراضية الصحيحة
-7. **Error Handling** — عند فشل الإرسال يتم تحديث `delivery_status` إلى `failed` في قاعدة البيانات
-8. **Secret `RELAY_API_KEY`** — مفتاح المصادقة مع PHP Relay
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
