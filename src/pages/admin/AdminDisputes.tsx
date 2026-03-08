@@ -14,7 +14,7 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { Eye, FileEdit, Download, Trash2 } from "lucide-react";
+import { Eye, FileEdit, Download, Trash2, Gavel } from "lucide-react";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,7 +77,18 @@ export default function AdminDisputes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">إدارة الشكاوى</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <Gavel className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">إدارة الشكاوى</h1>
+              <p className="text-sm text-muted-foreground">متابعة وحل النزاعات بين الأطراف</p>
+            </div>
+          </div>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>

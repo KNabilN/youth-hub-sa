@@ -1,14 +1,35 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, startOfMonth, subMonths, parseISO } from "date-fns";
+import { format, startOfMonth, subMonths, parseISO, startOfWeek } from "date-fns";
+import { useEffect } from "react";
 
 export function useAdminStats() {
+  const qc = useQueryClient();
+
+  // Realtime: invalidate stats on key table changes
+  useEffect(() => {
+    const tables = ["micro_services", "projects", "disputes", "support_tickets", "escrow_transactions", "profiles"] as const;
+    const channels = tables.map((table) =>
+      supabase
+        .channel(`rt-admin-stats-${table}`)
+        .on("postgres_changes", { event: "*", schema: "public", table }, () =>
+          qc.invalidateQueries({ queryKey: ["admin-stats"] })
+        )
+        .subscribe()
+    );
+    return () => { channels.forEach((ch) => supabase.removeChannel(ch)); };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [usersRes, projectsRes, disputesRes, invoicesRes, servicesRes, bidsRes, escrowRes, ticketsRes] = await Promise.all([
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString();
+
+      const [usersRes, newUsersRes, projectsRes, pendingProjectsRes, disputesRes, invoicesRes, servicesRes, bidsRes, escrowRes, ticketsRes] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
         supabase.from("projects").select("id", { count: "exact", head: true }),
+        supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
         supabase.from("disputes").select("id", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("invoices").select("commission_amount"),
         supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "pending"),
@@ -22,7 +43,9 @@ export function useAdminStats() {
 
       return {
         totalUsers: usersRes.count ?? 0,
+        newUsersThisWeek: newUsersRes.count ?? 0,
         totalProjects: projectsRes.count ?? 0,
+        pendingProjects: pendingProjectsRes.count ?? 0,
         openDisputes: disputesRes.count ?? 0,
         revenue,
         pendingServices: servicesRes.count ?? 0,
@@ -49,7 +72,6 @@ export function useAdminGrowthData() {
 
       const monthlyData: Record<string, { users: number; projects: number; escrow: number; donations: number }> = {};
 
-      // Initialize last 6 months
       for (let i = 5; i >= 0; i--) {
         const key = format(startOfMonth(subMonths(new Date(), i)), "yyyy-MM");
         monthlyData[key] = { users: 0, projects: 0, escrow: 0, donations: 0 };

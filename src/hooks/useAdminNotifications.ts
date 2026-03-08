@@ -1,7 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export function useAdminNotifications(statusFilter?: string, typeFilter?: string, page = 0, pageSize = 50) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("rt-admin-notifications")
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin-notifications"] });
+        qc.invalidateQueries({ queryKey: ["admin-notification-stats"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["admin-notifications", statusFilter, typeFilter, page],
     queryFn: async () => {

@@ -39,6 +39,7 @@ export default function AdminNotifications() {
   const statCards = [
     { label: "إجمالي الإشعارات", value: stats?.total ?? 0, icon: Bell, bg: "bg-primary/10", text: "text-primary" },
     { label: "تم التوصيل", value: stats?.delivered ?? 0, icon: CheckCircle, bg: "bg-emerald-500/10", text: "text-emerald-600" },
+    { label: "قيد الإرسال", value: stats?.pending ?? 0, icon: Clock, bg: "bg-warning/10", text: "text-warning" },
     { label: "فشل", value: stats?.failed ?? 0, icon: XCircle, bg: "bg-destructive/10", text: "text-destructive" },
   ];
 
@@ -56,7 +57,7 @@ export default function AdminNotifications() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((s, i) => (
             <Card key={i}>
               <CardContent className="flex items-center gap-3 p-4">

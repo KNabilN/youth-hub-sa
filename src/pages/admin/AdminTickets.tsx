@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Eye, Ticket } from "lucide-react";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 import type { Database } from "@/integrations/supabase/types";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
 
@@ -60,11 +62,12 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function AdminTickets() {
-  
+  const pagination = usePagination();
   const { data: tickets, isLoading } = useAdminTickets();
   const updateStatus = useUpdateTicketStatus();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
@@ -73,8 +76,11 @@ export default function AdminTickets() {
     const q = search.toLowerCase();
     if (search && !t.subject.toLowerCase().includes(q) && !(t.ticket_number ?? '').toLowerCase().includes(q)) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
+    if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
     return true;
   });
+
+  const paged = filtered.slice(pagination.from, pagination.to + 1);
 
   const handleStatusChange = (id: string, status: TicketStatus) => {
     updateStatus.mutate({ id, status }, {
@@ -86,7 +92,19 @@ export default function AdminTickets() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">تذاكر الدعم الفني</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <Ticket className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">تذاكر الدعم الفني</h1>
+              <p className="text-sm text-muted-foreground">متابعة وحل تذاكر الدعم الفني</p>
+            </div>
+          </div>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
@@ -94,7 +112,7 @@ export default function AdminTickets() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); pagination.resetPage(); }}>
               <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
@@ -102,11 +120,21 @@ export default function AdminTickets() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">الأولوية</Label>
+            <Select value={priorityFilter} onValueChange={(v) => { setPriorityFilter(v); pagination.resetPage(); }}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="الأولوية" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {Object.entries(priorityLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             variant="outline"
             size="sm"
             className="h-10"
-            onClick={() => { setSearch(""); setStatusFilter("all"); }}
+            onClick={() => { setSearch(""); setStatusFilter("all"); setPriorityFilter("all"); pagination.resetPage(); }}
           >
             إعادة تعيين
           </Button>
@@ -119,50 +147,62 @@ export default function AdminTickets() {
             {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         ) : (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                   <TableHead>رقم التذكرة</TableHead>
-                   <TableHead>الموضوع</TableHead>
-                   <TableHead>المستخدم</TableHead>
-                   <TableHead>الأولوية</TableHead>
-                   <TableHead>الحالة</TableHead>
-                   <TableHead>التاريخ</TableHead>
-                   <TableHead>تغيير الحالة</TableHead>
-                   <TableHead>إجراءات</TableHead>
-                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((t: any) => (
-                   <TableRow key={t.id}>
-                      <TableCell className="font-mono text-sm font-semibold">
-                        <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
+          <>
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                     <TableHead>رقم التذكرة</TableHead>
+                     <TableHead>الموضوع</TableHead>
+                     <TableHead>المستخدم</TableHead>
+                     <TableHead>الأولوية</TableHead>
+                     <TableHead>الحالة</TableHead>
+                     <TableHead>التاريخ</TableHead>
+                     <TableHead>تغيير الحالة</TableHead>
+                     <TableHead>إجراءات</TableHead>
+                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paged.map((t: any) => (
+                     <TableRow key={t.id}>
+                        <TableCell className="font-mono text-sm font-semibold">
+                          <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
+                        </TableCell>
+                       <TableCell className="font-medium">{t.subject}</TableCell>
+                      <TableCell>{t.profiles?.organization_name || t.profiles?.full_name || "—"}</TableCell>
+                      <TableCell><Badge className={priorityColors[t.priority]}>{priorityLabels[t.priority]}</Badge></TableCell>
+                      <TableCell><Badge className={statusColors[t.status]}>{statusLabels[t.status]}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{format(new Date(t.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                      <TableCell>
+                        <Select value={t.status} onValueChange={(v) => handleStatusChange(t.id, v as TicketStatus)}>
+                          <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
-                     <TableCell className="font-medium">{t.subject}</TableCell>
-                    <TableCell>{t.profiles?.organization_name || t.profiles?.full_name || "—"}</TableCell>
-                    <TableCell><Badge className={priorityColors[t.priority]}>{priorityLabels[t.priority]}</Badge></TableCell>
-                    <TableCell><Badge className={statusColors[t.status]}>{statusLabels[t.status]}</Badge></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{format(new Date(t.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                    <TableCell>
-                      <Select value={t.status} onValueChange={(v) => handleStatusChange(t.id, v as TicketStatus)}>
-                        <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(t)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
-              </TableBody>
-            </Table>
-          </div>
+                      <TableCell className="flex gap-1">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/admin/tickets/${t.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(t)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paged.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </div>
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalFetched={paged.length}
+              onPrev={pagination.prevPage}
+              onNext={pagination.nextPage}
+            />
+          </>
         )}
       </div>
       <ExportDialog
