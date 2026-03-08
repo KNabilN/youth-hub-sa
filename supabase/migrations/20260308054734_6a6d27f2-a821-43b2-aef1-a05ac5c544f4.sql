@@ -1,0 +1,1 @@
+ALTER TABLE public.notifications ALTER COLUMN delivery_status SET DEFAULT 'pending';
