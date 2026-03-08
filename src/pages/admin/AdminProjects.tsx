@@ -82,6 +82,7 @@ export default function AdminProjects() {
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
+  const navigate = useNavigate();
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
