@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag, Building2, MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { Tag, Building2, MapPin, Calendar, ArrowLeft, Home, ChevronLeft } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProjectPublicView() {
   const { id } = useParams<{ id: string }>();
+  const { user, role } = useAuth();
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["project-public", id],
@@ -58,7 +60,15 @@ export default function ProjectPublicView() {
 
   return (
     <div className="container mx-auto max-w-3xl py-12 px-4 space-y-8">
-      {/* Header */}
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+          <Home className="w-3.5 h-3.5" />
+          الرئيسية
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <span className="text-foreground font-medium truncate max-w-[200px]">{project.title}</span>
+      </nav>
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {project.category && (
@@ -113,12 +123,21 @@ export default function ProjectPublicView() {
 
       {/* CTA */}
       <div className="text-center pt-4">
-        <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
-          <Link to="/auth?mode=register">
-            سجّل دخولك لتقديم عرض
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-          </Link>
-        </Button>
+        {user && role === "service_provider" ? (
+          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
+            <Link to={`/available-projects/${project.id}`}>
+              تقديم عرض
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+            </Link>
+          </Button>
+        ) : !user ? (
+          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
+            <Link to="/auth?mode=register">
+              سجّل لتقديم عرضك
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+            </Link>
+          </Button>
+        ) : null}
       </div>
     </div>
   );

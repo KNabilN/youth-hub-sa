@@ -21,9 +21,10 @@ interface LandingRequestsTableProps {
   title?: string;
   subtitle?: string;
   buttonText?: string;
+  isLoggedIn?: boolean;
 }
 
-export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn }: LandingRequestsTableProps) {
   if (!loading && projects.length === 0) return null;
 
   return (
@@ -108,8 +109,8 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
 
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-            <Link to="/auth?mode=register">
-              {buttonText || "سجّل لتقديم عروضك"}
+            <Link to={isLoggedIn ? "/available-projects" : "/auth?mode=register"}>
+              {isLoggedIn ? "عرض جميع الطلبات" : (buttonText || "سجّل لتقديم عروضك")}
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>

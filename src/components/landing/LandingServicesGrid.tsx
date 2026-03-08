@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check } from "lucide-react";
+import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,8 @@ interface Service {
   service_type: string;
   image_url: string | null;
   approval: string;
+  is_featured?: boolean;
+  sales_count?: number | null;
   category: { name: string } | null;
   region: { name: string } | null;
   provider: { full_name: string } | null;
@@ -27,6 +29,7 @@ interface LandingServicesGridProps {
   title?: string;
   subtitle?: string;
   buttonText?: string;
+  isLoggedIn?: boolean;
 }
 
 const typeLabel: Record<string, string> = {
@@ -34,7 +37,7 @@ const typeLabel: Record<string, string> = {
   hourly: "بالساعة",
 };
 
-export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText }: LandingServicesGridProps) {
+export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
@@ -69,7 +72,15 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {services.map((s) => (
-              <Card key={s.id} className="card-hover group overflow-hidden">
+              <Card key={s.id} className="card-hover group overflow-hidden relative">
+                {(s as any).is_featured && (
+                  <div className="absolute top-2 start-2 z-10">
+                    <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-500 text-white border-0 text-xs">
+                      <Star className="w-3 h-3 fill-white" />
+                      مميزة
+                    </Badge>
+                  </div>
+                )}
                 {s.image_url && (
                   <div className="w-full h-40 overflow-hidden">
                     <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -141,8 +152,8 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
 
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-            <Link to="/auth?mode=register">
-              {buttonText || "تصفح جميع الخدمات"}
+            <Link to={isLoggedIn ? "/marketplace" : "/auth?mode=register"}>
+              {isLoggedIn ? "تصفح جميع الخدمات" : (buttonText || "تصفح جميع الخدمات")}
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>

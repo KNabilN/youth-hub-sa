@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CharCounter } from "@/components/ui/char-counter";
+import { useAuth } from "@/hooks/useAuth";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم مطلوب").max(100),
@@ -19,6 +20,7 @@ const contactSchema = z.object({
 const COOLDOWN_MS = 30_000;
 
 export function ContactForm() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -26,6 +28,13 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+
+  // Auto-fill email for logged-in users
+  useEffect(() => {
+    if (user?.email && !email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const isCoolingDown = Date.now() < cooldownUntil;
 

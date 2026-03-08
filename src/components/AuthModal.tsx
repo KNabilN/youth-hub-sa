@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Building2, UserCheck, HandCoins, CheckCircle2, Phone, X } from "lucide-react";
+import { Building2, UserCheck, HandCoins, Phone, X, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { z } from "zod";
+import { StepProgress } from "@/components/ui/step-progress";
+import { PasswordStrength } from "@/components/ui/password-strength";
 import {
   Dialog,
   DialogTitle,
@@ -34,9 +36,14 @@ const loginSchema = z.object({
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
 });
 
-const registerSchema = loginSchema.extend({
+const step1Schema = z.object({
   fullName: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
   phone: z.string().trim().length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة").regex(/^[0-9]+$/, "رقم جوال غير صالح"),
+});
+
+const step2Schema = z.object({
+  email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
   pdplConsent: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }) }),
 });
 
@@ -44,6 +51,11 @@ const roleOptions: { key: AppRole; label: string; icon: typeof Building2; desc: 
   { key: "youth_association", label: "جمعية شبابية", icon: Building2, desc: "إنشاء طلبات وتعيين مقدمي خدمات" },
   { key: "service_provider", label: "مقدم خدمة", icon: UserCheck, desc: "تقديم خدمات وعروض للطلبات" },
   { key: "donor", label: "مانح", icon: HandCoins, desc: "تمويل المشاريع والخدمات" },
+];
+
+const registerSteps = [
+  { label: "البيانات الأساسية" },
+  { label: "الحساب والأمان" },
 ];
 
 interface AuthModalProps {
@@ -57,12 +69,14 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<AppRole>("youth_association");
   const [phone, setPhone] = useState("");
   const [pdplConsent, setPdplConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [regStep, setRegStep] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -70,18 +84,14 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     if (open) {
       setIsLogin(defaultMode === "login");
       setErrors({});
+      setRegStep(0);
+      setShowPassword(false);
     }
   }, [open, defaultMode]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleNextStep = () => {
     setErrors({});
-
-    const schema = isLogin ? loginSchema : registerSchema;
-    const parsed = schema.safeParse(
-      isLogin ? { email, password } : { email, password, fullName, phone, pdplConsent }
-    );
-
+    const parsed = step1Schema.safeParse({ fullName, phone });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
       parsed.error.errors.forEach((err) => {
@@ -91,17 +101,48 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setErrors(fieldErrors);
       return;
     }
+    setRegStep(1);
+  };
 
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
     if (isLogin) {
+      const parsed = loginSchema.safeParse({ email, password });
+      if (!parsed.success) {
+        const fieldErrors: Record<string, string> = {};
+        parsed.error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+
+      setLoading(true);
       const { error } = await signIn(email.trim(), password);
       if (error) {
         toast.error(error.message);
       } else {
+        toast.success("مرحباً بعودتك! 👋");
         onOpenChange(false);
         navigate("/dashboard");
       }
+      setLoading(false);
     } else {
+      const parsed = step2Schema.safeParse({ email, password, pdplConsent });
+      if (!parsed.success) {
+        const fieldErrors: Record<string, string> = {};
+        parsed.error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+
+      setLoading(true);
       const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
       if (error) {
         toast.error(error.message);
@@ -109,9 +150,37 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         toast.success("تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.");
         onOpenChange(false);
       }
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  const PasswordInput = ({ id, value, onChange, error }: { id: string; value: string; onChange: (v: string) => void; error?: string }) => (
+    <div className="space-y-2">
+      <Label htmlFor={id}>كلمة المرور <span className="text-destructive">*</span></Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="••••••••"
+          required
+          dir="ltr"
+          className={cn("text-start h-11 pe-10", error && "border-destructive")}
+          minLength={6}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          tabIndex={-1}
+        >
+          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
 
   const formContent = (
     <div className="space-y-5 p-6">
@@ -124,8 +193,36 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </p>
       </div>
 
+      {/* Step Progress for Registration */}
+      {!isLogin && (
+        <StepProgress steps={registerSteps} currentStep={regStep} className="mb-2" />
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        {!isLogin && (
+        {isLogin ? (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
+              <Input
+                id="modal-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@domain.com"
+                required
+                dir="ltr"
+                className={cn("text-start h-11", errors.email && "border-destructive")}
+              />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            </div>
+
+            <PasswordInput id="modal-password" value={password} onChange={setPassword} error={errors.password} />
+
+            <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
+              {loading ? "جارٍ المعالجة..." : "تسجيل الدخول"}
+            </Button>
+          </>
+        ) : regStep === 0 ? (
           <>
             <div className="space-y-2">
               <Label htmlFor="modal-fullName">الاسم الكامل <span className="text-destructive">*</span></Label>
@@ -191,69 +288,67 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
               </div>
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
+
+            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep}>
+              التالي
+              <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
+              <Input
+                id="modal-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@domain.com"
+                required
+                dir="ltr"
+                className={cn("text-start h-11", errors.email && "border-destructive")}
+              />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            </div>
+
+            <PasswordInput id="modal-password" value={password} onChange={setPassword} error={errors.password} />
+            <PasswordStrength password={password} />
+
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="modal-pdpl"
+                  checked={pdplConsent}
+                  onCheckedChange={(checked) => setPdplConsent(checked === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="modal-pdpl" className="text-xs leading-relaxed cursor-pointer">
+                  أوافق على{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary underline">
+                    سياسة الخصوصية وحماية البيانات الشخصية
+                  </Link>{" "}
+                  وفقاً لنظام PDPL السعودي
+                </Label>
+              </div>
+              {errors.pdplConsent && <p className="text-xs text-destructive">{errors.pdplConsent}</p>}
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="h-11 gap-2" onClick={() => setRegStep(0)}>
+                <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+                رجوع
+              </Button>
+              <Button type="submit" className="flex-1 h-11 text-base shadow-md" disabled={loading}>
+                {loading ? "جارٍ المعالجة..." : "إنشاء الحساب"}
+              </Button>
+            </div>
           </>
         )}
-
-        <div className="space-y-2">
-          <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
-          <Input
-            id="modal-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@domain.com"
-            required
-            dir="ltr"
-            className={cn("text-start h-11", errors.email && "border-destructive")}
-          />
-          {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="modal-password">كلمة المرور <span className="text-destructive">*</span></Label>
-          <Input
-            id="modal-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            dir="ltr"
-            className={cn("text-start h-11", errors.password && "border-destructive")}
-            minLength={6}
-          />
-          {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-        </div>
-
-        {!isLogin && (
-          <div className="space-y-2">
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="modal-pdpl"
-                checked={pdplConsent}
-                onCheckedChange={(checked) => setPdplConsent(checked === true)}
-                className="mt-0.5"
-              />
-              <Label htmlFor="modal-pdpl" className="text-xs leading-relaxed cursor-pointer">
-                أوافق على{" "}
-                <Link to="/privacy" target="_blank" className="text-primary underline">
-                  سياسة الخصوصية وحماية البيانات الشخصية
-                </Link>{" "}
-                وفقاً لنظام PDPL السعودي
-              </Label>
-            </div>
-            {errors.pdplConsent && <p className="text-xs text-destructive">{errors.pdplConsent}</p>}
-          </div>
-        )}
-
-        <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
-          {loading ? "جارٍ المعالجة..." : isLogin ? "تسجيل الدخول" : "إنشاء الحساب"}
-        </Button>
       </form>
 
       {isLogin && (
         <div className="text-center">
-          <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+          <Link to="/forgot-password" className="text-sm text-primary hover:underline" onClick={() => onOpenChange(false)}>
             نسيت كلمة المرور؟
           </Link>
         </div>
@@ -265,7 +360,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </span>{" "}
         <button
           type="button"
-          onClick={() => { setIsLogin(!isLogin); setErrors({}); }}
+          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); }}
           className="text-primary font-semibold hover:underline"
         >
           {isLogin ? "إنشاء حساب" : "تسجيل الدخول"}
