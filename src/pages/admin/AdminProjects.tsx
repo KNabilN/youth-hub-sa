@@ -231,9 +231,9 @@ export default function AdminProjects() {
                           );
                         })()}
                       </TableCell>
-                      <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/projects/${p.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                      <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${p.id}`)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
