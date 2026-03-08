@@ -22,6 +22,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
 import { AssociationActionItems } from "@/components/dashboard/AssociationActionItems";
+import { DonorActionItems } from "@/components/donor/DonorActionItems";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
