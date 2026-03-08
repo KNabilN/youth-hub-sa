@@ -1,12 +1,28 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# تعديل زر "قدّم عرضك" ليتغير حسب دور المستخدم
 
-### ما تم تنفيذه
+## الفكرة
+- **غير مسجل**: الزر يعمل ويوجه لصفحة التسجيل — "سجّل لتقديم عرضك"
+- **مزود خدمة**: الزر يعمل ويوجه لصفحة المشروع — "قدّم عرضك"
+- **مانح**: الزر يعمل ويوجه لصفحة المنح — "قدّم منحة"
+- **جمعية / أدمن**: الزر معطل (disabled)
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## التغييرات
+
+### 1. `src/pages/Index.tsx`
+- تمرير `role` إلى `LandingRequestsTable` بجانب `isLoggedIn`
+
+### 2. `src/components/landing/LandingRequestsTable.tsx`
+- إضافة prop `role` من نوع `string | null`
+- تعديل زر "قدّم عرضك" في كل بطاقة:
+  - `role === 'donor'` → نص "قدّم منحة" + رابط لصفحة المنح (`/donations`)
+  - `role === 'youth_association' || role === 'super_admin'` → الزر معطل `disabled`
+  - `role === 'service_provider'` → "قدّم عرضك" + رابط لصفحة المشروع
+  - غير مسجل → "سجّل لتقديم عرضك" + رابط `/auth?mode=register`
+- نفس المنطق للزر السفلي "عرض جميع الطلبات"
+
+### الملفات المتأثرة:
+- `src/pages/Index.tsx`
+- `src/components/landing/LandingRequestsTable.tsx`
+
