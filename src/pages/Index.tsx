@@ -223,8 +223,8 @@ export default function Index() {
                 <Button
                   size="lg"
                   className="bg-white text-primary hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
-                  onClick={() => navigate("/auth")}>
-                  {ct.button_text || "سجّل مجاناً"}
+                  onClick={() => navigate(user ? "/dashboard" : "/auth")}>
+                  {user ? "لوحة التحكم" : (ct.button_text || "سجّل مجاناً")}
                   <ArrowLeft className="me-2 h-5 w-5" />
                 </Button>
               </div>
