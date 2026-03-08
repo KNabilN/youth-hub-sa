@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyGrants, useCreateGrantRequest, useVerifiedDonors, useAssociationProjects } from "@/hooks/useGrantRequests";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
+import { PaginationControls } from "@/components/PaginationControls";
+import { usePagination } from "@/hooks/usePagination";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -43,6 +45,17 @@ export default function MyGrants() {
   const [projectId, setProjectId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    if (!grants) return [];
+    if (statusFilter === "all") return grants;
+    return grants.filter(g => g.status === statusFilter);
+  }, [grants, statusFilter]);
+
+  const { page, pageSize, nextPage, prevPage, resetPage } = usePagination();
+  const paginated = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  const totalPages = Math.ceil(filtered.length / pageSize);
 
   const resetForm = () => {
     setIsTargeted(false);
@@ -88,37 +101,59 @@ export default function MyGrants() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        {isLoading ? <ContentSkeleton /> : !grants?.length ? (
-          <EmptyState icon={FileText} title="لا توجد طلبات" description="لم تقم بإنشاء أي طلبات منح بعد" />
+        {/* Status Filter */}
+        <Card className="border-dashed bg-muted/30">
+          <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); resetPage(); }}>
+              <SelectTrigger className="w-[180px] bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع الحالات</SelectItem>
+                <SelectItem value="pending">بانتظار المراجعة</SelectItem>
+                <SelectItem value="approved">تمت الموافقة</SelectItem>
+                <SelectItem value="funded">تم التمويل</SelectItem>
+                <SelectItem value="rejected">مرفوض</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {isLoading ? <ContentSkeleton /> : !filtered.length ? (
+          <EmptyState icon={FileText} title={statusFilter !== "all" ? "لا توجد طلبات بهذه الحالة" : "لا توجد طلبات"} description="لم تقم بإنشاء أي طلبات منح بعد" />
         ) : (
-          <div className="grid gap-4">
-            {grants.map(g => {
-              const st = statusMap[g.status] || statusMap.pending;
-              return (
-                <Card key={g.id}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant={st.variant}>{st.label}</Badge>
-                          {g.donor?.full_name && <Badge variant="outline">موجه لـ {g.donor.full_name}</Badge>}
-                          {g.project?.title && <Badge variant="outline">مشروع: {g.project.title}</Badge>}
+          <>
+            <div className="grid gap-4">
+              {paginated.map(g => {
+                const st = statusMap[g.status] || statusMap.pending;
+                return (
+                  <Card key={g.id}>
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant={st.variant}>{st.label}</Badge>
+                            {g.donor?.full_name && <Badge variant="outline">موجه لـ {g.donor.full_name}</Badge>}
+                            {g.project?.title && <Badge variant="outline">مشروع: {g.project.title}</Badge>}
+                          </div>
+                          <p className="text-lg font-bold">{Number(g.amount).toLocaleString()} ر.س</p>
+                          {g.description && <p className="text-sm text-muted-foreground line-clamp-2">{g.description}</p>}
+                          {g.admin_note && g.status === "rejected" && (
+                            <p className="text-sm text-destructive">سبب الرفض: {g.admin_note}</p>
+                          )}
                         </div>
-                        <p className="text-lg font-bold">{Number(g.amount).toLocaleString()} ر.س</p>
-                        {g.description && <p className="text-sm text-muted-foreground line-clamp-2">{g.description}</p>}
-                        {g.admin_note && g.status === "rejected" && (
-                          <p className="text-sm text-destructive">سبب الرفض: {g.admin_note}</p>
-                        )}
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">
+                          {format(new Date(g.created_at), "d MMM yyyy", { locale: ar })}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-nowrap">
-                        {format(new Date(g.created_at), "d MMM yyyy", { locale: ar })}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            {totalPages > 1 && (
+              <PaginationControls page={page} totalPages={totalPages} onNext={nextPage} onPrev={prevPage} />
+            )}
+          </>
         )}
       </div>
 
