@@ -73,6 +73,7 @@ export default function AdminFinance() {
   const { data: withdrawals, isLoading: loadingW } = useAllWithdrawals();
   const { data: bankTransfers, isLoading: loadingBT } = useAdminBankTransfers();
   const updateW = useUpdateWithdrawalStatus();
+  const generateInvoice = useGenerateInvoice();
   const updateEscrow = useUpdateEscrowStatus();
   const approveBT = useApproveBankTransfer();
   const rejectBT = useRejectBankTransfer();
