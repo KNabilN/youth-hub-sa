@@ -207,12 +207,24 @@ export default function AdminServices() {
                        </TableCell>
                        <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
-                        <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
-                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(approvalLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        {(() => {
+                          const allowed: Record<string, { key: string; label: string }[]> = {
+                            pending: [{ key: "approved", label: "مقبول" }, { key: "rejected", label: "مرفوض" }],
+                            approved: [{ key: "suspended", label: "موقوف" }],
+                            suspended: [{ key: "approved", label: "مقبول" }],
+                          };
+                          const options = allowed[s.approval];
+                          if (!options) return <span className="text-xs text-muted-foreground">—</span>;
+                          return (
+                            <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
+                              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={s.approval} disabled>{approvalLabels[s.approval]}</SelectItem>
+                                {options.map((o) => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="flex gap-1">
                         <Button size="sm" variant="outline" asChild>
