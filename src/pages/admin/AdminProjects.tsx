@@ -18,7 +18,7 @@ import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
@@ -82,6 +82,7 @@ export default function AdminProjects() {
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
+  const navigate = useNavigate();
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
@@ -177,14 +178,16 @@ export default function AdminProjects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((p: any) => (
-                    <TableRow key={p.id}>
+                  {filtered.map((p: any) => {
+                    const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
+                    return (
+                    <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/projects/${p.id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">
-                        <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
+                        {p.request_number}
                       </TableCell>
-                      <TableCell className="font-medium">{p.title}</TableCell>
-                      <TableCell>{p.profiles?.organization_name || p.profiles?.full_name || "—"}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium max-w-[120px] truncate" title={p.title}>{p.title}</TableCell>
+                      <TableCell className="max-w-[100px] truncate" title={displayName}>{displayName}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Switch
                           checked={(p as any).is_name_visible ?? true}
                           onCheckedChange={(checked) => {
@@ -196,7 +199,7 @@ export default function AdminProjects() {
                         />
                       </TableCell>
                        <TableCell>{p.categories?.name ?? "—"}</TableCell>
-                       <TableCell>
+                       <TableCell onClick={(e) => e.stopPropagation()}>
                          <Switch
                            checked={(p as any).is_featured ?? false}
                            onCheckedChange={(checked) => {
@@ -212,7 +215,7 @@ export default function AdminProjects() {
                        </TableCell>
                        <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         {(() => {
                           const opts = getAdminAllowedStatuses(p.status);
                           return opts.length > 0 ? (
@@ -228,9 +231,9 @@ export default function AdminProjects() {
                           );
                         })()}
                       </TableCell>
-                      <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/projects/${p.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                      <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${p.id}`)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
@@ -240,7 +243,8 @@ export default function AdminProjects() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                   {filtered.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
