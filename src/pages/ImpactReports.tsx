@@ -151,7 +151,7 @@ export default function ImpactReports() {
                 <Skeleton key={i} className="h-40 w-full rounded-lg" />
               ))}
             </div>
-          ) : !reports?.length ? (
+          ) : !filteredReports.length ? (
             <EmptyState
               icon={FileText}
               title="لا توجد تقارير أثر بعد"
@@ -159,7 +159,7 @@ export default function ImpactReports() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reports.map((report) => (
+              {filteredReports.map((report) => (
                 <Card
                   key={report.id}
                   className="group hover:shadow-md transition-shadow duration-200"
