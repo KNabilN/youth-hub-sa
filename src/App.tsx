@@ -165,7 +165,7 @@ const App = () => (
                 <Route path="/received-grants" element={<ProtectedRoute><SuspenseWrap><ReceivedGrants /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/association-impact" element={<ProtectedRoute><SuspenseWrap><AssociationImpactReports /></SuspenseWrap></ProtectedRoute>} />
                 
-                <Route path="/cart" element={<SuspenseWrap><Cart /></SuspenseWrap>} />
+                
                 <Route path="/checkout" element={<ProtectedRoute><SuspenseWrap><Checkout /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute><SuspenseWrap><PaymentSuccess /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/payment-callback" element={<ProtectedRoute><SuspenseWrap><PaymentCallback /></SuspenseWrap></ProtectedRoute>} />
