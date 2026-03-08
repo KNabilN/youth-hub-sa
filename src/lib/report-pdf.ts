@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import {
   BRAND,
