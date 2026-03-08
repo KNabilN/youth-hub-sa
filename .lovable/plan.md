@@ -1,12 +1,36 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+## إصلاح خطأ الموافقة على التحويل البنكي
 
-### ما تم تنفيذه
+### المشكلة
+عند الموافقة على تحويل بنكي، تفشل العملية لأن دالة `useApproveBankTransfer` تحاول تحديث حالة الضمان المالي من `pending_payment` إلى `held` فقط (سطر 184 في `useBankTransfer.ts`):
+```
+.eq("status", "pending_payment")
+```
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+لكن الضمان المالي المرتبط بالتحويل (1,250 ر.س) كانت حالته `under_review` — وهي حالة صالحة يمكن للأدمن تحويلها يدوياً من `pending_payment`. هذا يعني أن الـ optimistic lock يرفض التحديث ويرمي الخطأ "تم تعديل حالة الضمان مسبقاً".
+
+### الحل
+
+#### 1. تعديل `src/hooks/useBankTransfer.ts` — دالة `useApproveBankTransfer`
+- تعديل شرط الـ optimistic lock ليقبل حالتي `pending_payment` و `under_review`:
+  ```typescript
+  .in("status", ["pending_payment", "under_review"])
+  ```
+  بدلاً من:
+  ```typescript
+  .eq("status", "pending_payment")
+  ```
+
+#### 2. تعديل `src/pages/admin/AdminFinance.tsx` — عرض الخطأ الفعلي
+- تحسين `onError` ليعرض رسالة الخطأ الحقيقية بدلاً من "حدث خطأ":
+  ```typescript
+  onError: (err: any) => toast.error(err?.message || "حدث خطأ")
+  ```
+
+### الملفات المتأثرة
+| # | الملف | التغيير |
+|---|---|---|
+| 1 | `src/hooks/useBankTransfer.ts` | توسيع شرط حالة الضمان ليشمل `under_review` |
+| 2 | `src/pages/admin/AdminFinance.tsx` | عرض رسالة الخطأ التفصيلية |
+
