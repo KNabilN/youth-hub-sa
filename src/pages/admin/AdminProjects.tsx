@@ -215,7 +215,7 @@ export default function AdminProjects() {
                        </TableCell>
                        <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         {(() => {
                           const opts = getAdminAllowedStatuses(p.status);
                           return opts.length > 0 ? (
