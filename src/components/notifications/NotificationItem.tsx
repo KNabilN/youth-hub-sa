@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, Info, AlertTriangle, CheckCircle, Gavel, FileSignature, Shield, CreditCard, Trash2, FolderKanban, Clock, Banknote, Snowflake, RotateCcw, HandCoins, Mail, ClipboardList, MessageCircle, Receipt } from "lucide-react";
+import { getNotificationLabel } from "@/lib/notification-type-labels";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
@@ -102,7 +103,7 @@ function renderMessage(message: string) {
 }
 
 export function NotificationItem({ id, message, type, is_read, created_at, entity_id, entity_type, onMarkRead, onDelete }: NotificationItemProps) {
-  const config = typeConfig[type] || { icon: Bell, label: type };
+  const config = typeConfig[type] || { icon: Bell, label: getNotificationLabel(type) };
   const Icon = config.icon;
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const navigate = useNavigate();
