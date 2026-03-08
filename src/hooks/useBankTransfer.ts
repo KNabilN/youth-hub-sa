@@ -334,6 +334,25 @@ export function useApproveBankTransfer() {
             // DB trigger notify_on_contract_change handles notifications
           }
 
+          // Check if auto-bid already exists
+          const { data: existingBid } = await supabase
+            .from("bids")
+            .select("id")
+            .eq("project_id", escrow.project_id)
+            .eq("provider_id", project.assigned_provider_id)
+            .maybeSingle();
+
+          if (!existingBid) {
+            await supabase.from("bids").insert({
+              project_id: escrow.project_id,
+              provider_id: project.assigned_provider_id,
+              price: escrow.amount,
+              timeline_days: 30,
+              cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+              status: "accepted" as any,
+            });
+          }
+
           // Update project status to in_progress
           await supabase
             .from("projects")
