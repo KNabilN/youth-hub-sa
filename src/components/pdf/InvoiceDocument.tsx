@@ -288,10 +288,6 @@ export const InvoiceDocument: React.FC<Props> = ({
 
           {/* Header */}
           <View style={s.headerRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.headerTitle}>{reshapeAr("فاتورة")}</Text>
-              <Text style={s.headerSubtitle}>Invoice</Text>
-            </View>
             <View style={{ alignItems: "center", flexDirection: "row", gap: 8 }}>
               {logoBase64 ? (
                 <Image src={logoBase64} style={s.logo} />
@@ -301,6 +297,11 @@ export const InvoiceDocument: React.FC<Props> = ({
                 <Text style={s.companyNameAr}>{reshapeAr(t.company_name)}</Text>
               </View>
             </View>
+            <View style={{ flex: 1, alignItems: "center" }}>
+              <Text style={s.headerTitle}>{reshapeAr("فاتورة")}</Text>
+              <Text style={s.headerSubtitle}>Invoice</Text>
+            </View>
+            <View style={{ width: 44 }} />
           </View>
 
           <View style={s.divider} />
