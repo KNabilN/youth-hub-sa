@@ -31,6 +31,7 @@ export default function MyServices() {
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
   const handleCreate = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+    if (createService.isPending) return;
     createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: (data) => {
         toast({ title: "تم إنشاء الخدمة بنجاح" });
@@ -42,6 +43,7 @@ export default function MyServices() {
   };
 
   const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+    if (createService.isPending) return;
     createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: (data) => {
         toast({ title: "تم حفظ الخدمة كمسودة" });
@@ -53,7 +55,7 @@ export default function MyServices() {
   };
 
   const handleEdit = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
-    if (!editingId) return;
+    if (!editingId || updateService.isPending) return;
     updateService.mutate({ id: editingId, ...values, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
