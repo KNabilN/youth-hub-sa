@@ -22,9 +22,24 @@ interface LandingRequestsTableProps {
   subtitle?: string;
   buttonText?: string;
   isLoggedIn?: boolean;
+  role?: string | null;
 }
 
-export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn, role }: LandingRequestsTableProps) {
+  const isDisabled = role === "youth_association" || role === "super_admin";
+  const isDonor = role === "donor";
+
+  const getActionLabel = () => {
+    if (!isLoggedIn) return "سجّل لتقديم عرضك";
+    if (isDonor) return "قدّم منحة";
+    return "قدّم عرضك";
+  };
+
+  const getActionLink = (projectId: string) => {
+    if (!isLoggedIn) return "/auth?mode=register";
+    if (isDonor) return `/donations`;
+    return `/projects/public/${projectId}`;
+  };
   if (!loading && projects.length === 0) return null;
 
   return (
@@ -108,12 +123,19 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                         التفاصيل
                       </Link>
                     </Button>
-                    <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
-                      <Link to={isLoggedIn ? `/projects/public/${p.id}` : "/auth?mode=register"}>
-                        {isLoggedIn ? "قدّم عرضك" : "سجّل لتقديم عرضك"}
+                    {isDisabled ? (
+                      <Button disabled size="sm" className="flex-1 gap-1.5 rounded-lg text-sm opacity-50">
+                        {getActionLabel()}
                         <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    ) : (
+                      <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
+                        <Link to={getActionLink(p.id)}>
+                          {getActionLabel()}
+                          <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
@@ -122,12 +144,19 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
         )}
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-            <Link to={isLoggedIn ? "/available-projects" : "/auth?mode=register"}>
-              {isLoggedIn ? "عرض جميع الطلبات" : (buttonText || "سجّل لتقديم عروضك")}
+          {isDisabled ? (
+            <Button disabled size="lg" className="gap-2 rounded-xl px-8 text-base opacity-50">
+              عرض جميع الطلبات
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            </Link>
-          </Button>
+            </Button>
+          ) : (
+            <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
+              <Link to={isLoggedIn ? "/available-projects" : "/auth?mode=register"}>
+                {isLoggedIn ? "عرض جميع الطلبات" : (buttonText || "سجّل لتقديم عروضك")}
+                <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </section>

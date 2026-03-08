@@ -30,7 +30,7 @@ const featureColors = [
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: hero } = useSiteContent("hero");
   const { data: features } = useSiteContent("features");
   const { data: trust } = useSiteContent("trust");
@@ -156,6 +156,7 @@ export default function Index() {
           subtitle={rs.subtitle}
           buttonText={rs.button_text}
           isLoggedIn={!!user}
+          role={role}
         />
       )}
 
