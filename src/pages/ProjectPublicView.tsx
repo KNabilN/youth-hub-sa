@@ -60,7 +60,15 @@ export default function ProjectPublicView() {
 
   return (
     <div className="container mx-auto max-w-3xl py-12 px-4 space-y-8">
-      {/* Header */}
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+          <Home className="w-3.5 h-3.5" />
+          الرئيسية
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <span className="text-foreground font-medium truncate max-w-[200px]">{project.title}</span>
+      </nav>
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {project.category && (
