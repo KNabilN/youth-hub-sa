@@ -139,20 +139,33 @@ export function AppSidebar() {
     enabled: !!user,
   });
 
-  // Unsigned contracts count (for service_provider)
+  // Unsigned contracts count (for service_provider and youth_association)
   const { data: unsignedContractsCount } = useQuery({
-    queryKey: ["sidebar-unsigned-contracts", user?.id],
+    queryKey: ["sidebar-unsigned-contracts", user?.id, role],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("contracts")
-        .select("id", { count: "exact", head: true })
-        .eq("provider_id", user!.id)
-        .is("provider_signed_at", null)
-        .is("deleted_at", null);
-      if (error) throw error;
-      return count ?? 0;
+      if (role === "service_provider") {
+        const { count, error } = await supabase
+          .from("contracts")
+          .select("id", { count: "exact", head: true })
+          .eq("provider_id", user!.id)
+          .is("provider_signed_at", null)
+          .is("deleted_at", null);
+        if (error) throw error;
+        return count ?? 0;
+      }
+      if (role === "youth_association") {
+        const { count, error } = await supabase
+          .from("contracts")
+          .select("id", { count: "exact", head: true })
+          .eq("association_id", user!.id)
+          .is("association_signed_at", null)
+          .is("deleted_at", null);
+        if (error) throw error;
+        return count ?? 0;
+      }
+      return 0;
     },
-    enabled: !!user && role === "service_provider",
+    enabled: !!user && (role === "service_provider" || role === "youth_association"),
   });
 
   // Pending grant requests counts
@@ -253,7 +266,7 @@ export function AppSidebar() {
     if (url === "/cart" && cartCount > 0) return cartCount;
     if (url === "/admin/finance" && (financePending?.total ?? 0) > 0) return financePending!.total;
     if (url === "/invoices" && (newInvoicesCount ?? 0) > 0) return newInvoicesCount;
-    if (url === "/contracts" && role === "service_provider" && (unsignedContractsCount ?? 0) > 0) return unsignedContractsCount;
+    if (url === "/contracts" && (role === "service_provider" || role === "youth_association") && (unsignedContractsCount ?? 0) > 0) return unsignedContractsCount;
     const grantCount = grantRequestsCounts?.[url];
     if (grantCount && grantCount > 0) return grantCount;
     return 0;
