@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ArrowLeft } from "lucide-react";
 
 interface Package {
   name: string;
@@ -17,9 +17,28 @@ interface ServicePackagesProps {
   onAddToCart: () => void;
   canPurchase: boolean;
   isAdding: boolean;
+  isInCart?: boolean;
+  onGoToCart?: () => void;
 }
 
-export function ServicePackages({ packages, basePrice, baseDescription, serviceType, onAddToCart, canPurchase, isAdding }: ServicePackagesProps) {
+function CartButton({ isInCart, onGoToCart, onAddToCart, canPurchase, isAdding }: { isInCart?: boolean; onGoToCart?: () => void; onAddToCart: () => void; canPurchase: boolean; isAdding: boolean }) {
+  if (isInCart) {
+    return (
+      <Button className="w-full" variant="outline" onClick={onGoToCart}>
+        <ArrowLeft className="h-4 w-4 me-2" />
+        اذهب للسلة
+      </Button>
+    );
+  }
+  return (
+    <Button className="w-full" onClick={onAddToCart} disabled={!canPurchase || isAdding}>
+      <ShoppingCart className="h-4 w-4 me-2" />
+      {isAdding ? "جارٍ الإضافة..." : "أضف إلى السلة"}
+    </Button>
+  );
+}
+
+export function ServicePackages({ packages, basePrice, baseDescription, serviceType, onAddToCart, canPurchase, isAdding, isInCart, onGoToCart }: ServicePackagesProps) {
   const hasPackages = packages.length > 0;
 
   if (!hasPackages) {
@@ -30,10 +49,7 @@ export function ServicePackages({ packages, basePrice, baseDescription, serviceT
           <p className="text-2xl font-bold text-primary">{basePrice.toLocaleString()} ر.س</p>
         </div>
         <p className="text-sm text-muted-foreground line-clamp-3">{baseDescription}</p>
-        <Button className="w-full" onClick={onAddToCart} disabled={!canPurchase || isAdding}>
-          <ShoppingCart className="h-4 w-4 me-2" />
-          {isAdding ? "جارٍ الإضافة..." : "أضف إلى السلة"}
-        </Button>
+        <CartButton isInCart={isInCart} onGoToCart={onGoToCart} onAddToCart={onAddToCart} canPurchase={canPurchase} isAdding={isAdding} />
       </div>
     );
   }
@@ -56,10 +72,7 @@ export function ServicePackages({ packages, basePrice, baseDescription, serviceT
             )}
           </div>
           <p className="text-sm text-muted-foreground">{pkg.description}</p>
-          <Button className="w-full" onClick={onAddToCart} disabled={!canPurchase || isAdding}>
-            <ShoppingCart className="h-4 w-4 me-2" />
-            {isAdding ? "جارٍ الإضافة..." : "أضف إلى السلة"}
-          </Button>
+          <CartButton isInCart={isInCart} onGoToCart={onGoToCart} onAddToCart={onAddToCart} canPurchase={canPurchase} isAdding={isAdding} />
         </TabsContent>
       ))}
     </Tabs>

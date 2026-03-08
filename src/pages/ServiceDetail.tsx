@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useServiceDetail } from "@/hooks/useServiceDetail";
 import { ServiceGallery } from "@/components/services/ServiceGallery";
 import { ServicePackages } from "@/components/services/ServicePackages";
@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, ShoppingBag, Star, Paperclip } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useAddToCart } from "@/hooks/useCart";
+import { useAddToCart, useCartItems } from "@/hooks/useCart";
+import { useGuestCart } from "@/hooks/useGuestCart";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
@@ -19,6 +20,13 @@ export default function ServiceDetail() {
   const { service, isLoading, ratings, ratingsLoading } = useServiceDetail(id);
   const { user, role } = useAuth();
   const addToCart = useAddToCart();
+  const navigate = useNavigate();
+  const { data: cartItems } = useCartItems();
+  const { items: guestItems } = useGuestCart();
+
+  const isInCart = user
+    ? cartItems?.some((item: any) => item.service_id === id)
+    : guestItems.some((item: any) => item.service_id === id);
 
   const canPurchase = role === "youth_association" || role === "donor";
 
@@ -111,6 +119,8 @@ export default function ServiceDetail() {
             onAddToCart={handleAddToCart}
             canPurchase={canPurchase}
             isAdding={addToCart.isPending}
+            isInCart={!!isInCart}
+            onGoToCart={() => navigate("/cart")}
           />
           {provider && (
             <ServiceProviderCard provider={provider} />
