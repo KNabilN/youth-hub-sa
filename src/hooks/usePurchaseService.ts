@@ -85,6 +85,25 @@ export function usePurchaseService() {
           provider_id: providerId,
           terms: contractTerms,
         });
+
+        // Create auto-accepted bid so provider appears in bids tab
+        await supabase.from("bids").insert({
+          project_id: project.id,
+          provider_id: providerId,
+          price: amount,
+          timeline_days: 30,
+          cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+          status: "accepted" as any,
+        });
+
+        // Notify provider about the purchase and assignment
+        await supabase.from("notifications").insert({
+          user_id: providerId,
+          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+          type: "service_purchased_assigned",
+          entity_id: project.id,
+          entity_type: "project",
+        });
       }
 
       // Create escrow transaction

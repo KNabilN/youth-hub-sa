@@ -151,6 +151,25 @@ export default function Checkout() {
               association_id: assocId,
               terms: contractTerms,
             });
+
+            // Create auto-accepted bid so provider appears in bids tab
+            await supabase.from("bids").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              price: item.micro_services.price * item.quantity,
+              timeline_days: 30,
+              cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+              status: "accepted" as any,
+            });
+
+            // Notify provider about the purchase and assignment
+            await supabase.from("notifications").insert({
+              user_id: item.micro_services.provider_id,
+              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+              type: "service_purchased_assigned",
+              entity_id: proj.id,
+              entity_type: "project",
+            });
           }
 
           const itemBase = item.micro_services.price * item.quantity;

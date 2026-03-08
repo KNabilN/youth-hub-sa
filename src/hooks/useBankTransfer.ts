@@ -82,6 +82,34 @@ export function useCreateBankTransfer() {
             .single();
           if (projErr) throw projErr;
           projectId = project.id;
+
+          // Create contract WITHOUT auto-signing
+          const contractTerms = `نطاق العمل:\n${title}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
+          await supabase.from("contracts").insert({
+            project_id: project.id,
+            association_id: userId,
+            provider_id: item.providerId,
+            terms: contractTerms,
+          });
+
+          // Create auto-accepted bid
+          await supabase.from("bids").insert({
+            project_id: project.id,
+            provider_id: item.providerId,
+            price: item.price,
+            timeline_days: 30,
+            cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+            status: "accepted" as any,
+          });
+
+          // Notify provider
+          await supabase.from("notifications").insert({
+            user_id: item.providerId,
+            message: `تم شراء خدمتك "${title}" — بانتظار الموافقة على التحويل البنكي`,
+            type: "service_purchased_assigned",
+            entity_id: project.id,
+            entity_type: "project",
+          });
         }
 
         const { data: escrow, error: escrowErr } = await supabase
@@ -304,6 +332,25 @@ export function useApproveBankTransfer() {
               terms,
             });
             // DB trigger notify_on_contract_change handles notifications
+          }
+
+          // Check if auto-bid already exists
+          const { data: existingBid } = await supabase
+            .from("bids")
+            .select("id")
+            .eq("project_id", escrow.project_id)
+            .eq("provider_id", project.assigned_provider_id)
+            .maybeSingle();
+
+          if (!existingBid) {
+            await supabase.from("bids").insert({
+              project_id: escrow.project_id,
+              provider_id: project.assigned_provider_id,
+              price: escrow.amount,
+              timeline_days: 30,
+              cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+              status: "accepted" as any,
+            });
           }
 
           // Update project status to in_progress
