@@ -152,8 +152,8 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
 
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-            <Link to="/auth?mode=register">
-              {buttonText || "تصفح جميع الخدمات"}
+            <Link to={isLoggedIn ? "/marketplace" : "/auth?mode=register"}>
+              {isLoggedIn ? "تصفح جميع الخدمات" : (buttonText || "تصفح جميع الخدمات")}
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           </Button>
