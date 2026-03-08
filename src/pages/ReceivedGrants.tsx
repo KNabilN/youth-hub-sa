@@ -169,7 +169,7 @@ export default function ReceivedGrants() {
               </CardContent>
             </Card>
             {totalPages > 1 && (
-              <PaginationControls page={page} totalPages={totalPages} onNext={nextPage} onPrev={prevPage} />
+              <PaginationControls page={page} pageSize={pageSize} totalFetched={paginated.length} onNext={nextPage} onPrev={prevPage} />
             )}
           </>
         )}

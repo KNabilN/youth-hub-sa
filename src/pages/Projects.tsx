@@ -121,7 +121,8 @@ export default function Projects() {
             {totalPages > 1 && (
               <PaginationControls
                 page={page}
-                totalPages={totalPages}
+                pageSize={pageSize}
+                totalFetched={paginated.length}
                 onNext={nextPage}
                 onPrev={prevPage}
               />
