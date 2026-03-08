@@ -1,9 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useWithdrawals() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime for withdrawal status changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-withdrawals-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawal_requests", filter: `provider_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["withdrawals"] });
+          qc.invalidateQueries({ queryKey: ["earnings"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["withdrawals", user?.id],
     enabled: !!user,
@@ -24,7 +41,6 @@ export function useCreateWithdrawal() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ amount, escrow_id }: { amount: number; escrow_id: string }) => {
-      // Server-side duplicate check before insert
       const { data: existing } = await supabase
         .from("withdrawal_requests")
         .select("id")
@@ -39,7 +55,6 @@ export function useCreateWithdrawal() {
         .select()
         .single();
       if (error) {
-        // Handle unique constraint violation gracefully
         if (error.code === "23505") throw new Error("يوجد طلب سحب مسبق لهذه المعاملة");
         throw error;
       }
@@ -62,7 +77,6 @@ export function useAllWithdrawals() {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Fetch escrow + project details for each withdrawal that has escrow_id
       const enriched = await Promise.all(
         (data ?? []).map(async (w: any) => {
           if (!w.escrow_id) return w;
@@ -83,7 +97,6 @@ export function useUpdateWithdrawalStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status, receipt_url, rejection_reason }: { id: string; status: string; receipt_url?: string; rejection_reason?: string }) => {
-      // Optimistic lock: only update if status is still 'pending'
       const updateData: Record<string, any> = { status, processed_at: new Date().toISOString() };
       if (receipt_url) updateData.receipt_url = receipt_url;
       if (rejection_reason) updateData.rejection_reason = rejection_reason;

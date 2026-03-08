@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Pause, Play } from "lucide-react";
+import { Pencil, Trash2, Pause, Play, Eye, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
@@ -26,6 +26,8 @@ interface MyServiceCardProps {
     price: number;
     service_type: string;
     approval: string;
+    service_views?: number | null;
+    sales_count?: number | null;
     categories?: { name: string } | null;
     regions?: { name: string } | null;
   };
@@ -75,6 +77,17 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
             {service.categories?.name && <Badge variant="outline" className="text-xs font-normal">{service.categories.name}</Badge>}
             {service.regions?.name && <Badge variant="outline" className="text-xs font-normal">{service.regions.name}</Badge>}
           </div>
+        </div>
+        {/* Performance stats */}
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Eye className="h-3 w-3" />
+            {service.service_views ?? 0} مشاهدة
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <ShoppingCart className="h-3 w-3" />
+            {service.sales_count ?? 0} مبيعات
+          </span>
         </div>
       </CardContent>
     </Card>

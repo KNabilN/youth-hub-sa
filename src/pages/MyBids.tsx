@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, FileText, FolderKanban, Filter, DollarSign, CalendarDays } from "lucide-react";
+import { Check, FileText, FolderKanban, Filter, DollarSign, CalendarDays, ChevronDown, ExternalLink, MessageSquare } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
+import { useAuth } from "@/hooks/useAuth";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
   pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
@@ -22,12 +27,17 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 
 export default function MyBids() {
   const [filter, setFilter] = useState("all");
-  const { data: bids, isLoading } = useProviderBids(filter);
+  const { user } = useAuth();
+  const { data: allBids, isLoading } = useProviderBids(filter);
   const withdrawBid = useWithdrawBid();
   const signContract = useSignContract();
   const { toast } = useToast();
+  const pagination = usePagination();
 
-  const acceptedBidProjectIds = (bids ?? [])
+  // Paginate client-side
+  const bids = allBids?.slice(pagination.from, pagination.to + 1);
+
+  const acceptedBidProjectIds = (allBids ?? [])
     .filter((b: any) => b.status === "accepted")
     .map((b: any) => b.project_id);
 
@@ -40,6 +50,24 @@ export default function MyBids() {
         .select("*")
         .in("project_id", acceptedBidProjectIds);
       return data ?? [];
+    },
+  });
+
+  // Fetch comment counts for all bids
+  const bidIds = (allBids ?? []).map((b: any) => b.id);
+  const { data: commentCounts } = useQuery({
+    queryKey: ["bid-comment-counts", bidIds],
+    enabled: bidIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bid_comments")
+        .select("bid_id")
+        .in("bid_id", bidIds);
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((c: any) => {
+        counts[c.bid_id] = (counts[c.bid_id] || 0) + 1;
+      });
+      return counts;
     },
   });
 
@@ -79,7 +107,7 @@ export default function MyBids() {
         <Card className="bg-muted/30 border-dashed">
           <CardContent className="flex items-center gap-3 p-4">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={filter} onValueChange={setFilter}>
+            <Select value={filter} onValueChange={(v) => { setFilter(v); pagination.resetPage(); }}>
               <SelectTrigger className="w-48 bg-background"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع الحالات</SelectItem>
@@ -89,6 +117,7 @@ export default function MyBids() {
                 <SelectItem value="withdrawn">تم السحب</SelectItem>
               </SelectContent>
             </Select>
+            {allBids && <span className="text-xs text-muted-foreground ms-auto">{allBids.length} عرض</span>}
           </CardContent>
         </Card>
 
@@ -96,24 +125,37 @@ export default function MyBids() {
           <div className="space-y-3">
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
-        ) : !bids?.length ? (
+        ) : !allBids?.length ? (
           <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح الطلبات المتاحة وقدم عرضك الأول" actionLabel="تصفح الطلبات" actionHref="/available-projects" />
         ) : (
           <div className="space-y-3">
-            {bids.map((bid: any) => {
+            {bids?.map((bid: any) => {
               const st = statusLabels[bid.status] ?? statusLabels.pending;
               const contract = bid.status === "accepted" ? getContract(bid.project_id) : null;
               const needsSign = contract && !contract.provider_signed_at;
+              const bidComments = commentCounts?.[bid.id] ?? 0;
               return (
                 <Card key={bid.id} className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle className="text-base">{bid.projects?.title ?? "—"}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base">{bid.projects?.title ?? "—"}</CardTitle>
+                        <Link to={`/available-projects/${bid.project_id}`} className="text-muted-foreground hover:text-primary transition-colors" title="عرض المشروع">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(bid.created_at).toLocaleDateString("ar-SA")}
                       </p>
                     </div>
-                    <Badge variant={st.variant}>{st.label}</Badge>
+                    <div className="flex items-center gap-2">
+                      {bidComments > 0 && (
+                        <Badge variant="outline" className="gap-1 text-xs">
+                          <MessageSquare className="h-3 w-3" />{bidComments}
+                        </Badge>
+                      )}
+                      <Badge variant={st.variant}>{st.label}</Badge>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between flex-wrap gap-3">
@@ -145,12 +187,33 @@ export default function MyBids() {
                         )}
                       </div>
                     </div>
+
+                    {/* Collapsible cover letter */}
+                    {bid.cover_letter && (
+                      <Collapsible className="mt-3">
+                        <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                          <ChevronDown className="h-3 w-3" />
+                          خطاب التقديم
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2 p-3 rounded-lg bg-muted/50 text-sm leading-relaxed whitespace-pre-wrap">
+                          {bid.cover_letter}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
                   </CardContent>
                 </Card>
               );
             })}
           </div>
         )}
+
+        <PaginationControls
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalFetched={bids?.length ?? 0}
+          onPrev={pagination.prevPage}
+          onNext={pagination.nextPage}
+        />
       </div>
     </DashboardLayout>
   );

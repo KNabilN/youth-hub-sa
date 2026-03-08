@@ -7,7 +7,7 @@ import { CheckCircle, Circle, ArrowLeft } from "lucide-react";
 
 interface Step {
   label: string;
-  count: number;
+  count: number | string;
   done: boolean;
 }
 
@@ -19,13 +19,13 @@ function StepPipeline({ steps }: { steps: Step[] }) {
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
             step.done
               ? "bg-success/10 text-success border-success/20"
-              : step.count > 0
+              : (typeof step.count === "number" ? step.count > 0 : step.count !== "0")
               ? "bg-primary/10 text-primary border-primary/20"
               : "bg-muted text-muted-foreground border-border"
           }`}>
             {step.done ? <CheckCircle className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
             {step.label}
-            {step.count > 0 && <Badge variant="secondary" className="text-[10px] px-1 h-4">{step.count}</Badge>}
+            {step.count !== 0 && step.count !== "0" && <Badge variant="secondary" className="text-[10px] px-1 h-4">{step.count}</Badge>}
           </div>
           {i < steps.length - 1 && <ArrowLeft className="h-3 w-3 text-muted-foreground shrink-0 rtl:-scale-x-100" />}
         </div>
@@ -89,11 +89,13 @@ function ProviderJourney() {
     },
   });
 
+  const formattedEarnings = `${(data?.earnings ?? 0).toLocaleString()} ر.س`;
+
   const steps: Step[] = [
     { label: "عروض مقدمة", count: data?.bids ?? 0, done: (data?.bids ?? 0) > 0 },
     { label: "عقود", count: data?.contracts ?? 0, done: (data?.contracts ?? 0) > 0 },
     { label: "ساعات عمل", count: data?.timeLogs ?? 0, done: (data?.timeLogs ?? 0) > 0 },
-    { label: "أرباح", count: data?.earnings ?? 0, done: (data?.earnings ?? 0) > 0 },
+    { label: "أرباح", count: formattedEarnings, done: (data?.earnings ?? 0) > 0 },
   ];
 
   return <StepPipeline steps={steps} />;
