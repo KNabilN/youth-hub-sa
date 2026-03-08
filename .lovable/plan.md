@@ -1,23 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إصلاح خطأ تصدير PDF
+## الحالة: ✅ تم التنفيذ
 
-## السبب الجذري
-مكتبة `@react-pdf/renderer` تدعم فقط خطوط **TTF** و **WOFF** — لكن الكود الحالي في `src/lib/pdf-fonts.ts` يسجل خط Cairo بصيغة **woff2** التي غير مدعومة، مما يسبب فشل صامت عند توليد PDF.
+### ما تم تنفيذه
 
-## الحل
-تغيير روابط الخط في `Font.register()` من woff2 إلى TTF.
-
-## التغييرات
-
-### `src/lib/pdf-fonts.ts`
-- استبدال رابطي خط Cairo (400 و 700) من صيغة `.woff2` إلى `.ttf` من Google Fonts CDN:
-  - Weight 400: `https://fonts.gstatic.com/s/cairo/v28/SLXGc1nY6HkvalIkTp2mQ9DLRA.ttf`
-  - Weight 700: `https://fonts.gstatic.com/s/cairo/v28/SLXGc1nY6HkvalIkTp2mQ9DLRA.ttf` (ملف TTF الصحيح لكل وزن)
-
-### `src/pages/admin/AdminReports.tsx`
-- إضافة `console.error(err)` داخل `catch` block لتسهيل التشخيص مستقبلاً
-
-### ملف واحد يتأثر بشكل أساسي:
-- `src/lib/pdf-fonts.ts` — تغيير صيغة الخط فقط
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
