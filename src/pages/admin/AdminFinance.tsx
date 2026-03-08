@@ -117,7 +117,20 @@ export default function AdminFinance() {
       const { error: uploadErr } = await supabase.storage.from("withdrawal-receipts").upload(filePath, wReceiptFile);
       if (uploadErr) throw uploadErr;
       updateW.mutate({ id: wTargetId, status: "approved", receipt_url: filePath }, {
-        onSuccess: () => { toast.success("تمت الموافقة وإرفاق الإيصال"); setWApproveDialogOpen(false); setWReceiptFile(null); },
+        onSuccess: () => {
+          // Generate invoice for the provider
+          const withdrawal = withdrawals?.find((w: any) => w.id === wTargetId);
+          if (withdrawal?.escrow_id) {
+            generateInvoice.mutate({
+              escrowId: withdrawal.escrow_id,
+              amount: Number(withdrawal.amount),
+              issuedTo: withdrawal.provider_id,
+            });
+          }
+          toast.success("تمت الموافقة وإرفاق الإيصال");
+          setWApproveDialogOpen(false);
+          setWReceiptFile(null);
+        },
         onError: (err: any) => toast.error(err?.message || "حدث خطأ — ربما تم معالجة الطلب مسبقاً"),
       });
     } catch { toast.error("فشل رفع الملف"); }
