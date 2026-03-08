@@ -392,7 +392,10 @@ export default function Checkout() {
                         <Wallet className="h-5 w-5 text-success" />
                         <div>
                           <p className="font-medium">الدفع من رصيد المنح</p>
-                          <p className="text-xs text-muted-foreground">الرصيد المتاح: {grantBalance?.available?.toLocaleString()} ر.س</p>
+                          <p className="text-xs text-muted-foreground">الرصيد المتاح: {availableGrant.toLocaleString()} ر.س</p>
+                          {!grantCoversTotal && (
+                            <p className="text-xs text-destructive">الرصيد غير كافٍ — المطلوب: {pricing.total.toLocaleString()} ر.س</p>
+                          )}
                         </div>
                       </Label>
                     </div>
