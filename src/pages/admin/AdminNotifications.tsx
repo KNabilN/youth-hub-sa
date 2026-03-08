@@ -13,44 +13,7 @@ import { Bell, Send, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
-
-const typeLabels: Record<string, string> = {
-  bid_received: "عرض سعر مستلم",
-  bid_accepted: "عرض سعر مقبول",
-  bid_rejected: "عرض سعر مرفوض",
-  service_approval: "طلب اعتماد خدمة",
-  service_approved: "خدمة مُعتمدة",
-  service_rejected: "خدمة مرفوضة",
-  service_purchased: "خدمة مُشتراة",
-  message_received: "رسالة جديدة",
-  contract_created: "عقد جديد",
-  contract_signed: "توقيع عقد",
-  dispute_opened: "شكوى جديدة",
-  escrow_created: "ضمان جديد",
-  escrow_released: "تحرير ضمان",
-  escrow_refunded: "استرداد ضمان",
-  project_pending_approval: "طلب بانتظار الاعتماد",
-  project_open: "طلب مفتوح",
-  project_in_progress: "طلب قيد التنفيذ",
-  project_completed: "طلب مكتمل",
-  project_cancelled: "طلب ملغي",
-  project_disputed: "طلب مُشتكى عليه",
-  purchase: "عملية شراء",
-  purchase_confirmation: "تأكيد شراء",
-  edit_request: "طلب تعديل",
-  time_log_approval: "اعتماد سجل وقت",
-  timelog_approved: "سجل وقت مُعتمد",
-  timelog_rejected: "سجل وقت مرفوض",
-  contact_message: "رسالة تواصل",
-  bank_transfer_pending: "تحويل بنكي بانتظار المراجعة",
-  bank_transfer_approved: "تحويل بنكي مُعتمد",
-  bank_transfer_rejected: "تحويل بنكي مرفوض",
-  withdrawal_approved: "طلب سحب مُعتمد",
-  withdrawal_rejected: "طلب سحب مرفوض",
-  withdrawal_processed: "تحويل مبلغ سحب",
-  donation_received: "تبرع مستلم",
-  info: "إشعار عام",
-};
+import { notificationTypeLabels, getNotificationLabel } from "@/lib/notification-type-labels";
 
 const statusMap: Record<string, { label: string; icon: typeof CheckCircle; className: string }> = {
   delivered: { label: "تم التوصيل", icon: CheckCircle, className: "bg-success/15 text-success border-success/30" },
