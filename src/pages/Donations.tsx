@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution, useDonorConsumedBreakdown } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
@@ -359,49 +360,77 @@ export default function Donations() {
             ) : !contributions?.length ? (
               <EmptyState icon={HandCoins} title="لا توجد منح سابقة" description="قدّم منحتك الأولى من النموذج أعلاه" />
             ) : (
-              <Tabs defaultValue="timeline" dir="rtl">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="timeline">السجل الزمني</TabsTrigger>
-                  <TabsTrigger value="table">جدول</TabsTrigger>
-                  <TabsTrigger value="consumed">استخدام المنح</TabsTrigger>
-                </TabsList>
-                <TabsContent value="timeline">
-                  <DonationTimeline contributions={contributions as any} />
-                </TabsContent>
-                <TabsContent value="table">
-                  <div className="overflow-x-auto"><Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>التاريخ</TableHead>
-                        <TableHead>الوجهة</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>المبلغ</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {contributions.map((c: any) => {
-                        const st = statusConfig[c.donation_status] ?? statusConfig.available;
-                        const target = c.projects?.title || (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name || "منحة عامة";
-                        return (
-                          <TableRow key={c.id}>
-                            <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                            <TableCell>{target}</TableCell>
-                            <TableCell><Badge variant={st.variant} className="text-[10px]">{st.label}</Badge></TableCell>
-                            <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table></div>
-                </TabsContent>
-                <TabsContent value="consumed">
-                  <ConsumedBreakdown />
-                </TabsContent>
-              </Tabs>
+              <DonationsLog contributions={contributions} />
             )}
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+function DonationsLog({ contributions }: { contributions: any[] }) {
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    if (statusFilter === "all") return contributions;
+    return contributions.filter((c: any) => c.donation_status === statusFilter);
+  }, [contributions, statusFilter]);
+
+  return (
+    <Tabs defaultValue="timeline" dir="rtl">
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <TabsList>
+          <TabsTrigger value="timeline">السجل الزمني</TabsTrigger>
+          <TabsTrigger value="table">جدول</TabsTrigger>
+          <TabsTrigger value="consumed">استخدام المنح</TabsTrigger>
+        </TabsList>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="فلتر الحالة" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل</SelectItem>
+            <SelectItem value="available">متاح</SelectItem>
+            <SelectItem value="reserved">محجوز</SelectItem>
+            <SelectItem value="consumed">مستهلك</SelectItem>
+            <SelectItem value="suspended">معلق</SelectItem>
+            <SelectItem value="pending">بانتظار المراجعة</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <TabsContent value="timeline">
+        <DonationTimeline contributions={filtered as any} />
+      </TabsContent>
+      <TabsContent value="table">
+        <div className="overflow-x-auto"><Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>التاريخ</TableHead>
+              <TableHead>الوجهة</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>المبلغ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map((c: any) => {
+              const st = statusConfig[c.donation_status] ?? statusConfig.available;
+              const target = c.projects?.title || (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name || "منحة عامة";
+              return (
+                <TableRow key={c.id}>
+                  <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                  <TableCell>{target}</TableCell>
+                  <TableCell><Badge variant={st.variant} className="text-[10px]">{st.label}</Badge></TableCell>
+                  <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table></div>
+      </TabsContent>
+      <TabsContent value="consumed">
+        <ConsumedBreakdown />
+      </TabsContent>
+    </Tabs>
   );
 }

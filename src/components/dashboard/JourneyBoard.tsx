@@ -113,23 +113,28 @@ function DonorJourney() {
     queryKey: ["journey-donor", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const [donations, allocated] = await Promise.all([
+      const [donations, allocated, reports] = await Promise.all([
         supabase.from("donor_contributions").select("id, amount", { count: "exact" }).eq("donor_id", user!.id),
         supabase.from("donor_contributions").select("id", { count: "exact", head: true }).eq("donor_id", user!.id).not("project_id", "is", null),
+        supabase.from("impact_reports").select("id", { count: "exact", head: true }).eq("donor_id", user!.id),
       ]);
       const totalAmount = (donations.data ?? []).reduce((s: number, d: any) => s + Number(d.amount), 0);
       return {
         donations: donations.count ?? 0,
         totalAmount,
         allocated: allocated.count ?? 0,
+        reports: reports.count ?? 0,
       };
     },
   });
 
+  const formattedTotal = `${(data?.totalAmount ?? 0).toLocaleString()} ر.س`;
+
   const steps: Step[] = [
-    { label: "تبرعات", count: data?.donations ?? 0, done: (data?.donations ?? 0) > 0 },
+    { label: "منح", count: data?.donations ?? 0, done: (data?.donations ?? 0) > 0 },
+    { label: "إجمالي", count: formattedTotal, done: (data?.totalAmount ?? 0) > 0 },
     { label: "تخصيصات", count: data?.allocated ?? 0, done: (data?.allocated ?? 0) > 0 },
-    { label: "أثر", count: 0, done: false },
+    { label: "تقارير أثر", count: data?.reports ?? 0, done: (data?.reports ?? 0) > 0 },
   ];
 
   return <StepPipeline steps={steps} />;

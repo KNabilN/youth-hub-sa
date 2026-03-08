@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorStats } from "@/hooks/useDonorStats";
 import { useImpactReports } from "@/hooks/useImpactReports";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, FileText, HandCoins, Users, Download, Calendar, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -77,8 +79,27 @@ function handleDownload(filePath: string, fileName: string) {
 export default function ImpactReports() {
   const { data: stats, isLoading: statsLoading } = useDonorStats();
   const { data: reports, isLoading: reportsLoading } = useImpactReports();
+  const [assocFilter, setAssocFilter] = useState("all");
 
   const isLoading = statsLoading || reportsLoading;
+
+  // Build unique associations list for filter
+  const associations = useMemo(() => {
+    if (!reports?.length) return [];
+    const map = new Map<string, string>();
+    reports.forEach(r => {
+      if (r.association) {
+        map.set(r.association_id, r.association.organization_name || r.association.full_name || "جمعية");
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [reports]);
+
+  const filteredReports = useMemo(() => {
+    if (!reports) return [];
+    if (assocFilter === "all") return reports;
+    return reports.filter(r => r.association_id === assocFilter);
+  }, [reports, assocFilter]);
 
   return (
     <DashboardLayout>
@@ -101,13 +122,28 @@ export default function ImpactReports() {
         <SummaryCards
           totalDonations={stats?.totalDonations ?? 0}
           associationsSupported={stats?.associationsSupported ?? 0}
-          reportsCount={reports?.length ?? 0}
+          reportsCount={filteredReports.length}
           isLoading={isLoading}
         />
 
-        {/* Reports List */}
+        {/* Filter + Reports List */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">التقارير المرفوعة</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">التقارير المرفوعة</h2>
+            {associations.length > 1 && (
+              <Select value={assocFilter} onValueChange={setAssocFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="فلتر حسب الجمعية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الجمعيات</SelectItem>
+                  {associations.map(a => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
 
           {reportsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -115,7 +151,7 @@ export default function ImpactReports() {
                 <Skeleton key={i} className="h-40 w-full rounded-lg" />
               ))}
             </div>
-          ) : !reports?.length ? (
+          ) : !filteredReports.length ? (
             <EmptyState
               icon={FileText}
               title="لا توجد تقارير أثر بعد"
@@ -123,7 +159,7 @@ export default function ImpactReports() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reports.map((report) => (
+              {filteredReports.map((report) => (
                 <Card
                   key={report.id}
                   className="group hover:shadow-md transition-shadow duration-200"
