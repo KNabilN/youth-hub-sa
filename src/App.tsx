@@ -129,6 +129,7 @@ const App = () => (
                   <Route path="/profile/:id" element={<Suspense fallback={<PageLoader />}><PublicProfile /></Suspense>} />
                   <Route path="/services/:id" element={<Suspense fallback={<PageLoader />}><ServiceDetail /></Suspense>} />
                   <Route path="/projects/public/:id" element={<Suspense fallback={<PageLoader />}><ProjectPublicView /></Suspense>} />
+                  <Route path="/cart" element={<SuspenseWrap><Cart /></SuspenseWrap>} />
                 </Route>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
