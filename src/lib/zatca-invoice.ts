@@ -46,14 +46,14 @@ const INVOICE_TYPE_LABELS: Record<InvoiceType, { ar: string; en: string; color: 
 /** Wrap LTR content (numbers, symbols, brackets) to prevent reversal */
 const ltr = (text: string) => `<span dir="ltr" style="unicode-bidi:isolate;display:inline-block;">${text}</span>`;
 
-async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanvasElement> {
+async function renderHtmlToImage(html: string, width: number): Promise<string> {
   const container = document.createElement("div");
   container.setAttribute("dir", "rtl");
   container.style.cssText = `
     position: fixed; top: -99999px; left: -99999px;
     width: ${width}px; background: #ffffff; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: rtl; unicode-bidi: isolate; text-align: right;
+    direction: rtl; text-align: right;
     text-rendering: optimizeLegibility; word-spacing: 2px;
     padding: 0;
   `;
@@ -71,16 +71,15 @@ async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanva
     )
   );
 
-  const canvas = await html2canvas(container, {
-    scale: 3,
-    useCORS: true,
+  const dataUrl = await toPng(container, {
+    quality: 0.95,
+    pixelRatio: 3,
+    skipFonts: false,
     backgroundColor: "#ffffff",
-    width,
-    windowWidth: width,
   });
 
   document.body.removeChild(container);
-  return canvas;
+  return dataUrl;
 }
 
 export async function generateInvoicePDF(invoice: InvoiceData, template?: InvoiceTemplateConfig) {
