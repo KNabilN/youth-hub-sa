@@ -556,7 +556,7 @@ export default function Checkout() {
                     }
                     setConfirmOpen(true);
                   }}
-                  disabled={processing}
+                  disabled={processing || (paymentMethod === "grant_balance" && !grantCoversTotal)}
                 >
                   {processing ? (
                     <>
