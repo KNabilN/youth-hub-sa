@@ -89,7 +89,7 @@ export default function AdminNotifications() {
               <SelectTrigger className="w-[200px] h-9 bg-background"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع الأنواع</SelectItem>
-                {Object.entries(typeLabels).map(([k, v]) => (
+                {Object.entries(notificationTypeLabels).map(([k, v]) => (
                   <SelectItem key={k} value={k}>{v}</SelectItem>
                 ))}
               </SelectContent>
@@ -135,7 +135,7 @@ export default function AdminNotifications() {
                           <TableRow key={n.id}>
                             <TableCell className="font-medium text-sm">{n.profiles?.full_name || "—"}</TableCell>
                             <TableCell className="max-w-[250px] truncate text-sm">{n.message}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{typeLabels[n.type] || n.type}</Badge></TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{getNotificationLabel(n.type)}</Badge></TableCell>
                             <TableCell>
                               <Badge variant="outline" className={st.className}>
                                 <StIcon className="h-3 w-3 me-1" />{st.label}
