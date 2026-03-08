@@ -167,7 +167,9 @@ export default function Index() {
           title={ss.title}
           subtitle={ss.subtitle}
           buttonText={ss.button_text}
+          isLoggedIn={!!user}
         />
+        </div>
       )}
 
       {/* 6. الثقة والأمان */}
