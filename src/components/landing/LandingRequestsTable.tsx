@@ -123,12 +123,19 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                         التفاصيل
                       </Link>
                     </Button>
-                    <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
-                      <Link to={isLoggedIn ? `/projects/public/${p.id}` : "/auth?mode=register"}>
-                        {isLoggedIn ? "قدّم عرضك" : "سجّل لتقديم عرضك"}
+                    {isDisabled ? (
+                      <Button disabled size="sm" className="flex-1 gap-1.5 rounded-lg text-sm opacity-50">
+                        {getActionLabel()}
                         <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    ) : (
+                      <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
+                        <Link to={getActionLink(p.id)}>
+                          {getActionLabel()}
+                          <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
