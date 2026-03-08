@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check } from "lucide-react";
+import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
