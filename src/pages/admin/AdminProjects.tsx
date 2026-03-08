@@ -199,7 +199,7 @@ export default function AdminProjects() {
                         />
                       </TableCell>
                        <TableCell>{p.categories?.name ?? "—"}</TableCell>
-                       <TableCell>
+                       <TableCell onClick={(e) => e.stopPropagation()}>
                          <Switch
                            checked={(p as any).is_featured ?? false}
                            onCheckedChange={(checked) => {
