@@ -75,8 +75,21 @@ export default function ServiceDetail() {
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+          <Home className="w-3.5 h-3.5" />
+          الرئيسية
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <Link to="/marketplace" className="hover:text-foreground transition-colors">
+          الخدمات
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <span className="text-foreground font-medium truncate max-w-[200px]">{service.title}</span>
+      </nav>
+
       {/* Header */}
-      <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold">{service.title}</h1>
         {(service as any).service_number && (
           <span className="text-sm font-semibold font-mono text-primary">{(service as any).service_number}</span>
