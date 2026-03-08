@@ -178,14 +178,16 @@ export default function AdminProjects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((p: any) => (
-                    <TableRow key={p.id}>
+                  {filtered.map((p: any) => {
+                    const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
+                    return (
+                    <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/projects/${p.id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">
-                        <Link to={`/admin/projects/${p.id}`} className="hover:underline hover:text-primary transition-colors">{p.request_number}</Link>
+                        {p.request_number}
                       </TableCell>
-                      <TableCell className="font-medium">{p.title}</TableCell>
-                      <TableCell>{p.profiles?.organization_name || p.profiles?.full_name || "—"}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium max-w-[120px] truncate" title={p.title}>{p.title}</TableCell>
+                      <TableCell className="max-w-[100px] truncate" title={displayName}>{displayName}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Switch
                           checked={(p as any).is_name_visible ?? true}
                           onCheckedChange={(checked) => {
