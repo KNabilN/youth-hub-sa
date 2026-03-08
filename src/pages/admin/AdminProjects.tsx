@@ -13,7 +13,7 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { FileEdit, Eye, Download, Trash2 } from "lucide-react";
+import { FileEdit, Eye, Download, Trash2, FolderKanban } from "lucide-react";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";

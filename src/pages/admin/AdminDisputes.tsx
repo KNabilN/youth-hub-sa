@@ -14,7 +14,7 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
-import { Eye, FileEdit, Download, Trash2 } from "lucide-react";
+import { Eye, FileEdit, Download, Trash2, Gavel } from "lucide-react";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
