@@ -2,6 +2,7 @@ import React from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FinanceSummary } from "@/components/admin/FinanceSummary";
 import { useEscrowTransactions, useInvoices, useUpdateEscrowStatus } from "@/hooks/useAdminFinance";
+import { useGenerateInvoice } from "@/hooks/useInvoices";
 import { useAllWithdrawals, useUpdateWithdrawalStatus } from "@/hooks/useWithdrawals";
 import { useAdminBankTransfers, useApproveBankTransfer, useRejectBankTransfer } from "@/hooks/useBankTransfer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -72,6 +73,7 @@ export default function AdminFinance() {
   const { data: withdrawals, isLoading: loadingW } = useAllWithdrawals();
   const { data: bankTransfers, isLoading: loadingBT } = useAdminBankTransfers();
   const updateW = useUpdateWithdrawalStatus();
+  const generateInvoice = useGenerateInvoice();
   const updateEscrow = useUpdateEscrowStatus();
   const approveBT = useApproveBankTransfer();
   const rejectBT = useRejectBankTransfer();
@@ -115,7 +117,20 @@ export default function AdminFinance() {
       const { error: uploadErr } = await supabase.storage.from("withdrawal-receipts").upload(filePath, wReceiptFile);
       if (uploadErr) throw uploadErr;
       updateW.mutate({ id: wTargetId, status: "approved", receipt_url: filePath }, {
-        onSuccess: () => { toast.success("تمت الموافقة وإرفاق الإيصال"); setWApproveDialogOpen(false); setWReceiptFile(null); },
+        onSuccess: () => {
+          // Generate invoice for the provider
+          const withdrawal = withdrawals?.find((w: any) => w.id === wTargetId);
+          if (withdrawal?.escrow_id) {
+            generateInvoice.mutate({
+              escrowId: withdrawal.escrow_id,
+              amount: Number(withdrawal.amount),
+              issuedTo: withdrawal.provider_id,
+            });
+          }
+          toast.success("تمت الموافقة وإرفاق الإيصال");
+          setWApproveDialogOpen(false);
+          setWReceiptFile(null);
+        },
         onError: (err: any) => toast.error(err?.message || "حدث خطأ — ربما تم معالجة الطلب مسبقاً"),
       });
     } catch { toast.error("فشل رفع الملف"); }
