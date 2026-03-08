@@ -42,7 +42,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
+import { useAdminFinancePending, markInvoicesSeen } from "@/hooks/useAdminFinancePending";
 import { WithdrawalEscrowDetails } from "@/components/admin/WithdrawalEscrowDetails";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
