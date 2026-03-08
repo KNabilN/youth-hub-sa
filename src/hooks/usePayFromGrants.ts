@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,10 +21,32 @@ interface PayFromGrantsInput {
 export function usePayFromGrants() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const mutexRef = useRef(false);
 
   return useMutation({
     mutationFn: async ({ amount, totalAmount, payeeId, projectId, serviceId }: PayFromGrantsInput) => {
       if (!user) throw new Error("Not authenticated");
+      if (mutexRef.current) throw new Error("عملية قيد التنفيذ بالفعل");
+      mutexRef.current = true;
+      try {
+        return await executeGrantPayment(user.id, amount, totalAmount, payeeId, projectId, serviceId);
+      } finally {
+        mutexRef.current = false;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["association-grant-balance"] });
+      qc.invalidateQueries({ queryKey: ["association-received-grants"] });
+      qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
+      qc.invalidateQueries({ queryKey: ["project-grant-balance"] });
+      qc.invalidateQueries({ queryKey: ["escrow"] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["my-invoices"] });
+    },
+  });
+}
+
+async function executeGrantPayment(userId: string, amount: number, totalAmount: number, payeeId: string, projectId?: string, serviceId?: string) {
 
       // --- Fetch eligible contributions in priority order ---
       let specificContributions: any[] = [];
@@ -32,7 +55,7 @@ export function usePayFromGrants() {
         const { data, error } = await supabase
           .from("donor_contributions")
           .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
-          .eq("association_id", user.id)
+          .eq("association_id", userId)
           .eq("donation_status", "available")
           .eq("project_id", projectId)
           .order("created_at", { ascending: true });
@@ -42,7 +65,7 @@ export function usePayFromGrants() {
         const { data, error } = await supabase
           .from("donor_contributions")
           .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
-          .eq("association_id", user.id)
+          .eq("association_id", userId)
           .eq("donation_status", "available")
           .eq("service_id", serviceId)
           .order("created_at", { ascending: true });
@@ -54,7 +77,7 @@ export function usePayFromGrants() {
       const { data: generalContributions, error: genErr } = await supabase
         .from("donor_contributions")
         .select("id, amount, donation_status, donor_id, association_id, project_id, service_id")
-        .eq("association_id", user.id)
+        .eq("association_id", userId)
         .eq("donation_status", "available")
         .is("project_id", null)
         .is("service_id", null)
@@ -104,8 +127,8 @@ export function usePayFromGrants() {
             const { error: insErr } = await supabase
               .from("donor_contributions")
               .insert({
-                donor_id: c.donor_id ?? user.id,
-                association_id: c.association_id ?? user.id,
+                donor_id: c.donor_id ?? userId,
+                association_id: c.association_id ?? userId,
                 amount: usedAmount,
                 donation_status: "consumed",
                 project_id: projectId || c.project_id || null,
@@ -119,7 +142,7 @@ export function usePayFromGrants() {
         const { data: escrow, error: escrowErr } = await supabase
           .from("escrow_transactions")
           .insert({
-            payer_id: user.id,
+            payer_id: userId,
             payee_id: payeeId,
             amount,
             status: "held",
@@ -155,7 +178,7 @@ export function usePayFromGrants() {
             amount,
             commission_amount: commissionAmount,
             vat_amount: vatAmount,
-            issued_to: user.id,
+            issued_to: userId,
             escrow_id: escrow.id,
           });
         if (invError) throw invError;
@@ -164,17 +187,6 @@ export function usePayFromGrants() {
       } catch (err) {
         throw err;
       }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["association-grant-balance"] });
-      qc.invalidateQueries({ queryKey: ["association-received-grants"] });
-      qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
-      qc.invalidateQueries({ queryKey: ["project-grant-balance"] });
-      qc.invalidateQueries({ queryKey: ["escrow"] });
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-      qc.invalidateQueries({ queryKey: ["my-invoices"] });
-    },
-  });
 }
 
 async function rollbackGrants(

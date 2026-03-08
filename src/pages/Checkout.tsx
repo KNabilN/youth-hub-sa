@@ -88,7 +88,7 @@ export default function Checkout() {
   };
 
   const handleCheckout = async () => {
-    if (!user || !items?.length) return;
+    if (!user || !items?.length || processing) return;
     setConfirmOpen(false);
     setProcessing(true);
 

@@ -155,16 +155,32 @@ Deno.serve(async (req) => {
 
     const commissionRate = await getCommissionRate(adminClient);
 
+    // --- Global Idempotency Check: prevent replay attacks ---
+    // Check if this payment_id was already processed by looking at receipt_url field
+    const { data: existingByPaymentId } = await adminClient
+      .from("escrow_transactions")
+      .select("id")
+      .eq("receipt_url", `moyasar:${payment_id}`)
+      .maybeSingle();
+
+    if (existingByPaymentId) {
+      console.log("Idempotency: payment_id already processed:", payment_id);
+      return new Response(
+        JSON.stringify({ verified: true, status: "paid", amount: amountSAR, payment_id: paymentData.id, duplicate: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const paymentContext = context || paymentData.metadata || {};
     const contextType = paymentContext.type;
 
     if (contextType === "checkout") {
-      await processCheckout(adminClient, userId, paymentContext, commissionRate);
+      await processCheckout(adminClient, userId, paymentContext, commissionRate, payment_id);
     } else if (contextType === "donation") {
       const donationBaseAmount = paymentContext.subtotal || amountSAR;
-      await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate);
+      await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate, payment_id);
     } else if (contextType === "project_payment") {
-      await processProjectPayment(adminClient, userId, paymentContext, commissionRate);
+      await processProjectPayment(adminClient, userId, paymentContext, commissionRate, payment_id);
     }
 
     return new Response(
@@ -185,7 +201,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function processCheckout(adminClient: any, userId: string, ctx: any, commissionRate: number) {
+async function processCheckout(adminClient: any, userId: string, ctx: any, commissionRate: number, paymentId?: string) {
   const items = ctx.items || [];
   const beneficiaryId = ctx.beneficiary_id || null;
 
@@ -290,6 +306,7 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         status: "held",
         project_id: projectId,
         beneficiary_id: beneficiaryId,
+        receipt_url: paymentId ? `moyasar:${paymentId}` : null,
       })
       .select("id")
       .single();
@@ -314,7 +331,7 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
   await adminClient.from("cart_items").delete().eq("user_id", userId);
 }
 
-async function processDonation(adminClient: any, userId: string, ctx: any, amountSAR: number, commissionRate: number) {
+async function processDonation(adminClient: any, userId: string, ctx: any, amountSAR: number, commissionRate: number, paymentId?: string) {
   const targetType = ctx.target_type;
   const associationId = ctx.association_id;
   const projectId = ctx.project_id || null;
@@ -330,6 +347,7 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
       amount: amountSAR,
       status: "held",
       grant_request_id: grantRequestId,
+      receipt_url: paymentId ? `moyasar:${paymentId}` : null,
     }).select("id").single();
     if (error) console.error("Escrow error:", error);
     else escrowData = data;
@@ -350,6 +368,7 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
       status: "held",
       project_id: projectId,
       grant_request_id: grantRequestId,
+      receipt_url: paymentId ? `moyasar:${paymentId}` : null,
     }).select("id").single();
     if (error) console.error("Escrow error:", error);
     else escrowData = data;
@@ -374,7 +393,7 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
   }
 }
 
-async function processProjectPayment(adminClient: any, userId: string, ctx: any, commissionRate: number) {
+async function processProjectPayment(adminClient: any, userId: string, ctx: any, commissionRate: number, paymentId?: string) {
   const projectId = ctx.project_id;
   const providerId = ctx.provider_id;
   const baseAmount = ctx.subtotal || 0;
@@ -406,6 +425,7 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
       payee_id: providerId,
       amount: baseAmount,
       status: "held",
+      receipt_url: paymentId ? `moyasar:${paymentId}` : null,
     })
     .select("id")
     .single();

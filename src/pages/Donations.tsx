@@ -167,7 +167,7 @@ export default function Donations() {
   };
 
   const handlePaymentConfirm = async (receiptFile: File) => {
-    if (!user || !formData) return;
+    if (!user || !formData || processing) return;
     setProcessing(true);
     const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
@@ -252,7 +252,7 @@ export default function Donations() {
   };
 
   const handleOnlinePayment = async () => {
-    if (!user || !formData) return;
+    if (!user || !formData || processing) return;
     setProcessing(true);
     const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {

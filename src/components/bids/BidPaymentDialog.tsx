@@ -81,7 +81,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   ];
 
   const handleAcceptAndPay = async () => {
-    if (!user) return;
+    if (!user || loadingPayment) return;
     setLoadingPayment(true);
     try {
       if (!skipAcceptBid) {
@@ -121,7 +121,8 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   };
 
   const handleBankTransfer = async () => {
-    if (!receiptFile || !user) return;
+    if (!receiptFile || !user || loadingPayment) return;
+    setLoadingPayment(true);
     try {
       if (!skipAcceptBid) {
         await acceptBid.mutateAsync({ bidId: bid.id, projectId, providerId: bid.provider_id, bidPrice: bid.price });
@@ -143,11 +144,13 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
       onOpenChange(false);
     } catch {
       toast({ title: "حدث خطأ", variant: "destructive" });
+    } finally {
+      setLoadingPayment(false);
     }
   };
 
   const handleGrantPayment = async () => {
-    if (!user) return;
+    if (!user || loadingPayment) return;
     setLoadingPayment(true);
     try {
       if (!skipAcceptBid) {
@@ -184,7 +187,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
   };
 
   const handleMixedPayment = async () => {
-    if (!user) return;
+    if (!user || loadingPayment) return;
     setLoadingPayment(true);
     try {
       if (!skipAcceptBid) {
