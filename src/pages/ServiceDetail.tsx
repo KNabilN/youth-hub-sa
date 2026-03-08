@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useServiceDetail } from "@/hooks/useServiceDetail";
 import { ServiceGallery } from "@/components/services/ServiceGallery";
 import { ServicePackages } from "@/components/services/ServicePackages";
