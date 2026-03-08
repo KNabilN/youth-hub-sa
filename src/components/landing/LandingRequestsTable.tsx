@@ -24,7 +24,7 @@ interface LandingRequestsTableProps {
   isLoggedIn?: boolean;
 }
 
-export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn }: LandingRequestsTableProps) {
   if (!loading && projects.length === 0) return null;
 
   return (
