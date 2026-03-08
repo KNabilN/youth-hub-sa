@@ -5,6 +5,7 @@ import { useLandingStats } from "@/hooks/useLandingStats";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Zap, Globe, CheckCircle2, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import LiveStats from "@/components/landing/LiveStats";
 import LandingRequestsTable from "@/components/landing/LandingRequestsTable";
 import LandingServicesGrid from "@/components/landing/LandingServicesGrid";
