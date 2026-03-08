@@ -248,15 +248,21 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
     </div>
   `;
 
-  const canvas = await renderHtmlToImage(invoiceHtml, 800);
-  const imgData = canvas.toDataURL("image/png");
+  const imgDataUrl = await renderHtmlToImage(invoiceHtml, 800);
 
   const pdf = new jsPDF("p", "mm", "a4");
   const pdfWidth = 210;
   const pdfMargin = 5;
   const usable = pdfWidth - 2 * pdfMargin;
-  const imgHeight = (canvas.height / canvas.width) * usable;
 
-  pdf.addImage(imgData, "PNG", pdfMargin, pdfMargin, usable, imgHeight);
+  // Get image dimensions to calculate height
+  const imgHeight = await new Promise<number>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve((img.height / img.width) * usable);
+    img.onerror = () => resolve(150);
+    img.src = imgDataUrl;
+  });
+
+  pdf.addImage(imgDataUrl, "PNG", pdfMargin, pdfMargin, usable, imgHeight);
   pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
 }
