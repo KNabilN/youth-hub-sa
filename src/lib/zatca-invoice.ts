@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { BRAND, BASE_FONT, loadArabicFont, getLogoBase64, bdiTag, generateRefNumber } from "./pdf-utils";
 
 export interface InvoiceTemplateConfig {
