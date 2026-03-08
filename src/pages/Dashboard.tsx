@@ -232,6 +232,7 @@ export default function Dashboard() {
         {/* Action items */}
         {role === "service_provider" && <ProviderActionItems />}
         {role === "youth_association" && <AssociationActionItems />}
+        {role === "donor" && <DonorActionItems />}
 
         {pendingRatings && pendingRatings.length > 0 && (
           <Alert className="border-warning bg-warning/10 animate-fade-in">

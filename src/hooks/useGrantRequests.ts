@@ -56,6 +56,22 @@ export function useMyGrants() {
 /** Donor sees all general + targeted grant requests */
 export function useGrantRequestsForDonor() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-grant-requests-donor-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "grant_requests" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["grant-requests-donor"] });
+          qc.invalidateQueries({ queryKey: ["my-grant-requests"] });
+          qc.invalidateQueries({ queryKey: ["donor-pending-grant-requests"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["grant-requests-donor", user?.id],
     enabled: !!user,

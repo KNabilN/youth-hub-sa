@@ -20,6 +20,22 @@ export interface ImpactReport {
 
 export function useImpactReports() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-impact-reports-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "impact_reports" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["impact-reports"] });
+          qc.invalidateQueries({ queryKey: ["impact-reports-count"] });
+          qc.invalidateQueries({ queryKey: ["donor-new-impact-reports"] });
+          qc.invalidateQueries({ queryKey: ["journey-donor"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
 
   return useQuery({
     queryKey: ["impact-reports", user?.id],

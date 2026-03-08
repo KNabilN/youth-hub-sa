@@ -5,6 +5,24 @@ import { useEffect } from "react";
 
 export function useDonorStats() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-donor-stats-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "donor_contributions" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["donor-stats"] });
+          qc.invalidateQueries({ queryKey: ["donor-balances"] });
+          qc.invalidateQueries({ queryKey: ["donor-contributions"] });
+          qc.invalidateQueries({ queryKey: ["donor-consumed-breakdown"] });
+          qc.invalidateQueries({ queryKey: ["journey-donor"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
   return useQuery({
     queryKey: ["donor-stats", user?.id],
     queryFn: async () => {
