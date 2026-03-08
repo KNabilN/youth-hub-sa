@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, FileText, Clock, PenLine } from "lucide-react";
+import { Check, FileText, Clock, PenLine, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ContractCardProps {
@@ -67,12 +67,20 @@ export function ContractCard({ contract, canSign, onSign, isSignPending }: Contr
         <p className="text-xs text-muted-foreground">
           {new Date(contract.created_at).toLocaleDateString("ar-SA")}
         </p>
-        {canSign && (
-          <Button size="sm" onClick={() => onSign(contract.id)} disabled={isSignPending}>
-            <Check className="h-4 w-4 me-1" />
-            توقيع العقد
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link to={`/projects/${contract.project_id}?tab=contract`}>
+              <Eye className="h-4 w-4 me-1" />
+              عرض العقد
+            </Link>
           </Button>
-        )}
+          {canSign && (
+            <Button size="sm" onClick={() => onSign(contract.id)} disabled={isSignPending}>
+              <Check className="h-4 w-4 me-1" />
+              توقيع العقد
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
