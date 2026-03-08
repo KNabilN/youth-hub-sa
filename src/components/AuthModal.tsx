@@ -154,35 +154,6 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     }
   };
 
-  const PasswordInput = ({ id, value, onChange, error }: { id: string; value: string; onChange: (v: string) => void; error?: string }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>كلمة المرور <span className="text-destructive">*</span></Label>
-      <div className="flex gap-2">
-        <Input
-          id={id}
-          type={showPassword ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="••••••••"
-          required
-          dir="ltr"
-          className={cn("text-start h-11 flex-1", error && "border-destructive")}
-          minLength={6}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setShowPassword(!showPassword)}
-          className="h-11 w-11 shrink-0"
-          tabIndex={-1}
-        >
-          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </Button>
-      </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  );
 
   const formContent = (
     <div className="space-y-5 p-6">
@@ -218,7 +189,33 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
-            <PasswordInput id="modal-password" value={password} onChange={setPassword} error={errors.password} />
+            <div className="space-y-2">
+              <Label htmlFor="modal-login-password">كلمة المرور <span className="text-destructive">*</span></Label>
+              <div className="flex gap-2">
+                <Input
+                  id="modal-login-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  dir="ltr"
+                  className={cn("text-start h-11 flex-1", errors.password && "border-destructive")}
+                  minLength={6}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="h-11 w-11 shrink-0"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
 
             <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
               {loading ? "جارٍ المعالجة..." : "تسجيل الدخول"}
@@ -313,7 +310,33 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
-            <PasswordInput id="modal-password" value={password} onChange={setPassword} error={errors.password} />
+            <div className="space-y-2">
+              <Label htmlFor="modal-reg-password">كلمة المرور <span className="text-destructive">*</span></Label>
+              <div className="flex gap-2">
+                <Input
+                  id="modal-reg-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  dir="ltr"
+                  className={cn("text-start h-11 flex-1", errors.password && "border-destructive")}
+                  minLength={6}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="h-11 w-11 shrink-0"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
             <PasswordStrength password={password} />
 
             <div className="space-y-2">
