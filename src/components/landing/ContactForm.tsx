@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CharCounter } from "@/components/ui/char-counter";
+import { useAuth } from "@/hooks/useAuth";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم مطلوب").max(100),
