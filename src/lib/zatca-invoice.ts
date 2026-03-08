@@ -50,7 +50,7 @@ async function renderHtmlToImage(html: string, width: number): Promise<string> {
   const container = document.createElement("div");
   container.setAttribute("dir", "rtl");
   container.style.cssText = `
-    position: fixed; top: -99999px; left: -99999px;
+    position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -1; overflow: hidden;
     width: ${width}px; background: #ffffff; color: ${BRAND.text};
     font-family: ${BASE_FONT};
     direction: rtl; text-align: right;
