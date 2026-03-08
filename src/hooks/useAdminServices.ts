@@ -1,10 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import type { Database } from "@/integrations/supabase/types";
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
 
 export function useAdminServices() {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("rt-admin-services")
+      .on("postgres_changes", { event: "*", schema: "public", table: "micro_services" }, () =>
+        qc.invalidateQueries({ queryKey: ["admin-services"] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["admin-services"],
     queryFn: async () => {

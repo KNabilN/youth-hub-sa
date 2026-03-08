@@ -3,6 +3,8 @@ import { useAdminStats, useAdminGrowthData, usePlatformHealth } from "@/hooks/us
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminActionItems } from "@/components/admin/AdminActionItems";
+import { Link } from "react-router-dom";
 import {
   Users, FolderKanban, Gavel, Receipt, Layers, ClipboardList, Shield, Ticket,
   TrendingUp, CheckCircle2, Activity,
@@ -18,6 +20,7 @@ interface KPICardProps {
   icon: React.ElementType;
   color: string;
   subtitle?: string;
+  to?: string;
 }
 
 const colorMap: Record<string, { bg: string; text: string; border: string }> = {
@@ -29,10 +32,10 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   accent: { bg: "bg-accent/10", text: "text-accent-foreground", border: "border-s-accent" },
 };
 
-function KPICard({ title, value, icon: Icon, color, subtitle }: KPICardProps) {
+function KPICard({ title, value, icon: Icon, color, subtitle, to }: KPICardProps) {
   const c = colorMap[color] || colorMap.primary;
-  return (
-    <Card className={cn("border-s-4 animate-fade-in", c.border)}>
+  const content = (
+    <Card className={cn("border-s-4 animate-fade-in transition-shadow", c.border, to && "hover:shadow-md cursor-pointer")}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -47,6 +50,9 @@ function KPICard({ title, value, icon: Icon, color, subtitle }: KPICardProps) {
       </CardContent>
     </Card>
   );
+
+  if (to) return <Link to={to} className="block">{content}</Link>;
+  return content;
 }
 
 function HealthMetric({ label, value, color }: { label: string; value: number; color: string }) {
@@ -101,18 +107,21 @@ export function AdminOverview() {
   }
 
   const kpis = [
-    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary" },
-    { title: "طلبات الجمعيات", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info" },
-    { title: "الشكاوى المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive" },
-    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
-    { title: "خدمات بانتظار الموافقة", value: stats?.pendingServices ?? 0, icon: Layers, color: "warning" },
+    { title: "إجمالي المستخدمين", value: stats?.totalUsers ?? 0, icon: Users, color: "primary", to: "/admin/users", subtitle: stats?.newUsersThisWeek ? `+${stats.newUsersThisWeek} هذا الأسبوع` : undefined },
+    { title: "طلبات الجمعيات", value: stats?.totalProjects ?? 0, icon: FolderKanban, color: "info", to: "/admin/projects" },
+    { title: "الشكاوى المفتوحة", value: stats?.openDisputes ?? 0, icon: Gavel, color: "destructive", to: "/admin/disputes" },
+    { title: "الإيرادات", value: `${(stats?.revenue ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success", to: "/admin/finance" },
+    { title: "خدمات بانتظار الموافقة", value: stats?.pendingServices ?? 0, icon: Layers, color: "warning", to: "/admin/services" },
     { title: "عروض أسعار معلقة", value: stats?.pendingBids ?? 0, icon: ClipboardList, color: "accent" },
-    { title: "ضمان محتجز", value: `${(stats?.heldEscrow ?? 0).toLocaleString()} ر.س`, icon: Shield, color: "primary", subtitle: "مبلغ الضمان المالي المحتجز" },
-    { title: "تذاكر الدعم المفتوحة", value: stats?.openTickets ?? 0, icon: Ticket, color: "warning" },
+    { title: "ضمان محتجز", value: `${(stats?.heldEscrow ?? 0).toLocaleString()} ر.س`, icon: Shield, color: "primary", subtitle: "مبلغ الضمان المالي المحتجز", to: "/admin/finance" },
+    { title: "تذاكر الدعم المفتوحة", value: stats?.openTickets ?? 0, icon: Ticket, color: "warning", to: "/admin/tickets" },
   ];
 
   return (
     <div className="space-y-6">
+      {/* Action Items */}
+      <AdminActionItems />
+
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
