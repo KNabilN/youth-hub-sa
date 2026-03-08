@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HandCoins, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
@@ -17,12 +18,16 @@ export default function GrantRequests() {
   const { data: requests, isLoading } = useGrantRequestsForDonor();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const filtered = requests?.filter(r =>
-    r.association?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    r.association?.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
-    r.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = requests?.filter(r => {
+    const matchesSearch = !search.trim() ||
+      r.association?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.association?.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" || r.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleDonate = (req: any) => {
     const params = new URLSearchParams();
@@ -47,9 +52,21 @@ export default function GrantRequests() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="ابحث بالجمعية أو الوصف..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="ابحث بالجمعية أو الوصف..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="الحالة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="pending">بانتظار المراجعة</SelectItem>
+              <SelectItem value="approved">تمت الموافقة</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? <ContentSkeleton /> : !filtered?.length ? (

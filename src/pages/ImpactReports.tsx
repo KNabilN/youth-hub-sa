@@ -79,8 +79,27 @@ function handleDownload(filePath: string, fileName: string) {
 export default function ImpactReports() {
   const { data: stats, isLoading: statsLoading } = useDonorStats();
   const { data: reports, isLoading: reportsLoading } = useImpactReports();
+  const [assocFilter, setAssocFilter] = useState("all");
 
   const isLoading = statsLoading || reportsLoading;
+
+  // Build unique associations list for filter
+  const associations = useMemo(() => {
+    if (!reports?.length) return [];
+    const map = new Map<string, string>();
+    reports.forEach(r => {
+      if (r.association) {
+        map.set(r.association_id, r.association.organization_name || r.association.full_name || "جمعية");
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [reports]);
+
+  const filteredReports = useMemo(() => {
+    if (!reports) return [];
+    if (assocFilter === "all") return reports;
+    return reports.filter(r => r.association_id === assocFilter);
+  }, [reports, assocFilter]);
 
   return (
     <DashboardLayout>

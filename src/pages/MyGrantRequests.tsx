@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyGrantRequests } from "@/hooks/useGrantRequests";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HandCoins, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,6 +23,11 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
 export default function MyGrantRequests() {
   const { data: requests, isLoading } = useMyGrantRequests();
   const navigate = useNavigate();
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = requests?.filter(r =>
+    statusFilter === "all" || r.status === statusFilter
+  );
 
   const handleDonate = (req: any) => {
     const params = new URLSearchParams();
@@ -45,11 +52,24 @@ export default function MyGrantRequests() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        {isLoading ? <ContentSkeleton /> : !requests?.length ? (
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="فلتر الحالة" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل</SelectItem>
+            <SelectItem value="pending">بانتظار المراجعة</SelectItem>
+            <SelectItem value="approved">تمت الموافقة</SelectItem>
+            <SelectItem value="funded">تم التمويل</SelectItem>
+            <SelectItem value="rejected">مرفوض</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {isLoading ? <ContentSkeleton /> : !filtered?.length ? (
           <EmptyState icon={Inbox} title="لا توجد طلبات واردة" description="لم يتم توجيه أي طلبات منح لك حالياً" />
         ) : (
           <div className="grid gap-4">
-            {requests.map(req => {
+            {filtered.map(req => {
               const st = statusMap[req.status] || statusMap.pending;
               return (
                 <Card key={req.id} className="hover:shadow-md transition-shadow">
