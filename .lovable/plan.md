@@ -1,12 +1,17 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# إصلاح مشكلة تسجيل المشروع مرتين عند شراء خدمة
 
-### ما تم تنفيذه
+## السبب الجذري
+عند استخدام **الدفع المختلط** (رصيد منح + دفع إلكتروني)، يحدث التالي:
+1. كود `Checkout.tsx` (سطر 99-145) يُنشئ المشروع والعقد والعرض **أثناء خصم المنح**
+2. ثم يمرر `skip_project_creation: true` في سياق الدفع
+3. لكن دالة `processCheckout` في Edge Function **لا تتحقق** من هذا العلم وتُنشئ كل شيء مرة ثانية!
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## الحل
+في `supabase/functions/moyasar-verify-payment/index.ts` → دالة `processCheckout`:
+- إضافة تحقق من `ctx.skip_project_creation` — إذا كان `true`، يتم تخطي إنشاء المشروع والعقد والعرض، ويتم فقط إنشاء سجل الضمان المالي والفاتورة
+
+### الملف المتأثر:
+- `supabase/functions/moyasar-verify-payment/index.ts` (دالة `processCheckout` سطر 204-332)
+
