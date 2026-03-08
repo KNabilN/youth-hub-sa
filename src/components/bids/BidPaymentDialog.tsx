@@ -160,11 +160,13 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
         projectId,
       });
 
+      // Create contract WITHOUT auto-signing — association must review and sign
+      const contractTerms = `نطاق العمل:\n${projectTitle}\n\nيلتزم مقدم الخدمة بتنفيذ العمل وفق الوصف المتفق عليه.`;
       await supabase.from("contracts").insert({
         project_id: projectId,
         provider_id: bid.provider_id,
         association_id: user.id,
-        terms: `عقد تنفيذ مشروع "${projectTitle}" بقيمة ${bid.price} ر.س`,
+        terms: contractTerms,
       });
 
       await supabase

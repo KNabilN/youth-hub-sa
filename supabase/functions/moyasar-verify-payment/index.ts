@@ -250,13 +250,13 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         console.error("Project creation error (association):", projErr);
       } else {
         projectId = project.id;
-        // Create contract with association auto-signed
+        // Create contract WITHOUT auto-signing — association must review and sign
+        const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await adminClient.from("contracts").insert({
           project_id: project.id,
           association_id: userId,
           provider_id: item.provider_id,
-          terms: `عقد تنفيذ خدمة "${title}" بقيمة ${item.price} ر.س`,
-          association_signed_at: new Date().toISOString(),
+          terms: contractTerms,
         });
       }
     }
@@ -396,13 +396,14 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // 2. Create contract (association already signed by paying)
+  // 2. Create contract WITHOUT auto-signing — association must review and sign
+  const { data: projData } = await adminClient.from("projects").select("title, description").eq("id", projectId).single();
+  const contractTerms = `نطاق العمل:\n${projData?.title || "طلب"}\n\n${projData?.description || "يلتزم مقدم الخدمة بتنفيذ العمل وفق الوصف المتفق عليه."}`;
   const { error: contractErr } = await adminClient.from("contracts").insert({
     project_id: projectId,
     association_id: userId,
     provider_id: providerId,
-    terms: `عقد تنفيذ طلب بقيمة ${baseAmount} ر.س`,
-    association_signed_at: new Date().toISOString(),
+    terms: contractTerms,
   });
   if (contractErr) {
     console.error("Contract creation error:", contractErr);

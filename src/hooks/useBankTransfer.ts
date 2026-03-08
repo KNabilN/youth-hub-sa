@@ -286,7 +286,7 @@ export function useApproveBankTransfer() {
             if (svc) serviceTitle = svc.title;
           }
 
-          const terms = `عقد تنفيذ خدمة "${serviceTitle}" — المبلغ المتفق عليه: ${Number(escrow.amount).toLocaleString()} ر.س. يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه، ويلتزم الطرف الأول بالدفع عبر نظام الضمان المالي.`;
+          const terms = `نطاق العمل:\n${serviceTitle}\n\nيلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه — المبلغ المتفق عليه: ${Number(escrow.amount).toLocaleString()} ر.س.`;
 
           // Check if contract already exists
           const { data: existingContract } = await supabase
@@ -296,12 +296,12 @@ export function useApproveBankTransfer() {
             .maybeSingle();
 
           if (!existingContract) {
+            // Create contract WITHOUT auto-signing
             await supabase.from("contracts").insert({
               project_id: escrow.project_id,
               association_id: project.association_id,
               provider_id: project.assigned_provider_id,
               terms,
-              association_signed_at: new Date().toISOString(),
             });
             // DB trigger notify_on_contract_change handles notifications
           }

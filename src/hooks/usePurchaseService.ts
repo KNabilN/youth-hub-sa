@@ -77,13 +77,13 @@ export function usePurchaseService() {
         if (projErr) throw projErr;
         projectId = project.id;
 
-        // Create contract with association auto-signed
+        // Create contract WITHOUT auto-signing — association must review and sign
+        const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await supabase.from("contracts").insert({
           project_id: project.id,
           association_id: buyerId,
           provider_id: providerId,
-          terms: `عقد تنفيذ خدمة "${title}" بقيمة ${amount} ر.س`,
-          association_signed_at: new Date().toISOString(),
+          terms: contractTerms,
         });
       }
 

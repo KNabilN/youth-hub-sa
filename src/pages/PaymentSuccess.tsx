@@ -93,15 +93,19 @@ export default function PaymentSuccess() {
                 </div>
               </>
             ) : state?.method === "grant_balance" ? (
-              <SuccessAnimation
-                title="تم الدفع من رصيد المنح!"
-                description="تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي"
-              />
+              <>
+                <SuccessAnimation
+                  title="تم الدفع من رصيد المنح!"
+                  description="تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                />
+              </>
             ) : (
-              <SuccessAnimation
-                title="تم الدفع بنجاح!"
-                description="تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي"
-              />
+              <>
+                <SuccessAnimation
+                  title="تم الدفع بنجاح!"
+                  description="تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                />
+              </>
             )}
 
             {state && (
@@ -128,12 +132,16 @@ export default function PaymentSuccess() {
             )}
 
             <div className="flex flex-col gap-2 w-full">
-              <Button onClick={() => navigate("/dashboard")}>
+              <Button onClick={() => navigate("/contracts")}>
+                <ScrollText className="h-4 w-4 me-1" />
+                مراجعة العقود وتوقيعها
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>
                 <ArrowLeft className="h-4 w-4 me-1" />
                 العودة للوحة التحكم
               </Button>
               {!isBankTransfer && (
-                <Button variant="outline" onClick={() => navigate("/invoices")}>
+                <Button variant="ghost" onClick={() => navigate("/invoices")}>
                   <Receipt className="h-4 w-4 me-1" />
                   عرض الفواتير
                 </Button>
