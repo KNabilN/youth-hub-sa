@@ -46,8 +46,9 @@ export default function ServiceDetail() {
 
   if (!service) {
     return (
-      <div className="container mx-auto py-16 text-center">
-        <p className="text-muted-foreground">الخدمة غير موجودة</p>
+      <div className="container mx-auto py-16 text-center space-y-4">
+        <p className="text-lg text-muted-foreground">هذه الخدمة غير موجودة أو تم حذفها</p>
+        <Button variant="outline" onClick={() => window.history.back()}>العودة</Button>
       </div>
     );
   }

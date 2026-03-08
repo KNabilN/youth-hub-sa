@@ -46,6 +46,7 @@ export default function TicketDetail() {
         .from("support_tickets")
         .select("*")
         .eq("id", id!)
+        .is("deleted_at", null)
         .single();
       if (error) throw error;
       return data;
@@ -66,9 +67,9 @@ export default function TicketDetail() {
   if (!ticket) {
     return (
       <DashboardLayout>
-        <div className="text-center py-20">
-          <p className="text-muted-foreground">لم يتم العثور على التذكرة</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/tickets")}>
+        <div className="text-center py-20 space-y-4">
+          <p className="text-lg text-muted-foreground">هذه التذكرة غير موجودة أو تم حذفها</p>
+          <Button variant="outline" onClick={() => navigate("/tickets")}>
             <ArrowRight className="h-4 w-4 ms-2" /> العودة
           </Button>
         </div>

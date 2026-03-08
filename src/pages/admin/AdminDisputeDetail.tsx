@@ -43,6 +43,7 @@ export default function AdminDisputeDetail() {
         .from("disputes")
         .select("*, projects(title), profiles!disputes_raised_by_fkey(full_name)")
         .eq("id", id!)
+        .is("deleted_at", null)
         .single();
       if (error) throw error;
       return data;
@@ -205,7 +206,7 @@ export default function AdminDisputeDetail() {
     return (
       <DashboardLayout>
         <div className="text-center py-16 space-y-4">
-          <p className="text-muted-foreground">الشكوى غير موجودة</p>
+          <p className="text-lg text-muted-foreground">هذه الشكوى غير موجودة أو تم حذفها</p>
           <Button asChild variant="outline"><Link to="/admin/disputes">العودة للقائمة</Link></Button>
         </div>
       </DashboardLayout>

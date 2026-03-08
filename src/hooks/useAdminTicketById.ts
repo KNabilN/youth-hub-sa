@@ -10,6 +10,7 @@ export function useAdminTicketById(id: string | null) {
         .from("support_tickets")
         .select("*, profiles:user_id(full_name, avatar_url, organization_name)")
         .eq("id", id!)
+        .is("deleted_at", null)
         .single();
       if (error) throw error;
       return data;

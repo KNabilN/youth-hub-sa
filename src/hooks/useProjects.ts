@@ -62,6 +62,7 @@ export function useProject(id: string | undefined) {
         .from("projects")
         .select("*, categories(*), regions(*), cities(*)")
         .eq("id", id!)
+        .is("deleted_at", null)
         .single();
       if (error) throw error;
       return data;
