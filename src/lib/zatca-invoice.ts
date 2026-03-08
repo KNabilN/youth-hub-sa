@@ -48,7 +48,7 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
     template: t,
     logoBase64,
     refNumber,
-  });
+  }) as any;
 
   const blob = await pdf(doc).toBlob();
 

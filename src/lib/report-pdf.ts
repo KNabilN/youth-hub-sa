@@ -41,7 +41,7 @@ export async function generateReportPDF(
     summaryStats,
     chartImages,
     sections,
-  });
+  }) as any;
 
   const blob = await pdf(doc).toBlob();
 
