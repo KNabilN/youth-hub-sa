@@ -123,12 +123,21 @@ export default function ProjectPublicView() {
 
       {/* CTA */}
       <div className="text-center pt-4">
-        <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
-          <Link to="/auth?mode=register">
-            سجّل دخولك لتقديم عرض
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-          </Link>
-        </Button>
+        {user && role === "service_provider" ? (
+          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
+            <Link to={`/available-projects/${project.id}`}>
+              تقديم عرض
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+            </Link>
+          </Button>
+        ) : !user ? (
+          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base">
+            <Link to="/auth?mode=register">
+              سجّل لتقديم عرضك
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+            </Link>
+          </Button>
+        ) : null}
       </div>
     </div>
   );

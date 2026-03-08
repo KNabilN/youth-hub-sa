@@ -20,6 +20,7 @@ const contactSchema = z.object({
 const COOLDOWN_MS = 30_000;
 
 export function ContactForm() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -27,6 +28,13 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+
+  // Auto-fill email for logged-in users
+  useEffect(() => {
+    if (user?.email && !email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const isCoolingDown = Date.now() < cooldownUntil;
 
