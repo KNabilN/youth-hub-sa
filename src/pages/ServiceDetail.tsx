@@ -5,6 +5,7 @@ import { ServicePackages } from "@/components/services/ServicePackages";
 import { ServiceProviderCard } from "@/components/services/ServiceProviderCard";
 import { ServiceFAQ } from "@/components/services/ServiceFAQ";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, ShoppingBag, Star, Paperclip } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
