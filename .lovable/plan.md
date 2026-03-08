@@ -1,12 +1,27 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# إضافة شارة إشعارات على تبويب الفواتير في الصفحة المالية
 
-### ما تم تنفيذه
+## الفكرة
+إضافة شارة حمراء على تبويب "الفواتير" تعرض عدد الفواتير الجديدة (التي لم يطلع عليها الأدمن)، وتختفي تلقائياً عند فتح التبويب.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## الآلية
+- استخدام `localStorage` لتخزين تاريخ آخر مرة فتح فيها الأدمن تبويب الفواتير (`admin_invoices_last_seen`)
+- عد الفواتير التي تم إنشاؤها بعد هذا التاريخ
+- عند فتح تبويب الفواتير، تحديث التاريخ وإعادة حساب العدد
+
+## التغييرات
+
+### 1. `src/hooks/useAdminFinancePending.ts`
+- إضافة استعلام لعد الفواتير الجديدة بعد `admin_invoices_last_seen` من localStorage
+- إرجاع `invoices` ضمن النتيجة
+
+### 2. `src/pages/admin/AdminFinance.tsx`
+- تحويل `Tabs` من `defaultValue` إلى `value` + `onValueChange` (controlled)
+- عند اختيار تبويب "invoices": تحديث localStorage بالتاريخ الحالي + إعادة تحميل العدد
+- إضافة Badge على TabsTrigger الخاص بالفواتير مثل باقي التبويبات
+
+### الملفات المتأثرة:
+- `src/hooks/useAdminFinancePending.ts`
+- `src/pages/admin/AdminFinance.tsx`
+
