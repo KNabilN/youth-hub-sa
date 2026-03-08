@@ -449,6 +449,7 @@ export default function AdminReports() {
       );
       toast.success("تم تصدير التقرير بصيغة PDF");
     } catch (err) {
+      console.error("PDF export error:", err);
       toast.error("حدث خطأ أثناء تصدير PDF");
     }
   };
