@@ -179,14 +179,14 @@ export default function AdminServices() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((s: any) => (
-                    <TableRow key={s.id}>
-                      <TableCell className="font-mono text-sm font-semibold"><Link to={`/admin/services/${s.id}`} className="hover:underline hover:text-primary transition-colors">{s.service_number || "—"}</Link></TableCell>
-                      <TableCell className="font-medium">{s.title}</TableCell>
-                      <TableCell>{s.profiles?.full_name ?? "—"}</TableCell>
+                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.href = `/admin/services/${s.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{s.service_number || "—"}</TableCell>
+                      <TableCell className="font-medium max-w-[120px] truncate" title={s.title}>{s.title}</TableCell>
+                      <TableCell className="max-w-[100px] truncate" title={s.profiles?.full_name ?? "—"}>{s.profiles?.full_name ?? "—"}</TableCell>
                       <TableCell>{s.categories?.name ?? "—"}</TableCell>
                       <TableCell><Badge className={approvalColors[s.approval]}>{approvalLabels[s.approval]}</Badge></TableCell>
                        <TableCell>{s.price} ر.س</TableCell>
-                       <TableCell>
+                       <TableCell onClick={(e) => e.stopPropagation()}>
                          <Input
                             type="number"
                             className="w-20 h-8 text-center"
@@ -205,7 +205,7 @@ export default function AdminServices() {
                             }}
                           />
                        </TableCell>
-                       <TableCell>
+                       <TableCell onClick={(e) => e.stopPropagation()}>
                          <Switch
                            checked={(s as any).is_featured ?? false}
                            onCheckedChange={(checked) => {
@@ -220,7 +220,7 @@ export default function AdminServices() {
                          />
                        </TableCell>
                        <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         {(() => {
                           const allowed: Record<string, { key: string; label: string }[]> = {
                             pending: [{ key: "approved", label: "مقبول" }, { key: "rejected", label: "مرفوض" }],
@@ -240,7 +240,7 @@ export default function AdminServices() {
                           );
                         })()}
                       </TableCell>
-                      <TableCell className="flex gap-1">
+                      <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" variant="outline" asChild>
                           <Link to={`/admin/services/${s.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
                         </Button>
