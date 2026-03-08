@@ -181,7 +181,7 @@ export function useApproveBankTransfer() {
         .from("escrow_transactions")
         .update({ status: "held" as any })
         .eq("id", escrowId)
-        .eq("status", "pending_payment")
+        .in("status", ["pending_payment", "under_review"])
         .select("id");
       if (escErr) throw escErr;
       if (!escUpdated?.length) throw new Error("تم تعديل حالة الضمان مسبقاً");
