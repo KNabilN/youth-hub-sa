@@ -60,14 +60,14 @@ async function renderSectionToImage(html: string): Promise<string> {
         })
     )
   );
-  const canvas = await html2canvas(container, {
-    scale: 3,
-    useCORS: true,
+  const dataUrl = await toPng(container, {
+    quality: 0.95,
+    pixelRatio: 3,
+    skipFonts: false,
     backgroundColor: BRAND.white,
-    logging: false,
   });
   document.body.removeChild(container);
-  return canvas.toDataURL("image/png");
+  return dataUrl;
 }
 
 function imgHeightMM(dataUrl: string): Promise<number> {
