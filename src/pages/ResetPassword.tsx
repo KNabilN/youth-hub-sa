@@ -1,33 +1,42 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { KeyRound } from "lucide-react";
+import { KeyRound, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { PasswordStrength } from "@/components/ui/password-strength";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setReady(true);
       }
     });
-    // Also check hash for type=recovery
     if (window.location.hash.includes("type=recovery")) {
       setReady(true);
     }
-    return () => subscription.unsubscribe();
+    // If after 5 seconds still not ready, show error
+    const timeout = setTimeout(() => {
+      setError((prev) => { if (!ready) return true; return prev; });
+    }, 5000);
+    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
+
+  useEffect(() => {
+    if (ready) setError(false);
+  }, [ready]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +62,26 @@ export default function ResetPassword() {
   if (!ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <p className="text-muted-foreground">جارٍ التحقق من الرابط...</p>
+        <div className="w-full max-w-md space-y-6 text-center">
+          {error ? (
+            <Card className="border shadow-xl">
+              <CardContent className="pt-8 pb-6 space-y-4">
+                <div className="mx-auto w-14 h-14 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-7 h-7 text-destructive" />
+                </div>
+                <h2 className="text-xl font-bold">رابط منتهي أو غير صالح</h2>
+                <p className="text-sm text-muted-foreground">
+                  يبدو أن رابط إعادة التعيين قد انتهت صلاحيته أو تم استخدامه مسبقاً.
+                </p>
+                <Button asChild className="w-full h-11">
+                  <Link to="/forgot-password">أعد طلب رابط الاستعادة</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <p className="text-muted-foreground">جارٍ التحقق من الرابط...</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -73,23 +101,34 @@ export default function ResetPassword() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">كلمة المرور الجديدة</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  dir="ltr"
-                  className="text-start h-11"
-                  minLength={6}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    dir="ltr"
+                    className="text-start h-11 pe-10"
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <PasswordStrength password={password} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
                 <Input
                   id="confirmPassword"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
