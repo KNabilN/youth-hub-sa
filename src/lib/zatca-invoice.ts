@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { BRAND, BASE_FONT, loadArabicFont, getLogoBase64, bdiTag, generateRefNumber } from "./pdf-utils";
 
 export interface InvoiceTemplateConfig {
@@ -46,14 +46,14 @@ const INVOICE_TYPE_LABELS: Record<InvoiceType, { ar: string; en: string; color: 
 /** Wrap LTR content (numbers, symbols, brackets) to prevent reversal */
 const ltr = (text: string) => `<span dir="ltr" style="unicode-bidi:isolate;display:inline-block;">${text}</span>`;
 
-async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanvasElement> {
+async function renderHtmlToImage(html: string, width: number): Promise<string> {
   const container = document.createElement("div");
   container.setAttribute("dir", "rtl");
   container.style.cssText = `
     position: fixed; top: -99999px; left: -99999px;
     width: ${width}px; background: #ffffff; color: ${BRAND.text};
     font-family: ${BASE_FONT};
-    direction: rtl; unicode-bidi: isolate; text-align: right;
+    direction: rtl; text-align: right;
     text-rendering: optimizeLegibility; word-spacing: 2px;
     padding: 0;
   `;
@@ -71,16 +71,15 @@ async function renderHtmlToImage(html: string, width: number): Promise<HTMLCanva
     )
   );
 
-  const canvas = await html2canvas(container, {
-    scale: 3,
-    useCORS: true,
+  const dataUrl = await toPng(container, {
+    quality: 0.95,
+    pixelRatio: 3,
+    skipFonts: false,
     backgroundColor: "#ffffff",
-    width,
-    windowWidth: width,
   });
 
   document.body.removeChild(container);
-  return canvas;
+  return dataUrl;
 }
 
 export async function generateInvoicePDF(invoice: InvoiceData, template?: InvoiceTemplateConfig) {
@@ -249,15 +248,21 @@ export async function generateInvoicePDF(invoice: InvoiceData, template?: Invoic
     </div>
   `;
 
-  const canvas = await renderHtmlToImage(invoiceHtml, 800);
-  const imgData = canvas.toDataURL("image/png");
+  const imgDataUrl = await renderHtmlToImage(invoiceHtml, 800);
 
   const pdf = new jsPDF("p", "mm", "a4");
   const pdfWidth = 210;
   const pdfMargin = 5;
   const usable = pdfWidth - 2 * pdfMargin;
-  const imgHeight = (canvas.height / canvas.width) * usable;
 
-  pdf.addImage(imgData, "PNG", pdfMargin, pdfMargin, usable, imgHeight);
+  // Get image dimensions to calculate height
+  const imgHeight = await new Promise<number>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve((img.height / img.width) * usable);
+    img.onerror = () => resolve(150);
+    img.src = imgDataUrl;
+  });
+
+  pdf.addImage(imgDataUrl, "PNG", pdfMargin, pdfMargin, usable, imgHeight);
   pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
 }

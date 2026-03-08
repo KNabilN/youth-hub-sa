@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import {
   BRAND,
@@ -60,14 +60,14 @@ async function renderSectionToImage(html: string): Promise<string> {
         })
     )
   );
-  const canvas = await html2canvas(container, {
-    scale: 3,
-    useCORS: true,
+  const dataUrl = await toPng(container, {
+    quality: 0.95,
+    pixelRatio: 3,
+    skipFonts: false,
     backgroundColor: BRAND.white,
-    logging: false,
   });
   document.body.removeChild(container);
-  return canvas.toDataURL("image/png");
+  return dataUrl;
 }
 
 function imgHeightMM(dataUrl: string): Promise<number> {
@@ -427,27 +427,18 @@ export async function captureChartAsImage(
     hiddenEls.push(firstChild);
   }
 
-  const canvas = await html2canvas(container, {
-    scale: 3,
-    useCORS: true,
+  // Force light mode styles on the container
+  container.style.background = "#ffffff";
+  container.style.color = "#1a1a2e";
+  container.classList.remove("dark");
+
+  const dataUrl = await toPng(container, {
+    quality: 0.95,
+    pixelRatio: 3,
+    skipFonts: false,
     backgroundColor: "#ffffff",
-    logging: false,
-    onclone: (doc) => {
-      const el = doc.body;
-      el.style.background = "#ffffff";
-      el.style.color = "#1a1a2e";
-      el.classList.remove("dark");
-      doc.documentElement.classList.remove("dark");
-      el.style.setProperty("--background", "0 0% 100%");
-      el.style.setProperty("--foreground", "222.2 84% 4.9%");
-      el.style.setProperty("--card", "0 0% 100%");
-      el.style.setProperty("--card-foreground", "222.2 84% 4.9%");
-      el.style.setProperty("--muted", "210 40% 96.1%");
-      el.style.setProperty("--muted-foreground", "215.4 16.3% 46.9%");
-      el.style.setProperty("--border", "214.3 31.8% 91.4%");
-    },
   });
 
   hiddenEls.forEach((el) => (el.style.display = ""));
-  return canvas.toDataURL("image/png");
+  return dataUrl;
 }
