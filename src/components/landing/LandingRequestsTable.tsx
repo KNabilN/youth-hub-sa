@@ -102,16 +102,16 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                   </div>
                   {/* Action buttons */}
                   <div className="flex gap-2 pt-2 mt-auto">
-                    <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
-                      <Link to={isLoggedIn ? `/projects/public/${p.id}` : "/auth?mode=register"}>
-                        {isLoggedIn ? "قدّم عرضك" : "سجّل لتقديم عرضك"}
-                        <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
-                      </Link>
-                    </Button>
                     <Button asChild variant="outline" size="sm" className="gap-1.5 rounded-lg text-sm">
                       <Link to={`/projects/public/${p.id}`}>
                         <Eye className="w-3.5 h-3.5" />
                         التفاصيل
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
+                      <Link to={isLoggedIn ? `/projects/public/${p.id}` : "/auth?mode=register"}>
+                        {isLoggedIn ? "قدّم عرضك" : "سجّل لتقديم عرضك"}
+                        <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                       </Link>
                     </Button>
                   </div>
