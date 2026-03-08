@@ -21,6 +21,7 @@ interface LandingRequestsTableProps {
   title?: string;
   subtitle?: string;
   buttonText?: string;
+  isLoggedIn?: boolean;
 }
 
 export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText }: LandingRequestsTableProps) {
