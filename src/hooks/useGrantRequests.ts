@@ -132,6 +132,10 @@ export function useCreateGrantRequest() {
           project_id: values.project_id || null,
           amount: values.amount,
           description: values.description,
+          purpose: values.purpose || '',
+          target_group: values.target_group || '',
+          beneficiaries_count: values.beneficiaries_count || null,
+          urgency: values.urgency || 'normal',
         } as any)
         .select()
         .single();

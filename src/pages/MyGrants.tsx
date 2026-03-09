@@ -232,8 +232,33 @@ export default function MyGrants() {
               <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <Label>وصف الطلب</Label>
-              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="اشرح سبب طلب المنحة..." rows={3} />
+              <Label>الهدف من المنحة</Label>
+              <Textarea value={purpose} onChange={e => setPurpose(e.target.value)} placeholder="ما الهدف الرئيسي من هذه المنحة؟" rows={2} />
+            </div>
+            <div>
+              <Label>الفئة المستهدفة</Label>
+              <Input value={targetGroup} onChange={e => setTargetGroup(e.target.value)} placeholder="مثال: الشباب، الأيتام، ذوي الاحتياجات الخاصة..." />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>عدد المستفيدين المتوقع</Label>
+                <Input type="number" value={beneficiariesCount} onChange={e => setBeneficiariesCount(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>درجة الاستعجال</Label>
+                <Select value={urgency} onValueChange={setUrgency}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">عادي</SelectItem>
+                    <SelectItem value="medium">متوسط</SelectItem>
+                    <SelectItem value="urgent">عاجل</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>وصف إضافي</Label>
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="أي تفاصيل إضافية تودّ مشاركتها..." rows={2} />
             </div>
           </div>
           <DialogFooter>
