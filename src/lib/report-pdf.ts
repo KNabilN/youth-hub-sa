@@ -1,110 +1,59 @@
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { format } from "date-fns";
-import { pdf } from "@react-pdf/renderer";
-import React from "react";
-import { getLogoBase64, generateRefNumber } from "./pdf-utils";
-import "@/lib/pdf-fonts"; // registers Cairo font
-import { ReportDocument } from "@/components/pdf/ReportDocument";
-
-
-interface ReportSection {
-  title: string;
-  rows: string[][];
-  headers: string[];
-}
-
-interface ChartImage {
-  title: string;
-  imageDataUrl: string;
-}
 
 /**
- * Generate a professional PDF report and trigger download.
+ * Generate a PDF report by capturing a DOM element as-is (preserving fonts, charts, layout).
+ * Supports automatic multi-page splitting for long content.
  */
-export async function generateReportPDF(
-  title: string,
-  dateRange: { from: Date; to: Date },
-  sections: ReportSection[],
-  summaryStats?: { label: string; value: string }[],
-  chartImages?: ChartImage[]
+export async function generateReportFromDOM(
+  element: HTMLElement,
+  title: string
 ) {
-  const dateStr = `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`;
-  const generatedAt = format(new Date(), "yyyy/MM/dd HH:mm");
-  const refNumber = generateRefNumber();
-  const logoBase64 = await getLogoBase64();
+  // Hide elements marked with data-pdf-hide during capture
+  const hiddenEls = element.querySelectorAll("[data-pdf-hide]");
+  hiddenEls.forEach((el) => ((el as HTMLElement).style.display = "none"));
 
-  const doc = React.createElement(ReportDocument, {
-    title,
-    dateStr,
-    generatedAt,
-    refNumber,
-    logoBase64,
-    summaryStats,
-    chartImages,
-    sections,
-  }) as any;
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: "#ffffff",
+    // Ensure all fonts are loaded
+    onclone: (doc) => {
+      const el = doc.body;
+      el.style.direction = "rtl";
+    },
+  });
 
-  const blob = await pdf(doc).toBlob();
+  // Restore hidden elements
+  hiddenEls.forEach((el) => ((el as HTMLElement).style.display = ""));
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${title.replace(/\s+/g, "-")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 200);
-}
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 10;
+  const contentWidth = pageWidth - margin * 2;
+  const contentHeight = (canvas.height * contentWidth) / canvas.width;
 
-/**
- * Capture a chart container as a base64 PNG.
- * Uses html-to-image-like canvas capture for chart elements only.
- */
-export async function captureChartAsImage(
-  container: HTMLElement
-): Promise<string> {
-  // Use canvas-based capture for charts
-  const canvas = document.createElement("canvas");
-  const rect = container.getBoundingClientRect();
-  const scale = 3;
-  canvas.width = rect.width * scale;
-  canvas.height = rect.height * scale;
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(scale, scale);
+  let heightLeft = contentHeight;
+  let position = margin;
 
-  // Try to find SVG elements (recharts renders SVG)
-  const svgs = container.querySelectorAll("svg");
-  if (svgs.length > 0) {
-    // Serialize SVGs and render to canvas
-    for (const svg of Array.from(svgs)) {
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-      const svgUrl = URL.createObjectURL(svgBlob);
+  pdf.addImage(imgData, "PNG", margin, position, contentWidth, contentHeight);
+  heightLeft -= pageHeight - margin * 2;
 
-      const img = new window.Image();
-      await new Promise<void>((resolve) => {
-        img.onload = () => {
-          const svgRect = svg.getBoundingClientRect();
-          const offsetX = svgRect.left - rect.left;
-          const offsetY = svgRect.top - rect.top;
-          ctx.drawImage(img, offsetX, offsetY, svgRect.width, svgRect.height);
-          URL.revokeObjectURL(svgUrl);
-          resolve();
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(svgUrl);
-          resolve();
-        };
-        img.src = svgUrl;
-      });
-    }
-    return canvas.toDataURL("image/png", 0.95);
+  while (heightLeft > 0) {
+    pdf.addPage();
+    position = margin - (contentHeight - heightLeft);
+    pdf.addImage(imgData, "PNG", margin, position, contentWidth, contentHeight);
+    heightLeft -= pageHeight - margin * 2;
   }
 
-  // Fallback: use html2canvas-like approach
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/png", 0.95);
+  const fileName = `${title.replace(/\s+/g, "-")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+  pdf.save(fileName);
 }
+
+// Keep legacy exports for backward compatibility (used by invoices)
+export { captureChartAsImage } from "./report-pdf-legacy";
+
