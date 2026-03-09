@@ -143,21 +143,6 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
           </div>
         )}
 
-        <div className="text-center mt-12">
-          {isDisabled ? (
-            <Button disabled size="lg" className="gap-2 rounded-xl px-8 text-base opacity-50">
-              عرض جميع الطلبات
-              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            </Button>
-          ) : (
-            <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-              <Link to={isLoggedIn ? "/available-projects" : "/auth?mode=register"}>
-                {isLoggedIn ? "عرض جميع الطلبات" : (buttonText || "سجّل لتقديم عروضك")}
-                <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-              </Link>
-            </Button>
-          )}
-        </div>
       </div>
     </section>
   );
