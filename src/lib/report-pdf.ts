@@ -19,7 +19,6 @@ export async function generateReportFromDOM(
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
-    // Ensure all fonts are loaded
     onclone: (doc) => {
       const el = doc.body;
       el.style.direction = "rtl";
@@ -54,6 +53,5 @@ export async function generateReportFromDOM(
   pdf.save(fileName);
 }
 
-// Keep legacy exports for backward compatibility (used by invoices)
-export { captureChartAsImage } from "./report-pdf-legacy";
-
+// Re-export legacy functions for backward compatibility (invoices, hypotheses)
+export { generateReportPDF, captureChartAsImage } from "./report-pdf-legacy";

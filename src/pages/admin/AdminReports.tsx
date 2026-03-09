@@ -10,7 +10,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { format, parseISO, startOfMonth } from "date-fns";
 import { Download, ChevronDown, FileText, Printer, Package, CheckCircle2, FileSignature, Shield, HeartHandshake, LifeBuoy } from "lucide-react";
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
-import { generateReportPDF, captureChartAsImage } from "@/lib/report-pdf";
+import { generateReportFromDOM } from "@/lib/report-pdf";
 import { toast } from "sonner";
 import { downloadCSV } from "@/lib/csv-export";
 
