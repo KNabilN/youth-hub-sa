@@ -12,9 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
+import { useCategorySkills } from "@/hooks/useCategorySkills";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
 import { Badge } from "@/components/ui/badge";
-import { X, Paperclip } from "lucide-react";
+import { X, Paperclip, Plus } from "lucide-react";
 import { CharCounter } from "@/components/ui/char-counter";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
@@ -22,7 +23,7 @@ import { AttachmentList } from "@/components/attachments/AttachmentList";
 const projectSchema = z.object({
   title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
   description: z.string().min(20, "الوصف يجب أن يكون 20 حرفاً على الأقل").max(5000),
-  category_id: z.string().optional().nullable(),
+  category_id: z.string().min(1, "الرجاء اختيار تصنيف"),
   region_id: z.string().optional().nullable(),
   city_id: z.string().optional().nullable(),
   required_skills: z.array(z.string()).default([]),
@@ -37,9 +38,7 @@ interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormValues>;
   onSubmit: (values: ProjectFormValues) => void;
   onSaveDraft?: (values: ProjectFormValues) => void;
-  /** Called when we need a draft ID for attachments. Returns the created project ID. */
   onCreateDraft?: (values: ProjectFormValues) => Promise<string>;
-  /** If editing an existing project, pass its ID to enable attachments immediately */
   existingProjectId?: string;
   isLoading?: boolean;
   submitLabel?: string;
@@ -58,7 +57,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
     defaultValues: {
       title: "",
       description: "",
-      category_id: null,
+      category_id: "",
       region_id: null,
       city_id: null,
       required_skills: [],
@@ -71,9 +70,10 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
 
   const values = form.watch();
   const selectedRegionId = values.region_id;
+  const selectedCategoryId = values.category_id;
   const { data: cities } = useCities(selectedRegionId);
+  const { data: suggestedSkills } = useCategorySkills(selectedCategoryId);
 
-  // Reset city when region changes
   useEffect(() => {
     const currentCity = form.getValues("city_id");
     if (currentCity && cities && !cities.find((c: any) => c.id === currentCity)) {
@@ -91,13 +91,22 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
     }
   };
 
+  const toggleSkill = (skillName: string) => {
+    const current = values.required_skills;
+    if (current.includes(skillName)) {
+      form.setValue("required_skills", current.filter(s => s !== skillName));
+    } else {
+      form.setValue("required_skills", [...current, skillName]);
+    }
+  };
+
   const removeSkill = (skill: string) => {
     form.setValue("required_skills", values.required_skills.filter(s => s !== skill));
   };
 
   const canNext = async () => {
     if (step === 0) {
-      const valid = await form.trigger(["title", "description"]);
+      const valid = await form.trigger(["title", "description", "category_id"]);
       return valid;
     }
     return true;
@@ -107,14 +116,12 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
     const valid = await canNext();
     if (!valid) return;
 
-    // When moving to attachments step (step 2), create draft if needed
     if (step === 1 && !draftProjectId && onCreateDraft) {
       setCreatingDraft(true);
       try {
         const id = await onCreateDraft(form.getValues());
         setDraftProjectId(id);
       } catch {
-        // Error handled by parent
         setCreatingDraft(false);
         return;
       }
@@ -169,7 +176,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="category_id" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>التصنيف</FormLabel>
+                    <FormLabel required>التصنيف</FormLabel>
                     <FormControl>
                       <CategorySelectWithOther
                         categories={categories ?? []}
@@ -218,23 +225,59 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
             <CardContent className="space-y-4">
               <div>
                 <FormLabel>المهارات المطلوبة</FormLabel>
+
+                {/* Suggested skills from category */}
+                {suggestedSkills && suggestedSkills.length > 0 && (
+                  <div className="mt-2 mb-3">
+                    <p className="text-xs text-muted-foreground mb-1.5">اختر من المهارات المقترحة:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestedSkills.map(skill => {
+                        const isSelected = values.required_skills.includes(skill.name);
+                        return (
+                          <Badge
+                            key={skill.id}
+                            variant={isSelected ? "default" : "outline"}
+                            className={`cursor-pointer transition-all select-none ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                : "hover:bg-accent hover:text-accent-foreground border-dashed"
+                            }`}
+                            onClick={() => toggleSkill(skill.name)}
+                          >
+                            {!isSelected && <Plus className="h-3 w-3 ml-0.5" />}
+                            {skill.name}
+                            {isSelected && <X className="h-3 w-3 mr-0.5" />}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual skill input */}
                 <div className="flex gap-2 mt-1.5">
                   <Input
                     value={skillInput}
                     onChange={e => setSkillInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
-                    placeholder="أضف مهارة واضغط Enter"
+                    placeholder="أضف مهارة أخرى واضغط Enter"
                   />
                   <Button type="button" variant="outline" onClick={addSkill}>إضافة</Button>
                 </div>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {values.required_skills.map(skill => (
-                    <Badge key={skill} variant="secondary" className="gap-1">
-                      {skill}
-                      <button type="button" onClick={() => removeSkill(skill)}><X className="h-3 w-3" /></button>
-                    </Badge>
-                  ))}
-                </div>
+
+                {/* Selected custom skills (not from suggestions) */}
+                {values.required_skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {values.required_skills
+                      .filter(skill => !suggestedSkills?.some(s => s.name === skill))
+                      .map(skill => (
+                        <Badge key={skill} variant="secondary" className="gap-1">
+                          {skill}
+                          <button type="button" onClick={() => removeSkill(skill)}><X className="h-3 w-3" /></button>
+                        </Badge>
+                      ))}
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="estimated_hours" render={({ field }) => (
@@ -293,13 +336,18 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
               <div className="grid grid-cols-2 gap-2">
                 <span className="text-muted-foreground">العنوان:</span><span className="font-medium">{values.title}</span>
                 <span className="text-muted-foreground">الوصف:</span><span className="font-medium line-clamp-2">{values.description}</span>
+                <span className="text-muted-foreground">التصنيف:</span>
+                <span className="font-medium">{categories?.find(c => c.id === values.category_id)?.name ?? "-"}</span>
                 {values.budget && <><span className="text-muted-foreground">الميزانية:</span><span>{values.budget} ر.س</span></>}
                 {values.estimated_hours && <><span className="text-muted-foreground">الساعات:</span><span>{values.estimated_hours} ساعة</span></>}
                 <span className="text-muted-foreground">خاص:</span><span>{values.is_private ? "نعم" : "لا"}</span>
               </div>
               {values.required_skills.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {values.required_skills.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                <div>
+                  <span className="text-muted-foreground text-sm">المهارات المطلوبة:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {values.required_skills.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                  </div>
                 </div>
               )}
             </CardContent>
