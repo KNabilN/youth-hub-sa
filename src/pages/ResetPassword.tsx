@@ -19,18 +19,31 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 1. Listen for auth events (PASSWORD_RECOVERY or SIGNED_IN via recovery link)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setReady(true);
       }
     });
-    if (window.location.hash.includes("type=recovery")) {
+
+    // 2. Check URL for recovery indicators (hash or search params)
+    const hash = window.location.hash;
+    const search = window.location.search;
+    if (hash.includes("type=recovery") || search.includes("type=recovery")) {
       setReady(true);
     }
-    // If after 5 seconds still not ready, show error
+
+    // 3. Check if there's already an active session (implicit login from recovery link)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setReady(true);
+      }
+    });
+
+    // If after 8 seconds still not ready, show error
     const timeout = setTimeout(() => {
       setError((prev) => { if (!ready) return true; return prev; });
-    }, 5000);
+    }, 8000);
     return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
