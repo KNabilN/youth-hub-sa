@@ -31,6 +31,7 @@ interface MyServiceCardProps {
     sales_count?: number | null;
     categories?: { name: string } | null;
     regions?: { name: string } | null;
+    rejection_reason?: string | null;
   };
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
