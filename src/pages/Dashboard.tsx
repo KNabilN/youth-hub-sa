@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
+import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 import { AssociationActionItems } from "@/components/dashboard/AssociationActionItems";
 import { DonorActionItems } from "@/components/donor/DonorActionItems";
 
