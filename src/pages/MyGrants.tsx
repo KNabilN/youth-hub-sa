@@ -45,6 +45,10 @@ export default function MyGrants() {
   const [projectId, setProjectId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [targetGroup, setTargetGroup] = useState("");
+  const [beneficiariesCount, setBeneficiariesCount] = useState("");
+  const [urgency, setUrgency] = useState("normal");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = useMemo(() => {
@@ -64,6 +68,10 @@ export default function MyGrants() {
     setProjectId("");
     setAmount("");
     setDescription("");
+    setPurpose("");
+    setTargetGroup("");
+    setBeneficiariesCount("");
+    setUrgency("normal");
   };
 
   const handleSubmit = () => {
