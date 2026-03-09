@@ -498,7 +498,7 @@ export default function AdminReports() {
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Pie: الطلبات حسب الحالة */}
-          <Card        <Pie data={projectsByStatus ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+          <Card ameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {(projectsByStatus ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
@@ -513,8 +513,7 @@ export default function AdminReports() {
               <ResponsiveContainer width=e ?? []} margin={{ top: 20 }}>
                   <defs>
         <linearGradient key={i} id={`roleGrad${i}`} x1="0" y1=opColor={c} stopOpacity={1} />
-                        <stop offset="100%" stopColor={c} stopOpacity={0.6} />
-                      </linearGradient>
+                        <sto          </linearGradient>
                     ))}
                   </defs>
                   <CartesianGrid {...gridProps} />
@@ -540,9 +539,7 @@ export default function AdminReports() {
                     {chartServicesByCategory.map((_: any, i:ength]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+                  <LeeContainer>
             </CardContent>
           </Card>
 
