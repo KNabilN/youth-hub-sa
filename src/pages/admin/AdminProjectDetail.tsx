@@ -157,10 +157,32 @@ export default function AdminProjectDetail() {
 
   const handleStatusChange = (status: ProjectStatus) => {
     if (!id) return;
+    if (status === "rejected") {
+      setRejectionReason("");
+      setRejectDialogOpen(true);
+      return;
+    }
     updateStatus.mutate(
       { id, status },
       {
         onSuccess: () => toast.success("تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
+      }
+    );
+  };
+
+  const handleRejectConfirm = () => {
+    if (!id || !rejectionReason.trim()) {
+      toast.error("يرجى إدخال سبب الرفض");
+      return;
+    }
+    updateStatus.mutate(
+      { id, status: "rejected" as ProjectStatus, rejection_reason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          toast.success("تم رفض الطلب");
+          setRejectDialogOpen(false);
+        },
         onError: () => toast.error("حدث خطأ"),
       }
     );
