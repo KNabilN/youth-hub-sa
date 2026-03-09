@@ -470,6 +470,8 @@ export default function AdminReports() {
           </CardContent>
         </Card>
 
+        {/* Report content area - captured for PDF */}
+        <div ref={reportContentRef} className="space-y-6">
         {/* Summary stats - Row 1 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
