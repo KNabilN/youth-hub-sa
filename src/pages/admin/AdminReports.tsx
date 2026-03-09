@@ -498,7 +498,7 @@ export default function AdminReports() {
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Pie: الطلبات حسب الحالة */}
-          <Card s={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+          <Card bel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {(projectsByStatus ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
@@ -516,9 +516,7 @@ export default function AdminReports() {
                         <sto          </linearGradient>
                     ))}
        ps} />
-                  <XAxis dataKey="name" {...xAxisProps} />
-                  <YAxis {...yAxisProps} />
-                  <Tooltip content={<CustomChartTooltip />} />
+                  <XAxis dataKey="name" {...xAxisPro      <Tooltip content={<CustomChartTooltip />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
                     {(usersByRole ?? []).map((_: any, i: number) => <Cell key={i} fill={`url(#roleGrad${i % ROLE_COLORS.length})`} />)}
                     <LabelList dataKey="value" content={renderBarLabel} />
@@ -543,7 +541,7 @@ export default function AdminReports() {
           </Card>
 
           {/* Bar: الطلبات حسب المنطقة (Top 5 +�ات حسب المنطقة")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب المنطقة</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg text-centerr>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={chartProjectsByRegion} margin={{ top: 20 }}>
