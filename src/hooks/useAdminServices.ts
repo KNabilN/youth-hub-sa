@@ -36,8 +36,11 @@ export function useAdminServices() {
 export function useUpdateServiceApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval }: { id: string; approval: ApprovalStatus; providerId: string }) => {
-      const { error } = await supabase.from("micro_services").update({ approval }).eq("id", id);
+    mutationFn: async ({ id, approval, rejection_reason }: { id: string; approval: ApprovalStatus; providerId: string; rejection_reason?: string }) => {
+      const updates: any = { approval };
+      if (rejection_reason !== undefined) updates.rejection_reason = rejection_reason;
+      if (approval !== 'rejected') updates.rejection_reason = null;
+      const { error } = await supabase.from("micro_services").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-services"] }),

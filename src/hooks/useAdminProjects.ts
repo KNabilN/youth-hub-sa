@@ -36,8 +36,11 @@ export function useAdminProjects(from = 0, to = 19) {
 export function useUpdateProjectStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: ProjectStatus }) => {
-      const { error } = await supabase.from("projects").update({ status }).eq("id", id);
+    mutationFn: async ({ id, status, rejection_reason }: { id: string; status: ProjectStatus; rejection_reason?: string }) => {
+      const updates: any = { status };
+      if (rejection_reason !== undefined) updates.rejection_reason = rejection_reason;
+      if (status !== 'rejected') updates.rejection_reason = null;
+      const { error } = await supabase.from("projects").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),

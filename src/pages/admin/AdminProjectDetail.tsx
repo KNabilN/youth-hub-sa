@@ -336,9 +336,27 @@ export default function AdminProjectDetail() {
               <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+                {project.status === "rejected" && (project as any).rejection_reason && (
+                  <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20">
+                    <span className="font-semibold">سبب الرفض:</span> {(project as any).rejection_reason}
+                  </div>
+                )}
                 {(() => {
                   const opts = getAdminAllowedStatuses(project.status);
-                  return opts.length > 0 ? (
+                  if (opts.length === 0) return <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>;
+                  if (project.status === "pending_approval") {
+                    return (
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => handleStatusChange("open" as ProjectStatus)} disabled={updateStatus.isPending}>
+                          موافقة
+                        </Button>
+                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleStatusChange("rejected" as ProjectStatus)} disabled={updateStatus.isPending}>
+                          رفض
+                        </Button>
+                      </div>
+                    );
+                  }
+                  return (
                     <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -346,8 +364,6 @@ export default function AdminProjectDetail() {
                         {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>
                   );
                 })()}
               </CardContent>
