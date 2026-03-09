@@ -2,8 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Pause, Play, Send, MessageSquare } from "lucide-react";
+import { Eye, Pencil, Pause, Play, Send, MessageSquare, AlertTriangle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Project = Tables<"projects"> & {
@@ -22,6 +23,7 @@ const statusBorderColors: Record<string, string> = {
   cancelled: "border-t-muted-foreground/50",
   suspended: "border-t-orange-500",
   archived: "border-t-muted-foreground/50",
+  rejected: "border-t-destructive",
 };
 
 interface ProjectCardProps {
@@ -65,6 +67,14 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+        {project.status === "rejected" && (project as any).rejection_reason && (
+          <Alert variant="destructive" className="py-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              <span className="font-semibold">سبب الرفض:</span> {(project as any).rejection_reason}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex items-center justify-between text-sm">
           {project.budget && (
             <span className="font-semibold text-primary">{project.budget.toLocaleString()} ر.س</span>
@@ -94,6 +104,14 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
                   تقديم للموافقة
                 </Button>
               )}
+            </>
+          )}
+          {project.status === "rejected" && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/projects/${project.id}/edit`)}>
+                <Pencil className="h-3.5 w-3.5 me-1" />
+                تعديل وإعادة التقديم
+              </Button>
             </>
           )}
           {(project.status === "open" || project.status === "pending_approval") && onSuspend && (

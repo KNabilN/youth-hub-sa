@@ -13,6 +13,7 @@ const statusConfig: Record<ProjectStatus, { label: string; className: string }> 
   cancelled: { label: "ملغي", className: "bg-muted text-muted-foreground" },
   suspended: { label: "معلق", className: "bg-orange-500/15 text-orange-600 border-orange-500/30" },
   archived: { label: "مؤرشف", className: "bg-muted text-muted-foreground" },
+  rejected: { label: "مرفوض", className: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
 export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {

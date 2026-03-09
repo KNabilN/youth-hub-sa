@@ -1155,6 +1155,7 @@ export type Database = {
           price: number
           provider_id: string
           region_id: string | null
+          rejection_reason: string | null
           sales_count: number | null
           service_number: string
           service_type: Database["public"]["Enums"]["service_type"]
@@ -1180,6 +1181,7 @@ export type Database = {
           price: number
           provider_id: string
           region_id?: string | null
+          rejection_reason?: string | null
           sales_count?: number | null
           service_number?: string
           service_type?: Database["public"]["Enums"]["service_type"]
@@ -1205,6 +1207,7 @@ export type Database = {
           price?: number
           provider_id?: string
           region_id?: string | null
+          rejection_reason?: string | null
           sales_count?: number | null
           service_number?: string
           service_type?: Database["public"]["Enums"]["service_type"]
@@ -1592,6 +1595,7 @@ export type Database = {
           is_name_visible: boolean
           is_private: boolean
           region_id: string | null
+          rejection_reason: string | null
           request_number: string
           required_skills: string[] | null
           status: Database["public"]["Enums"]["project_status"]
@@ -1613,6 +1617,7 @@ export type Database = {
           is_name_visible?: boolean
           is_private?: boolean
           region_id?: string | null
+          rejection_reason?: string | null
           request_number?: string
           required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -1634,6 +1639,7 @@ export type Database = {
           is_name_visible?: boolean
           is_private?: boolean
           region_id?: string | null
+          rejection_reason?: string | null
           request_number?: string
           required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -2062,6 +2068,7 @@ export type Database = {
         | "cancelled"
         | "suspended"
         | "archived"
+        | "rejected"
       service_type: "fixed_price" | "hourly"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
@@ -2237,6 +2244,7 @@ export const Constants = {
         "cancelled",
         "suspended",
         "archived",
+        "rejected",
       ],
       service_type: ["fixed_price", "hourly"],
       ticket_priority: ["low", "medium", "high", "urgent"],

@@ -88,6 +88,7 @@ export default function Projects() {
                 <SelectItem value="disputed">مُشتكى عليه</SelectItem>
                 <SelectItem value="cancelled">ملغي</SelectItem>
                 <SelectItem value="suspended">معلق</SelectItem>
+                <SelectItem value="rejected">مرفوض</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>

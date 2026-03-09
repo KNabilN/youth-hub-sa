@@ -16,6 +16,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { BidList } from "@/components/bids/BidList";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { EntityActivityLog } from "@/components/admin/EntityActivityLog";
@@ -30,12 +33,12 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
-  suspended: "معلق", archived: "مؤرشف",
+  suspended: "معلق", archived: "مؤرشف", rejected: "مرفوض",
 };
 
-/** Admin can only: pending_approval→open, and any active status→cancelled */
+/** Admin can only: pending_approval→open/rejected, and any active status→cancelled */
 function getAdminAllowedStatuses(current: string): string[] {
-  if (current === "pending_approval") return ["open"];
+  if (current === "pending_approval") return ["open", "rejected"];
   if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
   return [];
 }
@@ -44,7 +47,7 @@ const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
-  cancelled: "bg-muted text-muted-foreground",
+  cancelled: "bg-muted text-muted-foreground", rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
 };
 
@@ -65,6 +68,8 @@ export default function AdminProjectDetail() {
   const updateProject = useAdminUpdateProject();
   const updateTimeLog = useUpdateTimeLogApproval();
   const [editOpen, setEditOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Realtime subscription for project status changes
   useEffect(() => {
@@ -152,10 +157,32 @@ export default function AdminProjectDetail() {
 
   const handleStatusChange = (status: ProjectStatus) => {
     if (!id) return;
+    if (status === "rejected") {
+      setRejectionReason("");
+      setRejectDialogOpen(true);
+      return;
+    }
     updateStatus.mutate(
       { id, status },
       {
         onSuccess: () => toast.success("تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
+      }
+    );
+  };
+
+  const handleRejectConfirm = () => {
+    if (!id || !rejectionReason.trim()) {
+      toast.error("يرجى إدخال سبب الرفض");
+      return;
+    }
+    updateStatus.mutate(
+      { id, status: "rejected" as ProjectStatus, rejection_reason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          toast.success("تم رفض الطلب");
+          setRejectDialogOpen(false);
+        },
         onError: () => toast.error("حدث خطأ"),
       }
     );
@@ -309,9 +336,27 @@ export default function AdminProjectDetail() {
               <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+                {project.status === "rejected" && (project as any).rejection_reason && (
+                  <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20">
+                    <span className="font-semibold">سبب الرفض:</span> {(project as any).rejection_reason}
+                  </div>
+                )}
                 {(() => {
                   const opts = getAdminAllowedStatuses(project.status);
-                  return opts.length > 0 ? (
+                  if (opts.length === 0) return <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>;
+                  if (project.status === "pending_approval") {
+                    return (
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => handleStatusChange("open" as ProjectStatus)} disabled={updateStatus.isPending}>
+                          موافقة
+                        </Button>
+                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleStatusChange("rejected" as ProjectStatus)} disabled={updateStatus.isPending}>
+                          رفض
+                        </Button>
+                      </div>
+                    );
+                  }
+                  return (
                     <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -319,8 +364,6 @@ export default function AdminProjectDetail() {
                         {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>
                   );
                 })()}
               </CardContent>
@@ -423,6 +466,26 @@ export default function AdminProjectDetail() {
           }}
         />
       )}
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>رفض الطلب</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">سيتم رفض طلب "{project.title}" وإرسال سبب الرفض للجمعية.</p>
+            <div>
+              <Label>سبب الرفض *</Label>
+              <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="اكتب سبب الرفض..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={updateStatus.isPending}>تأكيد الرفض</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

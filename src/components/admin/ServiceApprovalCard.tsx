@@ -43,10 +43,31 @@ export function ServiceApprovalCard({ service }: { service: any }) {
   const [reasonAction, setReasonAction] = useState<"suspended" | "approved" | null>(null);
   const [reason, setReason] = useState("");
   const [activityOpen, setActivityOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const handleApproval = (approval: "approved" | "rejected") => {
+    if (approval === "rejected") {
+      setRejectionReason("");
+      setRejectDialogOpen(true);
+      return;
+    }
     update.mutate({ id: service.id, approval, providerId: service.provider_id }, {
-      onSuccess: () => toast.success(approval === "approved" ? "تمت الموافقة" : "تم الرفض"),
+      onSuccess: () => toast.success("تمت الموافقة"),
+      onError: () => toast.error("حدث خطأ"),
+    });
+  };
+
+  const handleRejectConfirm = () => {
+    if (!rejectionReason.trim()) {
+      toast.error("يرجى إدخال سبب الرفض");
+      return;
+    }
+    update.mutate({ id: service.id, approval: "rejected", providerId: service.provider_id, rejection_reason: rejectionReason.trim() }, {
+      onSuccess: () => {
+        toast.success("تم رفض الخدمة");
+        setRejectDialogOpen(false);
+      },
       onError: () => toast.error("حدث خطأ"),
     });
   };
@@ -103,6 +124,11 @@ export function ServiceApprovalCard({ service }: { service: any }) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
+          {service.approval === "rejected" && service.rejection_reason && (
+            <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20 mb-3">
+              <span className="font-semibold">سبب الرفض:</span> {service.rejection_reason}
+            </div>
+          )}
           <div className="flex gap-2 flex-wrap">
             {service.approval === "pending" && (
               <>
@@ -190,6 +216,25 @@ export function ServiceApprovalCard({ service }: { service: any }) {
             <DialogTitle>سجل نشاط الخدمة</DialogTitle>
           </DialogHeader>
           <EntityActivityLog tableName="micro_services" recordId={service.id} maxHeight="400px" />
+        </DialogContent>
+      </Dialog>
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>رفض الخدمة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">سيتم رفض خدمة "{service.title}" وإرسال سبب الرفض لمقدم الخدمة.</p>
+            <div>
+              <Label>سبب الرفض *</Label>
+              <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="اكتب سبب الرفض..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={update.isPending}>تأكيد الرفض</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

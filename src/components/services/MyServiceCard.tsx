@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Pause, Play, Eye, ShoppingCart } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Pencil, Trash2, Pause, Play, Eye, ShoppingCart, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
@@ -30,6 +31,7 @@ interface MyServiceCardProps {
     sales_count?: number | null;
     categories?: { name: string } | null;
     regions?: { name: string } | null;
+    rejection_reason?: string | null;
   };
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -62,7 +64,7 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
           {(service.approval === "approved" || service.approval === "pending") && onSuspend && (
             <Button variant="ghost" size="icon" className="hover:bg-orange-500/10" title="إيقاف مؤقت" onClick={() => onSuspend(service.id)}><Pause className="h-4 w-4 text-orange-500" /></Button>
           )}
-          {(service.approval === "suspended" || service.approval === "draft") && onReactivate && (
+           {(service.approval === "suspended" || service.approval === "draft" || service.approval === "rejected") && onReactivate && (
             <Button variant="ghost" size="icon" className="hover:bg-emerald-500/10" title="إعادة نشر" onClick={() => onReactivate(service.id)}><Play className="h-4 w-4 text-emerald-500" /></Button>
           )}
           <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => onEdit(service.id)}><Pencil className="h-4 w-4" /></Button>
@@ -71,6 +73,14 @@ export function MyServiceCard({ service, onEdit, onDelete, onSuspend, onReactiva
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
+        {service.approval === "rejected" && service.rejection_reason && (
+          <Alert variant="destructive" className="py-2 mb-3">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              <span className="font-semibold">سبب الرفض:</span> {service.rejection_reason}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex items-center justify-between text-sm">
           <span className="inline-flex items-center bg-primary/10 text-primary font-semibold px-2.5 py-1 rounded-md text-xs">{service.price} ر.س</span>
           <div className="flex gap-2 text-xs text-muted-foreground">
