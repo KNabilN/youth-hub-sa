@@ -82,6 +82,10 @@ export default function MyGrants() {
       project_id: grantType === "project" ? projectId || null : null,
       amount: Number(amount),
       description,
+      purpose,
+      target_group: targetGroup,
+      beneficiaries_count: beneficiariesCount ? Number(beneficiariesCount) : null,
+      urgency,
     }, {
       onSuccess: () => {
         toast({ title: "تم إنشاء طلب المنحة بنجاح" });
