@@ -67,6 +67,14 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+        {project.status === "rejected" && (project as any).rejection_reason && (
+          <Alert variant="destructive" className="py-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              <span className="font-semibold">سبب الرفض:</span> {(project as any).rejection_reason}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="flex items-center justify-between text-sm">
           {project.budget && (
             <span className="font-semibold text-primary">{project.budget.toLocaleString()} ر.س</span>
