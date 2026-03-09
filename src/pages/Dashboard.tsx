@@ -245,6 +245,7 @@ export default function Dashboard() {
           </Alert>
         )}
         {role ? <DashboardStats role={role} /> : null}
+        {role && role !== "super_admin" && <PlatformOverview />}
         {role && role !== "super_admin" && <JourneyBoard role={role} />}
         
       </div>
