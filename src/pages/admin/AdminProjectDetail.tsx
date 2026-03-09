@@ -68,6 +68,8 @@ export default function AdminProjectDetail() {
   const updateProject = useAdminUpdateProject();
   const updateTimeLog = useUpdateTimeLogApproval();
   const [editOpen, setEditOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Realtime subscription for project status changes
   useEffect(() => {
