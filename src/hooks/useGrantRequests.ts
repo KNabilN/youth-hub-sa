@@ -119,6 +119,10 @@ export function useCreateGrantRequest() {
       project_id?: string | null;
       amount: number;
       description: string;
+      purpose?: string;
+      target_group?: string;
+      beneficiaries_count?: number | null;
+      urgency?: string;
     }) => {
       const { data, error } = await supabase
         .from("grant_requests" as any)
