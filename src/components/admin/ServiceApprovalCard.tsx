@@ -43,10 +43,31 @@ export function ServiceApprovalCard({ service }: { service: any }) {
   const [reasonAction, setReasonAction] = useState<"suspended" | "approved" | null>(null);
   const [reason, setReason] = useState("");
   const [activityOpen, setActivityOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const handleApproval = (approval: "approved" | "rejected") => {
+    if (approval === "rejected") {
+      setRejectionReason("");
+      setRejectDialogOpen(true);
+      return;
+    }
     update.mutate({ id: service.id, approval, providerId: service.provider_id }, {
-      onSuccess: () => toast.success(approval === "approved" ? "تمت الموافقة" : "تم الرفض"),
+      onSuccess: () => toast.success("تمت الموافقة"),
+      onError: () => toast.error("حدث خطأ"),
+    });
+  };
+
+  const handleRejectConfirm = () => {
+    if (!rejectionReason.trim()) {
+      toast.error("يرجى إدخال سبب الرفض");
+      return;
+    }
+    update.mutate({ id: service.id, approval: "rejected", providerId: service.provider_id, rejection_reason: rejectionReason.trim() }, {
+      onSuccess: () => {
+        toast.success("تم رفض الخدمة");
+        setRejectDialogOpen(false);
+      },
       onError: () => toast.error("حدث خطأ"),
     });
   };
