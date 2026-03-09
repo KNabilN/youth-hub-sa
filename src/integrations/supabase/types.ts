@@ -832,37 +832,49 @@ export type Database = {
           admin_note: string | null
           amount: number
           association_id: string
+          beneficiaries_count: number | null
           created_at: string | null
           description: string | null
           donor_id: string | null
           id: string
           project_id: string | null
+          purpose: string | null
           status: string
+          target_group: string | null
           updated_at: string | null
+          urgency: string | null
         }
         Insert: {
           admin_note?: string | null
           amount: number
           association_id: string
+          beneficiaries_count?: number | null
           created_at?: string | null
           description?: string | null
           donor_id?: string | null
           id?: string
           project_id?: string | null
+          purpose?: string | null
           status?: string
+          target_group?: string | null
           updated_at?: string | null
+          urgency?: string | null
         }
         Update: {
           admin_note?: string | null
           amount?: number
           association_id?: string
+          beneficiaries_count?: number | null
           created_at?: string | null
           description?: string | null
           donor_id?: string | null
           id?: string
           project_id?: string | null
+          purpose?: string | null
           status?: string
+          target_group?: string | null
           updated_at?: string | null
+          urgency?: string | null
         }
         Relationships: [
           {

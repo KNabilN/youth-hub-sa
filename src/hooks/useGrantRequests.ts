@@ -10,6 +10,10 @@ export interface GrantRequest {
   project_id: string | null;
   amount: number;
   description: string;
+  purpose: string;
+  target_group: string;
+  beneficiaries_count: number | null;
+  urgency: string;
   status: string;
   admin_note: string;
   created_at: string;
@@ -115,6 +119,10 @@ export function useCreateGrantRequest() {
       project_id?: string | null;
       amount: number;
       description: string;
+      purpose?: string;
+      target_group?: string;
+      beneficiaries_count?: number | null;
+      urgency?: string;
     }) => {
       const { data, error } = await supabase
         .from("grant_requests" as any)
@@ -124,6 +132,10 @@ export function useCreateGrantRequest() {
           project_id: values.project_id || null,
           amount: values.amount,
           description: values.description,
+          purpose: values.purpose || '',
+          target_group: values.target_group || '',
+          beneficiaries_count: values.beneficiaries_count || null,
+          urgency: values.urgency || 'normal',
         } as any)
         .select()
         .single();

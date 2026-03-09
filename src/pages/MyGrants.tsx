@@ -45,6 +45,10 @@ export default function MyGrants() {
   const [projectId, setProjectId] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [targetGroup, setTargetGroup] = useState("");
+  const [beneficiariesCount, setBeneficiariesCount] = useState("");
+  const [urgency, setUrgency] = useState("normal");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = useMemo(() => {
@@ -64,6 +68,10 @@ export default function MyGrants() {
     setProjectId("");
     setAmount("");
     setDescription("");
+    setPurpose("");
+    setTargetGroup("");
+    setBeneficiariesCount("");
+    setUrgency("normal");
   };
 
   const handleSubmit = () => {
@@ -74,6 +82,10 @@ export default function MyGrants() {
       project_id: grantType === "project" ? projectId || null : null,
       amount: Number(amount),
       description,
+      purpose,
+      target_group: targetGroup,
+      beneficiaries_count: beneficiariesCount ? Number(beneficiariesCount) : null,
+      urgency,
     }, {
       onSuccess: () => {
         toast({ title: "تم إنشاء طلب المنحة بنجاح" });
@@ -220,8 +232,33 @@ export default function MyGrants() {
               <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <Label>وصف الطلب</Label>
-              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="اشرح سبب طلب المنحة..." rows={3} />
+              <Label>الهدف من المنحة</Label>
+              <Textarea value={purpose} onChange={e => setPurpose(e.target.value)} placeholder="ما الهدف الرئيسي من هذه المنحة؟" rows={2} />
+            </div>
+            <div>
+              <Label>الفئة المستهدفة</Label>
+              <Input value={targetGroup} onChange={e => setTargetGroup(e.target.value)} placeholder="مثال: الشباب، الأيتام، ذوي الاحتياجات الخاصة..." />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>عدد المستفيدين المتوقع</Label>
+                <Input type="number" value={beneficiariesCount} onChange={e => setBeneficiariesCount(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>درجة الاستعجال</Label>
+                <Select value={urgency} onValueChange={setUrgency}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">عادي</SelectItem>
+                    <SelectItem value="medium">متوسط</SelectItem>
+                    <SelectItem value="urgent">عاجل</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>وصف إضافي</Label>
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="أي تفاصيل إضافية تودّ مشاركتها..." rows={2} />
             </div>
           </div>
           <DialogFooter>
