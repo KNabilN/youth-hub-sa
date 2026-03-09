@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import DashboardLayout from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   Accordion,
   AccordionContent,
