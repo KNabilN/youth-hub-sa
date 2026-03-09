@@ -124,6 +124,11 @@ export function ServiceApprovalCard({ service }: { service: any }) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
+          {service.approval === "rejected" && service.rejection_reason && (
+            <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20 mb-3">
+              <span className="font-semibold">سبب الرفض:</span> {service.rejection_reason}
+            </div>
+          )}
           <div className="flex gap-2 flex-wrap">
             {service.approval === "pending" && (
               <>
