@@ -33,12 +33,12 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
-  suspended: "معلق", archived: "مؤرشف",
+  suspended: "معلق", archived: "مؤرشف", rejected: "مرفوض",
 };
 
-/** Admin can only: pending_approval→open, and any active status→cancelled */
+/** Admin can only: pending_approval→open/rejected, and any active status→cancelled */
 function getAdminAllowedStatuses(current: string): string[] {
-  if (current === "pending_approval") return ["open"];
+  if (current === "pending_approval") return ["open", "rejected"];
   if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
   return [];
 }
@@ -47,7 +47,7 @@ const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
-  cancelled: "bg-muted text-muted-foreground",
+  cancelled: "bg-muted text-muted-foreground", rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
 };
 
