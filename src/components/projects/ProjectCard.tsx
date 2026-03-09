@@ -22,6 +22,7 @@ const statusBorderColors: Record<string, string> = {
   cancelled: "border-t-muted-foreground/50",
   suspended: "border-t-orange-500",
   archived: "border-t-muted-foreground/50",
+  rejected: "border-t-destructive",
 };
 
 interface ProjectCardProps {
