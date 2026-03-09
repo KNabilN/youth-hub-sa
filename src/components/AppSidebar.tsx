@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet,
+  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -27,6 +27,7 @@ import logoWhiteImg from "@/assets/logo-white.png";
 const menuByRole = {
   youth_association: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "دليل الاستخدام", url: "/guide", icon: BookOpen },
     { title: "طلبات الجمعيات", url: "/projects", icon: FolderKanban },
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
@@ -42,6 +43,7 @@ const menuByRole = {
   ],
   service_provider: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "دليل الاستخدام", url: "/guide", icon: BookOpen },
     { title: "خدماتي", url: "/my-services", icon: Layers },
     { title: "طلبات الجمعيات", url: "/available-projects", icon: FolderKanban },
     { title: "طلباتي", url: "/my-projects", icon: FolderKanban },
@@ -56,6 +58,7 @@ const menuByRole = {
   ],
   donor: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "دليل الاستخدام", url: "/guide", icon: BookOpen },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "طلبات الدعم", url: "/grant-requests", icon: Heart },
     { title: "طلبات واردة", url: "/my-grant-requests", icon: Inbox },

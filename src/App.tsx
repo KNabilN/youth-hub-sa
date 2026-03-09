@@ -61,6 +61,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Trash = lazy(() => import("./pages/Trash"));
+const UserGuide = lazy(() => import("./pages/UserGuide"));
 const About = lazy(() => import("./pages/About"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -173,6 +174,7 @@ const App = () => (
                 <Route path="/messages" element={<ProtectedRoute><SuspenseWrap><Messages /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><SuspenseWrap><Notifications /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/trash" element={<ProtectedRoute><AdminRoute><SuspenseWrap><Trash /></SuspenseWrap></AdminRoute></ProtectedRoute>} />
+                <Route path="/guide" element={<ProtectedRoute><SuspenseWrap><UserGuide /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
