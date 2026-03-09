@@ -10,6 +10,10 @@ export interface GrantRequest {
   project_id: string | null;
   amount: number;
   description: string;
+  purpose: string;
+  target_group: string;
+  beneficiaries_count: number | null;
+  urgency: string;
   status: string;
   admin_note: string;
   created_at: string;
