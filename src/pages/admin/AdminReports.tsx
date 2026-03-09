@@ -498,8 +498,7 @@ export default function AdminReports() {
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Pie: الطلبات حسب الحالة */}
-          <Card className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب الحالة</CardTitle></CardHeader>
+          <Card e className="text-lg text-center">الطلبات حسب الحالة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
@@ -514,8 +513,7 @@ export default function AdminReports() {
           </Card>
 
           {/* Bar: المستخدمين حسب الدور */}
-          <Card ref={setChartRef(2, "المستخدمين حسب الدور")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">المستخدمين حسب الدور</CardTitle></CardHeader>
+          <Card ref={setChartRef(2, "المستخدمين حسب الدورe className="text-lg text-center">المستخدمين حسب الدور</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={usersByRole ?? []} margin={{ top: 20 }}>
