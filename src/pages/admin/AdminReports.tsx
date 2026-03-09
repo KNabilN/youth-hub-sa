@@ -400,59 +400,23 @@ export default function AdminReports() {
     toast.success("تم تصدير التقرير الشامل");
   };
 
-  // Chart refs for PDF capture
-  const chartRefs = useRef<{ title: string; ref: HTMLDivElement | null }[]>([]);
-  const setChartRef = (index: number, title: string) => (el: HTMLDivElement | null) => {
-    chartRefs.current[index] = { title, ref: el };
-  };
+  // Ref for DOM-based PDF capture
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
-  const exportPDF = async () => {
+  const exportPDF = useCallback(async () => {
+    if (!reportContentRef.current) {
+      toast.error("لا يوجد محتوى لتصديره");
+      return;
+    }
     try {
       toast.info("جارٍ إعداد التقرير...");
-      const chartImages: { title: string; imageDataUrl: string }[] = [];
-      for (const item of chartRefs.current) {
-        if (!item?.ref) continue;
-        try {
-          const dataUrl = await captureChartAsImage(item.ref);
-          chartImages.push({ title: item.title, imageDataUrl: dataUrl });
-        } catch { /* skip */ }
-      }
-      const sections = [];
-      if (projectsByStatus?.length) {
-        sections.push({ title: "الطلبات حسب الحالة", headers: ["الحالة", "العدد"], rows: projectsByStatus.map((p) => [p.name, String(p.value)]) });
-      }
-      if (projectsByRegion?.length) {
-        sections.push({ title: "الطلبات حسب المنطقة", headers: ["المنطقة", "العدد"], rows: projectsByRegion.map((p) => [p.name, String(p.value)]) });
-      }
-      if (monthlyDonations?.length) {
-        sections.push({ title: "المنح", headers: ["الشهر", "المبلغ (ر.س)"], rows: monthlyDonations.map((d) => [d.month, String(d.amount)]) });
-      }
-      if (monthlyEscrow?.length) {
-        sections.push({ title: "المعاملات المالية الشهرية", headers: ["الشهر", "الإجمالي (ر.س)", "المحرّر (ر.س)"], rows: monthlyEscrow.map((e) => [e.month, String(e.total), String(e.released)]) });
-      }
-      const allStats = [
-        { label: "المستخدمين", value: String(stats?.totalUsers ?? 0) },
-        { label: "طلبات الجمعيات", value: String(stats?.totalProjects ?? 0) },
-        { label: "الإيرادات (ر.س)", value: (stats?.revenue ?? 0).toLocaleString() },
-        { label: "الشكاوى المفتوحة", value: String(stats?.openDisputes ?? 0) },
-        { label: "الخدمات المعتمدة", value: String(insights?.servicesCount ?? 0) },
-        { label: "المشاريع المكتملة", value: String(insights?.completedProjects ?? 0) },
-        { label: "العقود", value: String(insights?.contractsCount ?? 0) },
-        { label: "الضمانات المحتجزة", value: `${(insights?.heldEscrow ?? 0).toLocaleString()} ر.س` },
-      ];
-      await generateReportPDF(
-        "تقرير تحليلات المنصة",
-        { from: filters.dateFrom, to: filters.dateTo },
-        sections,
-        allStats,
-        chartImages
-      );
+      await generateReportFromDOM(reportContentRef.current, "تقرير-تحليلات-المنصة");
       toast.success("تم تصدير التقرير بصيغة PDF");
     } catch (err) {
       console.error("PDF export error:", err);
       toast.error("حدث خطأ أثناء تصدير PDF");
     }
-  };
+  }, []);
 
   // Prepared chart data with topN
   const chartServicesByCategory = topNWithOthers(servicesByCategory ?? []);
