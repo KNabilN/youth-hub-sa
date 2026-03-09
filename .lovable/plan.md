@@ -1,12 +1,22 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# إصلاح صفحة إعادة تعيين كلمة المرور
 
-### ما تم تنفيذه
+## المشكلة
+عند الضغط على رابط الاستعادة من البريد، يتم توجيه المستخدم لصفحة `/reset-password` لكنها تعرض "رابط منتهي أو غير صالح" بدلاً من نموذج تغيير كلمة المرور.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+السبب التقني: هناك race condition — حدث `PASSWORD_RECOVERY` من `onAuthStateChange` قد يُطلق قبل mount الكومبوننت فيضيع، والفحص البديل `window.location.hash.includes("type=recovery")` لا يعمل مع إصدارات Supabase الحديثة التي تستخدم query params بدلاً من hash fragments.
+
+## الحل في `src/pages/ResetPassword.tsx`
+
+1. **فحص الجلسة الحالية عند التحميل**: بعد الضغط على رابط الاستعادة، Supabase يسجّل دخول المستخدم تلقائياً (implicit login). نفحص `getSession()` — إذا وُجدت جلسة نشطة، نعرض النموذج مباشرة.
+
+2. **فحص URL search params**: إضافة فحص `window.location.search` بالإضافة للـ hash للتوافق مع كل إصدارات Supabase.
+
+3. **زيادة المهلة**: رفعها من 5 ثوانٍ إلى 8 ثوانٍ لتغطية الشبكات البطيئة.
+
+4. **الاستماع لحدث `SIGNED_IN` أيضاً**: الـ recovery flow في بعض الحالات يُطلق `SIGNED_IN` بدلاً من `PASSWORD_RECOVERY`.
+
+### الملفات المتأثرة
+- `src/pages/ResetPassword.tsx`
+
