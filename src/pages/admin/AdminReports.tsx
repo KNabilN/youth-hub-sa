@@ -760,6 +760,7 @@ export default function AdminReports() {
             </CardContent>
           </Card>
         ) : null}
+        </div>{/* end reportContentRef */}
       </div>
     </DashboardLayout>
   );
