@@ -114,7 +114,7 @@ export default function ResetPassword() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">كلمة المرور الجديدة</Label>
-                <div className="relative">
+                <div className="flex gap-2">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -123,33 +123,47 @@ export default function ResetPassword() {
                     placeholder="••••••••"
                     required
                     dir="ltr"
-                    className="text-start h-11 pe-10"
+                    className="text-start h-11 flex-1"
                     minLength={6}
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="icon"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="h-11 w-11 shrink-0"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  </Button>
                 </div>
                 <PasswordStrength password={password} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
-                <Input
-                  id="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  dir="ltr"
-                  className="text-start h-11"
-                  minLength={6}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    dir="ltr"
+                    className="text-start h-11 flex-1"
+                    minLength={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="h-11 w-11 shrink-0"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
               <Button type="submit" className="w-full h-11" disabled={loading}>
                 {loading ? "جارٍ التحديث..." : "تحديث كلمة المرور"}
