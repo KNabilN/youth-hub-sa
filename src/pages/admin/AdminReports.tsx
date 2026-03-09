@@ -498,7 +498,7 @@ export default function AdminReports() {
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Pie: الطلبات حسب الحالة */}
-          <Card ref={setChartRef(1, "الطلبات حسب الحالة")} className={chartCardCls}>
+          <Card className={chartCardCls}>
             <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب الحالة</CardTitle></CardHeader>
             <CardContent className="p-6">
               <ResponsiveContainer width="100%" height={260}>
