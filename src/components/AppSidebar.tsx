@@ -27,6 +27,7 @@ import logoWhiteImg from "@/assets/logo-white.png";
 const menuByRole = {
   youth_association: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "دليل الاستخدام", url: "/guide", icon: BookOpen },
     { title: "طلبات الجمعيات", url: "/projects", icon: FolderKanban },
     { title: "الرسائل", url: "/messages", icon: Mail },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
