@@ -291,19 +291,16 @@ export default function AdminReports() {
     queryKey: ["admin-report-insights", dateFrom, dateTo, regionId, cityId, regionProjectIds],
     enabled: !(regionId || cityId) || regionProjectIds !== undefined,
     queryFn: async () => {
-      // Services count
       let sQ = supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "approved").gte("created_at", dateFrom).lte("created_at", dateTo);
       if (regionId) sQ = sQ.eq("region_id", regionId);
       if (cityId) sQ = sQ.eq("city_id", cityId);
       const { count: servicesCount } = await sQ;
 
-      // Completed projects
       let pQ = supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "completed").gte("created_at", dateFrom).lte("created_at", dateTo);
       if (regionId) pQ = pQ.eq("region_id", regionId);
       if (cityId) pQ = pQ.eq("city_id", cityId);
       const { count: completedProjects } = await pQ;
 
-      // Contracts count
       let cQ = supabase.from("contracts").select("id", { count: "exact", head: true }).gte("created_at", dateFrom).lte("created_at", dateTo);
       if ((regionId || cityId) && regionProjectIds) {
         if (regionProjectIds.length === 0) return { servicesCount: 0, completedProjects: 0, contractsCount: 0, heldEscrow: 0, activeDonors: 0, ticketsCount: 0 };
@@ -311,7 +308,6 @@ export default function AdminReports() {
       }
       const { count: contractsCount } = await cQ;
 
-      // Held escrow sum
       let eQ = supabase.from("escrow_transactions").select("amount").eq("status", "held").gte("created_at", dateFrom).lte("created_at", dateTo);
       if ((regionId || cityId) && regionProjectIds) {
         if (regionProjectIds.length === 0) return { servicesCount: servicesCount ?? 0, completedProjects: completedProjects ?? 0, contractsCount: contractsCount ?? 0, heldEscrow: 0, activeDonors: 0, ticketsCount: 0 };
@@ -320,11 +316,9 @@ export default function AdminReports() {
       const { data: escrowData } = await eQ;
       const heldEscrow = (escrowData ?? []).reduce((s, e: any) => s + Number(e.amount), 0);
 
-      // Active donors
       const { data: donorData } = await supabase.from("donor_contributions").select("donor_id").gte("created_at", dateFrom).lte("created_at", dateTo);
       const activeDonors = new Set((donorData ?? []).map((d: any) => d.donor_id)).size;
 
-      // Support tickets count
       const { count: ticketsCount } = await supabase.from("support_tickets").select("id", { count: "exact", head: true }).gte("created_at", dateFrom).lte("created_at", dateTo);
 
       return {
@@ -436,7 +430,7 @@ export default function AdminReports() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-3" data-pdf-hide>
           <h1 className="text-2xl font-bold">التقارير والتحليلات</h1>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => window.print()} className="gap-1">
@@ -464,7 +458,7 @@ export default function AdminReports() {
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card data-pdf-hide>
           <CardContent className="pt-4 pb-3">
             <ReportFilters filters={filters} onChange={setFilters} />
           </CardContent>
@@ -472,275 +466,297 @@ export default function AdminReports() {
 
         {/* Report content area - captured for PDF */}
         <div ref={reportContentRef} className="space-y-6">
-        {/* Summary stats - Row 1 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">طلبات الجمعيات</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الشكاوى المفتوحة</p><p className="text-2xl font-bold">{stats?.openDisputes ?? 0}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
-        </div>
+          {/* Title shown only in PDF */}
+          <h1 className="text-2xl font-bold text-center hidden" style={{ display: "none" }}>تقرير تحليلات المنصة</h1>
 
-        {/* Summary stats - Row 2: New Insights */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {insightCards.map((card) => (
-            <Card key={card.label} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-5 pb-4 flex flex-col items-center text-center gap-2">
-                <div className={`rounded-full p-2 ${card.color}`}>
-                  <card.icon className="h-5 w-5" />
-                </div>
-                <p className="text-xs text-muted-foreground">{card.label}</p>
-                <p className="text-xl font-bold">{typeof card.value === "number" ? card.value.toLocaleString() : card.value}</p>
+          {/* Summary stats - Row 1 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">المستخدمين</p><p className="text-2xl font-bold">{stats?.totalUsers ?? 0}</p></CardContent></Card>
+            <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">طلبات الجمعيات</p><p className="text-2xl font-bold">{stats?.totalProjects ?? 0}</p></CardContent></Card>
+            <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الشكاوى المفتوحة</p><p className="text-2xl font-bold">{stats?.openDisputes ?? 0}</p></CardContent></Card>
+            <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">الإيرادات</p><p className="text-2xl font-bold">{(stats?.revenue ?? 0).toLocaleString()} ر.س</p></CardContent></Card>
+          </div>
+
+          {/* Summary stats - Row 2: New Insights */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {insightCards.map((card) => (
+              <Card key={card.label} className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-5 pb-4 flex flex-col items-center text-center gap-2">
+                  <div className={`rounded-full p-2 ${card.color}`}>
+                    <card.icon className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{card.label}</p>
+                  <p className="text-xl font-bold">{typeof card.value === "number" ? card.value.toLocaleString() : card.value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* ═══════════ Charts ═══════════ */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Pie: الطلبات حسب الحالة */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب الحالة</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie data={projectsByStatus ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+                      {(projectsByStatus ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
-          ))}
-        </div>
 
-        {/* ═══════════ Charts ═══════════ */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Pie: الطلبات حسب الحالة */}
-          <Card bel} labelLine={false} animationDuration={800} animationEasing="ease-out">
-                    {(projectsByStatus ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Bar: المستخدمين حسب الدور */}
-          <Card ref={setChartRef(2, "المستخدمين حسب الدورe className="text-lg text-center">المستخدمين حس className="p-6">
-              <ResponsiveContainer width=e ?? []} margin={{ top: 20 }}>
-                  <defs>
-        <linearGradient key={i} id={`roleGrad${i}`} x1="0" y1=opColor={c} stopOpacity={1} />
-                        <sto          </linearGradient>
-                    ))}
-       ps} />
-                  <XAxis dataKey="name" {...xAxisPro      <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    {(usersByRole ?? []).map((_: any, i: number) => <Cell key={i} fill={`url(#roleGrad${i % ROLE_COLORS.length})`} />)}
-                    <LabelList dataKey="value" content={renderBarLabel} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Pie: الخدمات حسب التصنيف (Top 5 + أخرى) */}
-          <Card ref={setChartRef(3, "الخدمات حسب التصنيف")} className={chartCardCls}>
-            <CardHeader><CardTitle �نيف</CardTitle></CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%"Pie data={chartServicesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} padde={false} animationDuration={800} animationEasing="ease-out">
-                    {chartServicesByCategory.map((_: any, i:ength]} />)}
-                  </Pie>
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <LeeContainer>
-            </CardContent>
-          </Card>
-
-          {/* Bar: الطلبات حسب المنطقة (Top 5 +�ات حسب المنطقة")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-centerr>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={chartProjectsByRegion} margin={{ top: 20 }}>
-                  <defs>
-                    <linearGradient id="regionGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis dataKey="name" {...xAxisProps} />
-                  <YAxis {...yAxisProps} />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="value" fill="url(#regionGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="value" content={renderBarLabel} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Bar: المنح */}
-          <Card ref={setChartRef(5, "المنح")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">المنح</CardTitle></CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={monthlyDonations ?? []} margin={{ top: 20 }}>
-                  <defs>
-                    <linearGradient id="donationGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FB923C" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#FB923C" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis dataKey="month" {...xAxisProps} />
-                  <YAxis {...yAxisProps} />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="amount" fill="url(#donationGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" name="المبلغ">
-                    <LabelList dataKey="amount" content={renderBarLabel} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Pie: حالة الخدمات */}
-          <Card ref={setChartRef(6, "حالة الخدمات")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">حالة الخدمات</CardTitle></CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={serviceApprovalStats ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
-                    {(serviceApprovalStats ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Bar: المعاملات المالية الشهرية */}
-          <Card ref={setChartRef(7, "المعاملات المالية الشهرية")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">المعاملات المالية الشهرية</CardTitle></CardHeader>
-            <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={monthlyEscrow ?? []} margin={{ top: 20 }}>
-                  <defs>
-                    <linearGradient id="escrowTotalGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#0D9488" stopOpacity={0.6} />
-                    </linearGradient>
-                    <linearGradient id="escrowRelGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis dataKey="month" {...xAxisProps} />
-                  <YAxis {...yAxisProps} />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="total" fill="url(#escrowTotalGrad)" name="إجمالي" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="total" content={renderBarLabel} />
-                  </Bar>
-                  <Bar dataKey="released" fill="url(#escrowRelGrad)" name="محرّر" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="released" content={renderBarLabel} />
-                  </Bar>
-                  <Legend />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Bar: توزيع أسعار الساعة */}
-          <Card className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">توزيع أسعار الساعة</CardTitle></CardHeader>
-            <CardContent className="p-6">
-              {hourlyRateData?.avg ? (
-                <>
-                  <p className="text-sm text-muted-foreground mb-3 text-center">المتوسط: <span className="font-bold text-foreground">{hourlyRateData.avg.toFixed(0)} ر.س/ساعة</span></p>
-                  <ResponsiveContainer width="100%" height={210}>
-                    <BarChart data={hourlyRateData.distribution} margin={{ top: 20 }}>
-                      <defs>
-                        <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366F1" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#6366F1" stopOpacity={0.6} />
+            {/* Bar: المستخدمين حسب الدور */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">المستخدمين حسب الدور</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={usersByRole ?? []} margin={{ top: 20 }}>
+                    <defs>
+                      {ROLE_COLORS.map((c, i) => (
+                        <linearGradient key={i} id={`roleGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={c} stopOpacity={1} />
+                          <stop offset="100%" stopColor={c} stopOpacity={0.6} />
                         </linearGradient>
-                      </defs>
-                      <CartesianGrid {...gridProps} />
-                      <XAxis dataKey="range" {...xAxisProps} />
-                      <YAxis {...yAxisProps} />
-                      <Tooltip content={<CustomChartTooltip />} />
-                      <Bar dataKey="count" fill="url(#hourlyGrad)" name="عدد" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                        <LabelList dataKey="count" content={renderBarLabel} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">لا توجد بيانات</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      ))}
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="name" {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      {(usersByRole ?? []).map((_: any, i: number) => <Cell key={i} fill={`url(#roleGrad${i % ROLE_COLORS.length})`} />)}
+                      <LabelList dataKey="value" content={renderBarLabel} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Donor Analytics */}
-        <Card ref={setChartRef(8, "تحليلات المانحين")} className={chartCardCls}>
-          <CardHeader><CardTitle className="text-lg text-center">تحليلات المانحين</CardTitle></CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground">عدد المانحين</p>
-                <p className="text-2xl font-bold">{donorAnalytics?.totalDonors ?? 0}</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground">إجمالي المنح</p>
-                <p className="text-2xl font-bold">{(donorAnalytics?.totalGrants ?? 0).toLocaleString()} ر.س</p>
-              </div>
-            </div>
-            {chartDonorByProject.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={chartDonorByProject} margin={{ top: 20 }}>
-                  <defs>
-                    <linearGradient id="donorGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis dataKey="name" {...xAxisProps} />
-                  <YAxis {...yAxisProps} />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Bar dataKey="amount" fill="url(#donorGrad)" name="المبلغ" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="amount" content={renderBarLabel} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : null}
-          </CardContent>
-        </Card>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Pie: الخدمات حسب التصنيف (Top 5 + أخرى) */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">الخدمات حسب التصنيف</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie data={chartServicesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+                      {chartServicesByCategory.map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-        {/* Per-Donor Contributions Chart (Top 5 + أخرى) */}
-        {chartPerDonor.length ? (
-          <Card ref={setChartRef(9, "مساهمات المانحين")} className={chartCardCls}>
-            <CardHeader><CardTitle className="text-lg text-center">مساهمات المانحين والرعاة</CardTitle></CardHeader>
+            {/* Bar: الطلبات حسب المنطقة (Top 5 + أخرى) */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">الطلبات حسب المنطقة</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={chartProjectsByRegion} margin={{ top: 20 }}>
+                    <defs>
+                      <linearGradient id="regionGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="name" {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Bar dataKey="value" fill="url(#regionGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="value" content={renderBarLabel} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Bar: المنح */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">المنح</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthlyDonations ?? []} margin={{ top: 20 }}>
+                    <defs>
+                      <linearGradient id="donationGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FB923C" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#FB923C" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="month" {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Bar dataKey="amount" fill="url(#donationGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" name="المبلغ">
+                      <LabelList dataKey="amount" content={renderBarLabel} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Pie: حالة الخدمات */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">حالة الخدمات</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie data={serviceApprovalStats ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+                      {(serviceApprovalStats ?? []).map((_: any, i: number) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Bar: المعاملات المالية الشهرية */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">المعاملات المالية الشهرية</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={monthlyEscrow ?? []} margin={{ top: 20 }}>
+                    <defs>
+                      <linearGradient id="escrowTotalGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#0D9488" stopOpacity={0.6} />
+                      </linearGradient>
+                      <linearGradient id="escrowRelGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="month" {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Bar dataKey="total" fill="url(#escrowTotalGrad)" name="إجمالي" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="total" content={renderBarLabel} />
+                    </Bar>
+                    <Bar dataKey="released" fill="url(#escrowRelGrad)" name="محرّر" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="released" content={renderBarLabel} />
+                    </Bar>
+                    <Legend />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Bar: توزيع أسعار الساعة */}
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">توزيع أسعار الساعة</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                {hourlyRateData?.avg ? (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-3 text-center">المتوسط: <span className="font-bold text-foreground">{hourlyRateData.avg.toFixed(0)} ر.س/ساعة</span></p>
+                    <ResponsiveContainer width="100%" height={210}>
+                      <BarChart data={hourlyRateData.distribution} margin={{ top: 20 }}>
+                        <defs>
+                          <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6366F1" stopOpacity={1} />
+                            <stop offset="100%" stopColor="#6366F1" stopOpacity={0.6} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid {...gridProps} />
+                        <XAxis dataKey="range" {...xAxisProps} />
+                        <YAxis {...yAxisProps} />
+                        <Tooltip content={<CustomChartTooltip />} />
+                        <Bar dataKey="count" fill="url(#hourlyGrad)" name="عدد" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                          <LabelList dataKey="count" content={renderBarLabel} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">لا توجد بيانات</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Donor Analytics */}
+          <Card className={chartCardCls}>
+            <CardHeader><CardTitle className="text-lg text-center">تحليلات المانحين</CardTitle></CardHeader>
             <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={chartPerDonor} barGap={8} margin={{ top: 20 }}>
-                  <defs>
-                    <linearGradient id="donorCharitiesGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#0D9488" stopOpacity={0.55} />
-                    </linearGradient>
-                    <linearGradient id="donorAmountGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.55} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis dataKey="name" {...xAxisProps} />
-                  <YAxis yAxisId="left" {...yAxisProps} label={{ value: "عدد الجمعيات", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
-                  <YAxis yAxisId="right" orientation="right" {...yAxisProps} label={{ value: "المبلغ (ر.س)", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="charities" fill="url(#donorCharitiesGrad)" name="عدد الجمعيات المدعومة" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="charities" content={renderBarLabel} />
-                  </Bar>
-                  <Bar yAxisId="right" dataKey="amount" fill="url(#donorAmountGrad)" name="إجمالي المنح (ر.س)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                    <LabelList dataKey="amount" content={renderBarLabel} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-sm text-muted-foreground">عدد المانحين</p>
+                  <p className="text-2xl font-bold">{donorAnalytics?.totalDonors ?? 0}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-sm text-muted-foreground">إجمالي المنح</p>
+                  <p className="text-2xl font-bold">{(donorAnalytics?.totalGrants ?? 0).toLocaleString()} ر.س</p>
+                </div>
+              </div>
+              {chartDonorByProject.length ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={chartDonorByProject} margin={{ top: 20 }}>
+                    <defs>
+                      <linearGradient id="donorGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="name" {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Bar dataKey="amount" fill="url(#donorGrad)" name="المبلغ" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="amount" content={renderBarLabel} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : null}
             </CardContent>
           </Card>
-        ) : null}
+
+          {/* Per-Donor Contributions Chart (Top 5 + أخرى) */}
+          {chartPerDonor.length ? (
+            <Card className={chartCardCls}>
+              <CardHeader><CardTitle className="text-lg text-center">مساهمات المانحين والرعاة</CardTitle></CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={chartPerDonor} barGap={8} margin={{ top: 20 }}>
+                    <defs>
+                      <linearGradient id="donorCharitiesGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#0D9488" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#0D9488" stopOpacity={0.55} />
+                      </linearGradient>
+                      <linearGradient id="donorAmountGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#F43F5E" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#F43F5E" stopOpacity={0.55} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid {...gridProps} />
+                    <XAxis dataKey="name" {...xAxisProps} />
+                    <YAxis yAxisId="left" {...yAxisProps} label={{ value: "عدد الجمعيات", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
+                    <YAxis yAxisId="right" orientation="right" {...yAxisProps} label={{ value: "المبلغ (ر.س)", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "hsl(var(--muted-foreground))" } }} />
+                    <Tooltip content={<CustomChartTooltip />} />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="charities" fill="url(#donorCharitiesGrad)" name="عدد الجمعيات المدعومة" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="charities" content={renderBarLabel} />
+                    </Bar>
+                    <Bar yAxisId="right" dataKey="amount" fill="url(#donorAmountGrad)" name="إجمالي المنح (ر.س)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
+                      <LabelList dataKey="amount" content={renderBarLabel} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          ) : null}
         </div>{/* end reportContentRef */}
       </div>
     </DashboardLayout>
