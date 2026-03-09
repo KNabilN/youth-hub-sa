@@ -466,6 +466,26 @@ export default function AdminProjectDetail() {
           }}
         />
       )}
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>رفض الطلب</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">سيتم رفض طلب "{project.title}" وإرسال سبب الرفض للجمعية.</p>
+            <div>
+              <Label>سبب الرفض *</Label>
+              <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="اكتب سبب الرفض..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={updateStatus.isPending}>تأكيد الرفض</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

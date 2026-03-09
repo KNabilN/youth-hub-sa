@@ -218,6 +218,25 @@ export function ServiceApprovalCard({ service }: { service: any }) {
           <EntityActivityLog tableName="micro_services" recordId={service.id} maxHeight="400px" />
         </DialogContent>
       </Dialog>
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>رفض الخدمة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">سيتم رفض خدمة "{service.title}" وإرسال سبب الرفض لمقدم الخدمة.</p>
+            <div>
+              <Label>سبب الرفض *</Label>
+              <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="اكتب سبب الرفض..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={update.isPending}>تأكيد الرفض</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

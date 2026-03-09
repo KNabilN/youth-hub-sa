@@ -106,6 +106,14 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
               )}
             </>
           )}
+          {project.status === "rejected" && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/projects/${project.id}/edit`)}>
+                <Pencil className="h-3.5 w-3.5 me-1" />
+                تعديل وإعادة التقديم
+              </Button>
+            </>
+          )}
           {(project.status === "open" || project.status === "pending_approval") && onSuspend && (
             <Button size="sm" variant="outline" className="text-orange-600 hover:bg-orange-500/10" onClick={() => onSuspend(project.id)}>
               <Pause className="h-3.5 w-3.5 me-1" />
