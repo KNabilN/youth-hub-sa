@@ -498,8 +498,7 @@ export default function AdminReports() {
         {/* ═══════════ Charts ═══════════ */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Pie: الطلبات حسب الحالة */}
-          <Card �حالة</CardTitle></CardHeader>
-            <CardContent className="p-6">
+          <Card  className="p-6">
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie data={projectsByStatus ?? []} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
@@ -514,8 +513,7 @@ export default function AdminReports() {
 
           {/* Bar: المستخدمين حسب الدور */}
           <Card ref={setChartRef(2, "المستخدمين حسب الدورe className="text-lg text-center">المستخدمين حس className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={usersByRole ?? []} margin={{ top: 20 }}>
+              <ResponsiveContainer width=e ?? []} margin={{ top: 20 }}>
                   <defs>
                     {ROLE_COLORS.map((c, i) => (
                       <linearGradient key={i} id={`roleGrad${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -543,9 +541,7 @@ export default function AdminReports() {
           <Card ref={setChartRef(3, "الخدمات حسب التصنيف")} className={chartCardCls}>
             <CardHeader><CardTitle �نيف</CardTitle></CardHeader>
             <CardContent className="p-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={chartServicesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
+              <ResponsiveContainer width="100%"Pie data={chartServicesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={3} cornerRadius={4} label={renderPieLabel} labelLine={false} animationDuration={800} animationEasing="ease-out">
                     {chartServicesByCategory.map((_: any, i: number) => <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />)}
                   </Pie>
                   <Tooltip content={<CustomChartTooltip />} />
