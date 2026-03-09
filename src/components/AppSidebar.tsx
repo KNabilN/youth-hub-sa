@@ -58,6 +58,7 @@ const menuByRole = {
   ],
   donor: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
+    { title: "دليل الاستخدام", url: "/guide", icon: BookOpen },
     { title: "الجمعيات", url: "/associations", icon: Users },
     { title: "طلبات الدعم", url: "/grant-requests", icon: Heart },
     { title: "طلبات واردة", url: "/my-grant-requests", icon: Inbox },
