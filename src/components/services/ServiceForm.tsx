@@ -14,6 +14,7 @@ import { CategorySelectWithOther } from "@/components/ui/category-select-with-ot
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ImagePlus, X, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { CharCounter } from "@/components/ui/char-counter";
 
