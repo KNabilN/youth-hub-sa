@@ -301,7 +301,7 @@ export default function Profile() {
                   </Avatar>
                   <div className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="h-6 w-6 text-white" />
-                    <p className="text-[9px] text-white/70 mt-0.5">200×200</p>
+                    <p className="text-[9px] text-white/70 mt-0.5">200×200 • 2 MB</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 </div>

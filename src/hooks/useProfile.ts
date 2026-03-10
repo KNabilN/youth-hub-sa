@@ -96,6 +96,7 @@ export function useUploadAvatar() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (file: File) => {
+      if (file.size > 2 * 1024 * 1024) throw new Error("الحد الأقصى لحجم الصورة 2 ميجابايت");
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/avatar.${ext}`;

@@ -135,7 +135,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         {/* Gallery */}
         <div>
           <label className="text-sm font-medium mb-1 block">معرض الصور (اختياري - حتى 5 صور إضافية)</label>
-          <p className="text-xs text-muted-foreground mb-2">الأبعاد المُوصى بها: 800×500 بكسل</p>
+          <p className="text-xs text-muted-foreground mb-2">الأبعاد المُوصى بها: 800×500 بكسل • الحد الأقصى: 5 MB</p>
           <div className="flex gap-2 flex-wrap">
             {galleryUrls.map((url, i) => (
               <div key={i} className="relative w-24 h-20 rounded-md overflow-hidden border">
