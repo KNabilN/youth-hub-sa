@@ -14,8 +14,18 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
+    dedupe: ["react", "react-dom", "react/jsx-runtime"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  optimizeDeps: {
+    include: [
+      "@tanstack/react-query",
+      "recharts",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "react-router-dom",
+    ],
   },
 }));
