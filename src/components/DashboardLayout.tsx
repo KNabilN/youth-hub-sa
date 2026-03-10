@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, memo } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,16 +13,126 @@ import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, role } = useAuth();
-  const { data: profile } = useProfile();
+const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
   const { data: notifications } = useNotifications(0, 9);
   const { data: unreadCount } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
+  if (isAdmin) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative"
+        onClick={() => navigate("/admin/notifications")}
+        aria-label="الإشعارات"
+      >
+        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        <NotificationBadge />
+      </Button>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative" aria-label="الإشعارات">
+          <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+          <NotificationBadge />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
+        <div className="flex items-center justify-between p-3 border-b">
+          <h3 className="text-sm font-semibold">الإشعارات</h3>
+          {(unreadCount ?? 0) > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={() => markAllAsRead.mutate()}
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              قراءة الكل
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="max-h-80">
+          {!notifications?.length ? (
+            <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
+          ) : (
+            <div className="divide-y">
+              {notifications.map((n) => (
+                <button
+                  key={n.id}
+                  className={`w-full text-start p-3 text-sm hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
+                  onClick={() => {
+                    if (!n.is_read) markAsRead.mutate(n.id);
+                  }}
+                >
+                  <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
+                    {n.message}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+});
+
+const HeaderUserInfo = memo(function HeaderUserInfo() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+
+  return (
+    <button
+      className="flex items-center gap-3 hover:opacity-80 transition-opacity rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() => navigate("/profile")}
+      aria-label="الملف الشخصي"
+    >
+      <div className="text-end hidden sm:block">
+        <p className="text-sm font-medium leading-none">{profile?.organization_name || profile?.full_name || user?.email}</p>
+        {profile?.full_name && (
+          <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
+        )}
+      </div>
+      <Avatar className="h-9 w-9 border-2 border-border">
+        <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "صورة المستخدم"} />
+        <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+          {(profile?.full_name?.[0] || user?.email?.[0] || "؟").toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+    </button>
+  );
+});
+
+export function DashboardLayout({ children }: { children: ReactNode }) {
+  const { role } = useAuth();
+  const { data: profile } = useProfile();
   const isAdmin = role === "super_admin";
+
+  // Suspended account check (moved from ProtectedRoute to avoid duplicate useProfile calls)
+  if (profile?.is_suspended) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-3 max-w-md p-8">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-2xl">🚫</span>
+          </div>
+          <h2 className="text-xl font-bold text-foreground">تم تعليق حسابك</h2>
+          <p className="text-muted-foreground">تم تعليق حسابك من قبل إدارة المنصة. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -40,93 +150,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             
             <div className="flex-1" />
 
-            {/* Notification bell */}
-            {isAdmin ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={() => navigate("/admin/notifications")}
-                aria-label="الإشعارات"
-              >
-                <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                <NotificationBadge />
-              </Button>
-            ) : (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative"
-                    aria-label="الإشعارات"
-                  >
-                    <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                    <NotificationBadge />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
-                  <div className="flex items-center justify-between p-3 border-b">
-                    <h3 className="text-sm font-semibold">الإشعارات</h3>
-                    {(unreadCount ?? 0) > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-7 gap-1"
-                        onClick={() => markAllAsRead.mutate()}
-                      >
-                        <CheckCheck className="h-3.5 w-3.5" />
-                        قراءة الكل
-                      </Button>
-                    )}
-                  </div>
-                  <ScrollArea className="max-h-80">
-                    {!notifications?.length ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
-                    ) : (
-                      <div className="divide-y">
-                        {notifications.map((n) => (
-                          <button
-                            key={n.id}
-                            className={`w-full text-start p-3 text-sm hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
-                            onClick={() => {
-                              if (!n.is_read) markAsRead.mutate(n.id);
-                            }}
-                          >
-                            <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
-                              {n.message}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </PopoverContent>
-              </Popover>
-            )}
-
-            {/* User info */}
-            <button
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              onClick={() => navigate("/profile")}
-              aria-label="الملف الشخصي"
-            >
-              <div className="text-end hidden sm:block">
-                <p className="text-sm font-medium leading-none">{profile?.organization_name || profile?.full_name || user?.email}</p>
-                {profile?.full_name && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
-                )}
-              </div>
-              <Avatar className="h-9 w-9 border-2 border-border">
-                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "صورة المستخدم"} />
-                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                  {(profile?.full_name?.[0] || user?.email?.[0] || "؟").toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </button>
+            <HeaderNotifications isAdmin={isAdmin} />
+            <HeaderUserInfo />
           </header>
           <ProfileCompletionBanner />
           <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
