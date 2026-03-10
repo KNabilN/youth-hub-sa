@@ -126,7 +126,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
               <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
               <span className="text-sm text-muted-foreground">{uploading ? "جارٍ الرفع..." : "اضغط لرفع صورة"}</span>
-              <span className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 800×500 بكسل</span>
+              <span className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 800×500 بكسل • الحد الأقصى: 5 MB</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, false)} disabled={uploading} />
             </label>
           )}
