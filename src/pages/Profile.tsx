@@ -473,7 +473,7 @@ export default function Profile() {
                       <p className="text-xs text-muted-foreground mt-1">
                         اسحب الصورة وأفلتها هنا أو اضغط لاختيار ملف
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">الأبعاد المُوصى بها: 300×300 بكسل</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">الأبعاد المُوصى بها: 300×300 بكسل • الحد الأقصى: 2 MB</p>
                       <input
                         ref={logoInputRef}
                         type="file"
