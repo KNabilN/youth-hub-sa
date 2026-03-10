@@ -89,6 +89,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("الحد الأقصى لحجم الصورة 5 ميجابايت"); return; }
     setUploading(true);
     const ext = file.name.split(".").pop();
     const path = `${user.id}/${Date.now()}.${ext}`;
