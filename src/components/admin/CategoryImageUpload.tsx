@@ -88,6 +88,7 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
             </div>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <p className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 400×250 بكسل • الحد الأقصى: 5 MB</p>
           <div className="flex gap-2">
             <Button onClick={() => fileRef.current?.click()} disabled={isPending} className="flex-1">
               {uploadMut.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Upload className="h-4 w-4 me-1" />}

@@ -7,6 +7,7 @@ export function useUploadCover() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (file: File) => {
+      if (file.size > 5 * 1024 * 1024) throw new Error("الحد الأقصى لحجم الصورة 5 ميجابايت");
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/cover.${ext}`;

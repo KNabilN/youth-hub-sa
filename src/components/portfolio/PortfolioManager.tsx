@@ -25,6 +25,10 @@ export function PortfolioManager() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    if (f.size > 5 * 1024 * 1024) {
+      toast({ title: "الحد الأقصى لحجم الصورة 5 ميجابايت", variant: "destructive" });
+      return;
+    }
     setFile(f);
     setPreview(URL.createObjectURL(f));
   };
@@ -82,7 +86,7 @@ export function PortfolioManager() {
             <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
               <ImagePlus className="h-4 w-4 me-1" /> اختر صورة
             </Button>
-            <span className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 800×450 بكسل</span>
+            <span className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 800×450 بكسل • الحد الأقصى: 5 MB</span>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             {file && <span className="text-xs text-muted-foreground truncate max-w-[200px]">{file.name}</span>}
           </div>

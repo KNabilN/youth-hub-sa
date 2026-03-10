@@ -178,7 +178,7 @@ export function AdminDirectEditDialog({
                         <Upload className="h-3.5 w-3.5" />
                         {avatarUpload.isPending ? "جاري الرفع..." : "رفع صورة جديدة"}
                       </Button>
-                      <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 200×200 بكسل</p>
+                      <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 200×200 بكسل • الحد الأقصى: 2 MB</p>
                     </div>
                     <input
                       ref={avatarInputRef}
@@ -220,7 +220,7 @@ export function AdminDirectEditDialog({
                     <Upload className="h-3.5 w-3.5" />
                     {coverUpload.isPending ? "جاري الرفع..." : "رفع صورة غلاف جديدة"}
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 1200×400 بكسل</p>
+                  <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
                   <input
                     ref={coverInputRef}
                     type="file"

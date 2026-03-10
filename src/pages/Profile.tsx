@@ -279,7 +279,7 @@ export default function Profile() {
                   <div className="text-white text-center">
                     <ImageIcon className="h-8 w-8 mx-auto mb-1" />
                     <p className="text-sm">تغيير صورة الغلاف</p>
-                    <p className="text-xs text-white/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل</p>
+                    <p className="text-xs text-white/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
                   </div>
                 </div>
                 {uploadCover.isPending && (
@@ -301,7 +301,7 @@ export default function Profile() {
                   </Avatar>
                   <div className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="h-6 w-6 text-white" />
-                    <p className="text-[9px] text-white/70 mt-0.5">200×200</p>
+                    <p className="text-[9px] text-white/70 mt-0.5">200×200 • 2 MB</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 </div>
@@ -473,7 +473,7 @@ export default function Profile() {
                       <p className="text-xs text-muted-foreground mt-1">
                         اسحب الصورة وأفلتها هنا أو اضغط لاختيار ملف
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">الأبعاد المُوصى بها: 300×300 بكسل</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">الأبعاد المُوصى بها: 300×300 بكسل • الحد الأقصى: 2 MB</p>
                       <input
                         ref={logoInputRef}
                         type="file"
