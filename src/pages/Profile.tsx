@@ -279,7 +279,7 @@ export default function Profile() {
                   <div className="text-white text-center">
                     <ImageIcon className="h-8 w-8 mx-auto mb-1" />
                     <p className="text-sm">تغيير صورة الغلاف</p>
-                    <p className="text-xs text-white/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل</p>
+                    <p className="text-xs text-white/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
                   </div>
                 </div>
                 {uploadCover.isPending && (
