@@ -25,6 +25,10 @@ export function PortfolioManager() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    if (f.size > 5 * 1024 * 1024) {
+      toast({ title: "الحد الأقصى لحجم الصورة 5 ميجابايت", variant: "destructive" });
+      return;
+    }
     setFile(f);
     setPreview(URL.createObjectURL(f));
   };

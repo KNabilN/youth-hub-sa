@@ -120,6 +120,7 @@ function ImageUploadField({ label, value, onChange }: { label: string; value: st
       <Button variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
         {uploading ? "جارٍ الرفع..." : <><Upload className="h-4 w-4 me-1" />رفع صورة</>}
       </Button>
+      <p className="text-xs text-muted-foreground">الحد الأقصى: 5 MB</p>
     </div>
   );
 }
