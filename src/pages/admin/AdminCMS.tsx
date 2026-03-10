@@ -83,6 +83,7 @@ function ImageUploadField({ label, value, onChange }: { label: string; value: st
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("الحد الأقصى لحجم الصورة 5 ميجابايت"); return; }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
