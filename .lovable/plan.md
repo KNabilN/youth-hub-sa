@@ -1,36 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إصلاح خطأ تعديل بيانات المستخدم من لوحة الإدارة
+## الحالة: ✅ تم التنفيذ
 
-## المشكلة
-عند حفظ التعديلات، يُرسل النظام قيم فارغة `""` لحقول `region_id` و `city_id` (من نوع UUID) و `hourly_rate` (من نوع رقمي). قاعدة البيانات ترفض هذه القيم وتعيد خطأ:
-```
-invalid input syntax for type uuid: ""
-```
+### ما تم تنفيذه
 
-## الحل
-تعديل دالة `handleSubmit` في `AdminDirectEditDialog.tsx` لتحويل القيم الفارغة إلى `null` للحقول التي تتطلب ذلك (UUID، الأرقام).
-
-## التغيير
-**ملف: `src/components/admin/AdminDirectEditDialog.tsx`**
-
-في `handleSubmit`، بعد تجميع `updates`، تحويل القيم الفارغة:
-- حقول UUID (`region_id`, `city_id`): `""` → `null`
-- حقول رقمية (`hourly_rate`): `""` → `null`
-
-```typescript
-// Sanitize: convert empty strings to null for UUID/numeric fields
-const nullableFields = ["region_id", "city_id", "hourly_rate", "category_id"];
-for (const key of nullableFields) {
-  if (key in updates && (updates[key] === "" || updates[key] === undefined)) {
-    updates[key] = null;
-  }
-}
-// Convert hourly_rate to number if present
-if (updates.hourly_rate !== null && updates.hourly_rate !== undefined) {
-  updates.hourly_rate = Number(updates.hourly_rate);
-}
-```
-
-ملف واحد فقط يحتاج تعديل.
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
