@@ -84,7 +84,6 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
           contact_officer_email: contactOfficerEmail || null,
           contact_officer_title: contactOfficerTitle || null,
           bio: bio || null,
-          hourly_rate: hourlyRate ? Number(hourlyRate) : null,
         },
       });
 
