@@ -52,7 +52,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
     setContactOfficerEmail("");
     setContactOfficerTitle("");
     setBio("");
-    setHourlyRate("");
+    
   };
 
   const handleSubmit = async () => {
