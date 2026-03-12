@@ -32,7 +32,7 @@ export function useAdminStats() {
         supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
         supabase.from("disputes").select("id", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("invoices").select("commission_amount"),
-        supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "pending"),
+        supabase.from("micro_services").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("approval", "pending"),
         supabase.from("bids").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("escrow_transactions").select("amount").eq("status", "held"),
         supabase.from("support_tickets").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"]),

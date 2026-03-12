@@ -1,20 +1,12 @@
 
-# إصلاح تناقض عدد الخدمات بانتظار الموافقة
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## المشكلة
-استعلام الإحصائيات في `useAdminStats.ts` يعدّ الخدمات بحالة `pending` بدون استثناء المحذوفة (soft-deleted)، بينما جدول الخدمات يستثنيها. هذا يسبب ظهور "1 خدمة بانتظار الموافقة" في لوحة التحكم لكن عند الدخول للخدمات لا تظهر أي خدمة.
+## الحالة: ✅ تم التنفيذ
 
-## الحل
-إضافة فلتر `.is("deleted_at", null)` لاستعلام `pendingServices` في `useAdminStats.ts`.
+### ما تم تنفيذه
 
-## الملف المتأثر
-- `src/hooks/useAdminStats.ts` — سطر 35: إضافة `.is("deleted_at", null)` قبل `.eq("approval", "pending")`
-
-## التغيير
-```typescript
-// قبل
-supabase.from("micro_services").select("id", { count: "exact", head: true }).eq("approval", "pending"),
-
-// بعد
-supabase.from("micro_services").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("approval", "pending"),
-```
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
