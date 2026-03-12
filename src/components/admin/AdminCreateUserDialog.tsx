@@ -35,7 +35,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
   const [contactOfficerEmail, setContactOfficerEmail] = useState("");
   const [contactOfficerTitle, setContactOfficerTitle] = useState("");
   const [bio, setBio] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
+  
   const [loading, setLoading] = useState(false);
   const qc = useQueryClient();
 
