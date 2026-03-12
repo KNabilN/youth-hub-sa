@@ -1,12 +1,42 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# ترجمة جميع رسائل الأخطاء إلى العربية
 
-### ما تم تنفيذه
+## المشكلة
+عند فشل تسجيل الدخول أو التسجيل أو إعادة تعيين كلمة المرور، يتم عرض رسائل Supabase الإنجليزية مباشرة (مثل "Email not confirmed"، "Invalid login credentials"). هذا يتعارض مع سياسة المنصة بأن تكون عربية بالكامل.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## الحل
+إنشاء دالة مركزية `translateAuthError` تحوّل رسائل الأخطاء الشائعة من Supabase إلى عربي، واستخدامها في جميع الأماكن التي تعرض `error.message` مباشرة.
+
+## الملفات المتأثرة
+
+### 1. `src/lib/auth-errors.ts` — ملف جديد
+قاموس ترجمة لجميع رسائل Supabase Auth الشائعة:
+- "Email not confirmed" → "لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك."
+- "Invalid login credentials" → "بيانات الدخول غير صحيحة"
+- "User already registered" → "البريد الإلكتروني مسجل مسبقاً"
+- "Password should be at least 6 characters" → "كلمة المرور يجب أن تكون 6 أحرف على الأقل"
+- وغيرها...
+
+### 2. `src/components/AuthModal.tsx` — سطران (126، 148)
+استبدال `toast.error(error.message)` بـ `toast.error(translateAuthError(error.message))`
+
+### 3. `src/pages/ForgotPassword.tsx` — سطر (23)
+نفس التعديل
+
+### 4. `src/pages/ResetPassword.tsx` — سطر (67)
+نفس التعديل
+
+### 5. `src/components/admin/AdminCreateUserDialog.tsx` — سطر (98)
+استبدال `err.message` بالترجمة
+
+### 6. `src/pages/MyDisputes.tsx` — سطر (97)
+استبدال `err.message` بالترجمة
+
+### 7. `src/hooks/useAttachments.ts` — سطر (112)
+### 8. `src/hooks/useDeliverables.ts` — سطر (77)
+
+## حجم التغييرات
+- ملف جديد واحد (~30 سطر)
+- تعديل 7 ملفات (إضافة import + استبدال error.message)
+
