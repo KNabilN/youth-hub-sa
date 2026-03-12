@@ -182,10 +182,6 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
                   <Label>نبذة</Label>
                   <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
                 </div>
-                <div>
-                  <Label>السعر بالساعة (ر.س)</Label>
-                  <Input type="number" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="0" dir="ltr" min="0" />
-                </div>
               </div>
             </div>
           </div>
