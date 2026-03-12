@@ -52,6 +52,7 @@ const menuByRole = {
     { title: "العقود", url: "/contracts", icon: ScrollText },
     { title: "المعاملات المادية", url: "/earnings", icon: Receipt },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
+    { title: "تسجيل الساعات", url: "/time-tracking", icon: Timer },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
     { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },
