@@ -138,18 +138,12 @@ export function useConversations() {
       const projectIds = projects.map((p) => p.id);
 
       type MsgRow = { project_id: string; content: string; created_at: string; sender_id: string; is_read: boolean };
-      const allMessages: MsgRow[] = [];
-      for (const pid of projectIds) {
-        const { data: projectMsgs, error: mErr } = await supabase
-          .from("messages")
-          .select("project_id, content, created_at, sender_id, is_read")
-          .eq("project_id", pid)
-          .order("created_at", { ascending: false })
-          .limit(50);
-        if (mErr) throw mErr;
-        if (projectMsgs) allMessages.push(...projectMsgs);
-      }
-      const messages = allMessages;
+      const { data: messages, error: mErr } = await supabase
+        .from("messages")
+        .select("project_id, content, created_at, sender_id, is_read")
+        .in("project_id", projectIds)
+        .order("created_at", { ascending: false });
+      if (mErr) throw mErr;
 
       const otherPartyIds = projects.map((p) =>
         p.association_id === user!.id ? p.assigned_provider_id : p.association_id

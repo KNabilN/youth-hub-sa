@@ -39,6 +39,7 @@ const menuByRole = {
     { title: "العقود", url: "/contracts", icon: FileText },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
+    { title: "سجل الساعات", url: "/time-logs", icon: Clock },
     { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
   ],
   service_provider: [
