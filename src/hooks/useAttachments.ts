@@ -110,7 +110,7 @@ export function useUploadAttachment() {
       toast.success("تم رفع الملف بنجاح");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "حدث خطأ أثناء رفع الملف");
+      toast.error(translateError(error.message || "حدث خطأ أثناء رفع الملف"));
     },
   });
 }

@@ -75,7 +75,7 @@ export function useSubmitDeliverable() {
       toast.success("تم تقديم التسليمات للمراجعة");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "حدث خطأ");
+      toast.error(translateError(err.message || "حدث خطأ"));
     },
   });
 }

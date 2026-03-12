@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { translateError } from "@/lib/auth-errors";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyDisputes } from "@/hooks/useMyDisputes";
 import { useMyAssignedProjects } from "@/hooks/useMyAssignedProjects";
