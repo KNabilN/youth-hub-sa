@@ -35,7 +35,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
   const [contactOfficerEmail, setContactOfficerEmail] = useState("");
   const [contactOfficerTitle, setContactOfficerTitle] = useState("");
   const [bio, setBio] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
+  
   const [loading, setLoading] = useState(false);
   const qc = useQueryClient();
 
@@ -52,7 +52,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
     setContactOfficerEmail("");
     setContactOfficerTitle("");
     setBio("");
-    setHourlyRate("");
+    
   };
 
   const handleSubmit = async () => {
@@ -84,7 +84,6 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
           contact_officer_email: contactOfficerEmail || null,
           contact_officer_title: contactOfficerTitle || null,
           bio: bio || null,
-          hourly_rate: hourlyRate ? Number(hourlyRate) : null,
         },
       });
 
@@ -182,10 +181,6 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
                 <div>
                   <Label>نبذة</Label>
                   <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
-                </div>
-                <div>
-                  <Label>السعر بالساعة (ر.س)</Label>
-                  <Input type="number" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder="0" dir="ltr" min="0" />
                 </div>
               </div>
             </div>
