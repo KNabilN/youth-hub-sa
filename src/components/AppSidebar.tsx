@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen,
+  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen, Clock, Timer,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -39,6 +39,7 @@ const menuByRole = {
     { title: "العقود", url: "/contracts", icon: FileText },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
+    { title: "سجل الساعات", url: "/time-logs", icon: Clock },
     { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
   ],
   service_provider: [
@@ -52,6 +53,7 @@ const menuByRole = {
     { title: "العقود", url: "/contracts", icon: ScrollText },
     { title: "المعاملات المادية", url: "/earnings", icon: Receipt },
     { title: "الفواتير", url: "/invoices", icon: Receipt },
+    { title: "تسجيل الساعات", url: "/time-tracking", icon: Timer },
     { title: "التقييمات", url: "/ratings", icon: BarChart3 },
     { title: "الشكاوى", url: "/my-disputes", icon: Gavel },
     { title: "سوق الخدمات", url: "/marketplace", icon: Store },

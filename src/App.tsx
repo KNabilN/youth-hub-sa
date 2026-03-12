@@ -60,6 +60,8 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const TimeTracking = lazy(() => import("./pages/TimeTracking"));
+const TimeLogs = lazy(() => import("./pages/TimeLogs"));
 const Trash = lazy(() => import("./pages/Trash"));
 const UserGuide = lazy(() => import("./pages/UserGuide"));
 const About = lazy(() => import("./pages/About"));
@@ -175,6 +177,8 @@ const App = () => (
                 <Route path="/notifications" element={<ProtectedRoute><SuspenseWrap><Notifications /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/trash" element={<ProtectedRoute><AdminRoute><SuspenseWrap><Trash /></SuspenseWrap></AdminRoute></ProtectedRoute>} />
                 <Route path="/guide" element={<ProtectedRoute><SuspenseWrap><UserGuide /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/time-tracking" element={<ProtectedRoute><SuspenseWrap><TimeTracking /></SuspenseWrap></ProtectedRoute>} />
+                <Route path="/time-logs" element={<ProtectedRoute><SuspenseWrap><TimeLogs /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><SuspenseWrap><Profile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/providers/:id" element={<ProtectedRoute><SuspenseWrap><PublicProfile /></SuspenseWrap></ProtectedRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><SuspenseWrap><AdminUsers /></SuspenseWrap></AdminRoute>} />
