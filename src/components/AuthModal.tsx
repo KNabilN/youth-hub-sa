@@ -124,7 +124,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setLoading(true);
       const { error } = await signIn(email.trim(), password);
       if (error) {
-        toast.error(error.message);
+        toast.error(translateError(error.message));
       } else {
         toast.success("مرحباً بعودتك! 👋");
         onOpenChange(false);
