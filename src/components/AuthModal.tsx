@@ -146,7 +146,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setLoading(true);
       const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
       if (error) {
-        toast.error(error.message);
+        toast.error(translateError(error.message));
       } else {
         toast.success("تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.");
         onOpenChange(false);

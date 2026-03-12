@@ -96,7 +96,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
       onOpenChange(false);
       resetForm();
     } catch (err: any) {
-      toast.error(err.message || "حدث خطأ أثناء إنشاء الحساب");
+      toast.error(translateError(err.message || "حدث خطأ أثناء إنشاء الحساب"));
     } finally {
       setLoading(false);
     }

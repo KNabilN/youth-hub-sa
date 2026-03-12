@@ -21,7 +21,7 @@ export default function ForgotPassword() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      toast.error(error.message);
+      toast.error(translateError(error.message));
     } else {
       setSent(true);
       toast.success("تم إرسال رابط إعادة تعيين كلمة المرور");

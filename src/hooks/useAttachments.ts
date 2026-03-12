@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { translateError } from "@/lib/auth-errors";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const DELIVERABLE_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB

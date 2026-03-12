@@ -65,7 +65,7 @@ export default function ResetPassword() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      toast.error(error.message);
+      toast.error(translateError(error.message));
     } else {
       toast.success("تم تغيير كلمة المرور بنجاح");
       navigate("/dashboard");

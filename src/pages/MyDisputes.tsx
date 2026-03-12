@@ -94,7 +94,7 @@ export default function MyDisputes() {
           setReopenDialogId(null);
           setReopenReason("");
         },
-        onError: (err: any) => toast({ title: err.message || "حدث خطأ", variant: "destructive" }),
+        onError: (err: any) => toast({ title: translateError(err.message || "حدث خطأ"), variant: "destructive" }),
       }
     );
   };
