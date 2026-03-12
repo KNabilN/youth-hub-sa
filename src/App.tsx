@@ -60,6 +60,8 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const TimeTracking = lazy(() => import("./pages/TimeTracking"));
+const TimeLogs = lazy(() => import("./pages/TimeLogs"));
 const Trash = lazy(() => import("./pages/Trash"));
 const UserGuide = lazy(() => import("./pages/UserGuide"));
 const About = lazy(() => import("./pages/About"));
