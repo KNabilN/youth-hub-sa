@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/auth-errors";
 
 export interface Deliverable {
   id: string;
@@ -74,7 +75,7 @@ export function useSubmitDeliverable() {
       toast.success("تم تقديم التسليمات للمراجعة");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "حدث خطأ");
+      toast.error(translateError(err.message || "حدث خطأ"));
     },
   });
 }

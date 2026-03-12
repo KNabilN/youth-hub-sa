@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
+import { translateError } from "@/lib/auth-errors";
 
 const roleLabels: Record<string, string> = {
   youth_association: "جمعية شبابية",
@@ -95,7 +96,7 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
       onOpenChange(false);
       resetForm();
     } catch (err: any) {
-      toast.error(err.message || "حدث خطأ أثناء إنشاء الحساب");
+      toast.error(translateError(err.message || "حدث خطأ أثناء إنشاء الحساب"));
     } finally {
       setLoading(false);
     }

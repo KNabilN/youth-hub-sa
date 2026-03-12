@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Building2, UserCheck, HandCoins, Phone, X, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import { translateError } from "@/lib/auth-errors";
 import logoImg from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -123,7 +124,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setLoading(true);
       const { error } = await signIn(email.trim(), password);
       if (error) {
-        toast.error(error.message);
+        toast.error(translateError(error.message));
       } else {
         toast.success("مرحباً بعودتك! 👋");
         onOpenChange(false);
@@ -145,7 +146,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setLoading(true);
       const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
       if (error) {
-        toast.error(error.message);
+        toast.error(translateError(error.message));
       } else {
         toast.success("تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.");
         onOpenChange(false);
