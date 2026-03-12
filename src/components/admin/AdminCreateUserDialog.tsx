@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
+import { translateError } from "@/lib/auth-errors";
 
 const roleLabels: Record<string, string> = {
   youth_association: "جمعية شبابية",

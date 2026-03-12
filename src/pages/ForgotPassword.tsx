@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { ArrowRight, Mail } from "lucide-react";
+import { translateError } from "@/lib/auth-errors";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");

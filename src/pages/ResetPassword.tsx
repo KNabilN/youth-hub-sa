@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { KeyRound, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { PasswordStrength } from "@/components/ui/password-strength";
+import { translateError } from "@/lib/auth-errors";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
