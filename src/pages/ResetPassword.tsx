@@ -74,7 +74,7 @@ export default function ResetPassword() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
         <div className="w-full max-w-md space-y-6 text-center">
           {error ? (
             <Card className="border shadow-xl">
