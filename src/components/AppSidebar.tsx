@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen,
+  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen, Clock, Timer,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
