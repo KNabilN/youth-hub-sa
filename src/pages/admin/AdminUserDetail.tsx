@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getDisplayName } from "@/lib/utils";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAdminUserById } from "@/hooks/useAdminUserById";
 import {
@@ -308,7 +309,7 @@ export default function AdminUserDetail() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">{user.full_name || "—"}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">{getDisplayName(user)}</h1>
               {(user as any).user_number && (
                 <p className="text-xs font-mono text-muted-foreground mb-2">{(user as any).user_number}</p>
               )}
@@ -655,8 +656,8 @@ export default function AdminUserDetail() {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               {user.is_suspended
-                ? `هل أنت متأكد من إلغاء تعليق حساب "${user.full_name}"؟`
-                : `سيتم تعليق حساب "${user.full_name}" ولن يتمكن من الوصول إلى النظام.`}
+                ? `هل أنت متأكد من إلغاء تعليق حساب "${getDisplayName(user)}"؟`
+                : `سيتم تعليق حساب "${getDisplayName(user)}" ولن يتمكن من الوصول إلى النظام.`}
             </p>
             <div>
               <Label>{user.is_suspended ? "سبب إلغاء التعليق *" : "سبب التعليق *"}</Label>
@@ -696,7 +697,7 @@ export default function AdminUserDetail() {
           open={lightboxOpen}
           onOpenChange={setLightboxOpen}
           src={user.avatar_url}
-          alt={user.full_name}
+          alt={getDisplayName(user)}
         />
       )}
     </DashboardLayout>
