@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function SupportTickets() {
   const { data: tickets, isLoading } = useSupportTickets();
