@@ -24,6 +24,7 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { PaginationControls } from "@/components/PaginationControls";
 import { logAudit } from "@/lib/audit";
+import { getDisplayName } from "@/lib/utils";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 
