@@ -28,6 +28,7 @@ export default function MyServices() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  useListHighlight("my-services");
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
