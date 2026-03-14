@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",

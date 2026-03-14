@@ -298,7 +298,10 @@ export default function AdminUserDetail() {
         {/* Hero Section */}
         <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8">
           <div className="flex flex-col items-center text-center gap-4">
-            <Avatar className="h-20 w-20 ring-4 ring-primary/10">
+             <Avatar
+                className={`h-20 w-20 ring-4 ring-primary/10 ${user.avatar_url ? "cursor-pointer hover:ring-primary/30 transition-all" : ""}`}
+                onClick={() => user.avatar_url && setLightboxOpen(true)}
+              >
               <AvatarImage src={user.avatar_url} />
               <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                 <User className="h-8 w-8" />
