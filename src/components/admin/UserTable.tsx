@@ -372,8 +372,8 @@ export function UserTable({ pagination }: UserTableProps) {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               {suspendTarget?.is_suspended
-                ? `هل أنت متأكد من إلغاء تعليق حساب "${suspendTarget?.full_name}"؟`
-                : `سيتم تعليق حساب "${suspendTarget?.full_name}" ولن يتمكن من الوصول إلى النظام.`}
+                ? `هل أنت متأكد من إلغاء تعليق حساب "${getDisplayName(suspendTarget)}"؟`
+                : `سيتم تعليق حساب "${getDisplayName(suspendTarget)}" ولن يتمكن من الوصول إلى النظام.`}
             </p>
             <div>
               <Label>{suspendTarget?.is_suspended ? "سبب إلغاء التعليق *" : "سبب التعليق *"}</Label>
