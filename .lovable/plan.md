@@ -1,20 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# فتح الصورة الشخصية عند النقر عليها
+## الحالة: ✅ تم التنفيذ
 
-## الوصف
-عند النقر على صورة المستخدم (Avatar) في صفحة تفاصيل المستخدم الإدارية وصفحة الملف الشخصي العام، يتم فتح الصورة بحجم كبير في نافذة Dialog.
+### ما تم تنفيذه
 
-## التغييرات
-
-### 1. إنشاء مكون `ImageLightbox`
-ملف جديد `src/components/ui/image-lightbox.tsx` — مكون Dialog بسيط يعرض صورة بالحجم الكامل عند فتحه، مع زر إغلاق.
-
-### 2. تحديث `src/pages/admin/AdminUserDetail.tsx`
-- إضافة state للتحكم بفتح/إغلاق الـ lightbox
-- جعل الـ Avatar قابل للنقر (cursor-pointer) عند وجود `avatar_url`
-- عند النقر، فتح الصورة في الـ lightbox
-
-### 3. تحديث `src/pages/PublicProfile.tsx`
-- نفس المنطق: Avatar قابل للنقر يفتح الصورة في lightbox
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر

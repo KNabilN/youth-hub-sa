@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePublicProfile, useToggleProfileSave } from "@/hooks/usePublicProfile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -17,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -27,6 +29,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PublicProfile() {
   const { id } = useParams<{ id: string }>();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, role, services, portfolio, ratings, savesCount, projects } = usePublicProfile(id);
   const { isSaved, toggle: toggleSave } = useToggleProfileSave(id);
@@ -115,7 +118,10 @@ export default function PublicProfile() {
       {/* Profile Info */}
       <div className="px-4 sm:px-8 -mt-16 relative z-10">
         <div className="flex flex-col sm:flex-row items-start gap-4">
-          <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/10">
+          <Avatar
+            className={`h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/10 ${p.avatar_url ? "cursor-pointer hover:ring-primary/30 transition-all" : ""}`}
+            onClick={() => p.avatar_url && setLightboxOpen(true)}
+          >
             <AvatarImage src={p.avatar_url || undefined} />
             <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">
               {(p.organization_name || p.full_name)?.[0] ?? "؟"}
@@ -369,6 +375,15 @@ export default function PublicProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {p.avatar_url && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          src={p.avatar_url}
+          alt={p.organization_name || p.full_name}
+        />
+      )}
     </div>
   );
 }

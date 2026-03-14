@@ -52,6 +52,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -183,6 +184,7 @@ export default function AdminUserDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [suspensionReason, setSuspensionReason] = useState("");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { data: allRegions } = useRegions();
   const { data: allCities } = useCities();
@@ -297,7 +299,10 @@ export default function AdminUserDetail() {
         {/* Hero Section */}
         <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8">
           <div className="flex flex-col items-center text-center gap-4">
-            <Avatar className="h-20 w-20 ring-4 ring-primary/10">
+             <Avatar
+                className={`h-20 w-20 ring-4 ring-primary/10 ${user.avatar_url ? "cursor-pointer hover:ring-primary/30 transition-all" : ""}`}
+                onClick={() => user.avatar_url && setLightboxOpen(true)}
+              >
               <AvatarImage src={user.avatar_url} />
               <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                 <User className="h-8 w-8" />
@@ -688,6 +693,15 @@ export default function AdminUserDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {user.avatar_url && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          src={user.avatar_url}
+          alt={user.full_name}
+        />
+      )}
     </DashboardLayout>
   );
 }
