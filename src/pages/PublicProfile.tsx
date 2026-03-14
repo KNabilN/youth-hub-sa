@@ -118,7 +118,10 @@ export default function PublicProfile() {
       {/* Profile Info */}
       <div className="px-4 sm:px-8 -mt-16 relative z-10">
         <div className="flex flex-col sm:flex-row items-start gap-4">
-          <Avatar className="h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/10">
+          <Avatar
+            className={`h-28 w-28 border-4 border-background shadow-xl ring-2 ring-primary/10 ${p.avatar_url ? "cursor-pointer hover:ring-primary/30 transition-all" : ""}`}
+            onClick={() => p.avatar_url && setLightboxOpen(true)}
+          >
             <AvatarImage src={p.avatar_url || undefined} />
             <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">
               {(p.organization_name || p.full_name)?.[0] ?? "؟"}

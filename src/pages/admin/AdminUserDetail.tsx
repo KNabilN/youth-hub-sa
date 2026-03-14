@@ -693,6 +693,15 @@ export default function AdminUserDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {user.avatar_url && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          src={user.avatar_url}
+          alt={user.full_name}
+        />
+      )}
     </DashboardLayout>
   );
 }
