@@ -145,9 +145,9 @@ export default function AdminDisputes() {
                   {paged.map((d: any) => (
                     <TableRow key={d.id} id={`row-${d.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">
-                        <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
+                        <button onClick={() => saveAndNavigate(d.id, `/admin/disputes/${d.id}`, pagination.page)} className="hover:underline hover:text-primary transition-colors">
                           {d.dispute_number || "—"}
-                        </Link>
+                        </button>
                       </TableCell>
                       <TableCell className="font-medium">{d.projects?.title ?? "—"}</TableCell>
                       <TableCell>{d.profiles?.full_name ?? "—"}</TableCell>
