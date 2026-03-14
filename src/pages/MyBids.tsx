@@ -137,7 +137,7 @@ export default function MyBids() {
               const needsSign = contract && !contract.provider_signed_at;
               const bidComments = commentCounts?.[bid.id] ?? 0;
               return (
-                <Card key={bid.id} className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}>
+                <Card key={bid.id} id={`row-${bid.id}`} className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
                       <div className="flex items-center gap-2">
