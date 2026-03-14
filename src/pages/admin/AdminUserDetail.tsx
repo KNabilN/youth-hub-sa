@@ -127,7 +127,6 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
     { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
     { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
     { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
-    { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
   ];
 }
 
