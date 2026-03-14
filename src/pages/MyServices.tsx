@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function MyServices() {
   const [approvalFilter, setApprovalFilter] = useState("all");
