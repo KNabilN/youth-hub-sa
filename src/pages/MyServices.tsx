@@ -127,8 +127,8 @@ export default function MyServices() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map(s => (
+              <div key={s.id} id={`row-${s.id}`}>
               <MyServiceCard
-                key={s.id}
                 service={s}
                 onEdit={setEditingId}
                 onDelete={setDeletingId}
