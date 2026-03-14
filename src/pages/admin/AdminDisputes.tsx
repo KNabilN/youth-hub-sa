@@ -143,7 +143,7 @@ export default function AdminDisputes() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((d: any) => (
-                    <TableRow key={d.id}>
+                    <TableRow key={d.id} id={`row-${d.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">
                         <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
                           {d.dispute_number || "—"}
