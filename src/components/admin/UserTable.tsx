@@ -426,7 +426,7 @@ export function UserTable({ pagination }: UserTableProps) {
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         title="نقل إلى سلة المحذوفات"
-        description={`سيتم نقل "${deleteTarget?.full_name}" إلى سلة المحذوفات. يمكنك استرجاعه خلال 30 يوماً.`}
+        description={`سيتم نقل "${getDisplayName(deleteTarget)}" إلى سلة المحذوفات. يمكنك استرجاعه خلال 30 يوماً.`}
         confirmLabel="نقل للسلة"
         variant="destructive"
         loading={softDelete.isPending}
