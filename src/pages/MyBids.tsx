@@ -33,7 +33,8 @@ export default function MyBids() {
   const withdrawBid = useWithdrawBid();
   const signContract = useSignContract();
   const { toast } = useToast();
-  const pagination = usePagination();
+  const pagination = usePagination("my-bids");
+  const { saveAndNavigate } = useListHighlight("my-bids");
 
   // Paginate client-side
   const bids = allBids?.slice(pagination.from, pagination.to + 1);
