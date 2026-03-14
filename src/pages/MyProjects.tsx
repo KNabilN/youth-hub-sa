@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { FolderKanban, ArrowLeft } from "lucide-react";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function MyProjects() {
   const [statusFilter, setStatusFilter] = useState("all");
