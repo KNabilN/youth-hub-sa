@@ -78,6 +78,7 @@ export default function AdminServices() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("admin-services");
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
