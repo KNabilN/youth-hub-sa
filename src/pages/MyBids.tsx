@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 import { useAuth } from "@/hooks/useAuth";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
   pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
