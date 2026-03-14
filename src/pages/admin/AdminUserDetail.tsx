@@ -101,7 +101,7 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
   ];
 
   if (role === "service_provider") {
-    return [...common, { key: "hourly_rate", label: "السعر بالساعة", type: "number" }, ...locationFields];
+    return [...common, ...locationFields];
   }
   if (role === "youth_association") {
     return [
