@@ -52,6 +52,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
