@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminDisputes, useUpdateDispute } from "@/hooks/useAdminDisputes";
@@ -40,6 +41,7 @@ const disputeFields: DirectEditFieldConfig[] = [
 ];
 
 export default function AdminDisputes() {
+  const { saveAndNavigate } = useListHighlight("admin-disputes");
   const pagination = usePagination();
   const { data: disputes, isLoading } = useAdminDisputes();
   const updateDispute = useUpdateDispute();
@@ -141,7 +143,7 @@ export default function AdminDisputes() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((d: any) => (
-                    <TableRow key={d.id}>
+                    <TableRow key={d.id} id={`row-${d.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">
                         <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
                           {d.dispute_number || "—"}

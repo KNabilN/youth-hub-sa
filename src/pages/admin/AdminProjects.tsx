@@ -19,6 +19,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
@@ -83,6 +84,7 @@ export default function AdminProjects() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("admin-projects");
 
   const filtered = (projects ?? []).filter((p: any) => {
     const q = search.toLowerCase();
@@ -181,7 +183,7 @@ export default function AdminProjects() {
                   {filtered.map((p: any) => {
                     const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
                     return (
-                    <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/projects/${p.id}`)}>
+                    <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">
                         {p.request_number}
                       </TableCell>

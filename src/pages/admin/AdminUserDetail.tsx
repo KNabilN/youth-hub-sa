@@ -287,7 +287,7 @@ export default function AdminUserDetail() {
               {user.is_suspended ? "إلغاء التعليق" : "تعليق"}
             </Button>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/admin/users")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             العودة للمستخدمين
             <ArrowRight className="h-4 w-4" />
           </Button>

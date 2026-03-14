@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,6 +62,7 @@ const profileFields: DirectEditFieldConfig[] = [
 
 export function UserTable({ pagination }: UserTableProps) {
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("admin-users");
   const from = pagination?.from ?? 0;
   const to = pagination?.to ?? 19;
   const { user: authUser } = useAuth();
@@ -261,12 +263,12 @@ export function UserTable({ pagination }: UserTableProps) {
           </TableHeader>
           <TableBody>
             {filtered.map((u: any) => (
-              <TableRow key={u.id}>
+              <TableRow key={u.id} id={`row-${u.id}`}>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground font-mono">
                   {u.user_number || "—"}
                 </TableCell>
                 <TableCell>
-                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => navigate(`/admin/users/${u.id}`)}>
+                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`)}>
                     {u.full_name || "—"}
                   </Button>
                 </TableCell>

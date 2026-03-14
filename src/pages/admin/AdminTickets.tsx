@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAdminTickets, useUpdateTicketStatus } from "@/hooks/useAdminTickets";
@@ -62,6 +63,7 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function AdminTickets() {
+  const { saveAndNavigate } = useListHighlight("admin-tickets");
   const pagination = usePagination();
   const { data: tickets, isLoading } = useAdminTickets();
   const updateStatus = useUpdateTicketStatus();
@@ -164,7 +166,7 @@ export default function AdminTickets() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((t: any) => (
-                     <TableRow key={t.id}>
+                     <TableRow key={t.id} id={`row-${t.id}`}>
                         <TableCell className="font-mono text-sm font-semibold">
                           <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
                         </TableCell>
