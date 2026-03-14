@@ -28,6 +28,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PublicProfile() {
   const { id } = useParams<{ id: string }>();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, role, services, portfolio, ratings, savesCount, projects } = usePublicProfile(id);
   const { isSaved, toggle: toggleSave } = useToggleProfileSave(id);
