@@ -184,8 +184,8 @@ export default function AdminTickets() {
                         </Select>
                       </TableCell>
                       <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/tickets/${t.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        <Button size="sm" variant="outline" onClick={() => saveAndNavigate(t.id, `/admin/tickets/${t.id}`, pagination.page)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(t)}>
                           <Trash2 className="h-4 w-4" />

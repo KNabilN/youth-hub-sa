@@ -173,8 +173,8 @@ export default function AdminDisputes() {
                         </Select>
                       </TableCell>
                       <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/disputes/${d.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        <Button size="sm" variant="outline" onClick={() => saveAndNavigate(d.id, `/admin/disputes/${d.id}`, pagination.page)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditDispute(d)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل
