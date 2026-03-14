@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAdminUserById } from "@/hooks/useAdminUserById";
 import {
   useAdminUserServices,
@@ -467,13 +467,14 @@ export default function AdminUserDetail() {
                   <Card key={s.id}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium">{s.title}</span>
+                        <Link to={`/admin/services/${s.id}`} className="font-medium text-primary hover:underline cursor-pointer">{s.title}</Link>
                         <Badge variant="outline">{approvalLabels[s.approval] ?? s.approval}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{s.description?.slice(0, 100)}</p>
                       <div className="flex gap-3 text-sm text-muted-foreground mt-2">
                         <span>{s.price} ر.س</span>
                         {s.categories?.name && <span>• {s.categories.name}</span>}
+                        <span>• {format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -494,13 +495,14 @@ export default function AdminUserDetail() {
                   <Card key={p.id}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium">{p.title}</span>
+                        <Link to={`/admin/projects/${p.id}`} className="font-medium text-primary hover:underline cursor-pointer">{p.title}</Link>
                         <Badge variant="outline">{statusLabels[p.status] ?? p.status}</Badge>
                       </div>
                       <div className="flex gap-3 text-sm text-muted-foreground mt-2">
                         {p.budget && <span>{p.budget} ر.س</span>}
                         {p.categories?.name && <span>• {p.categories.name}</span>}
                         {p.regions?.name && <span>• {p.regions.name}</span>}
+                        <span>• {format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</span>
                       </div>
                     </CardContent>
                   </Card>
