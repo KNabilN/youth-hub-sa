@@ -697,7 +697,7 @@ export default function AdminUserDetail() {
           open={lightboxOpen}
           onOpenChange={setLightboxOpen}
           src={user.avatar_url}
-          alt={user.full_name}
+          alt={getDisplayName(user)}
         />
       )}
     </DashboardLayout>
