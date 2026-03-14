@@ -271,7 +271,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   <Button variant="link" className="p-0 h-auto font-medium" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`, pagination?.page ?? 0)}>
-                    {u.full_name || "—"}
+                    {getDisplayName(u)}
                   </Button>
                 </TableCell>
                 <TableCell>
