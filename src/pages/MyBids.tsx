@@ -142,9 +142,9 @@ export default function MyBids() {
                     <div>
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-base">{bid.projects?.title ?? "—"}</CardTitle>
-                        <Link to={`/available-projects/${bid.project_id}`} className="text-muted-foreground hover:text-primary transition-colors" title="عرض المشروع">
+                        <button onClick={() => saveAndNavigate(bid.id, `/available-projects/${bid.project_id}`, pagination.page)} className="text-muted-foreground hover:text-primary transition-colors" title="عرض المشروع">
                           <ExternalLink className="h-3.5 w-3.5" />
-                        </Link>
+                        </button>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(bid.created_at).toLocaleDateString("ar-SA")}
