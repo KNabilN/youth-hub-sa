@@ -184,6 +184,7 @@ export default function AdminUserDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [suspensionReason, setSuspensionReason] = useState("");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { data: allRegions } = useRegions();
   const { data: allCities } = useCities();
