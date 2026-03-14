@@ -24,6 +24,7 @@ import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { PaginationControls } from "@/components/PaginationControls";
 import { logAudit } from "@/lib/audit";
+import { getDisplayName } from "@/lib/utils";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 
@@ -104,8 +105,9 @@ export function UserTable({ pagination }: UserTableProps) {
     if (search) {
       const q = search.toLowerCase();
       const matchName = u.full_name?.toLowerCase().includes(q);
+      const matchOrg = u.organization_name?.toLowerCase().includes(q);
       const matchNumber = u.user_number?.toLowerCase().includes(q);
-      if (!matchName && !matchNumber) return false;
+      if (!matchName && !matchOrg && !matchNumber) return false;
     }
     if (verifiedFilter === "verified" && !u.is_verified) return false;
     if (verifiedFilter === "unverified" && u.is_verified) return false;
@@ -269,7 +271,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   <Button variant="link" className="p-0 h-auto font-medium" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`, pagination?.page ?? 0)}>
-                    {u.full_name || "—"}
+                    {getDisplayName(u)}
                   </Button>
                 </TableCell>
                 <TableCell>
@@ -370,8 +372,8 @@ export function UserTable({ pagination }: UserTableProps) {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               {suspendTarget?.is_suspended
-                ? `هل أنت متأكد من إلغاء تعليق حساب "${suspendTarget?.full_name}"؟`
-                : `سيتم تعليق حساب "${suspendTarget?.full_name}" ولن يتمكن من الوصول إلى النظام.`}
+                ? `هل أنت متأكد من إلغاء تعليق حساب "${getDisplayName(suspendTarget)}"؟`
+                : `سيتم تعليق حساب "${getDisplayName(suspendTarget)}" ولن يتمكن من الوصول إلى النظام.`}
             </p>
             <div>
               <Label>{suspendTarget?.is_suspended ? "سبب إلغاء التعليق *" : "سبب التعليق *"}</Label>
@@ -424,7 +426,7 @@ export function UserTable({ pagination }: UserTableProps) {
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         title="نقل إلى سلة المحذوفات"
-        description={`سيتم نقل "${deleteTarget?.full_name}" إلى سلة المحذوفات. يمكنك استرجاعه خلال 30 يوماً.`}
+        description={`سيتم نقل "${getDisplayName(deleteTarget)}" إلى سلة المحذوفات. يمكنك استرجاعه خلال 30 يوماً.`}
         confirmLabel="نقل للسلة"
         variant="destructive"
         loading={softDelete.isPending}
