@@ -11,6 +11,7 @@ import { useListHighlight } from "@/hooks/useListHighlight";
 export default function SupportTickets() {
   const { data: tickets, isLoading } = useSupportTickets();
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("my-tickets");
 
   return (
     <DashboardLayout>
