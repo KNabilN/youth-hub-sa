@@ -97,7 +97,11 @@ export function useToggleVerification() {
       const { error } = await supabase.from("profiles").update({ is_verified }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
+      qc.invalidateQueries({ queryKey: ["public-profile"] });
+    },
   });
 }
 
@@ -114,7 +118,11 @@ export function useToggleSuspension() {
       const { error } = await supabase.from("profiles").update(update).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
+      qc.invalidateQueries({ queryKey: ["public-profile"] });
+    },
   });
 }
 

@@ -1,34 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إصلاح عدم تحديث حالة التوثيق/التعليق تلقائياً في صفحة تفاصيل المستخدم
+## الحالة: ✅ تم التنفيذ
 
-## المشكلة
-عند النقر على "توثيق" أو "تعليق" في صفحة تفاصيل المستخدم (`AdminUserDetail`)، تتم العملية بنجاح لكن الواجهة لا تتحدث تلقائياً — الأزرار والشارات تبقى على حالتها القديمة حتى يتم تحديث الصفحة يدوياً.
+### ما تم تنفيذه
 
-## السبب
-الـ mutations (`useToggleVerification` و `useToggleSuspension`) تُبطل فقط استعلام `["admin-users"]` (جدول المستخدمين) ولا تُبطل `["admin-user-by-id"]` (صفحة التفاصيل)، ولا `["public-profile"]`.
-
-## الحل
-إضافة إبطال لاستعلامات `["admin-user-by-id"]` و `["public-profile"]` في كلا الـ mutations.
-
-## الملف المتأثر
-**`src/hooks/useAdminUsers.ts`** — تحديث `onSuccess` في:
-1. `useToggleVerification` (سطر 89): إضافة invalidation لـ `["admin-user-by-id"]` و `["public-profile"]`
-2. `useToggleSuspension` (سطر 101): نفس الإضافة
-
-```typescript
-// useToggleVerification
-onSuccess: () => {
-  qc.invalidateQueries({ queryKey: ["admin-users"] });
-  qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
-  qc.invalidateQueries({ queryKey: ["public-profile"] });
-},
-
-// useToggleSuspension
-onSuccess: () => {
-  qc.invalidateQueries({ queryKey: ["admin-users"] });
-  qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
-  qc.invalidateQueries({ queryKey: ["public-profile"] });
-},
-```
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
