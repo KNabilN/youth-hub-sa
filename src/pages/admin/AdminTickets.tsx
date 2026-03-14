@@ -64,7 +64,7 @@ const priorityColors: Record<string, string> = {
 
 export default function AdminTickets() {
   const { saveAndNavigate } = useListHighlight("admin-tickets");
-  const pagination = usePagination();
+  const pagination = usePagination("admin-tickets");
   const { data: tickets, isLoading } = useAdminTickets();
   const updateStatus = useUpdateTicketStatus();
   const [search, setSearch] = useState("");
@@ -168,7 +168,7 @@ export default function AdminTickets() {
                   {paged.map((t: any) => (
                      <TableRow key={t.id} id={`row-${t.id}`}>
                         <TableCell className="font-mono text-sm font-semibold">
-                          <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
+                          <button onClick={() => saveAndNavigate(t.id, `/admin/tickets/${t.id}`, pagination.page)} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</button>
                         </TableCell>
                        <TableCell className="font-medium">{t.subject}</TableCell>
                       <TableCell>{t.profiles?.organization_name || t.profiles?.full_name || "—"}</TableCell>
@@ -184,8 +184,8 @@ export default function AdminTickets() {
                         </Select>
                       </TableCell>
                       <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/tickets/${t.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        <Button size="sm" variant="outline" onClick={() => saveAndNavigate(t.id, `/admin/tickets/${t.id}`, pagination.page)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(t)}>
                           <Trash2 className="h-4 w-4" />

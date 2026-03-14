@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { getSavedPage } from "@/hooks/useListHighlight";
 
 const PAGE_SIZE = 20;
 
-export function usePagination() {
-  const [page, setPage] = useState(0);
+export function usePagination(listKey?: string) {
+  const [page, setPage] = useState(() => (listKey ? getSavedPage(listKey) : 0));
 
   return {
     page,

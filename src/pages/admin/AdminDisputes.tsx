@@ -42,7 +42,7 @@ const disputeFields: DirectEditFieldConfig[] = [
 
 export default function AdminDisputes() {
   const { saveAndNavigate } = useListHighlight("admin-disputes");
-  const pagination = usePagination();
+  const pagination = usePagination("admin-disputes");
   const { data: disputes, isLoading } = useAdminDisputes();
   const updateDispute = useUpdateDispute();
   const [search, setSearch] = useState("");
@@ -145,9 +145,9 @@ export default function AdminDisputes() {
                   {paged.map((d: any) => (
                     <TableRow key={d.id} id={`row-${d.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">
-                        <Link to={`/admin/disputes/${d.id}`} className="hover:underline hover:text-primary transition-colors">
+                        <button onClick={() => saveAndNavigate(d.id, `/admin/disputes/${d.id}`, pagination.page)} className="hover:underline hover:text-primary transition-colors">
                           {d.dispute_number || "—"}
-                        </Link>
+                        </button>
                       </TableCell>
                       <TableCell className="font-medium">{d.projects?.title ?? "—"}</TableCell>
                       <TableCell>{d.profiles?.full_name ?? "—"}</TableCell>
@@ -173,8 +173,8 @@ export default function AdminDisputes() {
                         </Select>
                       </TableCell>
                       <TableCell className="flex gap-1">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/disputes/${d.id}`}><Eye className="h-4 w-4 me-1" />عرض</Link>
+                        <Button size="sm" variant="outline" onClick={() => saveAndNavigate(d.id, `/admin/disputes/${d.id}`, pagination.page)}>
+                          <Eye className="h-4 w-4 me-1" />عرض
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditDispute(d)}>
                           <FileEdit className="h-4 w-4 me-1" />تعديل

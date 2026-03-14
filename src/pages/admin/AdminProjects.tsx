@@ -70,7 +70,7 @@ const projectFields: DirectEditFieldConfig[] = [
 ];
 
 export default function AdminProjects() {
-  const pagination = usePagination();
+  const pagination = usePagination("admin-projects");
   const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
@@ -183,7 +183,7 @@ export default function AdminProjects() {
                   {filtered.map((p: any) => {
                     const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
                     return (
-                    <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`)}>
+                    <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`, pagination.page)}>
                       <TableCell className="font-mono text-sm font-semibold">
                         {p.request_number}
                       </TableCell>

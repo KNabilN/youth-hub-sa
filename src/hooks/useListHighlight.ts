@@ -7,17 +7,19 @@ interface HighlightData {
   id: string;
   scrollY: number;
   listKey: string;
+  page: number;
 }
 
 export function useListHighlight(listKey: string) {
   const navigate = useNavigate();
 
   const saveAndNavigate = useCallback(
-    (itemId: string, path: string) => {
+    (itemId: string, path: string, page: number = 0) => {
       const data: HighlightData = {
         id: itemId,
         scrollY: window.scrollY,
         listKey,
+        page,
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       navigate(path);
@@ -35,7 +37,7 @@ export function useListHighlight(listKey: string) {
 
       sessionStorage.removeItem(STORAGE_KEY);
 
-      // Wait for DOM to render
+      // Wait for DOM to render (longer delay to allow pagination data to load)
       const timer = setTimeout(() => {
         const el = document.getElementById(`row-${data.id}`);
         if (el) {
@@ -45,7 +47,7 @@ export function useListHighlight(listKey: string) {
         } else {
           window.scrollTo({ top: data.scrollY, behavior: "smooth" });
         }
-      }, 150);
+      }, 300);
 
       return () => clearTimeout(timer);
     } catch {
@@ -54,4 +56,17 @@ export function useListHighlight(listKey: string) {
   }, [listKey]);
 
   return { saveAndNavigate };
+}
+
+/** Read saved page for a listKey without consuming the data */
+export function getSavedPage(listKey: string): number {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return 0;
+    const data: HighlightData = JSON.parse(raw);
+    if (data.listKey !== listKey) return 0;
+    return data.page ?? 0;
+  } catch {
+    return 0;
+  }
 }
