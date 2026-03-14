@@ -4,7 +4,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { UserCog } from "lucide-react";
 
 export default function AdminUsers() {
-  const pagination = usePagination();
+  const pagination = usePagination("admin-users");
 
   return (
     <DashboardLayout>

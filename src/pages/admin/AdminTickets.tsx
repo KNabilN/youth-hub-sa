@@ -64,7 +64,7 @@ const priorityColors: Record<string, string> = {
 
 export default function AdminTickets() {
   const { saveAndNavigate } = useListHighlight("admin-tickets");
-  const pagination = usePagination();
+  const pagination = usePagination("admin-tickets");
   const { data: tickets, isLoading } = useAdminTickets();
   const updateStatus = useUpdateTicketStatus();
   const [search, setSearch] = useState("");

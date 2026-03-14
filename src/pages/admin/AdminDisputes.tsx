@@ -42,7 +42,7 @@ const disputeFields: DirectEditFieldConfig[] = [
 
 export default function AdminDisputes() {
   const { saveAndNavigate } = useListHighlight("admin-disputes");
-  const pagination = usePagination();
+  const pagination = usePagination("admin-disputes");
   const { data: disputes, isLoading } = useAdminDisputes();
   const updateDispute = useUpdateDispute();
   const [search, setSearch] = useState("");

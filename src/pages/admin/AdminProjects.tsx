@@ -70,7 +70,7 @@ const projectFields: DirectEditFieldConfig[] = [
 ];
 
 export default function AdminProjects() {
-  const pagination = usePagination();
+  const pagination = usePagination("admin-projects");
   const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();

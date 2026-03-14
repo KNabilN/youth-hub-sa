@@ -65,7 +65,7 @@ const serviceFields: DirectEditFieldConfig[] = [
 ];
 
 export default function AdminServices() {
-  const pagination = usePagination();
+  const pagination = usePagination("admin-services");
   const { data: services, isLoading } = useAdminServices();
   const { data: categories } = useCategories();
   const updateApproval = useUpdateServiceApproval();
