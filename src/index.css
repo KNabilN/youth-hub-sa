@@ -252,6 +252,14 @@
   }
 
 
+  @keyframes row-highlight-anim {
+    0% { background-color: hsl(var(--primary) / 0.18); }
+    100% { background-color: transparent; }
+  }
+  .row-highlight {
+    animation: row-highlight-anim 2.5s ease-out;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
