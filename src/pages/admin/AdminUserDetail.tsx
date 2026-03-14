@@ -467,13 +467,14 @@ export default function AdminUserDetail() {
                   <Card key={s.id}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium">{s.title}</span>
+                        <Link to={`/admin/services/${s.id}`} className="font-medium text-primary hover:underline cursor-pointer">{s.title}</Link>
                         <Badge variant="outline">{approvalLabels[s.approval] ?? s.approval}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{s.description?.slice(0, 100)}</p>
                       <div className="flex gap-3 text-sm text-muted-foreground mt-2">
                         <span>{s.price} ر.س</span>
                         {s.categories?.name && <span>• {s.categories.name}</span>}
+                        <span>• {format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</span>
                       </div>
                     </CardContent>
                   </Card>
