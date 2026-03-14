@@ -168,7 +168,7 @@ export default function AdminTickets() {
                   {paged.map((t: any) => (
                      <TableRow key={t.id} id={`row-${t.id}`}>
                         <TableCell className="font-mono text-sm font-semibold">
-                          <Link to={`/admin/tickets/${t.id}`} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</Link>
+                          <button onClick={() => saveAndNavigate(t.id, `/admin/tickets/${t.id}`, pagination.page)} className="hover:underline hover:text-primary transition-colors">{t.ticket_number}</button>
                         </TableCell>
                        <TableCell className="font-medium">{t.subject}</TableCell>
                       <TableCell>{t.profiles?.organization_name || t.profiles?.full_name || "—"}</TableCell>
