@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePublicProfile, useToggleProfileSave } from "@/hooks/usePublicProfile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
