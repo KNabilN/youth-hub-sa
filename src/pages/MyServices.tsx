@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function MyServices() {
   const [approvalFilter, setApprovalFilter] = useState("all");
@@ -27,6 +28,7 @@ export default function MyServices() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  useListHighlight("my-services");
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
@@ -125,8 +127,8 @@ export default function MyServices() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map(s => (
+              <div key={s.id} id={`row-${s.id}`}>
               <MyServiceCard
-                key={s.id}
                 service={s}
                 onEdit={setEditingId}
                 onDelete={setDeletingId}
@@ -139,6 +141,7 @@ export default function MyServices() {
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
               />
+              </div>
             ))}
           </div>
         )}

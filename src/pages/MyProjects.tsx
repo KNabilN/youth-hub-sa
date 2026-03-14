@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { FolderKanban, ArrowLeft } from "lucide-react";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function MyProjects() {
   const [statusFilter, setStatusFilter] = useState("all");
   const { data: projects, isLoading } = useMyAssignedProjects(statusFilter);
+  const { saveAndNavigate } = useListHighlight("my-projects");
 
   return (
     <DashboardLayout>
@@ -55,7 +56,7 @@ export default function MyProjects() {
         ) : (
           <div className="grid gap-4">
             {projects.map((project: any) => (
-              <Card key={project.id} className="card-hover">
+              <Card key={project.id} id={`row-${project.id}`} className="card-hover">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="text-lg">{project.title}</CardTitle>
@@ -70,11 +71,9 @@ export default function MyProjects() {
                       {project.categories?.name && <Badge variant="outline">{project.categories.name}</Badge>}
                       {project.regions?.name && <Badge variant="outline">{project.regions.name}</Badge>}
                     </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to={`/projects/${project.id}`}>
-                        عرض التفاصيل
-                        <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
-                      </Link>
+                    <Button size="sm" variant="outline" onClick={() => saveAndNavigate(project.id, `/projects/${project.id}`)}>
+                      عرض التفاصيل
+                      <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
                     </Button>
                   </div>
                 </CardContent>

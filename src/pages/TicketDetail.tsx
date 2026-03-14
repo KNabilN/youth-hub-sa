@@ -93,7 +93,7 @@ export default function TicketDetail() {
               <h1 className="text-xl font-bold">{ticket.subject}</h1>
             </div>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/tickets")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             العودة
             <ArrowRight className="h-4 w-4" />
           </Button>

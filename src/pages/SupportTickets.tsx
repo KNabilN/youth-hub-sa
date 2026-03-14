@@ -6,10 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function SupportTickets() {
   const { data: tickets, isLoading } = useSupportTickets();
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("my-tickets");
 
   return (
     <DashboardLayout>
@@ -38,17 +40,18 @@ export default function SupportTickets() {
         ) : (
           <div className="space-y-3">
             {tickets.map((t) => (
-              <TicketCard
-                key={t.id}
-                id={t.id}
-                subject={t.subject}
-                description={t.description}
-                status={t.status}
-                priority={t.priority}
-                created_at={t.created_at}
-                ticket_number={(t as any).ticket_number}
-                onClick={() => navigate(`/tickets/${t.id}`)}
-              />
+              <div key={t.id} id={`row-${t.id}`}>
+                <TicketCard
+                  id={t.id}
+                  subject={t.subject}
+                  description={t.description}
+                  status={t.status}
+                  priority={t.priority}
+                  created_at={t.created_at}
+                  ticket_number={(t as any).ticket_number}
+                  onClick={() => saveAndNavigate(t.id, `/tickets/${t.id}`)}
+                />
+              </div>
             ))}
           </div>
         )}
