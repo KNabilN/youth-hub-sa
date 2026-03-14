@@ -375,6 +375,15 @@ export default function PublicProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {p.avatar_url && (
+        <ImageLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          src={p.avatar_url}
+          alt={p.organization_name || p.full_name}
+        />
+      )}
     </div>
   );
 }
