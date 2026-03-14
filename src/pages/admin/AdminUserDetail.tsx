@@ -435,11 +435,6 @@ export default function AdminUserDetail() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoField
-                      icon={DollarSign}
-                      label="السعر بالساعة"
-                      value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null}
-                    />
                     <InfoField icon={AlignRight} label="المهارات" value={user.skills?.join("، ") || null} />
                   </div>
                 </CardContent>
