@@ -17,6 +17,20 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Check if email exists before sending reset link
+    const { data: exists, error: checkError } = await supabase.rpc('check_email_exists', { p_email: email });
+    if (checkError) {
+      toast.error(translateError(checkError.message));
+      setLoading(false);
+      return;
+    }
+    if (!exists) {
+      toast.error("البريد الإلكتروني غير مسجل في المنصة");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });

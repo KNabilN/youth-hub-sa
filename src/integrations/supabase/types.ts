@@ -2005,6 +2005,7 @@ export type Database = {
         Args: { p_id: string; p_table: string }
         Returns: undefined
       }
+      check_email_exists: { Args: { p_email: string }; Returns: boolean }
       get_landing_stats: { Args: never; Returns: Json }
       get_public_profile: { Args: { p_id: string }; Returns: Json }
       get_public_project: { Args: { p_id: string }; Returns: Json }
