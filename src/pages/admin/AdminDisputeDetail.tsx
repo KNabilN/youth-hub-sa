@@ -223,11 +223,9 @@ export default function AdminDisputeDetail() {
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/admin/disputes" className="gap-1.5">
-              <ArrowRight className="h-4 w-4" />
-              العودة
-            </Link>
+          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+            <ArrowRight className="h-4 w-4 me-1" />
+            العودة
           </Button>
           <div className="flex-1" />
           <Badge className={disputeStatusColors[dispute.status]}>{disputeStatusLabels[dispute.status] ?? dispute.status}</Badge>

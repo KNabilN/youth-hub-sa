@@ -131,7 +131,7 @@ export default function AdminTicketDetail() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/admin/tickets")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             العودة للتذاكر
             <ArrowRight className="h-4 w-4" />
           </Button>

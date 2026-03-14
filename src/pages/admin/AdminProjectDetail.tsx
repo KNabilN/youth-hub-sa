@@ -221,7 +221,7 @@ export default function AdminProjectDetail() {
       <div className="space-y-6 max-w-5xl">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/admin/projects")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowRight className="h-4 w-4 me-1" />العودة لطلبات الجمعيات
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
