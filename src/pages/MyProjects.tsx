@@ -14,6 +14,7 @@ import { useListHighlight } from "@/hooks/useListHighlight";
 export default function MyProjects() {
   const [statusFilter, setStatusFilter] = useState("all");
   const { data: projects, isLoading } = useMyAssignedProjects(statusFilter);
+  const { saveAndNavigate } = useListHighlight("my-projects");
 
   return (
     <DashboardLayout>
