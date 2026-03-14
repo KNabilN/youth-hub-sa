@@ -386,6 +386,7 @@ export default function AdminUserDetail() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={User} label="الاسم الكامل" value={user.full_name} />
+                  <InfoField icon={Mail} label="البريد الإلكتروني" value={(user as any).email} />
                   <InfoField icon={Phone} label="الهاتف" value={user.phone} />
                   {(role === "youth_association" || role === "donor") && (
                     <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
