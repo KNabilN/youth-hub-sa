@@ -62,6 +62,7 @@ const profileFields: DirectEditFieldConfig[] = [
 
 export function UserTable({ pagination }: UserTableProps) {
   const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("admin-users");
   const from = pagination?.from ?? 0;
   const to = pagination?.to ?? 19;
   const { user: authUser } = useAuth();
