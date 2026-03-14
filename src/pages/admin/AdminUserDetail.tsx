@@ -101,7 +101,7 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
   ];
 
   if (role === "service_provider") {
-    return [...common, { key: "hourly_rate", label: "السعر بالساعة", type: "number" }, ...locationFields];
+    return [...common, ...locationFields];
   }
   if (role === "youth_association") {
     return [
@@ -127,7 +127,6 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
     { key: "contact_officer_phone", label: "رقم ضابط الاتصال" },
     { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
     { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
-    { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
   ];
 }
 
@@ -387,6 +386,7 @@ export default function AdminUserDetail() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoField icon={User} label="الاسم الكامل" value={user.full_name} />
+                  <InfoField icon={Mail} label="البريد الإلكتروني" value={(user as any).email} />
                   <InfoField icon={Phone} label="الهاتف" value={user.phone} />
                   {(role === "youth_association" || role === "donor") && (
                     <InfoField icon={Building2} label="اسم المنظمة" value={user.organization_name} />
@@ -435,11 +435,6 @@ export default function AdminUserDetail() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InfoField
-                      icon={DollarSign}
-                      label="السعر بالساعة"
-                      value={user.hourly_rate ? `${user.hourly_rate} ر.س` : null}
-                    />
                     <InfoField icon={AlignRight} label="المهارات" value={user.skills?.join("، ") || null} />
                   </div>
                 </CardContent>

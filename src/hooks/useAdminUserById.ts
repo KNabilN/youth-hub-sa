@@ -19,8 +19,13 @@ export function useAdminUserById(userId: string | null) {
         .eq("user_id", userId!);
       if (rolesError) throw rolesError;
 
+      const { data: emailData } = await supabase.rpc("get_user_email_admin", {
+        p_user_id: userId!,
+      });
+
       return {
         ...profile,
+        email: emailData as string | null,
         user_roles: roles ?? [],
       };
     },

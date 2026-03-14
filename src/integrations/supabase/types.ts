@@ -2009,6 +2009,7 @@ export type Database = {
       get_landing_stats: { Args: never; Returns: Json }
       get_public_profile: { Args: { p_id: string }; Returns: Json }
       get_public_project: { Args: { p_id: string }; Returns: Json }
+      get_user_email_admin: { Args: { p_user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

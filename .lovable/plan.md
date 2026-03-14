@@ -1,31 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إضافة البريد الإلكتروني وحذف السعر بالساعة من صفحة تفاصيل المستخدم
+## الحالة: ✅ تم التنفيذ
 
-## التغييرات
+### ما تم تنفيذه
 
-### 1. إنشاء دالة قاعدة بيانات `get_user_email_admin`
-البريد الإلكتروني موجود في `auth.users` وليس في `profiles`، لذا نحتاج دالة `SECURITY DEFINER` تُرجع البريد للأدمن فقط.
-
-```sql
-CREATE OR REPLACE FUNCTION public.get_user_email_admin(p_user_id uuid)
-RETURNS text
-LANGUAGE sql
-STABLE SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-  SELECT email FROM auth.users WHERE id = p_user_id;
-$$;
-```
-
-### 2. تحديث `src/hooks/useAdminUserById.ts`
-- استدعاء `get_user_email_admin` لجلب البريد وإضافته للبيانات المُرجعة.
-
-### 3. تحديث `src/pages/admin/AdminUserDetail.tsx`
-- **حذف** حقل "السعر بالساعة" من قسم "بيانات مقدم الخدمة" (سطر 438-442)
-- **إضافة** حقل البريد الإلكتروني في قسم "البيانات الأساسية" بعد الهاتف
-- **حذف** `hourly_rate` من `getProfileFieldsForRole` (سطر 104 و 130)
-
-### 4. تحديث قسم مقدم الخدمة
-بعد حذف السعر بالساعة، يبقى فقط حقل المهارات. إذا أصبح القسم فارغاً عملياً يمكن دمجه أو إبقاءه بالمهارات فقط.
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
