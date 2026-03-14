@@ -105,8 +105,9 @@ export function UserTable({ pagination }: UserTableProps) {
     if (search) {
       const q = search.toLowerCase();
       const matchName = u.full_name?.toLowerCase().includes(q);
+      const matchOrg = u.organization_name?.toLowerCase().includes(q);
       const matchNumber = u.user_number?.toLowerCase().includes(q);
-      if (!matchName && !matchNumber) return false;
+      if (!matchName && !matchOrg && !matchNumber) return false;
     }
     if (verifiedFilter === "verified" && !u.is_verified) return false;
     if (verifiedFilter === "unverified" && u.is_verified) return false;
