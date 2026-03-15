@@ -179,6 +179,7 @@ export default function Donations() {
     () => ({
       type: "donation",
       user_id: user?.id,
+      trace_id: crypto.randomUUID(),
     }),
     [user?.id],
   );
