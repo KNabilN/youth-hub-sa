@@ -107,6 +107,7 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
   if (role === "youth_association") {
     return [
       ...common,
+      { key: "company_logo_url", label: "شعار الجهة", type: "image" as const, imageBucket: "avatars", imageMaxMB: 2, imageDimensions: "الأبعاد المُوصى بها: 300×300 بكسل • الحد الأقصى: 2 MB" },
       { key: "organization_name", label: "اسم المنظمة" },
       { key: "license_number", label: "رقم الترخيص" },
       { key: "contact_officer_name", label: "اسم ضابط الاتصال" },
@@ -117,7 +118,11 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
     ];
   }
   if (role === "donor") {
-    return [...common, { key: "organization_name", label: "اسم المنظمة" }];
+    return [
+      ...common,
+      { key: "company_logo_url", label: "شعار الجهة", type: "image" as const, imageBucket: "avatars", imageMaxMB: 2, imageDimensions: "الأبعاد المُوصى بها: 300×300 بكسل • الحد الأقصى: 2 MB" },
+      { key: "organization_name", label: "اسم المنظمة" },
+    ];
   }
   // super_admin or unknown
   return [

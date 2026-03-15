@@ -11,14 +11,23 @@ import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 import { useAdminUploadAvatar, useAdminUploadCover } from "@/hooks/useAdminUpload";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, Plus, User, ImageIcon } from "lucide-react";
+import { Upload, X, Plus, User, ImageIcon, Loader2 } from "lucide-react";
 
 export interface DirectEditFieldConfig {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications";
+  type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications" | "image";
   selectSource?: "categories" | "regions" | "cities";
+  /** For type "image": storage bucket name */
+  imageBucket?: string;
+  /** For type "image": table to update (defaults handled per-type) */
+  imageTable?: string;
+  /** For type "image": max size in MB (default 5) */
+  imageMaxMB?: number;
+  /** For type "image": recommended dimensions text */
+  imageDimensions?: string;
 }
 
 interface AdminDirectEditDialogProps {
@@ -54,6 +63,8 @@ export function AdminDirectEditDialog({
   const coverUpload = useAdminUploadCover(userId ?? "");
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [imageUploading, setImageUploading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (open) {
@@ -125,7 +136,29 @@ export function AdminDirectEditDialog({
       toast.error("فشل رفع صورة الغلاف");
     }
   };
-
+  const handleImageUpload = async (field: DirectEditFieldConfig, file: File) => {
+    const maxMB = field.imageMaxMB ?? 5;
+    if (file.size > maxMB * 1024 * 1024) {
+      toast.error(`الحد الأقصى لحجم الصورة ${maxMB} ميجابايت`);
+      return;
+    }
+    const bucket = field.imageBucket ?? "service-images";
+    const ext = file.name.split(".").pop();
+    const path = `admin/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    setImageUploading((prev) => ({ ...prev, [field.key]: true }));
+    try {
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setValues((v) => ({ ...v, [field.key]: publicUrl }));
+      toast.success("تم رفع الصورة بنجاح");
+    } catch {
+      toast.error("فشل رفع الصورة");
+    } finally {
+      setImageUploading((prev) => ({ ...prev, [field.key]: false }));
+    }
+  };
   const addSkill = () => {
     const trimmed = newSkill.trim();
     if (!trimmed) return;
@@ -239,6 +272,52 @@ export function AdminDirectEditDialog({
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleCoverUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Generic Image field */}
+              {field.type === "image" && (
+                <div className="space-y-2">
+                  {values[field.key] ? (
+                    <img
+                      src={values[field.key]}
+                      alt={field.label}
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/30">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => imageInputRefs.current[field.key]?.click()}
+                    disabled={imageUploading[field.key]}
+                    className="gap-1.5"
+                  >
+                    {imageUploading[field.key] ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
+                    {imageUploading[field.key] ? "جاري الرفع..." : "رفع صورة جديدة"}
+                  </Button>
+                  {field.imageDimensions && (
+                    <p className="text-xs text-muted-foreground">{field.imageDimensions}</p>
+                  )}
+                  <input
+                    ref={(el) => { imageInputRefs.current[field.key] = el; }}
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(field, file);
                       e.target.value = "";
                     }}
                   />
