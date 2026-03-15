@@ -119,7 +119,8 @@ Deno.serve(async (req) => {
     });
 
     const paymentData = await verifyRes.json();
-
+    const traceId = paymentData?.metadata?.trace_id || "no-trace";
+    console.log(`[verify] payment_id=${payment_id} trace_id=${traceId} status=${paymentData?.status}`);
     if (!verifyRes.ok) {
       console.error("Moyasar verify error:", paymentData);
       return new Response(
