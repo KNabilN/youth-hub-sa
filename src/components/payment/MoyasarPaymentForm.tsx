@@ -17,6 +17,8 @@ interface MoyasarPaymentFormProps {
   callbackUrl: string;
   metadata?: Record<string, unknown>;
   publishableKey: string;
+  onCompleted?: (payment: { id: string; status: string }) => void;
+  onFailed?: (error: string) => void;
 }
 
 const CONTAINER_ID = "moyasar-payment-container";
