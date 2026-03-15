@@ -135,7 +135,7 @@ export default function Profile() {
         contact_officer_phone: contactOfficerPhone,
         contact_officer_email: contactOfficerEmail,
         contact_officer_title: contactOfficerTitle,
-        hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+        
         email_notifications: emailNotifications,
         notification_preferences: notificationPreferences,
         skills,
