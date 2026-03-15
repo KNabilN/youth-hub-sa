@@ -63,6 +63,8 @@ export function AdminDirectEditDialog({
   const coverUpload = useAdminUploadCover(userId ?? "");
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [imageUploading, setImageUploading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (open) {
