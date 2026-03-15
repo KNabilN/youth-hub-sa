@@ -1,18 +1,12 @@
 
+# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-# إصلاح عدم ظهور نموذج الدفع (Moyasar)
+## الحالة: ✅ تم التنفيذ
 
-## المشكلة
-عند الوصول لخطوة الدفع، يظهر النموذج فارغاً مع خطأ `Element: null is not a valid element` من مكتبة Moyasar. السبب: بعد `container.innerHTML = ""` ثم استدعاء `Moyasar.init({ element: "#formId" })` — المكتبة تبحث بالمُحدد CSS ولا تجد العنصر (خاصة في حالات إعادة الرسم أو Strict Mode).
+### ما تم تنفيذه
 
-## الحل
-تمرير عنصر DOM مباشرة بدلاً من مُحدد CSS، مما يضمن العثور على العنصر دائماً.
-
-## التغييرات
-
-### `src/components/payment/MoyasarPaymentForm.tsx`
-- تغيير `element: "#${formId}"` إلى `element: container` (تمرير DOM node مباشرة)
-- حذف `useId` و `formId` حيث لم تعد هناك حاجة لهما
-- إضافة تأخير قصير (`requestAnimationFrame`) قبل `doInit` لضمان أن DOM مستقر بعد تصفير innerHTML
-- إضافة حماية `try-catch` حول `Moyasar.init` لمنع أخطاء غير معالجة
-
+1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
+2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
+3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
+4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
+5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
