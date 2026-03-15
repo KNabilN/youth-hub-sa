@@ -101,7 +101,7 @@ export default function Profile() {
     setContactOfficerPhone((profile as any).contact_officer_phone ?? "");
     setContactOfficerEmail((profile as any).contact_officer_email ?? "");
     setContactOfficerTitle((profile as any).contact_officer_title ?? "");
-    setHourlyRate(profile.hourly_rate?.toString() ?? "");
+    
     setEmailNotifications((profile as any).email_notifications ?? true);
     setNotificationPreferences((profile as any).notification_preferences ?? {});
     setSkills((profile as any).skills ?? []);
