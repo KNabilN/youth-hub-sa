@@ -110,8 +110,6 @@ export function UserTable({ pagination }: UserTableProps) {
       const matchNumber = u.user_number?.toLowerCase().includes(q);
       if (!matchName && !matchOrg && !matchNumber) return false;
     }
-    if (verifiedFilter === "verified" && !u.is_verified) return false;
-    if (verifiedFilter === "unverified" && u.is_verified) return false;
     return true;
   });
 

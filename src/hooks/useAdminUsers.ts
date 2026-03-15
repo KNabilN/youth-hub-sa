@@ -80,6 +80,12 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
         profilesQuery = profilesQuery.lte("created_at", dateTo + "T23:59:59");
       }
 
+      if (verifiedFilter === "verified") {
+        profilesQuery = profilesQuery.eq("is_verified", true);
+      } else if (verifiedFilter === "unverified") {
+        profilesQuery = profilesQuery.eq("is_verified", false);
+      }
+
       profilesQuery = profilesQuery.range(from, to);
       const { data: profiles, error: profilesError } = await profilesQuery;
       if (profilesError) throw profilesError;
