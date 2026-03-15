@@ -325,7 +325,7 @@ export default function Donations() {
                 defaultProjectId={urlProjectId}
                 defaultTargetType={urlProjectId ? "project" : undefined}
               />
-            ) : step === "moyasar" && formData && moyasarKey ? (
+            ) : step === "moyasar" && formData && moyasarKey && moyasarCallbackUrl && calculatePricing(formData.amount, commissionRate).total > 0 ? (
               <MoyasarPaymentForm
                 amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
