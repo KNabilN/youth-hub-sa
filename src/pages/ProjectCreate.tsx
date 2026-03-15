@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
+import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
@@ -21,8 +22,8 @@ export default function ProjectCreate() {
           setDraftId(data.id);
           resolve(data.id);
         },
-        onError: () => {
-          toast({ title: "حدث خطأ أثناء حفظ المسودة", variant: "destructive" });
+        onError: (error) => {
+          toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"), variant: "destructive" });
           reject(new Error("Draft creation failed"));
         },
       });
@@ -39,7 +40,7 @@ export default function ProjectCreate() {
         .update({ ...clean, status: "pending_approval" as any })
         .eq("id", draftId);
       if (error) {
-        toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" });
+        toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"), variant: "destructive" });
         return;
       }
       toast({ title: "تم إنشاء الطلب بنجاح" });
@@ -51,7 +52,7 @@ export default function ProjectCreate() {
           toast({ title: "تم إنشاء الطلب بنجاح" });
           navigate(`/projects/${data.id}`);
         },
-        onError: () => toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" }),
+        onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"), variant: "destructive" }),
       });
     }
   };
@@ -65,7 +66,7 @@ export default function ProjectCreate() {
         .update({ ...cleanDraft, status: "draft" as any })
         .eq("id", draftId)
         .then(({ error }) => {
-          if (error) toast({ title: "حدث خطأ", variant: "destructive" });
+          if (error) toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"), variant: "destructive" });
           else {
             toast({ title: "تم حفظ الطلب كمسودة" });
             navigate(`/projects/${draftId}`);
@@ -77,7 +78,7 @@ export default function ProjectCreate() {
           toast({ title: "تم حفظ الطلب كمسودة" });
           navigate(`/projects/${data.id}`);
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"), variant: "destructive" }),
       });
     }
   };
