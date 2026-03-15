@@ -42,6 +42,7 @@ interface PaginationProps {
   to: number;
   nextPage: () => void;
   prevPage: () => void;
+  resetPage?: () => void;
 }
 
 interface UserTableProps {
