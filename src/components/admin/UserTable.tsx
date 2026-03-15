@@ -95,6 +95,7 @@ export function UserTable({ pagination }: UserTableProps) {
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
+    verifiedFilter,
   });
 
   // Suspension reason dialog state
