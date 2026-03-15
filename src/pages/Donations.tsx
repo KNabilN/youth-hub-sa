@@ -337,7 +337,7 @@ export default function Donations() {
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
             <StepProgress
               steps={donationSteps}
-              currentStep={step === "form" ? 0 : step === "payment" || step === "moyasar" ? 1 : 2}
+              currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2}
               className="mt-2"
             />
           </CardHeader>
@@ -356,7 +356,7 @@ export default function Donations() {
               moyasarCallbackUrl &&
               calculatePricing(formData.amount, commissionRate).total > 0 ? (
               <MoyasarPaymentForm
-                // ✅ Multiply by 100 to convert Riyals to Halalas
+                // ✅ FIXED: Removed '* 100'. The Moyasar form handles the Halala conversion internally now!
                 amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
                   formData.target_type === "association"
