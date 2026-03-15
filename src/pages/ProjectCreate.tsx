@@ -5,6 +5,7 @@ import { useCreateProject } from "@/hooks/useProjects";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
