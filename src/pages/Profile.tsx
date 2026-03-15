@@ -73,7 +73,7 @@ export default function Profile() {
   const [contactOfficerPhone, setContactOfficerPhone] = useState("");
   const [contactOfficerEmail, setContactOfficerEmail] = useState("");
   const [contactOfficerTitle, setContactOfficerTitle] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
+  
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [notificationPreferences, setNotificationPreferences] = useState<Record<string, boolean>>({});
   const [skills, setSkills] = useState<string[]>([]);
