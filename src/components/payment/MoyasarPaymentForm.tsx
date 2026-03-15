@@ -53,7 +53,7 @@ export function MoyasarPaymentForm({
       requestAnimationFrame(() => {
         try {
           window.Moyasar.init({
-            element: container,
+            element: ".moyasar-form",
             amount: Math.round(amount * 100), // convert SAR to halalas
             currency: "SAR",
             description,
