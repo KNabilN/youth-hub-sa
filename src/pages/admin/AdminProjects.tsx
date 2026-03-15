@@ -43,22 +43,15 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
-  suspended: "معلق", archived: "مؤرشف",
+  suspended: "معلق",
 };
-
-/** Admin can only: pending_approval→open, and any active status→cancelled */
-function getAdminAllowedStatuses(current: string): string[] {
-  if (current === "pending_approval") return ["open"];
-  if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
-  return []; // draft, completed, cancelled, archived — no manual change
-}
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
   cancelled: "bg-muted text-muted-foreground",
-  suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
+  suspended: "bg-orange-500/10 text-orange-600",
 };
 
 const projectFields: DirectEditFieldConfig[] = [
@@ -218,20 +211,14 @@ export default function AdminProjects() {
                        <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        {(() => {
-                          const opts = getAdminAllowedStatuses(p.status);
-                          return opts.length > 0 ? (
-                            <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
-                              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={p.status}>{statusLabels[p.status]}</SelectItem>
-                                {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge>
-                          );
-                        })()}
+                        <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
+                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => (
+                              <SelectItem key={k} value={k} disabled={k === p.status}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${p.id}`)}>

@@ -8,7 +8,6 @@ export const disputeStatusLabels: Record<string, string> = {
   final_decision: "قرار نهائي",
   resolved: "تم الحل",
   closed: "مغلق",
-  archived: "مؤرشف",
 };
 
 export const disputeStatusColors: Record<string, string> = {
@@ -20,7 +19,6 @@ export const disputeStatusColors: Record<string, string> = {
   final_decision: "bg-primary/20 text-primary",
   resolved: "bg-success/10 text-success",
   closed: "bg-muted text-muted-foreground",
-  archived: "bg-muted/50 text-muted-foreground",
 };
 
 export const disputeTimelineColors: Record<string, string> = {
@@ -32,7 +30,6 @@ export const disputeTimelineColors: Record<string, string> = {
   final_decision: "bg-primary",
   resolved: "bg-success",
   closed: "bg-muted-foreground",
-  archived: "bg-muted-foreground",
 };
 
 export const allDisputeStatuses = [
@@ -44,5 +41,4 @@ export const allDisputeStatuses = [
   "final_decision",
   "resolved",
   "closed",
-  "archived",
 ] as const;

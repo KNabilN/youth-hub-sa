@@ -44,7 +44,6 @@ const approvalLabels: Record<string, string> = {
   approved: "مقبول",
   rejected: "مرفوض",
   suspended: "موقوف",
-  archived: "مؤرشف",
 };
 
 const approvalColors: Record<string, string> = {
@@ -53,7 +52,6 @@ const approvalColors: Record<string, string> = {
   approved: "bg-emerald-500/10 text-emerald-600",
   rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600",
-  archived: "bg-muted text-muted-foreground",
 };
 
 const serviceFields: DirectEditFieldConfig[] = [
@@ -225,24 +223,14 @@ export default function AdminServices() {
                        </TableCell>
                        <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        {(() => {
-                          const allowed: Record<string, { key: string; label: string }[]> = {
-                            pending: [{ key: "approved", label: "مقبول" }, { key: "rejected", label: "مرفوض" }],
-                            approved: [{ key: "suspended", label: "موقوف" }],
-                            suspended: [{ key: "approved", label: "مقبول" }],
-                          };
-                          const options = allowed[s.approval];
-                          if (!options) return <span className="text-xs text-muted-foreground">—</span>;
-                          return (
-                            <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
-                              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={s.approval} disabled>{approvalLabels[s.approval]}</SelectItem>
-                                {options.map((o) => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          );
-                        })()}
+                        <Select value={s.approval} onValueChange={(v) => handleApprovalChange(s, v as ApprovalStatus)}>
+                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(approvalLabels).map(([k, v]) => (
+                              <SelectItem key={k} value={k} disabled={k === s.approval}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" variant="outline" asChild>
