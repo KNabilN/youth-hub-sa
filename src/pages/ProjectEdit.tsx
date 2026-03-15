@@ -6,6 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
+import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 export default function ProjectEdit() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +20,34 @@ export default function ProjectEdit() {
   if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
   if (project.assigned_provider_id) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">لا يمكن تعديل طلب تم تعيين مزود خدمة له</p></DashboardLayout>;
 
-  const willResetStatus = project.status !== "draft";
+  const isDraft = project.status === "draft";
+  const willResetStatus = !isDraft;
+
+  const handleCreateDraft = async (values: ProjectFormValues): Promise<string> => {
+    // Project already exists, just update it as draft
+    const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
+    const { error } = await supabase
+      .from("projects")
+      .update({ ...clean, status: "draft" as any })
+      .eq("id", project.id);
+    if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ"));
+    return project.id;
+  };
+
+  const handleSaveDraft = (values: ProjectFormValues) => {
+    const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
+    supabase
+      .from("projects")
+      .update({ ...clean, status: "draft" as any })
+      .eq("id", project.id)
+      .then(({ error }) => {
+        if (error) toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"), variant: "destructive" });
+        else {
+          toast({ title: "تم حفظ المسودة" });
+          navigate(`/projects/${project.id}`);
+        }
+      });
+  };
 
   const handleSubmit = (values: ProjectFormValues) => {
     const payload: any = { id: project.id, ...values };
@@ -29,7 +59,7 @@ export default function ProjectEdit() {
         toast({ title: willResetStatus ? "تم تحديث الطلب وإعادته للمراجعة" : "تم تحديث الطلب" });
         navigate(`/projects/${project.id}`);
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ"), variant: "destructive" }),
     });
   };
 
@@ -49,7 +79,7 @@ export default function ProjectEdit() {
           defaultValues={{
             title: project.title,
             description: project.description,
-            category_id: project.category_id,
+            category_id: project.category_id ?? "",
             region_id: project.region_id,
             city_id: (project as any).city_id,
             required_skills: project.required_skills ?? [],
@@ -59,6 +89,8 @@ export default function ProjectEdit() {
           }}
           existingProjectId={project.id}
           onSubmit={handleSubmit}
+          onSaveDraft={isDraft ? handleSaveDraft : undefined}
+          onCreateDraft={handleCreateDraft}
           isLoading={updateProject.isPending}
           submitLabel="حفظ التعديلات"
         />
