@@ -1,12 +1,22 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# إصلاح نموذج الدفع Moyasar — عالق على "Loading"
 
-### ما تم تنفيذه
+## السبب الجذري
+النظام يستخدم إصدار قديم من Moyasar SDK (`1.14.0` من `cdn.moyasar.com`) بينما التوثيق الرسمي يوصي بالإصدار **2.2.7** من jsDelivr. الإصدار القديم يتسبب في توقف النموذج على "Loading".
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## التغييرات
+
+### 1. `src/components/payment/MoyasarPaymentForm.tsx`
+- تحديث روابط CDN من:
+  - `https://cdn.moyasar.com/mpf/1.14.0/moyasar.css`
+  - `https://cdn.moyasar.com/mpf/1.14.0/moyasar.js`
+- إلى الإصدار الرسمي الموصى به:
+  - `https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.7/dist/moyasar.css`
+  - `https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.7/dist/moyasar.umd.min.js`
+
+### 2. `src/pages/Donations.tsx` (إصلاح الـ Stepper)
+- تعديل شرط الـ stepper ليأخذ `step === "moyasar"` بالاعتبار:
+  - `currentStep={step === "form" ? 0 : step === "payment" || step === "moyasar" ? 1 : 2}`
+- حالياً عند عرض نموذج Moyasar يظهر الـ stepper على الخطوة 3 (التأكيد) بدلاً من الخطوة 2 (الدفع)
+
