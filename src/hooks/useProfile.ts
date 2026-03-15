@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 const ESSENTIAL_FIELDS = [
-  "full_name", "phone", "organization_name", "license_number", "bio",
+  "full_name", "phone", "organization_name", "license_number",
   "contact_officer_name", "contact_officer_phone", "contact_officer_email", "contact_officer_title",
   "hourly_rate", "skills", "qualifications",
   "bank_name", "bank_account_number", "bank_iban", "bank_account_holder",
