@@ -43,7 +43,7 @@ export function MoyasarPaymentForm({
     if (initKeyRef.current === key) return;
 
     const doInit = () => {
-      if (!window.Moyasar || !container) return;
+      if (!window.Moyasar || !container || !document.querySelector('.moyasar-form')) return;
 
       // Clear previous form content before re-init
       container.innerHTML = "";
