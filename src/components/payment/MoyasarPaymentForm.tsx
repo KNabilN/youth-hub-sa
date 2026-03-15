@@ -43,7 +43,7 @@ export function MoyasarPaymentForm({
     if (initKeyRef.current === key) return;
 
     const doInit = () => {
-      if (!window.Moyasar || !container) return;
+      if (!window.Moyasar || !container || !document.querySelector('.moyasar-form')) return;
 
       // Clear previous form content before re-init
       container.innerHTML = "";
@@ -53,7 +53,7 @@ export function MoyasarPaymentForm({
       requestAnimationFrame(() => {
         try {
           window.Moyasar.init({
-            element: container,
+            element: ".moyasar-form",
             amount: Math.round(amount * 100), // convert SAR to halalas
             currency: "SAR",
             description,
@@ -111,7 +111,7 @@ export function MoyasarPaymentForm({
   return (
     <Card>
       <CardContent className="p-4">
-        <div ref={containerRef}>
+        <div ref={containerRef} className="moyasar-form">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span className="ms-2 text-sm text-muted-foreground">جاري تحميل نموذج الدفع...</span>
