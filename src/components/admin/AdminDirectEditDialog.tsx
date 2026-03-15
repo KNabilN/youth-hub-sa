@@ -11,8 +11,9 @@ import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 import { useAdminUploadAvatar, useAdminUploadCover } from "@/hooks/useAdminUpload";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, Plus, User, ImageIcon } from "lucide-react";
+import { Upload, X, Plus, User, ImageIcon, Loader2 } from "lucide-react";
 
 export interface DirectEditFieldConfig {
   key: string;
