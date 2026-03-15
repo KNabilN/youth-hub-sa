@@ -40,6 +40,7 @@ const approvalColors: Record<string, string> = {
 };
 
 const serviceFields: DirectEditFieldConfig[] = [
+  { key: "image_url", label: "صورة الخدمة", type: "image", imageBucket: "service-images", imageMaxMB: 5, imageDimensions: "الحد الأقصى: 5 MB" },
   { key: "title", label: "العنوان" },
   { key: "description", label: "الوصف", type: "textarea" },
   { key: "long_description", label: "الوصف التفصيلي", type: "textarea" },
