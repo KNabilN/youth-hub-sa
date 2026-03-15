@@ -357,7 +357,7 @@ export default function Donations() {
               calculatePricing(formData.amount, commissionRate).total > 0 ? (
               <MoyasarPaymentForm
                 // ✅ Multiply by 100 to convert Riyals to Halalas
-                amount={Math.round(calculatePricing(formData.amount, commissionRate).total * 100)}
+                amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
                   formData.target_type === "association"
                     ? `منحة لجمعية ${formData.association_name}`
