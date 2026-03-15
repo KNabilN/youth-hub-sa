@@ -29,6 +29,8 @@ export function MoyasarPaymentForm({
   callbackUrl,
   metadata = {},
   publishableKey,
+  onCompleted,
+  onFailed,
 }: MoyasarPaymentFormProps) {
   const isInitialized = useRef(false);
   const metadataRef = useRef(metadata);
