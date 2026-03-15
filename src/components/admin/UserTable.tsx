@@ -231,7 +231,7 @@ export function UserTable({ pagination }: UserTableProps) {
           variant="outline"
           size="sm"
           className="h-10 gap-1"
-          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); }}
+          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); pagination?.resetPage?.(); }}
         >
           <RotateCcw className="h-3.5 w-3.5" />إعادة تعيين
         </Button>
