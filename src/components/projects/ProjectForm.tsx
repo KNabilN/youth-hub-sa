@@ -357,7 +357,7 @@ export function ProjectForm({ defaultValues, onSubmit, onSaveDraft, onCreateDraf
         <div className="flex gap-3 justify-between">
           {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>السابق</Button>}
           <div className="flex gap-2 mr-auto">
-            {onSaveDraft && step < 2 && (
+            {onSaveDraft && step < 3 && (
               <Button type="button" variant="outline" disabled={isLoading} onClick={() => onSaveDraft(form.getValues())}>
                 حفظ كمسودة
               </Button>
