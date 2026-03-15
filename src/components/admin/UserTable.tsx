@@ -186,7 +186,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">التوثيق</Label>
-          <Select value={verifiedFilter} onValueChange={setVerifiedFilter}>
+          <Select value={verifiedFilter} onValueChange={(v) => { setVerifiedFilter(v); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="التوثيق" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
