@@ -95,7 +95,7 @@ export function AdminDirectEditDialog({
         }
       });
       // Sanitize: convert empty strings to null for UUID/numeric fields
-      const nullableFields = ["region_id", "city_id", "hourly_rate", "category_id"];
+      const nullableFields = ["region_id", "city_id", "category_id"];
       for (const key of nullableFields) {
         if (key in updates && (updates[key] === "" || updates[key] === undefined)) {
           updates[key] = null;
