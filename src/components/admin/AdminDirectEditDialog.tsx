@@ -159,8 +159,7 @@ export function AdminDirectEditDialog({
       setImageUploading((prev) => ({ ...prev, [field.key]: false }));
     }
   };
-
-
+  const addSkill = () => {
     const trimmed = newSkill.trim();
     if (!trimmed) return;
     const current = values.skills ?? [];
