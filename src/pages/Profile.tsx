@@ -37,7 +37,7 @@ const roleLabels: Record<string, string> = {
 const requiredFieldKeys: Record<string, string[]> = {
   common: ["full_name", "phone"],
   youth_association: ["organization_name", "license_number", "contact_officer_name", "contact_officer_phone", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
-  service_provider: ["bio", "hourly_rate", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
+  service_provider: ["bio", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
   donor: [],
   super_admin: [],
 };
