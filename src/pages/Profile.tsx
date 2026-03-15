@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 import { useRegions } from "@/hooks/useRegions";
@@ -37,7 +37,7 @@ const roleLabels: Record<string, string> = {
 const requiredFieldKeys: Record<string, string[]> = {
   common: ["full_name", "phone"],
   youth_association: ["organization_name", "license_number", "contact_officer_name", "contact_officer_phone", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
-  service_provider: ["bio", "hourly_rate", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
+  service_provider: ["bio", "bank_name", "bank_account_number", "bank_iban", "bank_account_holder"],
   donor: [],
   super_admin: [],
 };
@@ -73,7 +73,7 @@ export default function Profile() {
   const [contactOfficerPhone, setContactOfficerPhone] = useState("");
   const [contactOfficerEmail, setContactOfficerEmail] = useState("");
   const [contactOfficerTitle, setContactOfficerTitle] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
+  
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [notificationPreferences, setNotificationPreferences] = useState<Record<string, boolean>>({});
   const [skills, setSkills] = useState<string[]>([]);
@@ -101,7 +101,7 @@ export default function Profile() {
     setContactOfficerPhone((profile as any).contact_officer_phone ?? "");
     setContactOfficerEmail((profile as any).contact_officer_email ?? "");
     setContactOfficerTitle((profile as any).contact_officer_title ?? "");
-    setHourlyRate(profile.hourly_rate?.toString() ?? "");
+    
     setEmailNotifications((profile as any).email_notifications ?? true);
     setNotificationPreferences((profile as any).notification_preferences ?? {});
     setSkills((profile as any).skills ?? []);
@@ -135,7 +135,7 @@ export default function Profile() {
         contact_officer_phone: contactOfficerPhone,
         contact_officer_email: contactOfficerEmail,
         contact_officer_title: contactOfficerTitle,
-        hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+        
         email_notifications: emailNotifications,
         notification_preferences: notificationPreferences,
         skills,
@@ -403,14 +403,6 @@ export default function Profile() {
                     </>
                   )}
 
-                  {role === "service_provider" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="hourlyRate" className="flex items-center gap-1">
-                        <DollarSign className="h-3.5 w-3.5" /> سعر الساعة (ر.س) <RequiredMark fieldKey="hourly_rate" role={role} />
-                      </Label>
-                      <Input id="hourlyRate" type="number" min="0" step="0.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} dir="ltr" placeholder="0" className={`h-11 ${isRequired("hourly_rate", role) && !hourlyRate ? "border-warning" : ""}`} />
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 

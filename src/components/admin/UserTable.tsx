@@ -59,7 +59,7 @@ const profileFields: DirectEditFieldConfig[] = [
   { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
   { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
   { key: "bio", label: "نبذة", type: "textarea" },
-  { key: "hourly_rate", label: "السعر بالساعة", type: "number" },
+  
 ];
 
 export function UserTable({ pagination }: UserTableProps) {

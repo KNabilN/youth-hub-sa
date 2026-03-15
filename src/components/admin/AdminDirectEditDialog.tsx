@@ -95,14 +95,11 @@ export function AdminDirectEditDialog({
         }
       });
       // Sanitize: convert empty strings to null for UUID/numeric fields
-      const nullableFields = ["region_id", "city_id", "hourly_rate", "category_id"];
+      const nullableFields = ["region_id", "city_id", "category_id"];
       for (const key of nullableFields) {
         if (key in updates && (updates[key] === "" || updates[key] === undefined)) {
           updates[key] = null;
         }
-      }
-      if (updates.hourly_rate !== null && updates.hourly_rate !== undefined) {
-        updates.hourly_rate = Number(updates.hourly_rate);
       }
       await onSave(updates);
       toast.success("تم حفظ التعديلات بنجاح");

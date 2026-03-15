@@ -41,7 +41,7 @@ const fieldLabels: Record<string, string> = {
   phone: "الهاتف",
   bio: "النبذة",
   skills: "المهارات",
-  hourly_rate: "سعر الساعة",
+  
   is_verified: "التوثيق",
   is_suspended: "التعليق",
   is_featured: "مميز",
