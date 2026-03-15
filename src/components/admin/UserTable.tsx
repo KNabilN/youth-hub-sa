@@ -173,7 +173,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
