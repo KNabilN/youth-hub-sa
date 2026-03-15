@@ -8,7 +8,6 @@ export const disputeStatusLabels: Record<string, string> = {
   final_decision: "قرار نهائي",
   resolved: "تم الحل",
   closed: "مغلق",
-  archived: "مؤرشف",
 };
 
 export const disputeStatusColors: Record<string, string> = {
