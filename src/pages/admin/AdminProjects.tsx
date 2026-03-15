@@ -211,20 +211,14 @@ export default function AdminProjects() {
                        <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        {(() => {
-                          const opts = getAdminAllowedStatuses(p.status);
-                          return opts.length > 0 ? (
-                            <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
-                              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={p.status}>{statusLabels[p.status]}</SelectItem>
-                                {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge>
-                          );
-                        })()}
+                        <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
+                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => (
+                              <SelectItem key={k} value={k} disabled={k === p.status}>{v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${p.id}`)}>

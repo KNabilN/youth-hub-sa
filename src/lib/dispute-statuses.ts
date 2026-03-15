@@ -41,5 +41,4 @@ export const allDisputeStatuses = [
   "final_decision",
   "resolved",
   "closed",
-  "archived",
 ] as const;
