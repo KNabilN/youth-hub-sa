@@ -7,6 +7,7 @@ interface AdminUsersFilters {
   cityId?: string;
   dateFrom?: string;
   dateTo?: string;
+  verifiedFilter?: string;
 }
 
 export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
@@ -15,9 +16,10 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
   const cityId = filters?.cityId;
   const dateFrom = filters?.dateFrom;
   const dateTo = filters?.dateTo;
+  const verifiedFilter = filters?.verifiedFilter;
 
   return useQuery({
-    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo],
+    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
     queryFn: async () => {
       // First get role data, optionally filtered
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
@@ -76,6 +78,12 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
       }
       if (dateTo) {
         profilesQuery = profilesQuery.lte("created_at", dateTo + "T23:59:59");
+      }
+
+      if (verifiedFilter === "verified") {
+        profilesQuery = profilesQuery.eq("is_verified", true);
+      } else if (verifiedFilter === "unverified") {
+        profilesQuery = profilesQuery.eq("is_verified", false);
       }
 
       profilesQuery = profilesQuery.range(from, to);

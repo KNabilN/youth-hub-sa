@@ -42,6 +42,7 @@ interface PaginationProps {
   to: number;
   nextPage: () => void;
   prevPage: () => void;
+  resetPage?: () => void;
 }
 
 interface UserTableProps {
@@ -95,6 +96,7 @@ export function UserTable({ pagination }: UserTableProps) {
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
+    verifiedFilter,
   });
 
   // Suspension reason dialog state
@@ -109,8 +111,6 @@ export function UserTable({ pagination }: UserTableProps) {
       const matchNumber = u.user_number?.toLowerCase().includes(q);
       if (!matchName && !matchOrg && !matchNumber) return false;
     }
-    if (verifiedFilter === "verified" && !u.is_verified) return false;
-    if (verifiedFilter === "unverified" && u.is_verified) return false;
     return true;
   });
 
@@ -173,7 +173,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
@@ -186,7 +186,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">التوثيق</Label>
-          <Select value={verifiedFilter} onValueChange={setVerifiedFilter}>
+          <Select value={verifiedFilter} onValueChange={(v) => { setVerifiedFilter(v); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="التوثيق" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
@@ -197,7 +197,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">المنطقة</Label>
-          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); }}>
+          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="المنطقة" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
@@ -231,7 +231,7 @@ export function UserTable({ pagination }: UserTableProps) {
           variant="outline"
           size="sm"
           className="h-10 gap-1"
-          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); }}
+          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); pagination?.resetPage?.(); }}
         >
           <RotateCcw className="h-3.5 w-3.5" />إعادة تعيين
         </Button>
