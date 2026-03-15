@@ -5,6 +5,7 @@ import { useCreateProject } from "@/hooks/useProjects";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
@@ -32,9 +33,10 @@ export default function ProjectCreate() {
   const handleSubmit = async (values: ProjectFormValues) => {
     if (draftId) {
       // Update existing draft
+      const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       const { error } = await supabase
         .from("projects")
-        .update({ ...values, status: "pending_approval" as any })
+        .update({ ...clean, status: "pending_approval" as any })
         .eq("id", draftId);
       if (error) {
         toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" });
@@ -57,9 +59,10 @@ export default function ProjectCreate() {
   const handleSaveDraft = (values: ProjectFormValues) => {
     if (draftId) {
       // Update existing draft
+      const cleanDraft = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       supabase
         .from("projects")
-        .update({ ...values, status: "draft" as any })
+        .update({ ...cleanDraft, status: "draft" as any })
         .eq("id", draftId)
         .then(({ error }) => {
           if (error) toast({ title: "حدث خطأ", variant: "destructive" });

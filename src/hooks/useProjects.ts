@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 
 export function useProjects(statusFilter?: string) {
   const { user } = useAuth();
@@ -75,9 +76,10 @@ export function useCreateProject() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: Omit<TablesInsert<"projects">, "association_id">) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("projects")
-        .insert({ ...values, association_id: user!.id })
+        .insert({ ...clean, association_id: user!.id } as any)
         .select()
         .single();
       if (error) throw error;
@@ -91,9 +93,10 @@ export function useUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...values }: TablesUpdate<"projects"> & { id: string }) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("projects")
-        .update(values)
+        .update(clean as any)
         .eq("id", id)
         .select()
         .single();

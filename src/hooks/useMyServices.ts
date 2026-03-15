@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { sanitizeFormValues, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS } from "@/lib/sanitize";
 
 export function useMyServices(approvalFilter?: string, sortBy?: string) {
   const { user } = useAuth();
@@ -53,9 +54,10 @@ export function useCreateService() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: Omit<TablesInsert<"micro_services">, "provider_id">) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("micro_services")
-        .insert({ ...values, provider_id: user!.id })
+        .insert({ ...clean, provider_id: user!.id } as any)
         .select()
         .single();
       if (error) throw error;
@@ -69,9 +71,10 @@ export function useUpdateService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...values }: TablesUpdate<"micro_services"> & { id: string }) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("micro_services")
-        .update({ ...values, approval: "pending" as const })
+        .update({ ...clean, approval: "pending" as const } as any)
         .eq("id", id)
         .select()
         .single();
