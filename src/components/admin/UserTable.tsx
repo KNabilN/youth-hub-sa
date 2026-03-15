@@ -197,7 +197,7 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">المنطقة</Label>
-          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); }}>
+          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); pagination?.resetPage?.(); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="المنطقة" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
