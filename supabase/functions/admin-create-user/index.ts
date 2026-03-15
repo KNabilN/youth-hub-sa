@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       organization_name, license_number,
       contact_officer_name, contact_officer_phone,
       contact_officer_email, contact_officer_title,
-      bio, hourly_rate,
+      bio,
     } = body;
 
     if (!email || !password || !full_name) {
