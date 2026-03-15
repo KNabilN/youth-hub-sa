@@ -33,9 +33,10 @@ export default function ProjectCreate() {
   const handleSubmit = async (values: ProjectFormValues) => {
     if (draftId) {
       // Update existing draft
+      const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       const { error } = await supabase
         .from("projects")
-        .update({ ...values, status: "pending_approval" as any })
+        .update({ ...clean, status: "pending_approval" as any })
         .eq("id", draftId);
       if (error) {
         toast({ title: "حدث خطأ أثناء إنشاء الطلب", variant: "destructive" });
