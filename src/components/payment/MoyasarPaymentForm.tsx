@@ -111,7 +111,7 @@ export function MoyasarPaymentForm({
   return (
     <Card>
       <CardContent className="p-4">
-        <div ref={containerRef}>
+        <div ref={containerRef} className="moyasar-form">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span className="ms-2 text-sm text-muted-foreground">جاري تحميل نموذج الدفع...</span>
