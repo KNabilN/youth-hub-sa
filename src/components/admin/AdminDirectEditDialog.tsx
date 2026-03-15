@@ -278,6 +278,52 @@ export function AdminDirectEditDialog({
                 </div>
               )}
 
+              {/* Generic Image field */}
+              {field.type === "image" && (
+                <div className="space-y-2">
+                  {values[field.key] ? (
+                    <img
+                      src={values[field.key]}
+                      alt={field.label}
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-full h-32 rounded-lg border border-dashed flex items-center justify-center bg-muted/30">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => imageInputRefs.current[field.key]?.click()}
+                    disabled={imageUploading[field.key]}
+                    className="gap-1.5"
+                  >
+                    {imageUploading[field.key] ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
+                    {imageUploading[field.key] ? "جاري الرفع..." : "رفع صورة جديدة"}
+                  </Button>
+                  {field.imageDimensions && (
+                    <p className="text-xs text-muted-foreground">{field.imageDimensions}</p>
+                  )}
+                  <input
+                    ref={(el) => { imageInputRefs.current[field.key] = el; }}
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(field, file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+
               {/* Skills field */}
               {field.type === "skills" && (
                 <div className="space-y-2">
