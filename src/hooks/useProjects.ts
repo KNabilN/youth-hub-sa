@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
+import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 export function useProjects(statusFilter?: string) {
   const { user } = useAuth();
@@ -82,7 +83,7 @@ export function useCreateProject() {
         .insert({ ...clean, association_id: user!.id } as any)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"));
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
@@ -100,7 +101,7 @@ export function useUpdateProject() {
         .eq("id", id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء تحديث الطلب"));
       return data;
     },
     onSuccess: (data) => {

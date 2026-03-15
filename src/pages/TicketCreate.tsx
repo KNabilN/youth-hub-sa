@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { Upload } from "lucide-react";
+import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 export default function TicketCreate() {
   const createTicket = useCreateTicket();
@@ -33,8 +34,8 @@ export default function TicketCreate() {
         toast.success("تم إنشاء التذكرة بنجاح");
         navigate("/tickets");
       }
-    } catch {
-      toast.error("حدث خطأ أثناء إنشاء التذكرة");
+    } catch (error) {
+      toast.error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"));
     }
   };
 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { Database } from "@/integrations/supabase/types";
+import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
 
@@ -52,7 +53,7 @@ export function useCreateTicket() {
         .insert({ ...input, user_id: user!.id })
         .select()
         .single();
-      if (error) throw error;
+      if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"));
       return data;
     },
     onSuccess: () => {
