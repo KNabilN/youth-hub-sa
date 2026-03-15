@@ -25,9 +25,11 @@ const bankTransferJourney = [
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { role } = useAuth();
   const state = location.state as { total?: number; count?: number; method?: string } | null;
 
   const isBankTransfer = state?.method === "bank_transfer";
+  const isDonor = role === "donor";
 
   return (
     <DashboardLayout>
