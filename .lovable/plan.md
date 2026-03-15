@@ -1,12 +1,36 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# إصلاح null payload في Moyasar
 
-### ما تم تنفيذه
+## السبب
+السطر 307: `style={{ display: formReady ? "block" : "none" }}` — عند استدعاء `Moyasar.init` تكون `formReady = false` فالحاوية مخفية بـ `display: none`. الـ SDK لا يستطيع حساب أبعاد النموذج أو رسم الـ iframe في عنصر مخفي، فيرسل `request_payload: null`.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## الحل
+إعادة كتابة المكون بشكل مبسط كما في الخطة الأصلية:
+
+### `src/components/payment/MoyasarPaymentForm.tsx`
+- الحاوية تكون **دائماً مرئية** (`display: block`)
+- الـ loader يظهر فوقها كـ overlay ثم يختفي بعد التهيئة
+- استخدام `id` ثابت (`moyasar-payment-container`) بدلاً من معرف عشوائي
+- إزالة كل المنطق المعقد (MutationObserver, retries, cleanupRef, containerRef)
+- `setTimeout(150ms)` بسيط قبل `Moyasar.init`
+- `isInitialized` ref لمنع التهيئة المتكررة
+
+```text
+┌─────────────────────────┐
+│  div (always visible)   │
+│  id="moyasar-payment-   │
+│  container"             │
+│                         │
+│  ┌───────────────────┐  │
+│  │ Loader (absolute) │  │  ← يختفي بعد init
+│  └───────────────────┘  │
+│                         │
+│  [Moyasar injects here] │  ← SDK يرسم هنا
+└─────────────────────────┘
+```
+
+### التغيير الجوهري
+- **قبل**: `display: none` → SDK يفشل → `null payload`
+- **بعد**: دائماً مرئي → SDK يرسم بنجاح → payload صحيح
+
