@@ -552,7 +552,7 @@ export default function Checkout() {
             )}
 
             {/* Moyasar Payment Form */}
-            {showMoyasarForm && moyasarKey && moyasarCallbackUrl && (useGrantBalance ? remainingAfterGrant : pricing.total) > 0 && (
+            {showMoyasarForm && moyasarKey && (
               <MoyasarPaymentForm
                 amount={useGrantBalance ? remainingAfterGrant : pricing.total}
                 description={`شراء ${items.length} خدمات عبر منصة معين`}

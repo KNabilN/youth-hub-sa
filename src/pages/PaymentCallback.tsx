@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -11,36 +11,23 @@ export default function PaymentCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
   const [errorMsg, setErrorMsg] = useState("");
-  // Use a ref to prevent React Strict Mode from double-firing the verify function
-  const hasVerified = useRef(false);
 
+  // Try sessionStorage first, then URL params as fallback (survives cross-origin 3DS redirects)
   const getPaymentContext = () => {
     const sessionCtx = sessionStorage.getItem("moyasar_payment_context");
     if (sessionCtx) {
-      try {
-        return JSON.parse(sessionCtx);
-      } catch {}
+      try { return JSON.parse(sessionCtx); } catch {}
     }
     const ctxParam = searchParams.get("ctx");
     if (ctxParam) {
-      try {
-        return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(ctxParam)))));
-      } catch {}
+      try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(ctxParam))))); } catch {}
     }
     return {};
   };
-
   const paymentContext = getPaymentContext();
-  const retryPath =
-    paymentContext?.type === "donation"
-      ? "/donations"
-      : paymentContext?.type === "project_payment"
-        ? `/projects/${paymentContext.project_id}`
-        : "/checkout";
+  const retryPath = paymentContext?.type === "donation" ? "/donations" : paymentContext?.type === "project_payment" ? `/projects/${paymentContext.project_id}` : "/checkout";
 
   useEffect(() => {
-    if (hasVerified.current) return;
-
     const paymentId = searchParams.get("id");
     const paymentStatus = searchParams.get("status");
 
@@ -56,11 +43,10 @@ export default function PaymentCallback() {
       return;
     }
 
-    hasVerified.current = true;
     const context = paymentContext;
-
     const verify = async () => {
       try {
+        // Wait for session to be available (may be lost after 3DS redirect)
         let retries = 0;
         let session = null;
         while (retries < 10) {
@@ -87,23 +73,17 @@ export default function PaymentCallback() {
 
         if (data?.verified) {
           sessionStorage.removeItem("moyasar_payment_context");
-
           if (context.type === "project_payment") {
             navigate(`/projects/${context.project_id}`, {
               replace: true,
               state: { paymentSuccess: true },
             });
           } else {
-            // ✅ THE FIX: Ensure the amount is divided by 100 to convert Halalas back to SAR
-            // We pull the amount from the URL parameters first as the source of truth from Moyasar
-            const urlAmount = searchParams.get("amount");
-            const rawAmount = urlAmount ? Number(urlAmount) : data.amount || context.total || 0;
-            const totalSAR = rawAmount / 100;
-
+            const total = data.amount || context.total || 0;
             const count = context.items?.length || 1;
             navigate("/payment-success", {
               replace: true,
-              state: { total: totalSAR, count, method: "electronic" },
+              state: { total, count, method: "electronic" },
             });
           }
         } else {
@@ -130,7 +110,9 @@ export default function PaymentCallback() {
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold">جاري التحقق من الدفع</h2>
-                  <p className="text-sm text-muted-foreground">يرجى الانتظار بينما نتأكد من إتمام عملية الدفع...</p>
+                  <p className="text-sm text-muted-foreground">
+                    يرجى الانتظار بينما نتأكد من إتمام عملية الدفع...
+                  </p>
                 </div>
               </>
             )}
@@ -145,7 +127,9 @@ export default function PaymentCallback() {
                   <p className="text-sm text-muted-foreground">{errorMsg}</p>
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <Button onClick={() => navigate(retryPath)}>إعادة المحاولة</Button>
+                  <Button onClick={() => navigate(retryPath)}>
+                    إعادة المحاولة
+                  </Button>
                   <Button variant="outline" onClick={() => navigate("/dashboard")}>
                     <ArrowLeft className="h-4 w-4 me-1" />
                     العودة للوحة التحكم

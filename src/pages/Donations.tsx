@@ -34,40 +34,27 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   rejected: { label: "مرفوض", variant: "destructive" },
 };
 
-const donationSteps = [{ label: "بيانات المنحة" }, { label: "الدفع" }, { label: "التأكيد" }];
+const donationSteps = [
+  { label: "بيانات المنحة" },
+  { label: "الدفع" },
+  { label: "التأكيد" },
+];
 
 function ConsumedBreakdown() {
   const { data: consumed, isLoading } = useDonorConsumedBreakdown();
 
-  if (isLoading)
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
-      </div>
-    );
-  if (!consumed?.length)
-    return (
-      <EmptyState
-        icon={HandCoins}
-        title="لا توجد منح مستهلكة بعد"
-        description="سيظهر هنا تفصيل استخدام منحك عند استهلاكها من قبل الجمعيات"
-      />
-    );
+  if (isLoading) return <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>;
+  if (!consumed?.length) return <EmptyState icon={HandCoins} title="لا توجد منح مستهلكة بعد" description="سيظهر هنا تفصيل استخدام منحك عند استهلاكها من قبل الجمعيات" />;
 
   // Group by association
-  const grouped = consumed.reduce(
-    (acc: Record<string, { name: string; total: number; items: typeof consumed }>, c: any) => {
-      const assocId = c.association_id || "unknown";
-      const assocName = c.profiles?.organization_name || c.profiles?.full_name || "غير محدد";
-      if (!acc[assocId]) acc[assocId] = { name: assocName, total: 0, items: [] };
-      acc[assocId].total += Number(c.amount);
-      acc[assocId].items.push(c);
-      return acc;
-    },
-    {},
-  );
+  const grouped = consumed.reduce((acc: Record<string, { name: string; total: number; items: typeof consumed }>, c: any) => {
+    const assocId = c.association_id || "unknown";
+    const assocName = c.profiles?.organization_name || c.profiles?.full_name || "غير محدد";
+    if (!acc[assocId]) acc[assocId] = { name: assocName, total: 0, items: [] };
+    acc[assocId].total += Number(c.amount);
+    acc[assocId].items.push(c);
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-4">
@@ -79,9 +66,7 @@ function ConsumedBreakdown() {
                 <Building2 className="h-4 w-4 text-primary" />
                 <CardTitle className="text-sm">{group.name}</CardTitle>
               </div>
-              <Badge variant="outline" className="text-xs font-bold">
-                {group.total.toLocaleString()} ر.س
-              </Badge>
+              <Badge variant="outline" className="text-xs font-bold">{group.total.toLocaleString()} ر.س</Badge>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -114,14 +99,9 @@ function ConsumedBreakdown() {
 
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="text-xs">
-                        {format(new Date(item.created_at), "yyyy/MM/dd", { locale: ar })}
-                      </TableCell>
+                      <TableCell className="text-xs">{format(new Date(item.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={hasProject ? "default" : hasService ? "secondary" : "outline"}
-                          className="text-[10px]"
-                        >
+                        <Badge variant={hasProject ? "default" : hasService ? "secondary" : "outline"} className="text-[10px]">
                           {typeLabel}
                         </Badge>
                       </TableCell>
@@ -130,7 +110,9 @@ function ConsumedBreakdown() {
                           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div>
                             <span className="font-medium">{targetLabel}</span>
-                            {targetRef && <span className="text-muted-foreground mr-1 text-[10px]">({targetRef})</span>}
+                            {targetRef && (
+                              <span className="text-muted-foreground mr-1 text-[10px]">({targetRef})</span>
+                            )}
                           </div>
                         </div>
                       </TableCell>
@@ -175,13 +157,10 @@ export default function Donations() {
   const [moyasarCallbackUrl, setMoyasarCallbackUrl] = useState<string>("");
   const { data: commissionRate = 0.05 } = useCommissionRate();
 
-  const donationMetadata = useMemo(
-    () => ({
-      type: "donation",
-      user_id: user?.id,
-    }),
-    [user?.id],
-  );
+  const donationMetadata = useMemo(() => ({
+    type: "donation",
+    user_id: user?.id,
+  }), [user?.id]);
 
   const handleFormSubmit = (data: DonationFormData) => {
     setFormData(data);
@@ -335,11 +314,7 @@ export default function Donations() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
-            <StepProgress
-              steps={donationSteps}
-              currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2}
-              className="mt-2"
-            />
+            <StepProgress steps={donationSteps} currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2} className="mt-2" />
           </CardHeader>
           <CardContent>
             {step === "form" ? (
@@ -350,14 +325,9 @@ export default function Donations() {
                 defaultProjectId={urlProjectId}
                 defaultTargetType={urlProjectId ? "project" : undefined}
               />
-            ) : step === "moyasar" &&
-              formData &&
-              moyasarKey &&
-              moyasarCallbackUrl &&
-              calculatePricing(formData.amount, commissionRate).total > 0 ? (
+            ) : step === "moyasar" && formData && moyasarKey ? (
               <MoyasarPaymentForm
-                // ✅ Multiply by 100 to convert Riyals to Halalas
-                amount={Math.round(calculatePricing(formData.amount, commissionRate).total * 100)}
+                amount={calculatePricing(formData.amount, commissionRate).total}
                 description={
                   formData.target_type === "association"
                     ? `منحة لجمعية ${formData.association_name}`
@@ -383,16 +353,10 @@ export default function Donations() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">سجل المنح</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-lg">سجل المنح</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
+              <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : !contributions?.length ? (
               <EmptyState icon={HandCoins} title="لا توجد منح سابقة" description="قدّم منحتك الأولى من النموذج أعلاه" />
             ) : (
@@ -439,40 +403,30 @@ function DonationsLog({ contributions }: { contributions: any[] }) {
         <DonationTimeline contributions={filtered as any} />
       </TabsContent>
       <TabsContent value="table">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>التاريخ</TableHead>
-                <TableHead>الوجهة</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead>المبلغ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((c: any) => {
-                const st = statusConfig[c.donation_status] ?? statusConfig.available;
-                const target =
-                  c.projects?.title ||
-                  (c.profiles as any)?.organization_name ||
-                  (c.profiles as any)?.full_name ||
-                  "منحة عامة";
-                return (
-                  <TableRow key={c.id}>
-                    <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
-                    <TableCell>{target}</TableCell>
-                    <TableCell>
-                      <Badge variant={st.variant} className="text-[10px]">
-                        {st.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <div className="overflow-x-auto"><Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>التاريخ</TableHead>
+              <TableHead>الوجهة</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>المبلغ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map((c: any) => {
+              const st = statusConfig[c.donation_status] ?? statusConfig.available;
+              const target = c.projects?.title || (c.profiles as any)?.organization_name || (c.profiles as any)?.full_name || "منحة عامة";
+              return (
+                <TableRow key={c.id}>
+                  <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                  <TableCell>{target}</TableCell>
+                  <TableCell><Badge variant={st.variant} className="text-[10px]">{st.label}</Badge></TableCell>
+                  <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table></div>
       </TabsContent>
       <TabsContent value="consumed">
         <ConsumedBreakdown />

@@ -500,7 +500,7 @@ export function BidPaymentDialog({ open, onOpenChange, bid, projectId, projectTi
           </div>
         )}
 
-        {step === 1 && showMoyasarForm && moyasarKey && moyasarCallbackUrl && (paymentMethod === "mixed_grant" ? remainingAfterGrants : pricing.total) > 0 && (
+        {step === 1 && showMoyasarForm && moyasarKey && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground text-center">
               {paymentMethod === "mixed_grant"
