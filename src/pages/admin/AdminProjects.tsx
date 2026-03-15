@@ -43,22 +43,15 @@ type ProjectStatus = Database["public"]["Enums"]["project_status"];
 const statusLabels: Record<string, string> = {
   draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
   completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
-  suspended: "معلق", archived: "مؤرشف",
+  suspended: "معلق",
 };
-
-/** Admin can only: pending_approval→open, and any active status→cancelled */
-function getAdminAllowedStatuses(current: string): string[] {
-  if (current === "pending_approval") return ["open"];
-  if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
-  return []; // draft, completed, cancelled, archived — no manual change
-}
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
   open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
   completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
   cancelled: "bg-muted text-muted-foreground",
-  suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
+  suspended: "bg-orange-500/10 text-orange-600",
 };
 
 const projectFields: DirectEditFieldConfig[] = [
