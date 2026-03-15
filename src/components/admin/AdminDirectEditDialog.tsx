@@ -136,8 +136,31 @@ export function AdminDirectEditDialog({
       toast.error("فشل رفع صورة الغلاف");
     }
   };
+  const handleImageUpload = async (field: DirectEditFieldConfig, file: File) => {
+    const maxMB = field.imageMaxMB ?? 5;
+    if (file.size > maxMB * 1024 * 1024) {
+      toast.error(`الحد الأقصى لحجم الصورة ${maxMB} ميجابايت`);
+      return;
+    }
+    const bucket = field.imageBucket ?? "service-images";
+    const ext = file.name.split(".").pop();
+    const path = `admin/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    setImageUploading((prev) => ({ ...prev, [field.key]: true }));
+    try {
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setValues((v) => ({ ...v, [field.key]: publicUrl }));
+      toast.success("تم رفع الصورة بنجاح");
+    } catch {
+      toast.error("فشل رفع الصورة");
+    } finally {
+      setImageUploading((prev) => ({ ...prev, [field.key]: false }));
+    }
+  };
 
-  const addSkill = () => {
+
     const trimmed = newSkill.trim();
     if (!trimmed) return;
     const current = values.skills ?? [];
