@@ -130,11 +130,11 @@ export function MoyasarPaymentForm({
           supported_networks: ["visa", "mastercard", "mada"],
           metadata: enrichedMetadata,
           language: "ar",
-          on_completed: (payment: any) => {
+          on_completed: async (payment: any) => {
             console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
             onCompleted?.({ id: payment?.id, status: payment?.status });
           },
-          on_failure: (error: any) => {
+          on_failure: async (error: any) => {
             const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
             console.error("[MoyasarForm] Payment failed:", msg);
             onFailed?.(msg);
