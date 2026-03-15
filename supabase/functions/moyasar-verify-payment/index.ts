@@ -26,6 +26,13 @@ async function getCommissionRate(adminClient: any): Promise<number> {
   return config?.rate ?? 0.05;
 }
 
+/** Compute total from base amount using add-on model: base + commission + VAT */
+function computeTotal(baseAmount: number, commissionRate: number): number {
+  const commission = Math.round(baseAmount * commissionRate * 100) / 100;
+  const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
+  return Math.round((baseAmount + commission + vat) * 100) / 100;
+}
+
 async function createInvoiceAndNotifyAdmin(
   adminClient: any,
   escrowId: string,
@@ -156,7 +163,6 @@ Deno.serve(async (req) => {
     const commissionRate = await getCommissionRate(adminClient);
 
     // --- Global Idempotency Check: prevent replay attacks ---
-    // Check if this payment_id was already processed by looking at receipt_url field
     const { data: existingByPaymentId } = await adminClient
       .from("escrow_transactions")
       .select("id")
@@ -174,13 +180,58 @@ Deno.serve(async (req) => {
     const paymentContext = context || paymentData.metadata || {};
     const contextType = paymentContext.type;
 
+    // ==================== SERVER-SIDE PRICE VERIFICATION ====================
+    // Re-compute expected total from DB prices, NOT from client-supplied values.
+    // Tolerance: 1 SAR to account for rounding differences.
+    const PRICE_TOLERANCE_SAR = 1;
+
     if (contextType === "checkout") {
-      await processCheckout(adminClient, userId, paymentContext, commissionRate, payment_id);
+      const verifiedItems = await verifyCheckoutPrices(adminClient, paymentContext, commissionRate);
+      if (verifiedItems.error) {
+        console.error("Price verification failed (checkout):", verifiedItems.error);
+        return new Response(
+          JSON.stringify({ error: "Price verification failed", detail: verifiedItems.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (Math.abs(amountSAR - verifiedItems.expectedTotal) > PRICE_TOLERANCE_SAR) {
+        console.error(`Amount mismatch: paid=${amountSAR}, expected=${verifiedItems.expectedTotal}`);
+        return new Response(
+          JSON.stringify({ error: "Payment amount does not match expected total" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      await processCheckout(adminClient, userId, paymentContext, commissionRate, payment_id, verifiedItems.items);
     } else if (contextType === "donation") {
+      // Donations: the donor chooses the amount freely — no DB price to verify against.
+      // We just verify the paid amount matches what was in context (prevents partial payment tricks).
+      const contextTotal = paymentContext.total || paymentContext.subtotal || amountSAR;
+      if (Math.abs(amountSAR - contextTotal) > PRICE_TOLERANCE_SAR) {
+        console.error(`Donation amount mismatch: paid=${amountSAR}, contextTotal=${contextTotal}`);
+        return new Response(
+          JSON.stringify({ error: "Payment amount does not match donation total" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       const donationBaseAmount = paymentContext.subtotal || amountSAR;
       await processDonation(adminClient, userId, paymentContext, donationBaseAmount, commissionRate, payment_id);
     } else if (contextType === "project_payment") {
-      await processProjectPayment(adminClient, userId, paymentContext, commissionRate, payment_id);
+      const verified = await verifyProjectPaymentPrice(adminClient, paymentContext, commissionRate);
+      if (verified.error) {
+        console.error("Price verification failed (project_payment):", verified.error);
+        return new Response(
+          JSON.stringify({ error: "Price verification failed", detail: verified.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (Math.abs(amountSAR - verified.expectedTotal) > PRICE_TOLERANCE_SAR) {
+        console.error(`Amount mismatch: paid=${amountSAR}, expected=${verified.expectedTotal}`);
+        return new Response(
+          JSON.stringify({ error: "Payment amount does not match expected total" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      await processProjectPayment(adminClient, userId, paymentContext, commissionRate, payment_id, verified.baseAmount);
     }
 
     return new Response(
@@ -201,12 +252,114 @@ Deno.serve(async (req) => {
   }
 });
 
-async function processCheckout(adminClient: any, userId: string, ctx: any, commissionRate: number, paymentId?: string) {
+// ==================== PRICE VERIFICATION HELPERS ====================
+
+async function verifyCheckoutPrices(
+  adminClient: any,
+  ctx: any,
+  commissionRate: number
+): Promise<{ items: any[]; expectedTotal: number; error?: string }> {
   const items = ctx.items || [];
+  if (!items.length) return { items: [], expectedTotal: 0, error: "No items in checkout" };
+
+  const serviceIds = items.map((i: any) => i.service_id).filter(Boolean);
+  if (!serviceIds.length) return { items: [], expectedTotal: 0, error: "No service IDs" };
+
+  const { data: services, error } = await adminClient
+    .from("micro_services")
+    .select("id, price")
+    .in("id", serviceIds);
+
+  if (error) return { items: [], expectedTotal: 0, error: `DB error: ${error.message}` };
+
+  const priceMap: Record<string, number> = {};
+  for (const s of services || []) {
+    priceMap[s.id] = Number(s.price);
+  }
+
+  let totalExpected = 0;
+  const verifiedItems = [];
+
+  for (const item of items) {
+    const dbPrice = priceMap[item.service_id];
+    if (dbPrice === undefined) {
+      return { items: [], expectedTotal: 0, error: `Service ${item.service_id} not found` };
+    }
+
+    const quantity = item.quantity || 1;
+    const baseAmount = dbPrice * quantity;
+    const itemTotal = computeTotal(baseAmount, commissionRate);
+    totalExpected += itemTotal;
+
+    verifiedItems.push({
+      ...item,
+      price: dbPrice, // Use DB price, not client price
+      quantity,
+    });
+  }
+
+  return { items: verifiedItems, expectedTotal: Math.round(totalExpected * 100) / 100 };
+}
+
+async function verifyProjectPaymentPrice(
+  adminClient: any,
+  ctx: any,
+  commissionRate: number
+): Promise<{ baseAmount: number; expectedTotal: number; error?: string }> {
+  const projectId = ctx.project_id;
+  const providerId = ctx.provider_id;
+
+  if (!projectId || !providerId) {
+    return { baseAmount: 0, expectedTotal: 0, error: "Missing project_id or provider_id" };
+  }
+
+  // Try to get the accepted bid price for this project+provider
+  const { data: bid } = await adminClient
+    .from("bids")
+    .select("price")
+    .eq("project_id", projectId)
+    .eq("provider_id", providerId)
+    .eq("status", "accepted")
+    .maybeSingle();
+
+  let baseAmount: number;
+
+  if (bid) {
+    baseAmount = Number(bid.price);
+  } else {
+    // Fallback: get project budget (for cases where bid doesn't exist yet)
+    const { data: project } = await adminClient
+      .from("projects")
+      .select("budget")
+      .eq("id", projectId)
+      .single();
+
+    if (!project?.budget) {
+      // Last resort: trust context subtotal (backward compatibility with legacy flows)
+      baseAmount = ctx.subtotal || 0;
+      console.warn("No bid/budget found, falling back to context subtotal:", baseAmount);
+    } else {
+      baseAmount = Number(project.budget);
+    }
+  }
+
+  const expectedTotal = computeTotal(baseAmount, commissionRate);
+  return { baseAmount, expectedTotal: Math.round(expectedTotal * 100) / 100 };
+}
+
+// ==================== PAYMENT PROCESSORS ====================
+
+async function processCheckout(
+  adminClient: any,
+  userId: string,
+  ctx: any,
+  commissionRate: number,
+  paymentId: string | undefined,
+  verifiedItems: any[]
+) {
   const beneficiaryId = ctx.beneficiary_id || null;
   const skipProjectCreation = ctx.skip_project_creation === true;
 
-  // Check if buyer is a youth_association
   const { data: buyerRole } = await adminClient
     .from("user_roles")
     .select("role")
@@ -214,13 +367,12 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
     .single();
   const isAssociation = buyerRole?.role === "youth_association";
 
-  for (const item of items) {
+  for (const item of verifiedItems) {
     let projectId: string | null = item.project_id || null;
 
     if (skipProjectCreation) {
       console.log("Skipping project/contract/bid creation as requested by context (hybrid payment)");
     } else if (beneficiaryId) {
-      // Donor buying for a beneficiary association
       const title = item.title || "خدمة ممولة من مانح";
       const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
       const { data: project, error: projErr } = await adminClient
@@ -249,7 +401,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         });
       }
     } else if (isAssociation) {
-      // Association buying directly — auto-create project + contract
       const title = item.title || "خدمة من السوق";
       const hoursNote = item.hours ? ` (${item.hours} ساعة)` : "";
       const { data: project, error: projErr } = await adminClient
@@ -269,7 +420,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         console.error("Project creation error (association):", projErr);
       } else {
         projectId = project.id;
-        // Create contract WITHOUT auto-signing — association must review and sign
         const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await adminClient.from("contracts").insert({
           project_id: project.id,
@@ -278,7 +428,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
           terms: contractTerms,
         });
 
-        // Create auto-accepted bid so provider appears in bids tab
         await adminClient.from("bids").insert({
           project_id: project.id,
           provider_id: item.provider_id,
@@ -288,7 +437,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
           status: "accepted",
         });
 
-        // Notify provider about the purchase and assignment
         await adminClient.from("notifications").insert({
           user_id: item.provider_id,
           message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
@@ -320,7 +468,6 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
       await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate);
     }
 
-    // Only create donor_contributions for donors, not associations
     if (!isAssociation) {
       await adminClient.from("donor_contributions").insert({
         donor_id: userId,
@@ -396,10 +543,16 @@ async function processDonation(adminClient: any, userId: string, ctx: any, amoun
   }
 }
 
-async function processProjectPayment(adminClient: any, userId: string, ctx: any, commissionRate: number, paymentId?: string) {
+async function processProjectPayment(
+  adminClient: any,
+  userId: string,
+  ctx: any,
+  commissionRate: number,
+  paymentId: string | undefined,
+  verifiedBaseAmount: number
+) {
   const projectId = ctx.project_id;
   const providerId = ctx.provider_id;
-  const baseAmount = ctx.subtotal || 0;
 
   if (!projectId || !providerId) {
     console.error("Missing project_id or provider_id in project_payment context");
@@ -419,7 +572,9 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // 1. Create escrow with status 'held' (payment already completed)
+  // Use server-verified base amount instead of client-supplied value
+  const baseAmount = verifiedBaseAmount;
+
   const { data: escrow, error: escrowErr } = await adminClient
     .from("escrow_transactions")
     .insert({
@@ -438,7 +593,6 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // 2. Create contract WITHOUT auto-signing — association must review and sign
   const { data: projData } = await adminClient.from("projects").select("title, description").eq("id", projectId).single();
   const contractTerms = `نطاق العمل:\n${projData?.title || "طلب"}\n\n${projData?.description || "يلتزم مقدم الخدمة بتنفيذ العمل وفق الوصف المتفق عليه."}`;
   const { error: contractErr } = await adminClient.from("contracts").insert({
@@ -451,7 +605,6 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     console.error("Contract creation error:", contractErr);
   }
 
-  // 3. Create auto-accepted bid so provider appears in bids tab
   const { data: existingBid } = await adminClient
     .from("bids")
     .select("id")
@@ -470,7 +623,6 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     });
   }
 
-  // 4. Update project status to in_progress
   const { error: projErr } = await adminClient.from("projects").update({
     status: "in_progress",
   }).eq("id", projectId);
@@ -478,6 +630,5 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     console.error("Project status update error:", projErr);
   }
 
-  // 5. Auto-generate invoice
   await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, baseAmount, commissionRate);
 }
