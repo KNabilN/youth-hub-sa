@@ -30,7 +30,6 @@ export const disputeTimelineColors: Record<string, string> = {
   final_decision: "bg-primary",
   resolved: "bg-success",
   closed: "bg-muted-foreground",
-  archived: "bg-muted-foreground",
 };
 
 export const allDisputeStatuses = [
