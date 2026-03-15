@@ -17,6 +17,8 @@ interface MoyasarPaymentFormProps {
   callbackUrl: string;
   metadata?: Record<string, unknown>;
   publishableKey: string;
+  onCompleted?: (payment: { id: string; status: string }) => void;
+  onFailed?: (error: string) => void;
 }
 
 const CONTAINER_ID = "moyasar-payment-container";
@@ -27,6 +29,8 @@ export function MoyasarPaymentForm({
   callbackUrl,
   metadata = {},
   publishableKey,
+  onCompleted,
+  onFailed,
 }: MoyasarPaymentFormProps) {
   const isInitialized = useRef(false);
   const metadataRef = useRef(metadata);
@@ -60,6 +64,10 @@ export function MoyasarPaymentForm({
       el.innerHTML = "";
 
       try {
+        const traceId = crypto.randomUUID();
+        const enrichedMetadata = { ...metadataRef.current, trace_id: traceId };
+        console.log("[MoyasarForm] Initializing with trace_id:", traceId);
+
         window.Moyasar.init({
           element: `#${CONTAINER_ID}`,
           amount: Math.round(amount * 100),
@@ -69,8 +77,17 @@ export function MoyasarPaymentForm({
           callback_url: callbackUrl,
           methods: ["creditcard"],
           supported_networks: ["visa", "mastercard", "mada"],
-          metadata: metadataRef.current,
+          metadata: enrichedMetadata,
           language: "ar",
+          on_completed: (payment: any) => {
+            console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
+            onCompleted?.({ id: payment?.id, status: payment?.status });
+          },
+          on_failure: (error: any) => {
+            const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
+            console.error("[MoyasarForm] Payment failed:", msg);
+            onFailed?.(msg);
+          },
         });
         isInitialized.current = true;
         setLoading(false);
@@ -98,6 +115,10 @@ export function MoyasarPaymentForm({
       const el = document.getElementById(CONTAINER_ID);
       if (el) el.innerHTML = "";
       try {
+        const traceId = crypto.randomUUID();
+        const enrichedMetadata = { ...metadataRef.current, trace_id: traceId };
+        console.log("[MoyasarForm] Retry with trace_id:", traceId);
+
         window.Moyasar.init({
           element: `#${CONTAINER_ID}`,
           amount: Math.round(amount * 100),
@@ -107,8 +128,17 @@ export function MoyasarPaymentForm({
           callback_url: callbackUrl,
           methods: ["creditcard"],
           supported_networks: ["visa", "mastercard", "mada"],
-          metadata: metadataRef.current,
+          metadata: enrichedMetadata,
           language: "ar",
+          on_completed: (payment: any) => {
+            console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
+            onCompleted?.({ id: payment?.id, status: payment?.status });
+          },
+          on_failure: (error: any) => {
+            const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
+            console.error("[MoyasarForm] Payment failed:", msg);
+            onFailed?.(msg);
+          },
         });
         isInitialized.current = true;
         setLoading(false);
