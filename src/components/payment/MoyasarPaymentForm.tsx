@@ -85,7 +85,7 @@ export function MoyasarPaymentForm({
     if (!document.querySelector('link[href*="moyasar"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "https://cdn.moyasar.com/mpf/1.14.0/moyasar.css";
+      link.href = "https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.7/dist/moyasar.css";
       document.head.appendChild(link);
     }
 
@@ -106,7 +106,7 @@ export function MoyasarPaymentForm({
 
     if (!document.querySelector('script[src*="moyasar"]')) {
       const script = document.createElement("script");
-      script.src = "https://cdn.moyasar.com/mpf/1.14.0/moyasar.js";
+      script.src = "https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.7/dist/moyasar.umd.min.js";
       script.async = true;
       script.onload = scheduleInit;
       script.onerror = () => {
