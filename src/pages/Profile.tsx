@@ -403,14 +403,6 @@ export default function Profile() {
                     </>
                   )}
 
-                  {role === "service_provider" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="hourlyRate" className="flex items-center gap-1">
-                        <DollarSign className="h-3.5 w-3.5" /> سعر الساعة (ر.س) <RequiredMark fieldKey="hourly_rate" role={role} />
-                      </Label>
-                      <Input id="hourlyRate" type="number" min="0" step="0.5" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} dir="ltr" placeholder="0" className={`h-11 ${isRequired("hourly_rate", role) && !hourlyRate ? "border-warning" : ""}`} />
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
