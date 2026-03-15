@@ -555,7 +555,18 @@ export default function Checkout() {
             {showMoyasarForm && moyasarKey && (
               <MoyasarPaymentForm
                 amount={useGrantBalance ? remainingAfterGrant : pricing.total}
-                description={`شراء ${items.length} خدمات عبر منصة معين`}
+                description={(() => {
+                  const serviceNames = items.map(i => `"${i.micro_services.title}"`).join("، ");
+                  const providerNames = [...new Set(items.map(i => i.micro_services.profiles?.full_name).filter(Boolean))].join("، ");
+                  const assocName = selectedAssociation
+                    ? (associations?.find(a => a.id === selectedAssociation)?.organization_name || associations?.find(a => a.id === selectedAssociation)?.full_name || "")
+                    : "";
+                  let desc = `شراء ${serviceNames}`;
+                  if (providerNames) desc += ` من ${providerNames}`;
+                  if (assocName) desc += ` — لصالح ${assocName}`;
+                  desc += " — عبر منصة معين";
+                  return desc.length > 200 ? desc.slice(0, 197) + "..." : desc;
+                })()}
                 callbackUrl={moyasarCallbackUrl}
                 publishableKey={moyasarKey}
                 metadata={checkoutMetadata}
