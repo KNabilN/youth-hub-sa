@@ -1,4 +1,4 @@
-import { useEffect, useRef, useId } from "react";
+import { useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -28,9 +28,6 @@ export function MoyasarPaymentForm({
   const containerRef = useRef<HTMLDivElement>(null);
   const metadataRef = useRef(metadata);
   const initKeyRef = useRef("");
-  const reactId = useId();
-  // Create a stable DOM id (useId returns `:r1:` style — strip colons)
-  const formId = `moyasar-${reactId.replace(/:/g, "")}`;
 
   // Keep metadata ref up to date without triggering re-init
   useEffect(() => {
@@ -52,17 +49,23 @@ export function MoyasarPaymentForm({
       container.innerHTML = "";
       initKeyRef.current = key;
 
-      window.Moyasar.init({
-        element: `#${formId}`,
-        amount: Math.round(amount * 100), // convert SAR to halalas
-        currency: "SAR",
-        description,
-        publishable_api_key: publishableKey,
-        callback_url: callbackUrl,
-        methods: ["creditcard"],
-        supported_networks: ["visa", "mastercard", "mada"],
-        metadata: metadataRef.current,
-        language: "ar",
+      requestAnimationFrame(() => {
+        try {
+          window.Moyasar.init({
+            element: container,
+            amount: Math.round(amount * 100), // convert SAR to halalas
+            currency: "SAR",
+            description,
+            publishable_api_key: publishableKey,
+            callback_url: callbackUrl,
+            methods: ["creditcard"],
+            supported_networks: ["visa", "mastercard", "mada"],
+            metadata: metadataRef.current,
+            language: "ar",
+          });
+        } catch (err) {
+          console.error("Moyasar initialization failed:", err);
+        }
       });
     };
 
@@ -95,7 +98,7 @@ export function MoyasarPaymentForm({
       }, 100);
       return () => clearInterval(checkInterval);
     }
-  }, [amount, description, callbackUrl, publishableKey, formId]);
+  }, [amount, description, callbackUrl, publishableKey]);
 
   // Cleanup on unmount — reset guard so remount works
   useEffect(() => {
@@ -107,7 +110,7 @@ export function MoyasarPaymentForm({
   return (
     <Card>
       <CardContent className="p-4">
-        <div ref={containerRef} id={formId}>
+        <div ref={containerRef}>
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span className="ms-2 text-sm text-muted-foreground">جاري تحميل نموذج الدفع...</span>
