@@ -7,6 +7,7 @@ interface AdminUsersFilters {
   cityId?: string;
   dateFrom?: string;
   dateTo?: string;
+  verifiedFilter?: string;
 }
 
 export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
