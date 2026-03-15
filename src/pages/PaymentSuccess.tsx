@@ -141,19 +141,34 @@ export default function PaymentSuccess() {
             )}
 
             <div className="flex flex-col gap-2 w-full">
-              <Button onClick={() => navigate("/contracts")}>
-                <ScrollText className="h-4 w-4 me-1" />
-                مراجعة العقود وتوقيعها
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-4 w-4 me-1" />
-                العودة للوحة التحكم
-              </Button>
-              {!isBankTransfer && (
-                <Button variant="ghost" onClick={() => navigate("/invoices")}>
-                  <Receipt className="h-4 w-4 me-1" />
-                  عرض الفواتير
-                </Button>
+              {isDonor ? (
+                <>
+                  <Button onClick={() => navigate("/donations")}>
+                    <Heart className="h-4 w-4 me-1" />
+                    متابعة المنح
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                    <ArrowLeft className="h-4 w-4 me-1" />
+                    العودة للوحة التحكم
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={() => navigate("/contracts")}>
+                    <ScrollText className="h-4 w-4 me-1" />
+                    مراجعة العقود وتوقيعها
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                    <ArrowLeft className="h-4 w-4 me-1" />
+                    العودة للوحة التحكم
+                  </Button>
+                  {!isBankTransfer && (
+                    <Button variant="ghost" onClick={() => navigate("/invoices")}>
+                      <Receipt className="h-4 w-4 me-1" />
+                      عرض الفواتير
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
