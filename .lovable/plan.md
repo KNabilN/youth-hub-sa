@@ -1,12 +1,19 @@
 
-# خطة: إنشاء طلب تلقائي عند شراء جمعية لخدمة مباشرة
 
-## الحالة: ✅ تم التنفيذ
+# Fix Moyasar Payment Form Not Appearing
 
-### ما تم تنفيذه
+## Problem
+After `container.innerHTML = ""`, `Moyasar.init({ element: "#formId" })` uses a CSS selector to find the element. This fails because the selector lookup can miss the element due to timing or React's rendering cycle. The console also shows a ref warning from Donations.tsx trying to pass a ref to the function component.
 
-1. **Edge Function `moyasar-verify-payment`** — تعديل `processCheckout`: التحقق من دور المشتري عبر `user_roles`. إذا كان `youth_association` وليس هناك `beneficiary_id`، يُنشأ المشروع والعقد تلقائياً
-2. **`src/hooks/useBankTransfer.ts`** — نفس المنطق للتحويل البنكي: إنشاء مشروع تلقائي إذا كان المشتري جمعية
-3. **`src/hooks/usePurchaseService.ts`** — نفس المنطق للشراء المباشر: إنشاء مشروع + عقد تلقائي
-4. **`src/pages/Checkout.tsx`** — إخفاء اختيار "الجمعية المستفيدة" للجمعيات + تعديل مسار `grant_balance` لإنشاء المشروع والعقد تلقائياً
-5. **العقد** — يتم توقيعه تلقائياً من الجمعية (`association_signed_at = now`) عند الشراء المباشر
+## Solution
+Pass the DOM node directly to `Moyasar.init` instead of a CSS selector string, and wrap initialization in `requestAnimationFrame` for DOM stability.
+
+## Changes
+
+### `src/components/payment/MoyasarPaymentForm.tsx`
+- Change `element: "#${formId}"` → `element: container` (direct DOM node)
+- Remove `useId` and `formId` (no longer needed)
+- Keep a stable `id` on the div for CSS styling but don't use it for Moyasar
+- Wrap `doInit` call in `requestAnimationFrame` after clearing innerHTML
+- Add `try-catch` around `Moyasar.init`
+
