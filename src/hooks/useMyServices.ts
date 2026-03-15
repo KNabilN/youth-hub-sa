@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { sanitizeFormValues, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS } from "@/lib/sanitize";
 
 export function useMyServices(approvalFilter?: string, sortBy?: string) {
   const { user } = useAuth();
