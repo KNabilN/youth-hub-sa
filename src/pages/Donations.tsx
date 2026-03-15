@@ -337,7 +337,7 @@ export default function Donations() {
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
             <StepProgress
               steps={donationSteps}
-              currentStep={step === "form" ? 0 : step === "payment" ? 1 : 2}
+              currentStep={step === "form" ? 0 : step === "moyasar" ? 1 : step === "payment" ? 1 : 2}
               className="mt-2"
             />
           </CardHeader>
