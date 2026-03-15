@@ -64,6 +64,10 @@ export function MoyasarPaymentForm({
       el.innerHTML = "";
 
       try {
+        const traceId = crypto.randomUUID();
+        const enrichedMetadata = { ...metadataRef.current, trace_id: traceId };
+        console.log("[MoyasarForm] Initializing with trace_id:", traceId);
+
         window.Moyasar.init({
           element: `#${CONTAINER_ID}`,
           amount: Math.round(amount * 100),
@@ -73,8 +77,17 @@ export function MoyasarPaymentForm({
           callback_url: callbackUrl,
           methods: ["creditcard"],
           supported_networks: ["visa", "mastercard", "mada"],
-          metadata: metadataRef.current,
+          metadata: enrichedMetadata,
           language: "ar",
+          on_completed: (payment: any) => {
+            console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
+            onCompleted?.({ id: payment?.id, status: payment?.status });
+          },
+          on_failure: (error: any) => {
+            const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
+            console.error("[MoyasarForm] Payment failed:", msg);
+            onFailed?.(msg);
+          },
         });
         isInitialized.current = true;
         setLoading(false);
