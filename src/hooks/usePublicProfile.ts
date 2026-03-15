@@ -27,7 +27,6 @@ export function usePublicProfile(id: string | undefined) {
         organization_name: string | null;
         skills: string[] | null;
         qualifications: any;
-        hourly_rate: number | null;
         is_verified: boolean;
         profile_views: number | null;
       } | null;

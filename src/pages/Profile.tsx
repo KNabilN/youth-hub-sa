@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield, CheckCircle, Phone, Building, Camera, DollarSign, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
+import { User, Shield, CheckCircle, Phone, Building, Camera, Mail, CalendarDays, BellRing, X, Plus, Award, GraduationCap, ImageIcon, Landmark, CircleCheck, Circle, Upload } from "lucide-react";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import { NotificationPreferences } from "@/components/notifications/NotificationPreferences";
 import { useRegions } from "@/hooks/useRegions";

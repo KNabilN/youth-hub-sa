@@ -29,7 +29,6 @@ const roleFields: Record<string, FieldDef[]> = {
   ],
   service_provider: [
     { key: "bio", label: "النبذة التعريفية" },
-    { key: "hourly_rate", label: "سعر الساعة" },
     ...bankFields,
   ],
   donor: [],

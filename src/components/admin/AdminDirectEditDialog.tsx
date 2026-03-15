@@ -101,9 +101,6 @@ export function AdminDirectEditDialog({
           updates[key] = null;
         }
       }
-      if (updates.hourly_rate !== null && updates.hourly_rate !== undefined) {
-        updates.hourly_rate = Number(updates.hourly_rate);
-      }
       await onSave(updates);
       toast.success("تم حفظ التعديلات بنجاح");
       onOpenChange(false);

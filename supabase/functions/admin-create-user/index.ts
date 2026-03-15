@@ -108,7 +108,6 @@ Deno.serve(async (req) => {
         contact_officer_email: contact_officer_email || null,
         contact_officer_title: contact_officer_title || null,
         bio: bio || null,
-        hourly_rate: hourly_rate ? Number(hourly_rate) : null,
       }).eq("id", newUser.user.id);
     }
 

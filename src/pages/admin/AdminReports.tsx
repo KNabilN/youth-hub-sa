@@ -640,36 +640,6 @@ export default function AdminReports() {
               </CardContent>
             </Card>
 
-            {/* Bar: توزيع أسعار الساعة */}
-            <Card className={chartCardCls}>
-              <CardHeader><CardTitle className="text-lg text-center">توزيع أسعار الساعة</CardTitle></CardHeader>
-              <CardContent className="p-6">
-                {hourlyRateData?.avg ? (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-3 text-center">المتوسط: <span className="font-bold text-foreground">{hourlyRateData.avg.toFixed(0)} ر.س/ساعة</span></p>
-                    <ResponsiveContainer width="100%" height={210}>
-                      <BarChart data={hourlyRateData.distribution} margin={{ top: 20 }}>
-                        <defs>
-                          <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#6366F1" stopOpacity={1} />
-                            <stop offset="100%" stopColor="#6366F1" stopOpacity={0.6} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid {...gridProps} />
-                        <XAxis dataKey="range" {...xAxisProps} />
-                        <YAxis {...yAxisProps} />
-                        <Tooltip content={<CustomChartTooltip />} />
-                        <Bar dataKey="count" fill="url(#hourlyGrad)" name="عدد" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                          <LabelList dataKey="count" content={renderBarLabel} />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">لا توجد بيانات</p>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Donor Analytics */}
