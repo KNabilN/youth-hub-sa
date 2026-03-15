@@ -54,9 +54,10 @@ export function useCreateService() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: Omit<TablesInsert<"micro_services">, "provider_id">) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("micro_services")
-        .insert({ ...values, provider_id: user!.id })
+        .insert({ ...clean, provider_id: user!.id } as any)
         .select()
         .single();
       if (error) throw error;
