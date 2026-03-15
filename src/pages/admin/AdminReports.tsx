@@ -226,21 +226,6 @@ export default function AdminReports() {
     },
   });
 
-  const { data: hourlyRateData } = useQuery({
-    queryKey: ["admin-report-hourly-rates"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("hourly_rate").not("hourly_rate", "is", null);
-      const rates = (data ?? []).map((p: any) => Number(p.hourly_rate)).filter(r => r > 0);
-      if (!rates.length) return { avg: 0, distribution: [] };
-      const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
-      const buckets: Record<string, number> = {};
-      rates.forEach(r => {
-        const bucket = `${Math.floor(r / 50) * 50}-${Math.floor(r / 50) * 50 + 49}`;
-        buckets[bucket] = (buckets[bucket] || 0) + 1;
-      });
-      return { avg, distribution: Object.entries(buckets).map(([range, count]) => ({ range, count })) };
-    },
-  });
 
   const { data: donorAnalytics } = useQuery({
     queryKey: ["admin-report-donor-analytics", dateFrom, dateTo, regionId, cityId, regionProjectIds],
