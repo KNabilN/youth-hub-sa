@@ -85,7 +85,7 @@ export function MoyasarPaymentForm({
     if (!document.querySelector('link[href*="moyasar"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "https://cdn.moyasar.com/mpf/1.14.0/moyasar.css";
+      link.href = "https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.7/dist/moyasar.css";
       document.head.appendChild(link);
     }
 
