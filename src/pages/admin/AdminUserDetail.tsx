@@ -118,7 +118,11 @@ function getProfileFieldsForRole(role?: string): DirectEditFieldConfig[] {
     ];
   }
   if (role === "donor") {
-    return [...common, { key: "organization_name", label: "اسم المنظمة" }];
+    return [
+      ...common,
+      { key: "company_logo_url", label: "شعار الجهة", type: "image" as const, imageBucket: "avatars", imageMaxMB: 2, imageDimensions: "الأبعاد المُوصى بها: 300×300 بكسل • الحد الأقصى: 2 MB" },
+      { key: "organization_name", label: "اسم المنظمة" },
+    ];
   }
   // super_admin or unknown
   return [
