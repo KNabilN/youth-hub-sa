@@ -44,7 +44,6 @@ const approvalLabels: Record<string, string> = {
   approved: "مقبول",
   rejected: "مرفوض",
   suspended: "موقوف",
-  archived: "مؤرشف",
 };
 
 const approvalColors: Record<string, string> = {
@@ -53,7 +52,6 @@ const approvalColors: Record<string, string> = {
   approved: "bg-emerald-500/10 text-emerald-600",
   rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600",
-  archived: "bg-muted text-muted-foreground",
 };
 
 const serviceFields: DirectEditFieldConfig[] = [
