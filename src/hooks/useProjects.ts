@@ -93,9 +93,10 @@ export function useUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...values }: TablesUpdate<"projects"> & { id: string }) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("projects")
-        .update(values)
+        .update(clean as any)
         .eq("id", id)
         .select()
         .single();

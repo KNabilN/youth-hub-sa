@@ -59,9 +59,10 @@ export default function ProjectCreate() {
   const handleSaveDraft = (values: ProjectFormValues) => {
     if (draftId) {
       // Update existing draft
+      const cleanDraft = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
       supabase
         .from("projects")
-        .update({ ...values, status: "draft" as any })
+        .update({ ...cleanDraft, status: "draft" as any })
         .eq("id", draftId)
         .then(({ error }) => {
           if (error) toast({ title: "حدث خطأ", variant: "destructive" });

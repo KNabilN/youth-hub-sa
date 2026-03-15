@@ -71,9 +71,10 @@ export function useUpdateService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...values }: TablesUpdate<"micro_services"> & { id: string }) => {
+      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
       const { data, error } = await supabase
         .from("micro_services")
-        .update({ ...values, approval: "pending" as const })
+        .update({ ...clean, approval: "pending" as const } as any)
         .eq("id", id)
         .select()
         .single();
