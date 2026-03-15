@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { StepProgress } from "@/components/ui/step-progress";
-import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle } from "lucide-react";
+import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const checkoutSteps = [
   { label: "السلة" },
