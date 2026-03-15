@@ -17,8 +17,16 @@ import { Upload, X, Plus, User, ImageIcon } from "lucide-react";
 export interface DirectEditFieldConfig {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications";
+  type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications" | "image";
   selectSource?: "categories" | "regions" | "cities";
+  /** For type "image": storage bucket name */
+  imageBucket?: string;
+  /** For type "image": table to update (defaults handled per-type) */
+  imageTable?: string;
+  /** For type "image": max size in MB (default 5) */
+  imageMaxMB?: number;
+  /** For type "image": recommended dimensions text */
+  imageDimensions?: string;
 }
 
 interface AdminDirectEditDialogProps {
