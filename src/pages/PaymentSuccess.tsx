@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { StepProgress } from "@/components/ui/step-progress";
-import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle } from "lucide-react";
+import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const checkoutSteps = [
   { label: "السلة" },
@@ -24,9 +25,11 @@ const bankTransferJourney = [
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { role } = useAuth();
   const state = location.state as { total?: number; count?: number; method?: string } | null;
 
   const isBankTransfer = state?.method === "bank_transfer";
+  const isDonor = role === "donor";
 
   return (
     <DashboardLayout>
@@ -95,15 +98,21 @@ export default function PaymentSuccess() {
             ) : state?.method === "grant_balance" ? (
               <>
                 <SuccessAnimation
-                  title="تم الدفع من رصيد المنح!"
-                  description="تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                  title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع من رصيد المنح!"}
+                  description={isDonor
+                    ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
+                    : "تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                  }
                 />
               </>
             ) : (
               <>
                 <SuccessAnimation
-                  title="تم الدفع بنجاح!"
-                  description="تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                  title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع بنجاح!"}
+                  description={isDonor
+                    ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
+                    : "تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                  }
                 />
               </>
             )}
@@ -132,19 +141,34 @@ export default function PaymentSuccess() {
             )}
 
             <div className="flex flex-col gap-2 w-full">
-              <Button onClick={() => navigate("/contracts")}>
-                <ScrollText className="h-4 w-4 me-1" />
-                مراجعة العقود وتوقيعها
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-4 w-4 me-1" />
-                العودة للوحة التحكم
-              </Button>
-              {!isBankTransfer && (
-                <Button variant="ghost" onClick={() => navigate("/invoices")}>
-                  <Receipt className="h-4 w-4 me-1" />
-                  عرض الفواتير
-                </Button>
+              {isDonor ? (
+                <>
+                  <Button onClick={() => navigate("/donations")}>
+                    <Heart className="h-4 w-4 me-1" />
+                    متابعة المنح
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                    <ArrowLeft className="h-4 w-4 me-1" />
+                    العودة للوحة التحكم
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={() => navigate("/contracts")}>
+                    <ScrollText className="h-4 w-4 me-1" />
+                    مراجعة العقود وتوقيعها
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                    <ArrowLeft className="h-4 w-4 me-1" />
+                    العودة للوحة التحكم
+                  </Button>
+                  {!isBankTransfer && (
+                    <Button variant="ghost" onClick={() => navigate("/invoices")}>
+                      <Receipt className="h-4 w-4 me-1" />
+                      عرض الفواتير
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
