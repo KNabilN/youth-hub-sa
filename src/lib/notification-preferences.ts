@@ -46,7 +46,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
     types: [
       { key: "service_approved", label: "الموافقة على خدمة", defaultEnabled: true },
       { key: "service_rejected", label: "رفض خدمة", defaultEnabled: true },
-      { key: "service_purchased", label: "شراء خدمة", defaultEnabled: false },
+      { key: "service_purchased", label: "شراء خدمة", defaultEnabled: true },
     ],
   },
   {
