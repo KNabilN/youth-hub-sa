@@ -140,7 +140,7 @@ const SUPER_ADMIN_GROUPS: NotificationGroup[] = [
     types: [
       { key: "bank_transfer_pending", label: "تحويل بنكي جديد بانتظار المراجعة", defaultEnabled: true },
       { key: "dispute_opened", label: "شكوى جديدة", defaultEnabled: true },
-      { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: false },
+      { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: true },
     ],
   },
 ];
