@@ -104,7 +104,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التسليمات",
     types: [
-      { key: "deliverable_submitted", label: "تسليم ملفات جديدة", defaultEnabled: false },
+      { key: "deliverable_submitted", label: "تسليم ملفات جديدة", defaultEnabled: true },
     ],
   },
   {
