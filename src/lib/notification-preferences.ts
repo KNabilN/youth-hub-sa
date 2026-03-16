@@ -118,7 +118,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
     ],
   },
 ];
@@ -127,7 +127,7 @@ const DONOR_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التبرعات والمنح",
     types: [
-      { key: "donation_received", label: "تأكيد استلام تبرع", defaultEnabled: false },
+      { key: "donation_received", label: "تأكيد استلام تبرع", defaultEnabled: true },
       { key: "project_completed", label: "إكمال مشروع مدعوم", defaultEnabled: true },
       { key: "grant_request_received", label: "طلب منحة جديد", defaultEnabled: true },
     ],
