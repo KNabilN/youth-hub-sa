@@ -231,7 +231,7 @@ export function useInquiryConversations() {
           other_party_avatar: otherProfile?.avatar_url ?? null,
           last_message: lastMsg?.content ?? "",
           last_message_at: lastMsg?.created_at ?? inq.updated_at,
-          unread_count,
+          unread_count: unreadCount,
         });
       }
 
