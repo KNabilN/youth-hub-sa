@@ -33,7 +33,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: true },
       { key: "escrow_released", label: "تحرير ضمان مالي", defaultEnabled: true },
       { key: "escrow_refunded", label: "استرداد ضمان مالي", defaultEnabled: true },
       { key: "withdrawal_approved", label: "الموافقة على طلب سحب", defaultEnabled: true },
