@@ -17,7 +17,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
     types: [
       { key: "bid_accepted", label: "قبول عرض السعر", defaultEnabled: true },
       { key: "bid_rejected", label: "رفض عرض السعر", defaultEnabled: true },
-      { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: false },
+      { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: true },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
       { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
@@ -33,7 +33,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: true },
       { key: "escrow_released", label: "تحرير ضمان مالي", defaultEnabled: true },
       { key: "escrow_refunded", label: "استرداد ضمان مالي", defaultEnabled: true },
       { key: "withdrawal_approved", label: "الموافقة على طلب سحب", defaultEnabled: true },
@@ -46,14 +46,14 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
     types: [
       { key: "service_approved", label: "الموافقة على خدمة", defaultEnabled: true },
       { key: "service_rejected", label: "رفض خدمة", defaultEnabled: true },
-      { key: "service_purchased", label: "شراء خدمة", defaultEnabled: false },
+      { key: "service_purchased", label: "شراء خدمة", defaultEnabled: true },
     ],
   },
   {
     groupLabel: "سجل الوقت",
     types: [
-      { key: "timelog_approved", label: "الموافقة على سجل الوقت", defaultEnabled: false },
-      { key: "timelog_rejected", label: "رفض سجل الوقت", defaultEnabled: false },
+      { key: "timelog_approved", label: "الموافقة على سجل الوقت", defaultEnabled: true },
+      { key: "timelog_rejected", label: "رفض سجل الوقت", defaultEnabled: true },
     ],
   },
   {
@@ -66,7 +66,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
     ],
   },
 ];
@@ -75,9 +75,9 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "العروض والمشاريع",
     types: [
-      { key: "bid_received", label: "استلام عرض سعر جديد", defaultEnabled: false },
-      { key: "project_open", label: "الموافقة على المشروع", defaultEnabled: false },
-      { key: "project_in_progress", label: "بدء العمل", defaultEnabled: false },
+      { key: "bid_received", label: "استلام عرض سعر جديد", defaultEnabled: true },
+      { key: "project_open", label: "الموافقة على المشروع", defaultEnabled: true },
+      { key: "project_in_progress", label: "بدء العمل", defaultEnabled: true },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
       { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
@@ -93,7 +93,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: true },
       { key: "escrow_released", label: "تحرير ضمان", defaultEnabled: true },
       { key: "escrow_refunded", label: "استرداد ضمان", defaultEnabled: true },
       { key: "bank_transfer_approved", label: "الموافقة على تحويل بنكي", defaultEnabled: true },
@@ -104,7 +104,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التسليمات",
     types: [
-      { key: "deliverable_submitted", label: "تسليم ملفات جديدة", defaultEnabled: false },
+      { key: "deliverable_submitted", label: "تسليم ملفات جديدة", defaultEnabled: true },
     ],
   },
   {
@@ -118,7 +118,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
     ],
   },
 ];
@@ -127,7 +127,7 @@ const DONOR_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التبرعات والمنح",
     types: [
-      { key: "donation_received", label: "تأكيد استلام تبرع", defaultEnabled: false },
+      { key: "donation_received", label: "تأكيد استلام تبرع", defaultEnabled: true },
       { key: "project_completed", label: "إكمال مشروع مدعوم", defaultEnabled: true },
       { key: "grant_request_received", label: "طلب منحة جديد", defaultEnabled: true },
     ],
@@ -140,7 +140,7 @@ const SUPER_ADMIN_GROUPS: NotificationGroup[] = [
     types: [
       { key: "bank_transfer_pending", label: "تحويل بنكي جديد بانتظار المراجعة", defaultEnabled: true },
       { key: "dispute_opened", label: "شكوى جديدة", defaultEnabled: true },
-      { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: false },
+      { key: "contact_message", label: "رسالة تواصل جديدة", defaultEnabled: true },
     ],
   },
 ];

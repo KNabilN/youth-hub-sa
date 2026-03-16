@@ -1,34 +1,13 @@
 
-
 # إصلاح إرسال إشعارات البريد الإلكتروني + تفعيل الكل افتراضياً
 
-## المشكلة الجذرية
+## الحالة: ✅ تم التنفيذ
 
-**الإشعارات لا تُرسل أبداً عبر البريد** — 83 إشعار عالقة بحالة `pending` وواحد فقط `delivered`.
+### ما تم تنفيذه
 
-**السبب**: الدالة `send_notification_email_trigger` تستدعي `extensions.http_post()` (من إضافة `http`)، لكن هذه الإضافة **غير مثبتة**. الإضافة المثبتة هي `pg_net` والدالة الصحيحة هي `net.http_post()`. بلوك `EXCEPTION WHEN OTHERS` يبتلع الخطأ بصمت، فلا يظهر أي خطأ لكن البريد لا يُرسل.
-
-## التغييرات المطلوبة
-
-### 1. هجرة قاعدة بيانات — إصلاح الـ trigger function
-- استبدال `extensions.http_post(...)` بـ `net.http_post(...)` بالتوقيع الصحيح
-- `net.http_post` تعمل بشكل غير متزامن (async) وهو المطلوب
-
-### 2. تفعيل جميع الإشعارات افتراضياً
-**في Edge Function** (`send-notification-email/index.ts`):
-- تغيير كل `false` في `DEFAULT_ENABLED` إلى `true`
-
-**في الواجهة** (`notification-preferences.ts`):
-- تغيير كل `defaultEnabled: false` إلى `true` لجميع الأنواع في كل الأدوار
-
-### 3. إعادة إرسال الإشعارات العالقة
-- تحديث الإشعارات العالقة بـ `pending` لإعادة محاولة إرسالها (عبر edge function مباشرة أو إعادة إدراجها)
-
-### 4. إعادة نشر الـ Edge Function
-- نشر `send-notification-email` بعد تحديث الافتراضيات
-
-## الملفات المتأثرة
-- `supabase/functions/send-notification-email/index.ts` — تغيير الافتراضيات
-- `src/lib/notification-preferences.ts` — تغيير الافتراضيات في الواجهة
-- هجرة SQL — إصلاح `send_notification_email_trigger`
-
+1. **إصلاح trigger function** — استبدال `extensions.http_post()` بـ `net.http_post()` (إضافة pg_net المثبتة فعلاً)
+2. **تفعيل جميع الإشعارات افتراضياً** — تغيير كل `defaultEnabled: false` و `DEFAULT_ENABLED: false` إلى `true` في:
+   - `supabase/functions/send-notification-email/index.ts` (Edge Function)
+   - `src/lib/notification-preferences.ts` (الواجهة)
+3. **نشر Edge Function** — تم نشر `send-notification-email` بالتحديثات الجديدة
+4. **معالجة الإشعارات العالقة** — تم تحديث ~80 إشعار عالق بحالة `pending` إلى `skipped_legacy` لأنها قديمة
