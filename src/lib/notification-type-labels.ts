@@ -74,6 +74,10 @@ export const notificationTypeLabels: Record<string, string> = {
   // طلبات التعديل
   edit_request: "طلب تعديل",
 
+  // استفسارات الخدمات
+  inquiry_created: "استفسار جديد عن خدمة",
+  inquiry_message: "رسالة استفسار عن خدمة",
+
   // عام
   info: "إشعار عام",
   warning: "تنبيه",
