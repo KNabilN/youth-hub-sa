@@ -4,6 +4,7 @@ import { ServiceGallery } from "@/components/services/ServiceGallery";
 import { ServicePackages } from "@/components/services/ServicePackages";
 import { ServiceProviderCard } from "@/components/services/ServiceProviderCard";
 import { ServiceFAQ } from "@/components/services/ServiceFAQ";
+import { ServiceInquirySheet } from "@/components/services/ServiceInquirySheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -138,6 +139,14 @@ export default function ServiceDetail() {
           />
           {provider && (
             <ServiceProviderCard provider={provider} />
+          )}
+          {/* Inquiry button — visible to associations/donors, not to the provider themselves */}
+          {user && provider && user.id !== provider.id && (role === "youth_association" || role === "donor") && (
+            <ServiceInquirySheet
+              serviceId={id!}
+              providerId={provider.id}
+              serviceTitle={service.title}
+            />
           )}
         </div>
       </div>

@@ -67,6 +67,8 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
     groupLabel: "التواصل",
     types: [
       { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
+      { key: "inquiry_created", label: "استفسار جديد عن خدمة", defaultEnabled: true },
+      { key: "inquiry_message", label: "رسالة استفسار عن خدمة", defaultEnabled: true },
     ],
   },
 ];
@@ -119,6 +121,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
     groupLabel: "التواصل",
     types: [
       { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
+      { key: "inquiry_message", label: "رسالة استفسار عن خدمة", defaultEnabled: true },
     ],
   },
 ];
