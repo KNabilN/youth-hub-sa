@@ -53,6 +53,8 @@ const DEFAULT_ENABLED: Record<string, boolean> = {
   bid_comment: true,
   contact_message: true,
   donation_received: true,
+  inquiry_created: true,
+  inquiry_message: true,
 };
 
 function isTypeEnabled(
