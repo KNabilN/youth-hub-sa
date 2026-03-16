@@ -66,7 +66,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "التواصل",
     types: [
-      { key: "message_received", label: "رسالة جديدة", defaultEnabled: false },
+      { key: "message_received", label: "رسالة جديدة", defaultEnabled: true },
     ],
   },
 ];
@@ -75,9 +75,9 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "العروض والمشاريع",
     types: [
-      { key: "bid_received", label: "استلام عرض سعر جديد", defaultEnabled: false },
-      { key: "project_open", label: "الموافقة على المشروع", defaultEnabled: false },
-      { key: "project_in_progress", label: "بدء العمل", defaultEnabled: false },
+      { key: "bid_received", label: "استلام عرض سعر جديد", defaultEnabled: true },
+      { key: "project_open", label: "الموافقة على المشروع", defaultEnabled: true },
+      { key: "project_in_progress", label: "بدء العمل", defaultEnabled: true },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
       { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
