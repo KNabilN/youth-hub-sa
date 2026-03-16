@@ -140,6 +140,14 @@ export default function ServiceDetail() {
           {provider && (
             <ServiceProviderCard provider={provider} />
           )}
+          {/* Inquiry button — visible to associations/donors, not to the provider themselves */}
+          {user && provider && user.id !== provider.id && (role === "youth_association" || role === "donor") && (
+            <ServiceInquirySheet
+              serviceId={id!}
+              providerId={provider.id}
+              serviceTitle={service.title}
+            />
+          )}
         </div>
       </div>
 
