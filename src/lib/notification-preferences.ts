@@ -93,7 +93,7 @@ const YOUTH_ASSOCIATION_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "المالية",
     types: [
-      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: false },
+      { key: "escrow_created", label: "إنشاء ضمان مالي", defaultEnabled: true },
       { key: "escrow_released", label: "تحرير ضمان", defaultEnabled: true },
       { key: "escrow_refunded", label: "استرداد ضمان", defaultEnabled: true },
       { key: "bank_transfer_approved", label: "الموافقة على تحويل بنكي", defaultEnabled: true },
