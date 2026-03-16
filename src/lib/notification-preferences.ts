@@ -52,8 +52,8 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
   {
     groupLabel: "سجل الوقت",
     types: [
-      { key: "timelog_approved", label: "الموافقة على سجل الوقت", defaultEnabled: false },
-      { key: "timelog_rejected", label: "رفض سجل الوقت", defaultEnabled: false },
+      { key: "timelog_approved", label: "الموافقة على سجل الوقت", defaultEnabled: true },
+      { key: "timelog_rejected", label: "رفض سجل الوقت", defaultEnabled: true },
     ],
   },
   {
