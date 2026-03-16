@@ -17,7 +17,7 @@ const SERVICE_PROVIDER_GROUPS: NotificationGroup[] = [
     types: [
       { key: "bid_accepted", label: "قبول عرض السعر", defaultEnabled: true },
       { key: "bid_rejected", label: "رفض عرض السعر", defaultEnabled: true },
-      { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: false },
+      { key: "project_in_progress", label: "بدء العمل على مشروع", defaultEnabled: true },
       { key: "project_completed", label: "إكمال المشروع", defaultEnabled: true },
       { key: "project_cancelled", label: "إلغاء المشروع", defaultEnabled: true },
       { key: "project_disputed", label: "فتح شكوى", defaultEnabled: true },
