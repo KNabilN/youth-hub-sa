@@ -147,7 +147,7 @@ export default function AdminContracts() {
                 </TableHeader>
                 <TableBody>
                   {paged.map((c) => (
-                    <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/projects/${c.project?.request_number ? "" : ""}`, { replace: false })}>
+                    <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/admin/projects/${(c as any).project_id}`)}>
                       <TableCell className="font-mono text-sm font-semibold">{c.project?.request_number || "—"}</TableCell>
                       <TableCell className="font-medium max-w-[150px] truncate" title={c.project?.title ?? "—"}>{c.project?.title ?? "—"}</TableCell>
                       <TableCell className="max-w-[120px] truncate" title={getDisplayName(c.association)}>{getDisplayName(c.association)}</TableCell>
