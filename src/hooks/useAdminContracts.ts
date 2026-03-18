@@ -31,7 +31,7 @@ export function useAdminContracts() {
       const { data, error } = await supabase
         .from("contracts")
         .select(`
-          id, created_at, association_signed_at, provider_signed_at, terms,
+          id, created_at, association_signed_at, provider_signed_at, terms, project_id,
           project:projects(title, request_number),
           association:profiles!contracts_association_id_fkey(full_name, organization_name),
           provider:profiles!contracts_provider_id_fkey(full_name, organization_name)

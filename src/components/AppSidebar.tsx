@@ -73,6 +73,7 @@ const menuByRole = {
     { title: "إدارة المستخدمين", url: "/admin/users", icon: UserCog },
     { title: "طلبات الجمعيات", url: "/admin/projects", icon: FolderKanban },
     { title: "الخدمات", url: "/admin/services", icon: Store },
+    { title: "العقود", url: "/admin/contracts", icon: ScrollText },
     { title: "الشكاوى", url: "/admin/disputes", icon: Gavel },
     { title: "المالية", url: "/admin/finance", icon: Receipt },
     { title: "التقارير", url: "/admin/reports", icon: BarChart3 },

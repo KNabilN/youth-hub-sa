@@ -189,6 +189,7 @@ const App = () => (
                 <Route path="/admin/services" element={<AdminRoute><SuspenseWrap><AdminServices /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/services/:id" element={<AdminRoute><SuspenseWrap><AdminServiceDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/disputes" element={<AdminRoute><SuspenseWrap><AdminDisputes /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/contracts" element={<AdminRoute><SuspenseWrap><AdminContracts /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/disputes/:id" element={<AdminRoute><SuspenseWrap><AdminDisputeDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/finance" element={<AdminRoute><SuspenseWrap><AdminFinance /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/reports" element={<AdminRoute><SuspenseWrap><AdminReports /></SuspenseWrap></AdminRoute>} />
