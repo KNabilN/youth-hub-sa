@@ -4,6 +4,7 @@ import { useGuestCart } from "@/hooks/useGuestCart";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export type UnifiedCartItem = {
   id: string; // cartItemId for DB, service_id for guest

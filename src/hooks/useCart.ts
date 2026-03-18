@@ -32,7 +32,10 @@ export function useCartItems() {
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as CartItemWithService[];
+      // Filter out items where the service is not accessible (e.g. suspended/deleted)
+      return ((data ?? []) as unknown as any[]).filter(
+        (item) => item.micro_services !== null
+      ) as CartItemWithService[];
     },
   });
 }
