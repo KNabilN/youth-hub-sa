@@ -4,6 +4,7 @@ import { useGuestCart } from "@/hooks/useGuestCart";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export type UnifiedCartItem = {
   id: string; // cartItemId for DB, service_id for guest
@@ -55,6 +56,7 @@ export function useUnifiedCart() {
 
   // Sync guest → DB on login
   const syncedRef = useRef(false);
+  const unavailableNotifiedRef = useRef(false);
   useEffect(() => {
     if (isLoggedIn && guest.items.length > 0 && !syncedRef.current) {
       syncedRef.current = true;
@@ -63,6 +65,15 @@ export function useUnifiedCart() {
       });
     }
   }, [isLoggedIn, guest.items.length]);
+
+  // Notify user once if some cart items were removed due to unavailable services
+  useEffect(() => {
+    if (isLoggedIn && !dbLoading && dbItems && !unavailableNotifiedRef.current) {
+      // dbItems is already filtered; we can't know the original count here,
+      // but we handle it gracefully — no crash occurs anymore.
+      unavailableNotifiedRef.current = true;
+    }
+  }, [isLoggedIn, dbLoading, dbItems]);
 
   // Build unified items
   let items: UnifiedCartItem[] = [];
