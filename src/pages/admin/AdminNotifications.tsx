@@ -168,6 +168,14 @@ export default function AdminNotifications() {
           </CardContent>
         </Card>
       </div>
+
+      <AdminNotificationSheet
+        notification={selectedNotification}
+        open={!!selectedNotification}
+        onOpenChange={(open) => !open && setSelectedNotification(null)}
+        onResend={handleResend}
+        isResending={resend.isPending}
+      />
     </DashboardLayout>
   );
 }
