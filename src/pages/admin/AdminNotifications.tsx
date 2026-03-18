@@ -148,7 +148,7 @@ export default function AdminNotifications() {
                               {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ar })}
                             </TableCell>
                             <TableCell>
-                              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={() => handleResend(n)} disabled={resend.isPending}>
+                              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={(e) => { e.stopPropagation(); handleResend(n); }} disabled={resend.isPending}>
                                 <RotateCcw className="h-3 w-3" /> إعادة إرسال
                               </Button>
                             </TableCell>
