@@ -86,6 +86,7 @@ const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
 const AdminServiceDetail = lazy(() => import("./pages/admin/AdminServiceDetail"));
 const AdminProjectDetail = lazy(() => import("./pages/admin/AdminProjectDetail"));
 const AdminHypotheses = lazy(() => import("./pages/admin/AdminHypotheses"));
+const AdminContracts = lazy(() => import("./pages/admin/AdminContracts"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
