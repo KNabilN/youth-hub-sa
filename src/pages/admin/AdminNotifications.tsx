@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { AdminNotificationSheet } from "@/components/admin/AdminNotificationSheet";
 import { useAdminNotifications, useAdminNotificationStats, useResendNotification } from "@/hooks/useAdminNotifications";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
