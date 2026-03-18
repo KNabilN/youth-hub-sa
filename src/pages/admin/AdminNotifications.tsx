@@ -27,6 +27,7 @@ export default function AdminNotifications() {
   const [page, setPage] = useState(0);
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
+  const { data: notifications, isLoading } = useAdminNotifications(filter, typeFilter, page);
   const { data: stats } = useAdminNotificationStats();
   const resend = useResendNotification();
 
