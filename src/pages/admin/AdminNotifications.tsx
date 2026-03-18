@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { AdminNotificationSheet } from "@/components/admin/AdminNotificationSheet";
 import { useAdminNotifications, useAdminNotificationStats, useResendNotification } from "@/hooks/useAdminNotifications";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,6 +26,7 @@ export default function AdminNotifications() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [typeFilter, setTypeFilter] = useState("all");
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
   const { data: notifications, isLoading } = useAdminNotifications(filter, typeFilter, page);
   const { data: stats } = useAdminNotificationStats();
   const resend = useResendNotification();
@@ -133,7 +135,7 @@ export default function AdminNotifications() {
                         const st = statusMap[n.delivery_status] || statusMap.delivered;
                         const StIcon = st.icon;
                         return (
-                          <TableRow key={n.id}>
+                          <TableRow key={n.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedNotification(n)}>
                             <TableCell className="font-medium text-sm">{n.profiles?.full_name || "—"}</TableCell>
                             <TableCell className="max-w-[250px] truncate text-sm">{n.message}</TableCell>
                             <TableCell><Badge variant="outline" className="text-xs">{getNotificationLabel(n.type)}</Badge></TableCell>
@@ -146,7 +148,7 @@ export default function AdminNotifications() {
                               {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ar })}
                             </TableCell>
                             <TableCell>
-                              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={() => handleResend(n)} disabled={resend.isPending}>
+                              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={(e) => { e.stopPropagation(); handleResend(n); }} disabled={resend.isPending}>
                                 <RotateCcw className="h-3 w-3" /> إعادة إرسال
                               </Button>
                             </TableCell>
@@ -166,6 +168,14 @@ export default function AdminNotifications() {
           </CardContent>
         </Card>
       </div>
+
+      <AdminNotificationSheet
+        notification={selectedNotification}
+        open={!!selectedNotification}
+        onOpenChange={(open) => !open && setSelectedNotification(null)}
+        onResend={handleResend}
+        isResending={resend.isPending}
+      />
     </DashboardLayout>
   );
 }
