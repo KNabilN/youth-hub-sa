@@ -1,13 +1,38 @@
 
-# إصلاح إرسال إشعارات البريد الإلكتروني + تفعيل الكل افتراضياً
 
-## الحالة: ✅ تم التنفيذ
+# إضافة عرض تفاصيل الإشعار للأدمن
 
-### ما تم تنفيذه
+## المشكلة
+صفحة إشعارات الأدمن تعرض الرسائل مقتصة (`truncate` على 250px) بدون أي طريقة لرؤية التفاصيل الكاملة — لا يوجد نقر على الصف ولا نافذة تفاصيل.
 
-1. **إصلاح trigger function** — استبدال `extensions.http_post()` بـ `net.http_post()` (إضافة pg_net المثبتة فعلاً)
-2. **تفعيل جميع الإشعارات افتراضياً** — تغيير كل `defaultEnabled: false` و `DEFAULT_ENABLED: false` إلى `true` في:
-   - `supabase/functions/send-notification-email/index.ts` (Edge Function)
-   - `src/lib/notification-preferences.ts` (الواجهة)
-3. **نشر Edge Function** — تم نشر `send-notification-email` بالتحديثات الجديدة
-4. **معالجة الإشعارات العالقة** — تم تحديث ~80 إشعار عالق بحالة `pending` إلى `skipped_legacy` لأنها قديمة
+## الحل
+إضافة Sheet جانبي يُفتح عند النقر على أي صف في جدول الإشعارات، يعرض كل تفاصيل الإشعار بشكل واضح ومنظم.
+
+## التغييرات
+
+### 1. تعديل `src/pages/admin/AdminNotifications.tsx`
+- إضافة state لتتبع الإشعار المحدد (`selectedNotification`)
+- جعل صفوف الجدول قابلة للنقر (بنفس نمط `admin-table-ux` المعتمد — `cursor-pointer hover:bg-muted/50`)
+- عزل زر "إعادة إرسال" بـ `stopPropagation`
+- استيراد وعرض مكون `AdminNotificationSheet`
+
+### 2. إنشاء `src/components/admin/AdminNotificationSheet.tsx`
+Sheet جانبي يعرض:
+- **أيقونة + نوع الإشعار** (مترجم بالعربي من `notification-type-labels`)
+- **حالة التوصيل** (delivered/failed/pending) مع badge ملون
+- **اسم المستخدم** المستلِم
+- **نص الرسالة كاملاً** (بدون اقتصاص)
+- **الكيان المرتبط** (entity_type + entity_id) مع رابط مباشر لصفحة التفاصيل الإدارية
+- **التاريخ** بالتنسيق الكامل + "منذ..."
+- **زر إعادة إرسال** داخل الـ Sheet
+- **حالة القراءة** (مقروء / غير مقروء)
+
+### ملفات متأثرة
+
+| الملف | العملية |
+|-------|---------|
+| `src/components/admin/AdminNotificationSheet.tsx` | إنشاء جديد |
+| `src/pages/admin/AdminNotifications.tsx` | تعديل — إضافة state + نقر الصف + فتح Sheet |
+
+لا حاجة لتغييرات في قاعدة البيانات — البيانات المطلوبة موجودة بالفعل في الاستعلام الحالي.
+
