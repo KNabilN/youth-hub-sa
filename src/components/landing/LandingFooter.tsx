@@ -48,7 +48,7 @@ export default function LandingFooter() {
               <li><Link to="/about" className="text-sm text-gray-400 hover:text-white transition-colors">من نحن</Link></li>
               <li><Link to="/faq" className="text-sm text-gray-400 hover:text-white transition-colors">الأسئلة الشائعة</Link></li>
               <li><Link to="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">سياسة الخصوصية</Link></li>
-              {(ft.links || []).map((link: any) =>
+              {(ft.links || []).filter((link: any) => link.label !== "سياسة الخصوصية").map((link: any) =>
               <li key={link.label}>
                   <a href={link.url} className="text-sm text-gray-400 hover:text-white transition-colors">{link.label}</a>
                 </li>
