@@ -135,7 +135,7 @@ export default function AdminNotifications() {
                         const st = statusMap[n.delivery_status] || statusMap.delivered;
                         const StIcon = st.icon;
                         return (
-                          <TableRow key={n.id}>
+                          <TableRow key={n.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedNotification(n)}>
                             <TableCell className="font-medium text-sm">{n.profiles?.full_name || "—"}</TableCell>
                             <TableCell className="max-w-[250px] truncate text-sm">{n.message}</TableCell>
                             <TableCell><Badge variant="outline" className="text-xs">{getNotificationLabel(n.type)}</Badge></TableCell>
