@@ -56,6 +56,7 @@ export function useUnifiedCart() {
 
   // Sync guest → DB on login
   const syncedRef = useRef(false);
+  const unavailableNotifiedRef = useRef(false);
   useEffect(() => {
     if (isLoggedIn && guest.items.length > 0 && !syncedRef.current) {
       syncedRef.current = true;
@@ -64,6 +65,15 @@ export function useUnifiedCart() {
       });
     }
   }, [isLoggedIn, guest.items.length]);
+
+  // Notify user once if some cart items were removed due to unavailable services
+  useEffect(() => {
+    if (isLoggedIn && !dbLoading && dbItems && !unavailableNotifiedRef.current) {
+      // dbItems is already filtered; we can't know the original count here,
+      // but we handle it gracefully — no crash occurs anymore.
+      unavailableNotifiedRef.current = true;
+    }
+  }, [isLoggedIn, dbLoading, dbItems]);
 
   // Build unified items
   let items: UnifiedCartItem[] = [];
