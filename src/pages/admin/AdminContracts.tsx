@@ -171,15 +171,8 @@ export default function AdminContracts() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Button size="sm" variant="outline" onClick={() => {
-                          // Navigate to the project detail for this contract
-                          const projectTitle = c.project?.request_number;
-                          if (projectTitle) {
-                            // We need the project id — we'll search by navigating with contract context
-                          }
-                          navigate(`/contracts`);
-                        }}>
-                          <Eye className="h-4 w-4 me-1" />عرض
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${(c as any).project_id}`)}>
+                          <Eye className="h-4 w-4 me-1" />عرض المشروع
                         </Button>
                       </TableCell>
                     </TableRow>
