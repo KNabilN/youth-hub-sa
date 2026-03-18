@@ -1,38 +1,13 @@
 
+# إصلاح إرسال إشعارات البريد الإلكتروني + تفعيل الكل افتراضياً
 
-# خطة إضافة صفحة "إدارة العقود" للأدمن
+## الحالة: ✅ تم التنفيذ
 
-## الهدف
-إضافة صفحة إدارية كاملة تُمكّن مدير النظام من متابعة جميع العقود، معرفة حالة التوقيع لكل طرف، مع فلاتر وتصدير CSV — بنفس نمط الصفحات الإدارية الأخرى (AdminProjects, AdminServices).
+### ما تم تنفيذه
 
-## التغييرات المطلوبة
-
-### 1. صفحة جديدة: `src/pages/admin/AdminContracts.tsx`
-- عنوان + أيقونة بنفس نمط باقي الصفحات الإدارية
-- جدول يعرض: رقم المشروع، عنوان المشروع، اسم الجمعية، اسم المزود، حالة التوقيع (غير موقّع / جزئي / مكتمل)، تاريخ توقيع الجمعية، تاريخ توقيع المزود، تاريخ الإنشاء
-- فلتر حسب حالة التوقيع (الكل / غير موقّع / جزئي / مكتمل)
-- بحث بالنص (عنوان المشروع أو اسم الطرف)
-- Pagination
-- تصدير CSV عبر `ExportDialog`
-- رابط لعرض تفاصيل المشروع المرتبط
-
-### 2. Hook جديد: `src/hooks/useAdminContracts.ts`
-- استعلام يجلب كل العقود مع join على `projects(title, request_number)` و `profiles` لاسم الجمعية والمزود
-- فلترة حسب حالة التوقيع
-- يعمل فقط للأدمن (RLS موجود بالفعل: "Admin manage all contracts")
-
-### 3. تحديث الملفات القائمة
-- **`src/App.tsx`**: إضافة lazy import + route `/admin/contracts` داخل `AdminRoute`
-- **`src/components/AppSidebar.tsx`**: إضافة عنصر "العقود" في قائمة `super_admin` (بعد "الخدمات" وقبل "الشكاوى")
-
-### 4. ملخص الملفات
-
-| الملف | العملية |
-|-------|---------|
-| `src/pages/admin/AdminContracts.tsx` | إنشاء جديد |
-| `src/hooks/useAdminContracts.ts` | إنشاء جديد |
-| `src/App.tsx` | إضافة route |
-| `src/components/AppSidebar.tsx` | إضافة رابط |
-
-لا حاجة لهجرة قاعدة بيانات — جدول `contracts` موجود والـ RLS يسمح للأدمن بالفعل.
-
+1. **إصلاح trigger function** — استبدال `extensions.http_post()` بـ `net.http_post()` (إضافة pg_net المثبتة فعلاً)
+2. **تفعيل جميع الإشعارات افتراضياً** — تغيير كل `defaultEnabled: false` و `DEFAULT_ENABLED: false` إلى `true` في:
+   - `supabase/functions/send-notification-email/index.ts` (Edge Function)
+   - `src/lib/notification-preferences.ts` (الواجهة)
+3. **نشر Edge Function** — تم نشر `send-notification-email` بالتحديثات الجديدة
+4. **معالجة الإشعارات العالقة** — تم تحديث ~80 إشعار عالق بحالة `pending` إلى `skipped_legacy` لأنها قديمة

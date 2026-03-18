@@ -86,6 +86,7 @@ const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
 const AdminServiceDetail = lazy(() => import("./pages/admin/AdminServiceDetail"));
 const AdminProjectDetail = lazy(() => import("./pages/admin/AdminProjectDetail"));
 const AdminHypotheses = lazy(() => import("./pages/admin/AdminHypotheses"));
+const AdminContracts = lazy(() => import("./pages/admin/AdminContracts"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
@@ -188,6 +189,7 @@ const App = () => (
                 <Route path="/admin/services" element={<AdminRoute><SuspenseWrap><AdminServices /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/services/:id" element={<AdminRoute><SuspenseWrap><AdminServiceDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/disputes" element={<AdminRoute><SuspenseWrap><AdminDisputes /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/contracts" element={<AdminRoute><SuspenseWrap><AdminContracts /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/disputes/:id" element={<AdminRoute><SuspenseWrap><AdminDisputeDetail /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/finance" element={<AdminRoute><SuspenseWrap><AdminFinance /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/reports" element={<AdminRoute><SuspenseWrap><AdminReports /></SuspenseWrap></AdminRoute>} />
