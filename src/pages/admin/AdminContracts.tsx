@@ -157,7 +157,7 @@ export default function AdminContracts() {
                       </TableCell>
                       <TableCell className="text-sm">
                         {c.association_signed_at ? (
-                          <span className="text-emerald-600">{format(new Date(c.association_signed_at), "yyyy/MM/dd", { locale: ar })}</span>
+                          <span className="text-primary">{format(new Date(c.association_signed_at), "yyyy/MM/dd", { locale: ar })}</span>
                         ) : (
                           <span className="text-muted-foreground">لم يوقّع</span>
                         )}
