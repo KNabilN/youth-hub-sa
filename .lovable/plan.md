@@ -1,13 +1,22 @@
 
-# إصلاح إرسال إشعارات البريد الإلكتروني + تفعيل الكل افتراضياً
 
-## الحالة: ✅ تم التنفيذ
+# تخصيص عرض العنوان في سطرين + تحديد عدد الحروف
 
-### ما تم تنفيذه
+## التغييرات
 
-1. **إصلاح trigger function** — استبدال `extensions.http_post()` بـ `net.http_post()` (إضافة pg_net المثبتة فعلاً)
-2. **تفعيل جميع الإشعارات افتراضياً** — تغيير كل `defaultEnabled: false` و `DEFAULT_ENABLED: false` إلى `true` في:
-   - `supabase/functions/send-notification-email/index.ts` (Edge Function)
-   - `src/lib/notification-preferences.ts` (الواجهة)
-3. **نشر Edge Function** — تم نشر `send-notification-email` بالتحديثات الجديدة
-4. **معالجة الإشعارات العالقة** — تم تحديث ~80 إشعار عالق بحالة `pending` إلى `skipped_legacy` لأنها قديمة
+### 1. تعديل `ServiceCard.tsx` و `LandingServicesGrid.tsx`
+- تغيير `truncate` (سطر واحد) إلى `line-clamp-2` (سطرين) على عنوان الخدمة في البطاقات
+
+### 2. تعديل `ServiceForm.tsx` — validation العنوان
+- تغيير `.max(200)` إلى `.max(80)` مع رسالة خطأ عربية: "العنوان يجب ألا يتجاوز 80 حرفاً"
+- إضافة `CharCounter` تحت حقل العنوان لإظهار عدد الحروف المتبقية (المكون موجود بالفعل)
+
+80 حرف كافية لملء سطرين في عرض البطاقة الحالي دون اقتصاص.
+
+### ملفات متأثرة
+| الملف | التغيير |
+|-------|---------|
+| `src/components/marketplace/ServiceCard.tsx` | `truncate` → `line-clamp-2` |
+| `src/components/landing/LandingServicesGrid.tsx` | `truncate` → `line-clamp-2` |
+| `src/components/services/ServiceForm.tsx` | max 80 + CharCounter |
+
