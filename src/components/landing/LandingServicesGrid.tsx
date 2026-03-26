@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Store, User, Tag, Banknote, ArrowLeft, Eye, ShoppingCart, Check, Star } from "lucide-react";
+import { Store, ArrowLeft, Eye, ShoppingCart, Check, Star, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Service {
@@ -42,12 +44,109 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
 
+  const [showAll, setShowAll] = useState(false);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [allLoading, setAllLoading] = useState(false);
+
   if (!loading && services.length === 0) return null;
 
   const handleAdd = (serviceId: string) => {
     addItem(serviceId);
     toast.success("تمت إضافة الخدمة إلى السلة");
   };
+
+  const handleLoadAll = async () => {
+    if (showAll) {
+      setShowAll(false);
+      return;
+    }
+    setAllLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("micro_services")
+        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
+        .eq("approval", "approved")
+        .is("deleted_at", null)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setAllServices((data as unknown as Service[]) || []);
+      setShowAll(true);
+    } catch {
+      toast.error("حدث خطأ أثناء تحميل الخدمات");
+    } finally {
+      setAllLoading(false);
+    }
+  };
+
+  const displayedServices = showAll ? allServices : services;
+
+  const renderCard = (s: Service) => (
+    <Card key={s.id} className="card-hover group overflow-hidden relative">
+      {(s as any).is_featured && (
+        <div className="absolute top-2 start-2 z-10">
+          <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-500 text-white border-0 text-xs">
+            <Star className="w-3 h-3 fill-white" />
+            مميزة
+          </Badge>
+        </div>
+      )}
+      {s.image_url && (
+        <div className="w-full h-40 overflow-hidden">
+          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        </div>
+      )}
+      <CardHeader className="pb-3">
+        <div className="space-y-1.5">
+          <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{s.title}</CardTitle>
+          <Badge variant="outline" className="w-fit">
+            {typeLabel[s.service_type] || s.service_type}
+          </Badge>
+        </div>
+        {s.provider && (
+          <div className="flex items-center gap-2 mt-1">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
+                {s.provider.full_name?.[0] || "؟"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground">{s.provider.full_name}</span>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
+        <div className="flex items-center justify-between text-sm">
+          <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
+            {s.price.toLocaleString("ar-SA")} ر.س
+          </div>
+          <div className="flex gap-1.5">
+            {s.category && <Badge variant="secondary" className="text-xs">{s.category.name}</Badge>}
+            {s.region && <Badge variant="secondary" className="text-xs">{s.region.name}</Badge>}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1" asChild>
+            <Link to={`/services/${s.id}`}>
+              <Eye className="h-4 w-4 me-1" />
+              التفاصيل
+            </Link>
+          </Button>
+          {cartServiceIds.has(s.id) ? (
+            <Button size="sm" variant="secondary" className="flex-1" onClick={() => navigate("/cart")}>
+              <Check className="h-4 w-4 me-1" />
+              عرض السلة
+            </Button>
+          ) : (
+            <Button size="sm" className="flex-1" onClick={() => handleAdd(s.id)} disabled={isAdding}>
+              <ShoppingCart className="h-4 w-4 me-1" />
+              أضف للسلة
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <section className="py-20 px-4 bg-muted/30">
@@ -71,91 +170,33 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {services.map((s) => (
-              <Card key={s.id} className="card-hover group overflow-hidden relative">
-                {(s as any).is_featured && (
-                  <div className="absolute top-2 start-2 z-10">
-                    <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-500 text-white border-0 text-xs">
-                      <Star className="w-3 h-3 fill-white" />
-                      مميزة
-                    </Badge>
-                  </div>
-                )}
-                {s.image_url && (
-                  <div className="w-full h-40 overflow-hidden">
-                    <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </div>
-                )}
-                <CardHeader className="pb-3">
-                  <div className="space-y-1.5">
-                    <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{s.title}</CardTitle>
-                    <Badge variant="outline" className="w-fit">
-                      {typeLabel[s.service_type] || s.service_type}
-                    </Badge>
-                  </div>
-                  {s.provider && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
-                          {s.provider.full_name?.[0] || "؟"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-muted-foreground">{s.provider.full_name}</span>
-                    </div>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
-                      {s.price.toLocaleString("ar-SA")} ر.س
-                    </div>
-                    <div className="flex gap-1.5">
-                      {s.category && <Badge variant="secondary" className="text-xs">{s.category.name}</Badge>}
-                      {s.region && <Badge variant="secondary" className="text-xs">{s.region.name}</Badge>}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <Link to={`/services/${s.id}`}>
-                        <Eye className="h-4 w-4 me-1" />
-                        التفاصيل
-                      </Link>
-                    </Button>
-                    {cartServiceIds.has(s.id) ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="flex-1"
-                        onClick={() => navigate("/cart")}
-                      >
-                        <Check className="h-4 w-4 me-1" />
-                        عرض السلة
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleAdd(s.id)}
-                        disabled={isAdding}
-                      >
-                        <ShoppingCart className="h-4 w-4 me-1" />
-                        أضف للسلة
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {displayedServices.map(renderCard)}
           </div>
         )}
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow">
-            <Link to={isLoggedIn ? "/marketplace" : "/auth?mode=register"}>
-              {isLoggedIn ? "تصفح جميع الخدمات" : (buttonText || "تصفح جميع الخدمات")}
-              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            </Link>
+          <Button
+            size="lg"
+            className="gap-2 rounded-xl px-8 text-base shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-shadow"
+            onClick={handleLoadAll}
+            disabled={allLoading}
+          >
+            {allLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                جاري التحميل...
+              </>
+            ) : showAll ? (
+              <>
+                عرض أقل
+                <ChevronUp className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                {buttonText || "تصفح جميع الخدمات"}
+                <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
+              </>
+            )}
           </Button>
         </div>
       </div>
