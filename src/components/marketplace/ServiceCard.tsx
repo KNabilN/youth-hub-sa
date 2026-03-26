@@ -49,14 +49,14 @@ export function ServiceCard({ service }: { service: Service }) {
           ) : null;
         })()}
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{service.title}</CardTitle>
+          <div className="space-y-1.5">
+            <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{service.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="w-fit">{typeLabel[service.service_type] || service.service_type}</Badge>
               {(service as any).service_number && (
                 <Link to={`/services/${service.id}`} className="text-xs font-semibold font-mono hover:underline hover:text-primary transition-colors">{(service as any).service_number}</Link>
               )}
             </div>
-            <Badge variant="outline" className="shrink-0">{typeLabel[service.service_type] || service.service_type}</Badge>
           </div>
           <Link to={`/profile/${service.provider_id}`} className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity">
             <Avatar className="h-6 w-6">
