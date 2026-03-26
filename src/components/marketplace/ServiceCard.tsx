@@ -51,7 +51,7 @@ export function ServiceCard({ service }: { service: Service }) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <CardTitle className="text-base truncate">{service.title}</CardTitle>
+              <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{service.title}</CardTitle>
               {(service as any).service_number && (
                 <Link to={`/services/${service.id}`} className="text-xs font-semibold font-mono hover:underline hover:text-primary transition-colors">{(service as any).service_number}</Link>
               )}

@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { CharCounter } from "@/components/ui/char-counter";
 
 const serviceSchema = z.object({
-  title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200),
+  title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(80, "العنوان يجب ألا يتجاوز 80 حرفاً"),
   description: z.string().min(20, "الوصف يجب أن يكون 20 حرفاً على الأقل").max(5000),
   long_description: z.string().max(10000).optional(),
   category_id: z.string().min(1, "اختر التصنيف"),
@@ -157,8 +157,8 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
             <FormLabel required>عنوان الخدمة</FormLabel>
-            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={200} {...field} /></FormControl>
-            <CharCounter current={field.value?.length ?? 0} max={200} />
+            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={80} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={80} />
             <FormMessage />
           </FormItem>
         )} />
