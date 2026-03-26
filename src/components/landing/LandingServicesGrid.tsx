@@ -88,7 +88,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
                 )}
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base truncate">{s.title}</CardTitle>
+                    <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{s.title}</CardTitle>
                     <Badge variant="outline" className="shrink-0">
                       {typeLabel[s.service_type] || s.service_type}
                     </Badge>

@@ -157,8 +157,8 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         <FormField control={form.control} name="title" render={({ field }) => (
           <FormItem>
             <FormLabel required>عنوان الخدمة</FormLabel>
-            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={200} {...field} /></FormControl>
-            <CharCounter current={field.value?.length ?? 0} max={200} />
+            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={80} {...field} /></FormControl>
+            <CharCounter current={field.value?.length ?? 0} max={80} />
             <FormMessage />
           </FormItem>
         )} />
