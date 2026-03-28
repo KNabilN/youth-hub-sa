@@ -140,7 +140,12 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
               التفاصيل
             </Link>
           </Button>
-          {cartServiceIds.has(s.id) ? (
+          {!user ? (
+            <Button size="sm" variant="secondary" className="flex-1" onClick={() => setAuthOpen(true)}>
+              <LogIn className="h-4 w-4 me-1" />
+              سجّل الدخول
+            </Button>
+          ) : cartServiceIds.has(s.id) ? (
             <Button size="sm" variant="secondary" className="flex-1" onClick={() => navigate("/cart")}>
               <Check className="h-4 w-4 me-1" />
               عرض السلة
