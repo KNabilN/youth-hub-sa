@@ -162,6 +162,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
   );
 
   return (
+    <>
     <section className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-12 space-y-3">
@@ -214,5 +215,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
         </div>
       </div>
     </section>
+    <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode="login" />
+    </>
   );
 }
