@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { ShoppingCart, Eye, ArrowLeft } from "lucide-react";
