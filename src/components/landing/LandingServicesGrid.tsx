@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Store, ArrowLeft, Eye, ShoppingCart, Check, Star, ChevronUp, Loader2 } from "lucide-react";
+import { Store, ArrowLeft, Eye, ShoppingCart, Check, Star, ChevronUp, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { useAuth } from "@/hooks/useAuth";
+import AuthModal from "@/components/AuthModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
