@@ -26,8 +26,9 @@ export function ServiceCard({ service }: { service: Service }) {
   const { user, role } = useAuth();
   const addToCart = useAddToCart();
   const { data: cartItems } = useCartItems();
+  const { isVerified } = useVerificationGuard();
 
-  const canPurchase = role === "youth_association" || role === "donor";
+  const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
   const isInCart = cartItems?.some(item => item.service_id === service.id);
 
   const handleAddToCart = () => {

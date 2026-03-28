@@ -42,6 +42,7 @@ const typeLabel: Record<string, string> = {
 
 export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
+  const { guardAction } = useVerificationGuard();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
 
