@@ -287,6 +287,19 @@ export default function Checkout() {
     return null;
   }
 
+  if (!isVerified) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+          <h2 className="text-xl font-bold">حسابك غير موثق</h2>
+          <p className="text-muted-foreground">يجب توثيق حسابك أولاً لإتمام عملية الشراء. يرجى إكمال بياناتك وانتظار موافقة المدير.</p>
+          <Button onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-3xl mx-auto">

@@ -100,13 +100,17 @@ export default function ProjectCreate() {
             <AlertDescription>حسابك غير موثق. يجب توثيق حسابك أولاً لإنشاء طلبات جديدة.</AlertDescription>
           </Alert>
         )}
-        <ProjectForm
-          onSubmit={handleSubmit}
-          onSaveDraft={handleSaveDraft}
-          onCreateDraft={handleCreateDraft}
-          isLoading={createProject.isPending}
-          submitLabel="إنشاء طلب"
-        />
+        {isVerified ? (
+          <ProjectForm
+            onSubmit={handleSubmit}
+            onSaveDraft={handleSaveDraft}
+            onCreateDraft={handleCreateDraft}
+            isLoading={createProject.isPending}
+            submitLabel="إنشاء طلب"
+          />
+        ) : (
+          <p className="text-center text-muted-foreground py-8">يرجى توثيق حسابك من صفحة الملف الشخصي أولاً</p>
+        )}
       </div>
     </DashboardLayout>
   );
