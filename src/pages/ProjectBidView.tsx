@@ -135,7 +135,14 @@ export default function ProjectBidView() {
           <Card>
             <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
             <CardContent>
-              <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              {isVerified ? (
+                <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              ) : (
+                <div className="text-center py-8 space-y-2">
+                  <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات</p>
+                  <Button variant="outline" onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

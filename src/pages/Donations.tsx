@@ -345,7 +345,12 @@ export default function Donations() {
             />
           </CardHeader>
           <CardContent>
-            {step === "form" ? (
+            {!isVerified ? (
+              <div className="text-center py-8 space-y-2">
+                <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+                <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم منحة</p>
+              </div>
+            ) : step === "form" ? (
               <DonationForm
                 onSubmit={handleFormSubmit}
                 defaultAssociationId={urlAssociationId}

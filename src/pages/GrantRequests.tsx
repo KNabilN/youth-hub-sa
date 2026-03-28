@@ -40,12 +40,14 @@ export default function GrantRequests() {
   });
 
   const handleDonate = (req: any) => {
-    const params = new URLSearchParams();
-    params.set("grant_request_id", req.id);
-    params.set("association_id", req.association_id);
-    params.set("amount", String(req.amount));
-    if (req.project_id) params.set("project_id", req.project_id);
-    navigate(`/donations?${params.toString()}`);
+    guardAction(() => {
+      const params = new URLSearchParams();
+      params.set("grant_request_id", req.id);
+      params.set("association_id", req.association_id);
+      params.set("amount", String(req.amount));
+      if (req.project_id) params.set("project_id", req.project_id);
+      navigate(`/donations?${params.toString()}`);
+    });
   };
 
   return (
