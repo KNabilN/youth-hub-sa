@@ -19,7 +19,7 @@ import { StepProgress } from "@/components/ui/step-progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { HandCoins, FolderKanban, Layers, Building2 } from "lucide-react";
+import { HandCoins, FolderKanban, Layers, Building2, AlertTriangle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";

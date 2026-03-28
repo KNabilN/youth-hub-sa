@@ -27,7 +27,6 @@ export default function GrantRequests() {
   const { isVerified, guardAction } = useVerificationGuard();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = requests?.filter(r => {
     const matchesSearch = !search.trim() ||
