@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HandCoins, Search, Users, Target, AlertTriangle, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { format } from "date-fns";
