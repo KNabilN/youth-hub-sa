@@ -24,7 +24,9 @@ const urgencyMap: Record<string, { label: string; variant: "default" | "secondar
 export default function GrantRequests() {
   const { data: requests, isLoading } = useGrantRequestsForDonor();
   const navigate = useNavigate();
+  const { isVerified, guardAction } = useVerificationGuard();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = requests?.filter(r => {
