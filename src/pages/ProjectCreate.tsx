@@ -7,6 +7,9 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 import { getFriendlyDatabaseError } from "@/lib/db-errors";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
