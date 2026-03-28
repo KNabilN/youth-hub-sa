@@ -7,6 +7,7 @@ import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
