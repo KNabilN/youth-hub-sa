@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Store, ArrowLeft, Eye, ShoppingCart, Check, Star, ChevronUp, Loader2 } from "lucide-react";
+import { Store, ArrowLeft, Eye, ShoppingCart, Check, Star, ChevronUp, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { useAuth } from "@/hooks/useAuth";
+import AuthModal from "@/components/AuthModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -43,12 +45,14 @@ const typeLabel: Record<string, string> = {
 export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
   const { guardAction } = useVerificationGuard();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
 
   const [showAll, setShowAll] = useState(false);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [allLoading, setAllLoading] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   if (!loading && services.length === 0) return null;
 
@@ -136,7 +140,12 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
               التفاصيل
             </Link>
           </Button>
-          {cartServiceIds.has(s.id) ? (
+          {!user ? (
+            <Button size="sm" variant="secondary" className="flex-1" onClick={() => setAuthOpen(true)}>
+              <LogIn className="h-4 w-4 me-1" />
+              سجّل الدخول
+            </Button>
+          ) : cartServiceIds.has(s.id) ? (
             <Button size="sm" variant="secondary" className="flex-1" onClick={() => navigate("/cart")}>
               <Check className="h-4 w-4 me-1" />
               عرض السلة
@@ -153,6 +162,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
   );
 
   return (
+    <>
     <section className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-12 space-y-3">
@@ -205,5 +215,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
         </div>
       </div>
     </section>
+    <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode="login" />
+    </>
   );
 }
