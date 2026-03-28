@@ -12,6 +12,7 @@ import { Eye, ShoppingBag, Star, Paperclip, Home, ChevronLeft } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
 import { useGuestCart } from "@/hooks/useGuestCart";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
@@ -24,12 +25,13 @@ export default function ServiceDetail() {
   const navigate = useNavigate();
   const { data: cartItems } = useCartItems();
   const { items: guestItems } = useGuestCart();
+  const { isVerified, guardAction } = useVerificationGuard();
 
   const isInCart = user
     ? cartItems?.some((item: any) => item.service_id === id)
     : guestItems.some((item: any) => item.service_id === id);
 
-  const canPurchase = role === "youth_association" || role === "donor";
+  const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
 
   const handleAddToCart = () => {
     if (!user) {

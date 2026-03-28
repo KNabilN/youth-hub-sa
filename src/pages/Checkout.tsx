@@ -7,6 +7,7 @@ import { useCartItems, useClearCart } from "@/hooks/useCart";
 import { usePurchaseService } from "@/hooks/usePurchaseService";
 import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
@@ -23,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet } from "lucide-react";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ const BANK_INFO = {
 
 export default function Checkout() {
   const { user, role } = useAuth();
+  const { isVerified } = useVerificationGuard();
   const { data: items, isLoading } = useCartItems();
   const purchase = usePurchaseService();
   const bankTransfer = useCreateBankTransfer();
@@ -283,6 +285,19 @@ export default function Checkout() {
 
   if (!items?.length) {
     return null;
+  }
+
+  if (!isVerified) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+          <h2 className="text-xl font-bold">حسابك غير موثق</h2>
+          <p className="text-muted-foreground">يجب توثيق حسابك أولاً لإتمام عملية الشراء. يرجى إكمال بياناتك وانتظار موافقة المدير.</p>
+          <Button onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (

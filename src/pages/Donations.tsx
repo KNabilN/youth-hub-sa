@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution, useDonorConsumedBreakdown } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { DonationForm, DonationFormData } from "@/components/donor/DonationForm";
 import { DonationPaymentStep } from "@/components/donor/DonationPaymentStep";
 import { DonorBalanceCards } from "@/components/donor/DonorBalanceCards";
@@ -18,7 +19,7 @@ import { StepProgress } from "@/components/ui/step-progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { HandCoins, FolderKanban, Layers, Building2 } from "lucide-react";
+import { HandCoins, FolderKanban, Layers, Building2, AlertTriangle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
@@ -156,6 +157,7 @@ function ConsumedBreakdown() {
 
 export default function Donations() {
   const { user } = useAuth();
+  const { isVerified } = useVerificationGuard();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: contributions, isLoading } = useDonorContributions();
@@ -343,7 +345,12 @@ export default function Donations() {
             />
           </CardHeader>
           <CardContent>
-            {step === "form" ? (
+            {!isVerified ? (
+              <div className="text-center py-8 space-y-2">
+                <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+                <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم منحة</p>
+              </div>
+            ) : step === "form" ? (
               <DonationForm
                 onSubmit={handleFormSubmit}
                 defaultAssociationId={urlAssociationId}

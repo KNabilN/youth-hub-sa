@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HandCoins, Search, Users, Target, AlertTriangle, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { format } from "date-fns";
@@ -23,6 +24,7 @@ const urgencyMap: Record<string, { label: string; variant: "default" | "secondar
 export default function GrantRequests() {
   const { data: requests, isLoading } = useGrantRequestsForDonor();
   const navigate = useNavigate();
+  const { isVerified, guardAction } = useVerificationGuard();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -37,12 +39,14 @@ export default function GrantRequests() {
   });
 
   const handleDonate = (req: any) => {
-    const params = new URLSearchParams();
-    params.set("grant_request_id", req.id);
-    params.set("association_id", req.association_id);
-    params.set("amount", String(req.amount));
-    if (req.project_id) params.set("project_id", req.project_id);
-    navigate(`/donations?${params.toString()}`);
+    guardAction(() => {
+      const params = new URLSearchParams();
+      params.set("grant_request_id", req.id);
+      params.set("association_id", req.association_id);
+      params.set("amount", String(req.amount));
+      if (req.project_id) params.set("project_id", req.project_id);
+      navigate(`/donations?${params.toString()}`);
+    });
   };
 
   return (

@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { ProviderProjectCard } from "@/components/provider/ProviderProjectCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +21,7 @@ import { PaginationControls } from "@/components/PaginationControls";
 export default function AvailableProjects() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isVerified, guardAction } = useVerificationGuard();
   const [categoryId, setCategoryId] = useState("");
   const [regionId, setRegionId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -175,7 +177,7 @@ export default function AvailableProjects() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map(p => (
-              <ProviderProjectCard key={p.id} project={p} hasBid={myBidProjectIds?.has(p.id)} onViewDetails={(id) => navigate(`/available-projects/${id}`)} />
+              <ProviderProjectCard key={p.id} project={p} hasBid={myBidProjectIds?.has(p.id)} onViewDetails={(id) => guardAction(() => navigate(`/available-projects/${id}`))} />
             ))}
           </div>
         )}

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle, Building2, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
@@ -22,6 +23,7 @@ export default function ProjectBidView() {
   const submitBid = useSubmitBid();
   const uploadAttachment = useUploadAttachment();
   const { toast } = useToast();
+  const { isVerified } = useVerificationGuard();
   const [createdBidId, setCreatedBidId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -133,7 +135,14 @@ export default function ProjectBidView() {
           <Card>
             <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
             <CardContent>
-              <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              {isVerified ? (
+                <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              ) : (
+                <div className="text-center py-8 space-y-2">
+                  <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات</p>
+                  <Button variant="outline" onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

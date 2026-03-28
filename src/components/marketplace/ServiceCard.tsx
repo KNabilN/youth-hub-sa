@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { ShoppingCart, Eye, ArrowLeft } from "lucide-react";
@@ -25,8 +26,9 @@ export function ServiceCard({ service }: { service: Service }) {
   const { user, role } = useAuth();
   const addToCart = useAddToCart();
   const { data: cartItems } = useCartItems();
+  const { isVerified } = useVerificationGuard();
 
-  const canPurchase = role === "youth_association" || role === "donor";
+  const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
   const isInCart = cartItems?.some(item => item.service_id === service.id);
 
   const handleAddToCart = () => {

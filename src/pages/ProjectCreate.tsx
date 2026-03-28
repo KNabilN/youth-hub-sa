@@ -7,10 +7,14 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 import { getFriendlyDatabaseError } from "@/lib/db-errors";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
+  const { isVerified } = useVerificationGuard();
   const [draftId, setDraftId] = useState<string | null>(null);
 
   // Create draft so attachments can be uploaded in step 3
@@ -90,13 +94,23 @@ export default function ProjectCreate() {
           <h1 className="text-2xl font-bold">إنشاء طلب جديد</h1>
           <p className="text-sm text-muted-foreground mt-1">أضف تفاصيل الطلب وانشره لمقدمي الخدمات</p>
         </div>
-        <ProjectForm
-          onSubmit={handleSubmit}
-          onSaveDraft={handleSaveDraft}
-          onCreateDraft={handleCreateDraft}
-          isLoading={createProject.isPending}
-          submitLabel="إنشاء طلب"
-        />
+        {!isVerified && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>حسابك غير موثق. يجب توثيق حسابك أولاً لإنشاء طلبات جديدة.</AlertDescription>
+          </Alert>
+        )}
+        {isVerified ? (
+          <ProjectForm
+            onSubmit={handleSubmit}
+            onSaveDraft={handleSaveDraft}
+            onCreateDraft={handleCreateDraft}
+            isLoading={createProject.isPending}
+            submitLabel="إنشاء طلب"
+          />
+        ) : (
+          <p className="text-center text-muted-foreground py-8">يرجى توثيق حسابك من صفحة الملف الشخصي أولاً</p>
+        )}
       </div>
     </DashboardLayout>
   );

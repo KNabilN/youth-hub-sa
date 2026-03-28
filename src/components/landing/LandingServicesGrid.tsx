@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ const typeLabel: Record<string, string> = {
 
 export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
+  const { guardAction } = useVerificationGuard();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
 
@@ -51,8 +53,10 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
   if (!loading && services.length === 0) return null;
 
   const handleAdd = (serviceId: string) => {
-    addItem(serviceId);
-    toast.success("تمت إضافة الخدمة إلى السلة");
+    guardAction(() => {
+      addItem(serviceId);
+      toast.success("تمت إضافة الخدمة إلى السلة");
+    });
   };
 
   const handleLoadAll = async () => {

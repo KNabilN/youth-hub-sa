@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Layers, AlertTriangle, Filter, ArrowUpDown } from "lucide-react";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/EmptyState";
@@ -24,6 +25,7 @@ export default function MyServices() {
   const deleteService = useDeleteService();
   const updateStatus = useUpdateServiceStatus();
   const { toast } = useToast();
+  const { isVerified, guardAction } = useVerificationGuard();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -83,8 +85,8 @@ export default function MyServices() {
               <p className="text-sm text-muted-foreground">أدر خدماتك المقدمة وأضف خدمات جديدة</p>
             </div>
           </div>
-          <Button onClick={() => setFormOpen(true)} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
-            <Plus className="h-4 w-4 me-2" />إضافة خدمة
+          <Button onClick={() => guardAction(() => setFormOpen(true))} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md" disabled={!isVerified}>
+            <Plus className="h-4 w-4 me-2" />{isVerified ? "إضافة خدمة" : "يجب توثيق الحساب"}
           </Button>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
