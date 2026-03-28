@@ -24,12 +24,13 @@ export default function ServiceDetail() {
   const navigate = useNavigate();
   const { data: cartItems } = useCartItems();
   const { items: guestItems } = useGuestCart();
+  const { isVerified, guardAction } = useVerificationGuard();
 
   const isInCart = user
     ? cartItems?.some((item: any) => item.service_id === id)
     : guestItems.some((item: any) => item.service_id === id);
 
-  const canPurchase = role === "youth_association" || role === "donor";
+  const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
 
   const handleAddToCart = () => {
     if (!user) {

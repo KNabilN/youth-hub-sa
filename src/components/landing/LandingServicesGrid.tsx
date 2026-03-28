@@ -52,8 +52,10 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
   if (!loading && services.length === 0) return null;
 
   const handleAdd = (serviceId: string) => {
-    addItem(serviceId);
-    toast.success("تمت إضافة الخدمة إلى السلة");
+    guardAction(() => {
+      addItem(serviceId);
+      toast.success("تمت إضافة الخدمة إلى السلة");
+    });
   };
 
   const handleLoadAll = async () => {
