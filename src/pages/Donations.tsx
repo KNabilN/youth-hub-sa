@@ -157,6 +157,7 @@ function ConsumedBreakdown() {
 
 export default function Donations() {
   const { user } = useAuth();
+  const { isVerified } = useVerificationGuard();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: contributions, isLoading } = useDonorContributions();
