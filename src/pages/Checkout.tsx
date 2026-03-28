@@ -43,6 +43,7 @@ const BANK_INFO = {
 
 export default function Checkout() {
   const { user, role } = useAuth();
+  const { isVerified } = useVerificationGuard();
   const { data: items, isLoading } = useCartItems();
   const purchase = usePurchaseService();
   const bankTransfer = useCreateBankTransfer();

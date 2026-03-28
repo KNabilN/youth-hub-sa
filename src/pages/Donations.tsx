@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDonorContributions, useCreateContribution, useDonorConsumedBreakdown } from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
 import { useAuth } from "@/hooks/useAuth";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { DonationForm, DonationFormData } from "@/components/donor/DonationForm";
 import { DonationPaymentStep } from "@/components/donor/DonationPaymentStep";
 import { DonorBalanceCards } from "@/components/donor/DonorBalanceCards";

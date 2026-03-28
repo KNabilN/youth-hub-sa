@@ -14,6 +14,7 @@ import { AlertTriangle } from "lucide-react";
 export default function ProjectCreate() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
+  const { isVerified } = useVerificationGuard();
   const [draftId, setDraftId] = useState<string | null>(null);
 
   // Create draft so attachments can be uploaded in step 3
