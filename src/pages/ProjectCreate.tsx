@@ -94,6 +94,12 @@ export default function ProjectCreate() {
           <h1 className="text-2xl font-bold">إنشاء طلب جديد</h1>
           <p className="text-sm text-muted-foreground mt-1">أضف تفاصيل الطلب وانشره لمقدمي الخدمات</p>
         </div>
+        {!isVerified && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>حسابك غير موثق. يجب توثيق حسابك أولاً لإنشاء طلبات جديدة.</AlertDescription>
+          </Alert>
+        )}
         <ProjectForm
           onSubmit={handleSubmit}
           onSaveDraft={handleSaveDraft}
