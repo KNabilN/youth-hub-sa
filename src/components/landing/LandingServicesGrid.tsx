@@ -45,12 +45,14 @@ const typeLabel: Record<string, string> = {
 export default function LandingServicesGrid({ services, loading, title, subtitle, buttonText, isLoggedIn }: LandingServicesGridProps) {
   const { addItem, items, isAdding } = useUnifiedCart();
   const { guardAction } = useVerificationGuard();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const cartServiceIds = new Set(items.map((i) => i.service_id));
 
   const [showAll, setShowAll] = useState(false);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [allLoading, setAllLoading] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   if (!loading && services.length === 0) return null;
 
