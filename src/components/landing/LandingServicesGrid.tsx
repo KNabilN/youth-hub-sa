@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
