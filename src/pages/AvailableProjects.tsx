@@ -21,6 +21,7 @@ import { PaginationControls } from "@/components/PaginationControls";
 export default function AvailableProjects() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isVerified, guardAction } = useVerificationGuard();
   const [categoryId, setCategoryId] = useState("");
   const [regionId, setRegionId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
