@@ -326,13 +326,15 @@ export function useApproveBankTransfer() {
             .maybeSingle();
 
           if (!existingContract) {
-            // Create contract WITHOUT auto-signing
+            const nowSign = new Date().toISOString();
             await supabase.from("contracts").insert({
               project_id: escrow.project_id,
               association_id: project.association_id,
               provider_id: project.assigned_provider_id,
               terms,
-            });
+              association_signed_at: nowSign,
+              provider_signed_at: nowSign,
+            } as any);
             // DB trigger notify_on_contract_change handles notifications
           }
 
