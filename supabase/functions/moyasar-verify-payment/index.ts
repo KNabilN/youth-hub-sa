@@ -270,13 +270,15 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         console.error("Project creation error (association):", projErr);
       } else {
         projectId = project.id;
-        // Create contract WITHOUT auto-signing — association must review and sign
+        const nowSign = new Date().toISOString();
         const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await adminClient.from("contracts").insert({
           project_id: project.id,
           association_id: userId,
           provider_id: item.provider_id,
           terms: contractTerms,
+          association_signed_at: nowSign,
+          provider_signed_at: nowSign,
         });
 
         // Create auto-accepted bid so provider appears in bids tab
