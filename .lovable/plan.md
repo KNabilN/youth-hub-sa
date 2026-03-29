@@ -1,44 +1,53 @@
 
 
-# مراجعة ثانية — مشكلة حرجة تحتاج إصلاح فوري
+# مراجعة دقيقة ثالثة — النتائج
 
-## المشكلة الحرجة: إزالة سياسة INSERT على notifications كسرت الإشعارات
+## الحالة العامة
+النظام يعمل بشكل سليم بنسبة كبيرة. جميع التعديلات السابقة (التوثيق، RLS، الإشعارات) تعمل بدون مشاكل.
 
-في التحديث السابق تم حذف سياسة `"Authenticated users insert notifications"` من جدول `notifications`، لكن هناك **6 ملفات في الكود** تقوم بإدراج إشعارات مباشرة من العميل (client-side):
+## مشكلة واحدة تحتاج إصلاح
 
-- `src/pages/Checkout.tsx` (سطر 140)
-- `src/hooks/usePurchaseService.ts` (سطرين 55 و 100)
-- `src/hooks/useBankTransfer.ts` (سطرين 63 و 106)
-- `src/hooks/useProfile.ts` (سطر 84)
-- `src/hooks/useAdminNotifications.ts` (سطر 63)
-- `src/lib/notifications.ts` (سطرين 10 و 34)
+### ثغرة في صفحة "خدماتي" — تجاوز فحص التوثيق عبر حالة القائمة الفارغة
+في `src/pages/MyServices.tsx` سطر 128، عند عدم وجود خدمات تظهر حالة فارغة (EmptyState) مع زر "إضافة خدمة" الذي يفتح النموذج مباشرة **بدون** فحص `guardAction`:
 
-**النتيجة**: كل هذه الإشعارات ستفشل صامتة (silently fail) لأن سياسة RLS تمنع الإدراج الآن.
+```typescript
+// المشكلة: يتجاوز فحص التوثيق
+<EmptyState ... onAction={() => setFormOpen(true)} />
+```
 
-## الحل
+**الحل**: تغيير `onAction` ليستخدم `guardAction`:
+```typescript
+onAction={() => guardAction(() => setFormOpen(true))}
+```
 
-### الخيار الأفضل: إعادة سياسة INSERT مع تقييد أفضل
+## تحذير ثانوي (لا يؤثر على العمل)
+- تحذير React في Console عن `AnimatedCounter` في `LiveStats.tsx` — تحذير غير مؤثر يتعلق بـ ref على function component
 
-بدلاً من السماح لأي مستخدم بإرسال إشعار لأي مستخدم آخر (المشكلة الأصلية)، نعيد السياسة مع تقييدها بحيث:
-- يُسمح للمستخدم المسجّل بإنشاء إشعارات (لأن الكود يحتاج ذلك)
-- الـ triggers تعمل بالفعل عبر SECURITY DEFINER فلا تتأثر
+## ما تم التحقق منه وهو سليم
 
-لكن المشكلة الأمنية الأصلية (إشعارات مزيفة) ستبقى. الحل الجذري يتطلب نقل كل عمليات إنشاء الإشعارات إلى Edge Functions أو triggers — وهذا تغيير كبير.
+| العنصر | الحالة |
+|--------|--------|
+| `useVerificationGuard` يعمل مع الزائر غير المسجل | سليم — `useProfile` معطل عند عدم وجود user |
+| `LandingServicesGrid` — زر "سجل الدخول" للزوار | سليم |
+| `ServiceDetail` — فحص `canPurchase` مع `isVerified` | سليم |
+| `ServiceCard` — فحص `canPurchase` | سليم |
+| `Checkout` — فحص `isVerified` | سليم |
+| `ProjectCreate` — حجب النموذج إذا غير موثق | سليم |
+| `ProjectBidView` — حجب نموذج التقديم | سليم |
+| `AvailableProjects` — `guardAction` على زر عرض التفاصيل | سليم |
+| `Donations` — فحص `isVerified` | سليم |
+| `GrantRequests` — `guardAction` على زر التبرع | سليم |
+| `MyServices` — زر الإضافة الرئيسي مع `guardAction` + `disabled` | سليم |
+| سياسة INSERT على notifications معادة | سليم |
+| سياسة SELECT على profile_saves مقيدة للمالك | سليم |
+| Triggers للإشعارات تعمل عبر SECURITY DEFINER | سليم |
+| RLS على جميع الجداول الأساسية | سليم |
 
-**الحل العملي الآن**: إعادة سياسة INSERT على notifications مع تقييدها للمستخدمين المصادق عليهم فقط (وهي كانت كذلك أصلاً). هذا يعيد الوظائف المكسورة ويُبقي الحماية الأساسية.
+## ملخص التغييرات
 
-### تغييرات قاعدة البيانات
-1. **Migration جديد**: إعادة إنشاء سياسة INSERT على `notifications` بنفس الشكل السابق — `auth.uid() IS NOT NULL`
+| الملف | العملية |
+|-------|---------|
+| `src/pages/MyServices.tsx` سطر 128 | إصلاح — إضافة `guardAction` لزر EmptyState |
 
-### مشاكل أخرى (ثانوية)
-2. **Leaked Password Protection**: لا يزال معطلاً — يحتاج تفعيل يدوي من إعدادات المصادقة
-3. **RLS "always true" warning**: هذه التحذيرات على جداول عامة (categories, regions, ratings, site_content, cities, portfolio_items) — مقبولة لأنها بيانات عامة للقراءة فقط
-
-### ملخص الملفات المتأثرة
-
-| الملف/المورد | العملية |
-|-------------|---------|
-| Migration: إعادة INSERT policy على notifications | إنشاء |
-
-لا تغييرات على الكود — فقط إصلاح قاعدة البيانات.
+تغيير بسيط جداً — سطر واحد فقط.
 
