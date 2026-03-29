@@ -117,14 +117,16 @@ export default function Checkout() {
             .single();
           if (!projErr && proj) {
             projectId = proj.id;
-            // Create contract WITHOUT auto-signing
+            const now = new Date().toISOString();
             const contractTerms = `نطاق العمل:\n${item.micro_services.title}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
             await supabase.from("contracts").insert({
               project_id: proj.id,
               provider_id: item.micro_services.provider_id,
               association_id: assocId,
               terms: contractTerms,
-            });
+              association_signed_at: now,
+              provider_signed_at: now,
+            } as any);
 
             // Create auto-accepted bid
             await supabase.from("bids").insert({
@@ -139,7 +141,7 @@ export default function Checkout() {
             // Notify provider
             await supabase.from("notifications").insert({
               user_id: item.micro_services.provider_id,
-              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
               type: "service_purchased_assigned",
               entity_id: proj.id,
               entity_type: "project",

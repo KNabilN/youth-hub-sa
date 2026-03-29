@@ -77,14 +77,16 @@ export function usePurchaseService() {
         if (projErr) throw projErr;
         projectId = project.id;
 
-        // Create contract WITHOUT auto-signing — association must review and sign
+        const now = new Date().toISOString();
         const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await supabase.from("contracts").insert({
           project_id: project.id,
           association_id: buyerId,
           provider_id: providerId,
           terms: contractTerms,
-        });
+          association_signed_at: now,
+          provider_signed_at: now,
+        } as any);
 
         // Create auto-accepted bid so provider appears in bids tab
         await supabase.from("bids").insert({
@@ -99,7 +101,7 @@ export function usePurchaseService() {
         // Notify provider about the purchase and assignment
         await supabase.from("notifications").insert({
           user_id: providerId,
-          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد`,
           type: "service_purchased_assigned",
           entity_id: project.id,
           entity_type: "project",

@@ -270,13 +270,15 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         console.error("Project creation error (association):", projErr);
       } else {
         projectId = project.id;
-        // Create contract WITHOUT auto-signing — association must review and sign
+        const nowSign = new Date().toISOString();
         const contractTerms = `نطاق العمل:\n${title}${hoursNote}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
         await adminClient.from("contracts").insert({
           project_id: project.id,
           association_id: userId,
           provider_id: item.provider_id,
           terms: contractTerms,
+          association_signed_at: nowSign,
+          provider_signed_at: nowSign,
         });
 
         // Create auto-accepted bid so provider appears in bids tab
@@ -292,7 +294,7 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         // Notify provider about the purchase and assignment
         await adminClient.from("notifications").insert({
           user_id: item.provider_id,
-          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد`,
           type: "service_purchased_assigned",
           entity_id: project.id,
           entity_type: "project",
@@ -439,7 +441,7 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // 2. Create contract WITHOUT auto-signing — association must review and sign
+  const nowSign2 = new Date().toISOString();
   const { data: projData } = await adminClient.from("projects").select("title, description").eq("id", projectId).single();
   const contractTerms = `نطاق العمل:\n${projData?.title || "طلب"}\n\n${projData?.description || "يلتزم مقدم الخدمة بتنفيذ العمل وفق الوصف المتفق عليه."}`;
   const { error: contractErr } = await adminClient.from("contracts").insert({
@@ -447,6 +449,8 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     association_id: userId,
     provider_id: providerId,
     terms: contractTerms,
+    association_signed_at: nowSign2,
+    provider_signed_at: nowSign2,
   });
   if (contractErr) {
     console.error("Contract creation error:", contractErr);
