@@ -294,7 +294,7 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
         // Notify provider about the purchase and assignment
         await adminClient.from("notifications").insert({
           user_id: item.provider_id,
-          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد`,
           type: "service_purchased_assigned",
           entity_id: project.id,
           entity_type: "project",
