@@ -83,14 +83,16 @@ export function useCreateBankTransfer() {
           if (projErr) throw projErr;
           projectId = project.id;
 
-          // Create contract WITHOUT auto-signing
+          const now = new Date().toISOString();
           const contractTerms = `نطاق العمل:\n${title}\n\nشراء مباشر من السوق — يلتزم مقدم الخدمة بتنفيذ الخدمة وفق الوصف المتفق عليه.`;
           await supabase.from("contracts").insert({
             project_id: project.id,
             association_id: userId,
             provider_id: item.providerId,
             terms: contractTerms,
-          });
+            association_signed_at: now,
+            provider_signed_at: now,
+          } as any);
 
           // Create auto-accepted bid
           await supabase.from("bids").insert({
