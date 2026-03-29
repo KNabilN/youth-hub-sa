@@ -139,7 +139,7 @@ export default function Checkout() {
             // Notify provider
             await supabase.from("notifications").insert({
               user_id: item.micro_services.provider_id,
-              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد — يرجى مراجعة العقد وتوقيعه`,
+              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
               type: "service_purchased_assigned",
               entity_id: proj.id,
               entity_type: "project",
