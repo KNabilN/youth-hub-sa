@@ -441,7 +441,7 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     return;
   }
 
-  // 2. Create contract WITHOUT auto-signing — association must review and sign
+  const nowSign2 = new Date().toISOString();
   const { data: projData } = await adminClient.from("projects").select("title, description").eq("id", projectId).single();
   const contractTerms = `نطاق العمل:\n${projData?.title || "طلب"}\n\n${projData?.description || "يلتزم مقدم الخدمة بتنفيذ العمل وفق الوصف المتفق عليه."}`;
   const { error: contractErr } = await adminClient.from("contracts").insert({
@@ -449,6 +449,8 @@ async function processProjectPayment(adminClient: any, userId: string, ctx: any,
     association_id: userId,
     provider_id: providerId,
     terms: contractTerms,
+    association_signed_at: nowSign2,
+    provider_signed_at: nowSign2,
   });
   if (contractErr) {
     console.error("Contract creation error:", contractErr);
