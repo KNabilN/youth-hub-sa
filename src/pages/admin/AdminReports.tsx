@@ -12,7 +12,7 @@ import { Download, ChevronDown, FileText, Printer, Package, CheckCircle2, FileSi
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { generateReportFromDOM } from "@/lib/report-pdf";
 import { toast } from "sonner";
-import { downloadCSV } from "@/lib/csv-export";
+import { downloadXLSX } from "@/lib/csv-export";
 
 const STATUS_COLORS = ["#0D9488", "#FB923C", "#F59E0B", "#10B981", "#F43F5E", "#64748B"];
 const ROLE_COLORS = ["#0D9488", "#FB923C", "#6366F1", "#8B5CF6"];
