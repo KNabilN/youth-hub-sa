@@ -150,7 +150,7 @@ export function ExportUsersDialog({ open, onOpenChange }: ExportUsersDialogProps
           <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
           <Button onClick={handleExport} disabled={exporting || selectedColumns.length === 0} className="gap-1">
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            تصدير CSV
+            تصدير Excel
           </Button>
         </DialogFooter>
       </DialogContent>

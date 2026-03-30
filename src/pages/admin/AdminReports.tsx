@@ -375,7 +375,7 @@ export default function AdminReports() {
       ["المانحين النشطين", String(insights?.activeDonors ?? 0)],
       ["تذاكر الدعم", String(insights?.ticketsCount ?? 0)],
     ];
-    downloadCSV("comprehensive-report.csv", ["المؤشر", "القيمة"], rows);
+    downloadXLSX("comprehensive-report.xlsx", ["المؤشر", "القيمة"], rows);
     toast.success("تم تصدير التقرير الشامل");
   };
 
