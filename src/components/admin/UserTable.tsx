@@ -160,7 +160,7 @@ export function UserTable({ pagination }: UserTableProps) {
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">البحث</Label>
-          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-48" />
+          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination?.resetPage?.(); }} className="w-full sm:w-48" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
