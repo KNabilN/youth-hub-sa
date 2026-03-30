@@ -320,7 +320,7 @@ export default function AdminReports() {
   // --- Export functions ---
   const exportUsers = async () => {
     const { data } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
-    downloadCSV("users.csv", ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"],
+    downloadXLSX("users.xlsx", ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"],
       (data ?? []).map((u: any) => [u.full_name, u.phone ?? "", u.organization_name ?? "", u.is_verified ? "نعم" : "لا", u.created_at?.slice(0, 10)]));
   };
   const exportProjects = async () => {
