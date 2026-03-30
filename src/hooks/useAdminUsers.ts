@@ -141,6 +141,9 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       }
 
       let countQuery = supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      if (search) {
+        countQuery = countQuery.or(`full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`);
+      }
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];
         if (userIds.length === 0) return 0;
