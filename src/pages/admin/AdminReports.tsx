@@ -336,7 +336,7 @@ export default function AdminReports() {
     if (regionId) q = q.eq("region_id", regionId);
     if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
-    downloadCSV("services.csv", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
+    downloadXLSX("services.xlsx", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((s: any) => [s.title, (s.profiles as any)?.full_name ?? "", s.price, (s.categories as any)?.name ?? "", s.approval, s.created_at?.slice(0, 10)]));
   };
   const exportFinancial = async () => {
