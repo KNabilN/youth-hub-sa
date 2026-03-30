@@ -111,9 +111,10 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
   const dateFrom = filters?.dateFrom;
   const dateTo = filters?.dateTo;
   const verifiedFilter = filters?.verifiedFilter;
+  const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
+    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
     queryFn: async () => {
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
       if (roleFilter && roleFilter !== "all") {
