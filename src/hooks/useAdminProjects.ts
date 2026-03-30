@@ -33,6 +33,20 @@ export function useAdminProjects(from = 0, to = 19) {
   });
 }
 
+export function useAdminProjectsCount() {
+  return useQuery({
+    queryKey: ["admin-projects-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .is("deleted_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 export function useUpdateProjectStatus() {
   const qc = useQueryClient();
   return useMutation({

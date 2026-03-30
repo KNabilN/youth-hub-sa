@@ -163,7 +163,7 @@ export default function MyGrants() {
               })}
             </div>
             {totalPages > 1 && (
-              <PaginationControls page={page} pageSize={pageSize} totalFetched={paginated.length} onNext={nextPage} onPrev={prevPage} />
+              <PaginationControls page={page} pageSize={pageSize} totalFetched={paginated.length} totalItems={filtered.length} onNext={nextPage} onPrev={prevPage} />
             )}
           </>
         )}

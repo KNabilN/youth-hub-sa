@@ -59,6 +59,27 @@ export default function Marketplace() {
     },
   });
 
+  const { data: totalCount } = useQuery({
+    queryKey: ["marketplace-count", category, region, city, serviceType, debouncedSearch, priceMin, priceMax],
+    queryFn: async () => {
+      let query = supabase
+        .from("micro_services")
+        .select("*", { count: "exact", head: true })
+        .eq("approval", "approved")
+        .is("deleted_at", null);
+      if (category !== "all") query = query.eq("category_id", category);
+      if (region !== "all") query = query.eq("region_id", region);
+      if (city !== "all") query = query.eq("city_id", city);
+      if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
+      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      if (priceMin) query = query.gte("price", Number(priceMin));
+      if (priceMax) query = query.lte("price", Number(priceMax));
+      const { count, error } = await query;
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const { data: ratingsMap } = useQuery({
     queryKey: ["provider-ratings-map"],
     queryFn: async () => {
@@ -188,6 +209,7 @@ export default function Marketplace() {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={services?.length ?? 0}
+          totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />

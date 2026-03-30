@@ -124,6 +124,7 @@ export default function Projects() {
                 page={page}
                 pageSize={pageSize}
                 totalFetched={paginated.length}
+                totalItems={filtered.length}
                 onNext={nextPage}
                 onPrev={prevPage}
               />

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useListHighlight } from "@/hooks/useListHighlight";
-import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile } from "@/hooks/useAdminUsers";
+import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile, useAdminUsersCount } from "@/hooks/useAdminUsers";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useSoftDelete } from "@/hooks/useTrash";
@@ -89,15 +89,16 @@ export function UserTable({ pagination }: UserTableProps) {
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
 
-  // Pass filters to hook for server-side filtering
-  const { data: users, isLoading } = useAdminUsers(from, to, {
+  const filters = {
     roleFilter,
     regionId: regionFilter,
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
-  });
+  };
+  const { data: users, isLoading } = useAdminUsers(from, to, filters);
+  const { data: totalCount } = useAdminUsersCount(filters);
 
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
@@ -356,6 +357,7 @@ export function UserTable({ pagination }: UserTableProps) {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={users?.length ?? 0}
+          totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />

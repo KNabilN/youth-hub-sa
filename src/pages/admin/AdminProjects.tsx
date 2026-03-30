@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility, useAdminProjectsCount } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,7 @@ const projectFields: DirectEditFieldConfig[] = [
 export default function AdminProjects() {
   const pagination = usePagination("admin-projects");
   const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
+  const { data: totalCount } = useAdminProjectsCount();
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
@@ -242,6 +243,7 @@ export default function AdminProjects() {
               page={pagination.page}
               pageSize={pagination.pageSize}
               totalFetched={projects?.length ?? 0}
+              totalItems={totalCount}
               onPrev={pagination.prevPage}
               onNext={pagination.nextPage}
             />
