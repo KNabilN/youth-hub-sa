@@ -201,6 +201,7 @@ export default function AdminTickets() {
               page={pagination.page}
               pageSize={pagination.pageSize}
               totalFetched={paged.length}
+              totalItems={filtered.length}
               onPrev={pagination.prevPage}
               onNext={pagination.nextPage}
             />

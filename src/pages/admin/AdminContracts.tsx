@@ -189,6 +189,7 @@ export default function AdminContracts() {
               page={pagination.page}
               pageSize={pagination.pageSize}
               totalFetched={filtered.length}
+              totalItems={filtered.length}
               onPrev={pagination.prevPage}
               onNext={pagination.nextPage}
             />

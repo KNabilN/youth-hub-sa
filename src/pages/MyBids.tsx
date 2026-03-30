@@ -213,6 +213,7 @@ export default function MyBids() {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={bids?.length ?? 0}
+          totalItems={allBids?.length ?? 0}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />
