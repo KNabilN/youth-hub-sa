@@ -104,7 +104,6 @@ export function UserTable({ pagination }: UserTableProps) {
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [suspensionReason, setSuspensionReason] = useState("");
-  const { data: totalCount } = useAdminUsersCount(filters);
 
   const handleToggle = (id: string, current: boolean) => {
     toggleVerify.mutate({ id, is_verified: !current }, {
