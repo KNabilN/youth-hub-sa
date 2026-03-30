@@ -1,37 +1,66 @@
 
 
-# نتائج المراجعة — النظام يعمل بشكل سليم
+# إضافة "صفحة X من Y" لجميع قوائم البيانات
 
-## ما تم التحقق منه
+## المشكلة
+حالياً يظهر فقط "صفحة 1" بدون معرفة العدد الإجمالي للصفحات.
 
-### التوقيع التلقائي للعقود — سليم في جميع المسارات
-جميع مسارات إنشاء العقود تُسجّل `association_signed_at` و `provider_signed_at` تلقائياً:
+## الحل
 
-| المسار | الملف | الحالة |
-|--------|-------|--------|
-| شراء مباشر من السوق | `usePurchaseService.ts` | سليم |
-| سلة المشتريات (Checkout) | `Checkout.tsx` | سليم |
-| قبول عرض + دفع من رصيد المنح | `BidPaymentDialog.tsx` | سليم |
-| تحويل بنكي (إنشاء) | `useBankTransfer.ts` | سليم |
-| تحويل بنكي (موافقة الإدارة) | `useBankTransfer.ts` (approve) | سليم |
-| الدفع الإلكتروني (Moyasar checkout) | `moyasar-verify-payment` processCheckout | سليم |
-| الدفع الإلكتروني (Moyasar project) | `moyasar-verify-payment` processProjectPayment | سليم |
+### 1. تعديل `PaginationControls.tsx`
+- إضافة prop اختياري `totalItems?: number`
+- عند توفره: عرض `صفحة X من Y` (حيث Y = Math.ceil(totalItems / pageSize))
+- عند عدم توفره: عرض `صفحة X` كما هو (fallback)
+- تحسين منطق `hasNext`: إذا توفر `totalItems` يُحسب من العدد الفعلي بدلاً من تخمين `totalFetched === pageSize`
 
-### الأمان وRLS — سليم
-- سياسة INSERT على `notifications` معادة ✅
-- سياسة SELECT على `profile_saves` مقيدة للمالك ✅
-- `guardAction` على EmptyState في MyServices ✅
+### 2. الصفحات التي تملك البيانات كاملة (تمرير totalItems مباشرة)
+هذه الصفحات تحمّل كل البيانات وتقطّعها محلياً — نمرر العدد الإجمالي:
 
-### الواجهة — سليم
-- لا أخطاء في Console ✅
-- جميع طلبات الشبكة ترجع 200 ✅
-- زر "سجّل الدخول" يظهر للزوار بدل "أضف للسلة" ✅
+| الصفحة | مصدر العدد |
+|--------|-----------|
+| `Projects.tsx` | `filtered.length` |
+| `MyGrants.tsx` | `filtered.length` |
+| `ReceivedGrants.tsx` | `filtered.length` |
+| `AdminServices.tsx` | `allFiltered.length` أو المصفوفة قبل التقطيع |
+| `AdminDisputes.tsx` | المصفوفة قبل التقطيع |
+| `AdminTickets.tsx` | المصفوفة قبل التقطيع |
+| `AdminContracts.tsx` | المصفوفة قبل التقطيع |
 
-### واجهة العقود — ملاحظة بسيطة (غير حرجة)
-صفحة العقود لا تزال تعرض فلاتر "غير موقّعة" و "موقّعة جزئياً" رغم أن جميع العقود الآن موقّعة تلقائياً. هذه الفلاتر ستكون فارغة دائماً. كذلك `ContractReviewPanel` لا يزال يحتوي على منطق التوقيع اليدوي لكنه لن يظهر (لأن `canAssociationSign` و `canProviderSign` سيكونان `false` دائماً).
+### 3. الصفحات التي تستخدم server-side pagination (تحتاج count query)
+هذه تجلب صفحة واحدة فقط — نحتاج استعلام `count` إضافي:
 
-**هذا ليس خللاً وظيفياً** — الكود يعمل بشكل صحيح — لكنه كود ميت (dead code) يمكن تنظيفه لاحقاً لتبسيط الواجهة.
+| الصفحة | Hook المستخدم | التعديل |
+|--------|--------------|---------|
+| `Marketplace.tsx` | `useAdminServices` (بفلاتر) | إضافة count query |
+| `AdminProjects.tsx` | `useAdminProjects` | إضافة count query |
+| `UserTable.tsx` | `useAdminUsers` | إضافة count query |
+| `AvailableProjects.tsx` | `useAvailableProjects` | إضافة count query |
+| `MyBids.tsx` | `useProviderBids` | إضافة count query |
 
-## الخلاصة
-**النظام يعمل بشكل سليم ولا توجد مشاكل تحتاج إصلاح.**
+**طريقة الـ count**: استخدام `supabase.from(table).select('*', { count: 'exact', head: true })` مع نفس الفلاتر — يرجع العدد بدون جلب البيانات.
+
+### ملفات متأثرة
+
+| الملف | العملية |
+|-------|---------|
+| `src/components/PaginationControls.tsx` | تعديل — إضافة `totalItems` prop |
+| `src/pages/Projects.tsx` | تمرير `totalItems` |
+| `src/pages/MyGrants.tsx` | تمرير `totalItems` |
+| `src/pages/ReceivedGrants.tsx` | تمرير `totalItems` |
+| `src/pages/admin/AdminServices.tsx` | تمرير `totalItems` |
+| `src/pages/admin/AdminDisputes.tsx` | تمرير `totalItems` |
+| `src/pages/admin/AdminTickets.tsx` | تمرير `totalItems` |
+| `src/pages/admin/AdminContracts.tsx` | تمرير `totalItems` |
+| `src/hooks/useAdminUsers.ts` | إضافة count query منفصل |
+| `src/hooks/useAdminProjects.ts` | إضافة count query |
+| `src/hooks/useAvailableProjects.ts` | إضافة count query |
+| `src/hooks/useProviderBids.ts` | إضافة count query |
+| `src/hooks/useAdminServices.ts` (Marketplace) | إضافة count query |
+| `src/components/admin/UserTable.tsx` | تمرير `totalItems` |
+| `src/pages/Marketplace.tsx` | تمرير `totalItems` |
+| `src/pages/admin/AdminProjects.tsx` | تمرير `totalItems` |
+| `src/pages/AvailableProjects.tsx` | تمرير `totalItems` |
+| `src/pages/MyBids.tsx` | تمرير `totalItems` |
+
+لا تغييرات في قاعدة البيانات.
 
