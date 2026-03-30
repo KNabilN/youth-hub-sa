@@ -28,13 +28,22 @@ import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDia
 const projectExportColumns: ExportColumnDef[] = [
   { key: "request_number", label: "رقم الطلب" },
   { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف" },
   { key: "association", label: "الجمعية" },
+  { key: "provider", label: "مزود الخدمة" },
   { key: "category", label: "التصنيف" },
   { key: "region", label: "المنطقة" },
   { key: "city", label: "المدينة" },
   { key: "budget", label: "الميزانية" },
+  { key: "estimated_hours", label: "الساعات المقدرة" },
+  { key: "required_skills", label: "المهارات المطلوبة" },
   { key: "status", label: "الحالة" },
-  { key: "created_at", label: "التاريخ" },
+  { key: "is_featured", label: "مميز" },
+  { key: "is_private", label: "خاص" },
+  { key: "is_name_visible", label: "إظهار الاسم" },
+  { key: "rejection_reason", label: "سبب الرفض" },
+  { key: "created_at", label: "تاريخ الإنشاء" },
+  { key: "updated_at", label: "تاريخ التحديث" },
 ];
 const projectExportDefaults = ["request_number", "title", "association", "category", "status", "budget", "created_at"];
 
