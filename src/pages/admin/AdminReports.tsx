@@ -358,7 +358,7 @@ export default function AdminReports() {
       q = q.in("escrow_id", escrowIds);
     }
     const { data } = await q;
-    downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
+    downloadXLSX("invoices.xlsx", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
       (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
   };
 
