@@ -343,7 +343,7 @@ export default function AdminReports() {
     let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
     if ((regionId || cityId) && regionProjectIds?.length) q = q.in("project_id", regionProjectIds);
     const { data } = await q;
-    downloadCSV("financial.csv", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
+    downloadXLSX("financial.xlsx", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((e: any) => [e.amount, e.status, e.created_at?.slice(0, 10)]));
   };
   const exportInvoices = async () => {
