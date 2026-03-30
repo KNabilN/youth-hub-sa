@@ -335,7 +335,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {(users ?? []).length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>
