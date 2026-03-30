@@ -1,39 +1,49 @@
 
 
-# إضافة جميع بيانات الطلبات للتصدير + إصلاح صيغة الملف
+# إعادة ترتيب تلقائي عند إزالة رقم ترتيب خدمة
 
 ## المشكلة
-1. تصدير الطلبات يفتقد حقول مهمة (الوصف، الساعات المقدرة، المهارات، مزود الخدمة، مميز، إلخ)
-2. زر التصدير لا يزال يقول "تصدير CSV" والملف اسمه `projects.csv` رغم أن `ExportDialog` يصدّر XLSX فعلياً
+عند إزالة رقم ترتيب خدمة (مثلاً 3)، الخدمات التي بعدها (4، 5، ...) تبقى كما هي. المطلوب أن تتحرك تلقائياً لملء الفراغ.
 
-## التغييرات في `src/pages/admin/AdminProjects.tsx`
+## الحل
+تعديل منطق `onBlur` في `AdminServices.tsx` ليقوم بعد تحديث الترتيب بإعادة ترقيم جميع الخدمات التي لها ترتيب فعلي (غير 999) بشكل متسلسل.
 
-### 1. توسيع أعمدة التصدير
-إضافة الأعمدة التالية:
-- **الوصف** (`description`)
-- **الساعات المقدرة** (`estimated_hours`)
-- **المهارات المطلوبة** (`required_skills`)
-- **مزود الخدمة** (`provider`)
-- **مميز** (`is_featured`)
-- **خاص** (`is_private`)
-- **إظهار الاسم** (`is_name_visible`)
-- **سبب الرفض** (`rejection_reason`)
-- **تاريخ التحديث** (`updated_at`)
+## التغييرات في `src/pages/admin/AdminServices.tsx`
 
-### 2. تحديث استعلام التصدير
+### إضافة دالة `reorderServices`
+بعد تحديث ترتيب خدمة واحدة، تُعاد قراءة جميع الخدمات المرتبة (display_order < 999)، ثم تُرقّم من 1 تصاعدياً بحسب ترتيبها الحالي:
+
+```typescript
+async function reorderServices() {
+  const { data } = await supabase
+    .from("micro_services")
+    .select("id, display_order")
+    .is("deleted_at", null)
+    .lt("display_order", 999)
+    .order("display_order", { ascending: true });
+  if (!data?.length) return;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].display_order !== i + 1) {
+      await supabase.from("micro_services").update({ display_order: i + 1 }).eq("id", data[i].id);
+    }
+  }
+}
 ```
-select("*, profiles!projects_association_id_fkey(full_name, organization_name), 
-        provider:profiles!projects_assigned_provider_id_fkey(full_name, organization_name),
-        categories(name), regions(name), cities(name)")
-```
 
-### 3. إصلاح نص الزر واسم الملف
-- تغيير `"تصدير CSV"` → `"تصدير Excel"` في الزر
-- تغيير `filename="projects.csv"` → `filename="projects.xlsx"`
+### تعديل `onBlur` handler (سطر 211-219)
+بعد `updateService.mutate` الناجح، يُستدعى `reorderServices()` ثم يُعاد تحميل القائمة:
+
+```typescript
+onSuccess: async () => {
+  await reorderServices();
+  qc.invalidateQueries({ queryKey: ["admin-services"] });
+  toast.success("تم تحديث الترتيب");
+}
+```
 
 ### ملف متأثر واحد
 
 | الملف | التغيير |
 |-------|---------|
-| `src/pages/admin/AdminProjects.tsx` | توسيع أعمدة + إصلاح نص الزر واسم الملف |
+| `src/pages/admin/AdminServices.tsx` | إضافة `reorderServices` + تعديل onBlur handler |
 
