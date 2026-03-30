@@ -85,8 +85,8 @@ export function ExportUsersDialog({ open, onOpenChange }: ExportUsersDialogProps
 
       const activeCols = allColumns.filter((c) => selectedColumns.includes(c.key));
 
-      downloadCSV(
-        "users.csv",
+      downloadXLSX(
+        "users.xlsx",
         activeCols.map((c) => c.label),
         rows.map((u: any) => activeCols.map((c) => c.getValue(u, roleMap)))
       );
