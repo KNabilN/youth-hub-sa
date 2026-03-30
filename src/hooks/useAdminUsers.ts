@@ -8,6 +8,7 @@ interface AdminUsersFilters {
   dateFrom?: string;
   dateTo?: string;
   verifiedFilter?: string;
+  search?: string;
 }
 
 export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
