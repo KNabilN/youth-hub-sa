@@ -84,7 +84,7 @@ export default function Trash() {
         <div className="h-1 rounded-full bg-gradient-to-l from-destructive/60 via-destructive/20 to-transparent" />
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="flex-wrap h-auto gap-1">
+          <TabsList className="flex-wrap h-auto gap-1 flex-row-reverse justify-end">
             {tabConfig.map(t => (
               <TabsTrigger key={t.value} value={t.value} className="gap-1.5 text-xs">
                 <t.icon className="h-3.5 w-3.5" />
