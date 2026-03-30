@@ -302,7 +302,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportEscrow(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
               <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{filteredEscrows.length} معاملة</span>
               <Button
