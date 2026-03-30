@@ -354,7 +354,7 @@ export default function AdminReports() {
     }
     let q = supabase.from("invoices").select("invoice_number, amount, commission_amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
     if (escrowIds !== null) {
-      if (escrowIds.length === 0) { downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"], []); return; }
+      if (escrowIds.length === 0) { downloadXLSX("invoices.xlsx", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"], []); return; }
       q = q.in("escrow_id", escrowIds);
     }
     const { data } = await q;
