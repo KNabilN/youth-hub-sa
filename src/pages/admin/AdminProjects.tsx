@@ -277,7 +277,7 @@ export default function AdminProjects() {
         open={exportOpen}
         onOpenChange={setExportOpen}
         title="تصدير الطلبات"
-        filename="projects.csv"
+        filename="projects.xlsx"
         columns={projectExportColumns}
         defaultColumns={projectExportDefaults}
         filters={[{
