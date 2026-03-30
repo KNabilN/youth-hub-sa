@@ -652,7 +652,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportBankTransfer(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
             </div>
             {loadingBT ? (
