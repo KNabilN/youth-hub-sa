@@ -255,7 +255,7 @@ export function UserTable({ pagination }: UserTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((u: any) => (
+            {(users ?? []).map((u: any) => (
               <TableRow key={u.id} id={`row-${u.id}`}>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground font-mono">
                   {u.user_number || "—"}
