@@ -96,24 +96,10 @@ export function UserTable({ pagination }: UserTableProps) {
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
+    search: search || undefined,
   };
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
-
-  // Suspension reason dialog state
-  const [suspendTarget, setSuspendTarget] = useState<any>(null);
-  const [suspensionReason, setSuspensionReason] = useState("");
-
-  const filtered = (users ?? []).filter((u: any) => {
-    if (search) {
-      const q = search.toLowerCase();
-      const matchName = u.full_name?.toLowerCase().includes(q);
-      const matchOrg = u.organization_name?.toLowerCase().includes(q);
-      const matchNumber = u.user_number?.toLowerCase().includes(q);
-      if (!matchName && !matchOrg && !matchNumber) return false;
-    }
-    return true;
-  });
 
   const handleToggle = (id: string, current: boolean) => {
     toggleVerify.mutate({ id, is_verified: !current }, {
