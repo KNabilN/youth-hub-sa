@@ -1,30 +1,39 @@
 
-# ترتيب العناصر المعلقة/غير الموثقة في أعلى القائمة
 
-## التغييرات
+# إضافة جميع بيانات الطلبات للتصدير + إصلاح صيغة الملف
 
-### 1. `src/pages/admin/AdminServices.tsx` — ترتيب "قيد المراجعة" أولاً
-بعد الفلترة (سطر 91-99)، إضافة ترتيب يجعل الخدمات ذات حالة `pending` تظهر أولاً:
-```typescript
-const filtered = (services ?? []).filter(...)
-  .sort((a, b) => {
-    if (a.approval === "pending" && b.approval !== "pending") return -1;
-    if (a.approval !== "pending" && b.approval === "pending") return 1;
-    return 0;
-  });
+## المشكلة
+1. تصدير الطلبات يفتقد حقول مهمة (الوصف، الساعات المقدرة، المهارات، مزود الخدمة، مميز، إلخ)
+2. زر التصدير لا يزال يقول "تصدير CSV" والملف اسمه `projects.csv` رغم أن `ExportDialog` يصدّر XLSX فعلياً
+
+## التغييرات في `src/pages/admin/AdminProjects.tsx`
+
+### 1. توسيع أعمدة التصدير
+إضافة الأعمدة التالية:
+- **الوصف** (`description`)
+- **الساعات المقدرة** (`estimated_hours`)
+- **المهارات المطلوبة** (`required_skills`)
+- **مزود الخدمة** (`provider`)
+- **مميز** (`is_featured`)
+- **خاص** (`is_private`)
+- **إظهار الاسم** (`is_name_visible`)
+- **سبب الرفض** (`rejection_reason`)
+- **تاريخ التحديث** (`updated_at`)
+
+### 2. تحديث استعلام التصدير
+```
+select("*, profiles!projects_association_id_fkey(full_name, organization_name), 
+        provider:profiles!projects_assigned_provider_id_fkey(full_name, organization_name),
+        categories(name), regions(name), cities(name)")
 ```
 
-### 2. `src/hooks/useAdminUsers.ts` — ترتيب غير الموثقين أولاً
-تعديل استعلام `useAdminUsers` لإضافة ترتيب `is_verified` تصاعدي (false أولاً) قبل ترتيب `created_at`:
-```typescript
-profilesQuery = profilesQuery
-  .order("is_verified", { ascending: true })
-  .order("created_at", { ascending: false });
-```
+### 3. إصلاح نص الزر واسم الملف
+- تغيير `"تصدير CSV"` → `"تصدير Excel"` في الزر
+- تغيير `filename="projects.csv"` → `filename="projects.xlsx"`
 
-### ملفات متأثرة
+### ملف متأثر واحد
 
 | الملف | التغيير |
 |-------|---------|
-| `src/pages/admin/AdminServices.tsx` | ترتيب pending أولاً بعد الفلترة |
-| `src/hooks/useAdminUsers.ts` | ترتيب بـ `is_verified` تصاعدي قبل `created_at` |
+| `src/pages/admin/AdminProjects.tsx` | توسيع أعمدة + إصلاح نص الزر واسم الملف |
+
