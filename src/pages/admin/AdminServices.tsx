@@ -225,13 +225,20 @@ export default function AdminServices() {
                             min={0}
                             placeholder="—"
                             defaultValue={(s as any).display_order === 999 ? "" : (s as any).display_order}
-                            onBlur={(e) => {
+                            onBlur={async (e) => {
                               const raw = e.target.value.trim();
                               const val = raw === "" || raw === "0" ? 999 : parseInt(raw) || 999;
                               if (val !== ((s as any).display_order ?? 999)) {
                                 updateService.mutate(
                                   { id: s.id, display_order: val },
-                                  { onSuccess: () => toast.success("تم تحديث الترتيب"), onError: () => toast.error("حدث خطأ") }
+                                  {
+                                    onSuccess: async () => {
+                                      await reorderServices();
+                                      qc.invalidateQueries({ queryKey: ["admin-services"] });
+                                      toast.success("تم تحديث الترتيب");
+                                    },
+                                    onError: () => toast.error("حدث خطأ"),
+                                  }
                                 );
                               }
                             }}
