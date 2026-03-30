@@ -89,15 +89,16 @@ export function UserTable({ pagination }: UserTableProps) {
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
 
-  // Pass filters to hook for server-side filtering
-  const { data: users, isLoading } = useAdminUsers(from, to, {
+  const filters = {
     roleFilter,
     regionId: regionFilter,
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
-  });
+  };
+  const { data: users, isLoading } = useAdminUsers(from, to, filters);
+  const { data: totalCount } = useAdminUsersCount(filters);
 
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
