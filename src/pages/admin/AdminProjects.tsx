@@ -117,7 +117,7 @@ export default function AdminProjects() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
-            <Input placeholder="بحث بالعنوان أو الجمعية..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-56" />
+            <Input placeholder="بحث بالعنوان أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination.resetPage(); }} className="w-56" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
