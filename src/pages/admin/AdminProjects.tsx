@@ -157,7 +157,7 @@ export default function AdminProjects() {
             إعادة تعيين
           </Button>
           <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
-            <Download className="h-4 w-4" />تصدير CSV
+            <Download className="h-4 w-4" />تصدير Excel
           </Button>
         </div>
         {isLoading ? (
