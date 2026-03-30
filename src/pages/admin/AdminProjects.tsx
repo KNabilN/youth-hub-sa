@@ -174,7 +174,7 @@ export default function AdminProjects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((p: any) => {
+                  {(projects ?? []).map((p: any) => {
                     const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
                     return (
                     <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`, pagination.page)}>
