@@ -19,6 +19,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useListHighlight } from "@/hooks/useListHighlight";
 import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
@@ -86,7 +87,23 @@ export default function AdminServices() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { saveAndNavigate } = useListHighlight("admin-services");
+
+  async function reorderServices() {
+    const { data } = await supabase
+      .from("micro_services")
+      .select("id, display_order")
+      .is("deleted_at", null)
+      .lt("display_order", 999)
+      .order("display_order", { ascending: true });
+    if (!data?.length) return;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].display_order !== i + 1) {
+        await supabase.from("micro_services").update({ display_order: i + 1 }).eq("id", data[i].id);
+      }
+    }
+  }
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
@@ -208,13 +225,20 @@ export default function AdminServices() {
                             min={0}
                             placeholder="—"
                             defaultValue={(s as any).display_order === 999 ? "" : (s as any).display_order}
-                            onBlur={(e) => {
+                            onBlur={async (e) => {
                               const raw = e.target.value.trim();
                               const val = raw === "" || raw === "0" ? 999 : parseInt(raw) || 999;
                               if (val !== ((s as any).display_order ?? 999)) {
                                 updateService.mutate(
                                   { id: s.id, display_order: val },
-                                  { onSuccess: () => toast.success("تم تحديث الترتيب"), onError: () => toast.error("حدث خطأ") }
+                                  {
+                                    onSuccess: async () => {
+                                      await reorderServices();
+                                      qc.invalidateQueries({ queryKey: ["admin-services"] });
+                                      toast.success("تم تحديث الترتيب");
+                                    },
+                                    onError: () => toast.error("حدث خطأ"),
+                                  }
                                 );
                               }
                             }}
