@@ -28,13 +28,22 @@ import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDia
 const projectExportColumns: ExportColumnDef[] = [
   { key: "request_number", label: "رقم الطلب" },
   { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف" },
   { key: "association", label: "الجمعية" },
+  { key: "provider", label: "مزود الخدمة" },
   { key: "category", label: "التصنيف" },
   { key: "region", label: "المنطقة" },
   { key: "city", label: "المدينة" },
   { key: "budget", label: "الميزانية" },
+  { key: "estimated_hours", label: "الساعات المقدرة" },
+  { key: "required_skills", label: "المهارات المطلوبة" },
   { key: "status", label: "الحالة" },
-  { key: "created_at", label: "التاريخ" },
+  { key: "is_featured", label: "مميز" },
+  { key: "is_private", label: "خاص" },
+  { key: "is_name_visible", label: "إظهار الاسم" },
+  { key: "rejection_reason", label: "سبب الرفض" },
+  { key: "created_at", label: "تاريخ الإنشاء" },
+  { key: "updated_at", label: "تاريخ التحديث" },
 ];
 const projectExportDefaults = ["request_number", "title", "association", "category", "status", "budget", "created_at"];
 
@@ -148,7 +157,7 @@ export default function AdminProjects() {
             إعادة تعيين
           </Button>
           <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
-            <Download className="h-4 w-4" />تصدير CSV
+            <Download className="h-4 w-4" />تصدير Excel
           </Button>
         </div>
         {isLoading ? (
@@ -268,7 +277,7 @@ export default function AdminProjects() {
         open={exportOpen}
         onOpenChange={setExportOpen}
         title="تصدير الطلبات"
-        filename="projects.csv"
+        filename="projects.xlsx"
         columns={projectExportColumns}
         defaultColumns={projectExportDefaults}
         filters={[{
@@ -277,19 +286,28 @@ export default function AdminProjects() {
           options: Object.entries(statusLabels).map(([k, v]) => ({ value: k, label: v })),
         }]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("projects").select("request_number, title, budget, status, created_at, profiles!projects_association_id_fkey(full_name, organization_name), categories(name), regions(name), cities(name)");
+          const { data } = await supabase.from("projects").select("*, profiles!projects_association_id_fkey(full_name, organization_name), provider:profiles!projects_assigned_provider_id_fkey(full_name, organization_name), categories(name), regions(name), cities(name)");
           let rows = data ?? [];
           if (filters.status !== "all") rows = rows.filter((p: any) => p.status === filters.status);
           const colMap: Record<string, (p: any) => string> = {
             request_number: (p) => p.request_number || "",
             title: (p) => p.title || "",
+            description: (p) => p.description || "",
             association: (p) => (p.profiles as any)?.organization_name || (p.profiles as any)?.full_name || "",
+            provider: (p) => (p.provider as any)?.organization_name || (p.provider as any)?.full_name || "",
             category: (p) => (p.categories as any)?.name || "",
             region: (p) => (p.regions as any)?.name || "",
             city: (p) => (p.cities as any)?.name || "",
             budget: (p) => p.budget != null ? String(p.budget) : "",
+            estimated_hours: (p) => p.estimated_hours != null ? String(p.estimated_hours) : "",
+            required_skills: (p) => Array.isArray(p.required_skills) ? p.required_skills.join("، ") : "",
             status: (p) => statusLabels[p.status] || p.status,
+            is_featured: (p) => p.is_featured ? "نعم" : "لا",
+            is_private: (p) => p.is_private ? "نعم" : "لا",
+            is_name_visible: (p) => p.is_name_visible ? "نعم" : "لا",
+            rejection_reason: (p) => p.rejection_reason || "",
             created_at: (p) => p.created_at?.slice(0, 10) || "",
+            updated_at: (p) => p.updated_at?.slice(0, 10) || "",
           };
           const activeCols = projectExportColumns.filter((c) => cols.includes(c.key));
           return {
