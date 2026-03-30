@@ -1,31 +1,19 @@
 
 
-# إصلاح سلة المحذوفات — RTL + ترتيب بالأحدث
+# عكس ترتيب التبويبات لتبدأ من أقصى اليمين
 
-## مشكلتان
+## التغيير
+في `src/pages/Trash.tsx` سطر 87، إضافة `flex-row-reverse` و `justify-end` للـ `TabsList` لتبدأ التبويبات من أقصى اليمين بدلاً من اليسار.
 
-### 1. التخطيط غير مرتب من اليمين لليسار
-العنوان والبادج على اليسار والأزرار على اليمين — يجب عكسهم للتوافق مع RTL.
-
-### 2. الترتيب غير صحيح
-في `useTrash.ts`، كل جدول يُرتّب داخلياً بالأحدث أولاً، لكن النتائج المدمجة من كل الجداول لا تُرتّب. المطلوب: آخر عنصر محذوف يظهر في الأعلى.
-
-## التغييرات
-
-### `src/hooks/useTrash.ts`
-- بعد حلقة `for` التي تجمع النتائج من كل الجداول، إضافة ترتيب نهائي:
 ```typescript
-results.sort((a, b) => new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime());
+<TabsList className="flex-wrap h-auto gap-1 flex-row-reverse justify-end">
 ```
 
-### `src/pages/Trash.tsx`
-- تغيير `flex items-center justify-between` في بطاقة كل عنصر إلى `flex items-center justify-between flex-row-reverse` لعكس ترتيب الأزرار والمحتوى
-- أو الأفضل: وضع الأزرار في البداية (يمين RTL) والمحتوى بعدها، بتبديل ترتيب العناصر داخل `CardContent`
+البيانات أسفل التبويبات تبقى كما هي بدون تغيير.
 
-### ملفات متأثرة
+### ملف متأثر واحد
 
 | الملف | التغيير |
 |-------|---------|
-| `src/hooks/useTrash.ts` | ترتيب النتائج المدمجة بالأحدث أولاً |
-| `src/pages/Trash.tsx` | إصلاح محاذاة RTL للبطاقات |
+| `src/pages/Trash.tsx` | إضافة `flex-row-reverse justify-end` للتبويبات |
 
