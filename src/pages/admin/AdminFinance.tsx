@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
-import { downloadXLSX } from "@/lib/csv-export";
+// xlsx export is handled by ExportDialog
 
 const escrowExportCols: ExportColumnDef[] = [
   { key: "project", label: "الطلب" }, { key: "payer", label: "الدافع" }, { key: "payee", label: "المستفيد" },
