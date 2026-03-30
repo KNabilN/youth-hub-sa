@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility } from "@/hooks/useAdminProjects";
+import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility, useAdminProjectsCount } from "@/hooks/useAdminProjects";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
