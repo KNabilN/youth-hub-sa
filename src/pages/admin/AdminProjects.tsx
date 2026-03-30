@@ -73,30 +73,21 @@ const projectFields: DirectEditFieldConfig[] = [
 
 export default function AdminProjects() {
   const pagination = usePagination("admin-projects");
-  const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
-  const { data: totalCount } = useAdminProjectsCount();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to, search || undefined, statusFilter, categoryFilter);
+  const { data: totalCount } = useAdminProjectsCount(search || undefined, statusFilter, categoryFilter);
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
   const toggleVisibility = useToggleProjectNameVisibility();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [editProject, setEditProject] = useState<any>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
   const { saveAndNavigate } = useListHighlight("admin-projects");
-
-  const filtered = (projects ?? []).filter((p: any) => {
-    const q = search.toLowerCase();
-    const displayName = p.profiles?.organization_name || p.profiles?.full_name || "";
-    if (search && !p.title.toLowerCase().includes(q) && !(p.request_number ?? '').toLowerCase().includes(q) && !displayName.toLowerCase().includes(q)) return false;
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
-    if (categoryFilter !== "all" && p.category_id !== categoryFilter) return false;
-    return true;
-  });
 
   const handleStatusChange = (id: string, status: ProjectStatus) => {
     updateStatus.mutate({ id, status }, {
