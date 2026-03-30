@@ -27,14 +27,23 @@ import { ExportDialog, type ExportColumnDef, type ExportFilterDef } from "@/comp
 
 const serviceExportColumns: ExportColumnDef[] = [
   { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف" },
+  { key: "long_description", label: "الوصف التفصيلي" },
   { key: "provider", label: "مقدم الخدمة" },
   { key: "category", label: "التصنيف" },
   { key: "price", label: "السعر" },
+  { key: "service_type", label: "نوع الخدمة" },
   { key: "approval", label: "الحالة" },
   { key: "service_number", label: "رقم الخدمة" },
-  { key: "created_at", label: "التاريخ" },
+  { key: "region", label: "المنطقة" },
+  { key: "city", label: "المدينة" },
+  { key: "sales_count", label: "عدد المبيعات" },
+  { key: "service_views", label: "عدد المشاهدات" },
+  { key: "is_featured", label: "مميزة" },
+  { key: "created_at", label: "تاريخ الإنشاء" },
+  { key: "updated_at", label: "تاريخ التحديث" },
 ];
-const serviceExportDefaults = ["title", "provider", "category", "price", "approval", "created_at"];
+const serviceExportDefaults = ["title", "description", "provider", "category", "price", "service_type", "approval", "created_at"];
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
 
