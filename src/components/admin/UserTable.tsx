@@ -357,6 +357,7 @@ export function UserTable({ pagination }: UserTableProps) {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={users?.length ?? 0}
+          totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />

@@ -209,6 +209,7 @@ export default function Marketplace() {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={services?.length ?? 0}
+          totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />

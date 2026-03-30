@@ -206,6 +206,7 @@ export default function AvailableProjects() {
           page={pagination.page}
           pageSize={pagination.pageSize}
           totalFetched={projects?.length ?? 0}
+          totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
         />
