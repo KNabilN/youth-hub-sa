@@ -328,7 +328,7 @@ export default function AdminReports() {
     if (regionId) q = q.eq("region_id", regionId);
     if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
-    downloadCSV("projects.csv", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
+    downloadXLSX("projects.xlsx", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
       (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
   };
   const exportServices = async () => {
