@@ -296,17 +296,27 @@ export default function AdminServices() {
           options: Object.entries(approvalLabels).map(([k, v]) => ({ value: k, label: v })),
         }]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("micro_services").select("service_number, title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
+          const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)");
           let rows = data ?? [];
           if (filters.approval !== "all") rows = rows.filter((s: any) => s.approval === filters.approval);
+          const serviceTypeLabels: Record<string, string> = { fixed_price: "سعر ثابت", hourly: "بالساعة" };
           const colMap: Record<string, (s: any) => string> = {
             title: (s) => s.title || "",
+            description: (s) => s.description || "",
+            long_description: (s) => s.long_description || "",
             provider: (s) => (s.profiles as any)?.full_name || "",
             category: (s) => (s.categories as any)?.name || "",
             price: (s) => String(s.price),
+            service_type: (s) => serviceTypeLabels[s.service_type] || s.service_type || "",
             approval: (s) => approvalLabels[s.approval] || s.approval,
             service_number: (s) => s.service_number || "",
+            region: (s) => (s.regions as any)?.name || "",
+            city: (s) => (s.cities as any)?.name || "",
+            sales_count: (s) => String(s.sales_count ?? 0),
+            service_views: (s) => String(s.service_views ?? 0),
+            is_featured: (s) => s.is_featured ? "نعم" : "لا",
             created_at: (s) => s.created_at?.slice(0, 10) || "",
+            updated_at: (s) => s.updated_at?.slice(0, 10) || "",
           };
           const activeCols = serviceExportColumns.filter((c) => cols.includes(c.key));
           return {
