@@ -87,7 +87,23 @@ export default function AdminServices() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { saveAndNavigate } = useListHighlight("admin-services");
+
+  async function reorderServices() {
+    const { data } = await supabase
+      .from("micro_services")
+      .select("id, display_order")
+      .is("deleted_at", null)
+      .lt("display_order", 999)
+      .order("display_order", { ascending: true });
+    if (!data?.length) return;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].display_order !== i + 1) {
+        await supabase.from("micro_services").update({ display_order: i + 1 }).eq("id", data[i].id);
+      }
+    }
+  }
 
   const filtered = (services ?? []).filter((s: any) => {
     if (search) {
