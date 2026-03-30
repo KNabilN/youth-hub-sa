@@ -109,19 +109,19 @@ export default function Trash() {
               <div className="space-y-3">
                 {filtered.map(item => (
                   <Card key={`${item.table}-${item.id}`} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="flex items-center justify-between py-4 px-5">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[10px]">{item.tableLabel}</Badge>
+                    <CardContent className="flex items-center justify-between py-4 px-5 flex-row-reverse">
+                      <div className="flex-1 min-w-0 text-right">
+                        <div className="flex items-center gap-2 mb-1 justify-end">
                           <p className="font-medium text-sm truncate">{item.title}</p>
+                          <Badge variant="outline" className="text-[10px]">{item.tableLabel}</Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            حُذف {formatDistanceToNow(new Date(item.deleted_at), { addSuffix: true, locale: ar })}
-                          </span>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground justify-end">
                           <span className={item.daysRemaining <= 5 ? "text-destructive font-medium" : ""}>
                             متبقي {item.daysRemaining} يوم
+                          </span>
+                          <span className="flex items-center gap-1">
+                            حُذف {formatDistanceToNow(new Date(item.deleted_at), { addSuffix: true, locale: ar })}
+                            <Clock className="h-3 w-3" />
                           </span>
                         </div>
                       </div>
