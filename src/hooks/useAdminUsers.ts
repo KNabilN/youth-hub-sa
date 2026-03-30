@@ -98,6 +98,60 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
   });
 }
 
+export function useAdminUsersCount(filters?: AdminUsersFilters) {
+  const roleFilter = filters?.roleFilter;
+  const regionId = filters?.regionId;
+  const cityId = filters?.cityId;
+  const dateFrom = filters?.dateFrom;
+  const dateTo = filters?.dateTo;
+  const verifiedFilter = filters?.verifiedFilter;
+
+  return useQuery({
+    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
+    queryFn: async () => {
+      let rolesQuery = supabase.from("user_roles").select("user_id, role");
+      if (roleFilter && roleFilter !== "all") {
+        rolesQuery = rolesQuery.eq("role", roleFilter as any);
+      }
+      const { data: roles, error: rolesError } = await rolesQuery;
+      if (rolesError) throw rolesError;
+
+      let locationUserIds: string[] | null = null;
+      if ((regionId && regionId !== "all") || (cityId && cityId !== "all")) {
+        const userIdSet = new Set<string>();
+        let svcQuery = supabase.from("micro_services").select("provider_id");
+        if (cityId && cityId !== "all") svcQuery = svcQuery.eq("city_id", cityId);
+        else if (regionId && regionId !== "all") svcQuery = svcQuery.eq("region_id", regionId);
+        const { data: svcData } = await svcQuery;
+        svcData?.forEach((s) => userIdSet.add(s.provider_id));
+        let projQuery = supabase.from("projects").select("association_id");
+        if (cityId && cityId !== "all") projQuery = projQuery.eq("city_id", cityId);
+        else if (regionId && regionId !== "all") projQuery = projQuery.eq("region_id", regionId);
+        const { data: projData } = await projQuery;
+        projData?.forEach((p) => userIdSet.add(p.association_id));
+        locationUserIds = Array.from(userIdSet);
+        if (locationUserIds.length === 0) return 0;
+      }
+
+      let countQuery = supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      if (roleFilter && roleFilter !== "all") {
+        const userIds = roles?.map((r) => r.user_id) ?? [];
+        if (userIds.length === 0) return 0;
+        countQuery = countQuery.in("id", userIds);
+      }
+      if (locationUserIds) countQuery = countQuery.in("id", locationUserIds);
+      if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
+      if (dateTo) countQuery = countQuery.lte("created_at", dateTo + "T23:59:59");
+      if (verifiedFilter === "verified") countQuery = countQuery.eq("is_verified", true);
+      else if (verifiedFilter === "unverified") countQuery = countQuery.eq("is_verified", false);
+
+      const { count, error } = await countQuery;
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 export function useToggleVerification() {
   const qc = useQueryClient();
   return useMutation({

@@ -87,6 +87,26 @@ export default function AvailableProjects() {
     },
   });
 
+  const { data: totalCount } = useQuery({
+    queryKey: ["available-projects-count", user?.id, categoryId, regionId, debouncedSearch, budgetMin, budgetMax],
+    enabled: !!user,
+    queryFn: async () => {
+      let query = supabase
+        .from("projects")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "open")
+        .eq("is_private", false);
+      if (categoryId) query = query.eq("category_id", categoryId);
+      if (regionId) query = query.eq("region_id", regionId);
+      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      if (budgetMin) query = query.gte("budget", Number(budgetMin));
+      if (budgetMax) query = query.lte("budget", Number(budgetMax));
+      const { count, error } = await query;
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const handleCategoryChange = (v: string) => { setCategoryId(v === "all" ? "" : v); pagination.resetPage(); };
   const handleRegionChange = (v: string) => { setRegionId(v === "all" ? "" : v); pagination.resetPage(); };
 
