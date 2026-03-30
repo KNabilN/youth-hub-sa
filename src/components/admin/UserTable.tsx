@@ -101,6 +101,11 @@ export function UserTable({ pagination }: UserTableProps) {
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
 
+  // Suspension reason dialog state
+  const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [suspensionReason, setSuspensionReason] = useState("");
+  const { data: totalCount } = useAdminUsersCount(filters);
+
   const handleToggle = (id: string, current: boolean) => {
     toggleVerify.mutate({ id, is_verified: !current }, {
       onSuccess: () => toast.success(current ? "تم إلغاء التوثيق" : "تم التوثيق"),
