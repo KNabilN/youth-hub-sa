@@ -1,49 +1,46 @@
 
 
-# إعادة ترتيب تلقائي عند إزالة رقم ترتيب خدمة
+# إصلاح البحث ليشمل جميع البيانات وليس الصفحة الحالية فقط
 
 ## المشكلة
-عند إزالة رقم ترتيب خدمة (مثلاً 3)، الخدمات التي بعدها (4، 5، ...) تبقى كما هي. المطلوب أن تتحرك تلقائياً لملء الفراغ.
+في صفحتين (إدارة الطلبات وإدارة المستخدمين)، يتم جلب صفحة واحدة فقط من قاعدة البيانات عبر `.range(from, to)` ثم يُطبَّق البحث على هذه الصفحة فقط. باقي الصفحات (السوق، المشاريع المتاحة، الخدمات) تعمل بشكل سليم لأنها إما تجلب كل البيانات أو تستخدم بحث على مستوى قاعدة البيانات.
 
 ## الحل
-تعديل منطق `onBlur` في `AdminServices.tsx` ليقوم بعد تحديث الترتيب بإعادة ترقيم جميع الخدمات التي لها ترتيب فعلي (غير 999) بشكل متسلسل.
+إضافة بحث على مستوى قاعدة البيانات (server-side search) عبر `.ilike` في الصفحتين المتأثرتين.
 
-## التغييرات في `src/pages/admin/AdminServices.tsx`
+## التغييرات
 
-### إضافة دالة `reorderServices`
-بعد تحديث ترتيب خدمة واحدة، تُعاد قراءة جميع الخدمات المرتبة (display_order < 999)، ثم تُرقّم من 1 تصاعدياً بحسب ترتيبها الحالي:
+### 1. `src/hooks/useAdminProjects.ts`
+- إضافة parameter `search?: string` لـ `useAdminProjects`
+- عند وجود نص بحث: إضافة `.or("title.ilike.%search%,request_number.ilike.%search%")` للاستعلام
+- إضافة `search` لـ `queryKey`
+- تعديل `useAdminProjectsCount` لقبول `search` أيضاً وتطبيق نفس الفلتر
 
-```typescript
-async function reorderServices() {
-  const { data } = await supabase
-    .from("micro_services")
-    .select("id, display_order")
-    .is("deleted_at", null)
-    .lt("display_order", 999)
-    .order("display_order", { ascending: true });
-  if (!data?.length) return;
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].display_order !== i + 1) {
-      await supabase.from("micro_services").update({ display_order: i + 1 }).eq("id", data[i].id);
-    }
-  }
-}
-```
+### 2. `src/pages/admin/AdminProjects.tsx`
+- تمرير `search` من الـ state إلى `useAdminProjects` و `useAdminProjectsCount`
+- إزالة فلترة البحث النصي من `filtered` (إبقاء فلاتر الحالة والتصنيف على مستوى العميل لأنها تعمل مع البيانات المجلوبة)
+- إضافة `resetPage` عند تغيير البحث
+- **ملاحظة**: فلاتر الحالة والتصنيف تحتاج أيضاً نقلها للسيرفر لنفس السبب
 
-### تعديل `onBlur` handler (سطر 211-219)
-بعد `updateService.mutate` الناجح، يُستدعى `reorderServices()` ثم يُعاد تحميل القائمة:
+### 3. `src/hooks/useAdminUsers.ts`
+- إضافة `search?: string` لواجهة `AdminUsersFilters`
+- عند وجود نص بحث: إضافة `.or("full_name.ilike.%search%,organization_name.ilike.%search%,user_number.ilike.%search%")` للاستعلام
+- إضافة `search` لـ `queryKey`
+- تعديل `useAdminUsersCount` لقبول `search` أيضاً
 
-```typescript
-onSuccess: async () => {
-  await reorderServices();
-  qc.invalidateQueries({ queryKey: ["admin-services"] });
-  toast.success("تم تحديث الترتيب");
-}
-```
+### 4. `src/components/admin/UserTable.tsx`
+- تمرير `search` ضمن `filters` بدلاً من الفلترة المحلية
+- إزالة `filtered` والاعتماد مباشرة على `users`
+- إضافة `resetPage` عند تغيير البحث
 
-### ملف متأثر واحد
+### ملفات متأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/pages/admin/AdminServices.tsx` | إضافة `reorderServices` + تعديل onBlur handler |
+| `src/hooks/useAdminProjects.ts` | إضافة بحث server-side + فلاتر |
+| `src/pages/admin/AdminProjects.tsx` | تمرير البحث والفلاتر للهوك + resetPage |
+| `src/hooks/useAdminUsers.ts` | إضافة بحث server-side |
+| `src/components/admin/UserTable.tsx` | تمرير البحث للهوك بدل الفلترة المحلية |
+
+لا تغييرات في قاعدة البيانات.
 
