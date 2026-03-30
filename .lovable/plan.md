@@ -1,32 +1,45 @@
 
 
-# إضافة جميع بيانات الخدمة لتصدير CSV
+# تصدير Excel بصيغة XLSX بدلاً من CSV
 
-## التغييرات في `src/pages/admin/AdminServices.tsx`
+## المشكلة
+التصدير الحالي ينتج ملف CSV يفتح في Excel بأعمدة ضيقة جداً، النصوص العربية تتداخل، والتواريخ تظهر كـ "########".
 
-### 1. توسيع أعمدة التصدير
-إضافة الأعمدة التالية إلى `serviceExportColumns`:
-- **الوصف** (`description`)
-- **الوصف التفصيلي** (`long_description`)
-- **نوع الخدمة** (`service_type`) — ثابت/بالساعة
-- **المنطقة** (`region`)
-- **المدينة** (`city`)
-- **عدد المبيعات** (`sales_count`)
-- **عدد المشاهدات** (`service_views`)
-- **مميزة** (`is_featured`)
-- **تاريخ التحديث** (`updated_at`)
+## الحل
+تحويل نظام التصدير من CSV إلى XLSX حقيقي باستخدام مكتبة `xlsx` (SheetJS) مع:
+- عرض أعمدة تلقائي بناءً على محتوى البيانات
+- دعم RTL للنصوص العربية
+- تنسيق الهيدر (خط عريض + خلفية ملونة)
 
-### 2. تحديث استعلام التصدير
-تعديل `select` في `onExport` ليجلب الحقول الإضافية:
-```
-select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)")
-```
+## التغييرات
 
-### 3. إضافة mapper لكل عمود جديد
-تعريف دوال التحويل للأعمدة الجديدة في `colMap`.
+### 1. تثبيت مكتبة `xlsx`
+إضافة `xlsx` كـ dependency
 
-### ملف متأثر واحد فقط
+### 2. تعديل `src/lib/csv-export.ts` → إضافة دالة `downloadXLSX`
+- دالة جديدة `downloadXLSX(filename, headers, rows)` تنشئ ملف XLSX
+- حساب عرض كل عمود تلقائياً من أطول قيمة فيه (مع حد أدنى وأقصى)
+- تنسيق صف الهيدر
+- الإبقاء على `downloadCSV` للاستخدامات الأخرى
+
+### 3. تعديل `src/components/admin/ExportDialog.tsx`
+- استبدال `downloadCSV` بـ `downloadXLSX`
+- تغيير اسم الملف من `.csv` إلى `.xlsx`
+- تغيير نص الزر من "تصدير CSV" إلى "تصدير Excel"
+
+### 4. تعديل صفحات التصدير المباشر
+- `ExportUsersDialog.tsx` — استخدام `downloadXLSX`
+- `AdminReports.tsx` — استخدام `downloadXLSX` في جميع دوال التصدير
+- `AdminFinance.tsx` — استخدام `downloadXLSX`
+
+### ملفات متأثرة
+
 | الملف | العملية |
 |-------|---------|
-| `src/pages/admin/AdminServices.tsx` | تعديل — توسيع أعمدة وبيانات التصدير |
+| `package.json` | إضافة `xlsx` |
+| `src/lib/csv-export.ts` | إضافة `downloadXLSX` |
+| `src/components/admin/ExportDialog.tsx` | استبدال CSV بـ XLSX |
+| `src/components/admin/ExportUsersDialog.tsx` | استبدال CSV بـ XLSX |
+| `src/pages/admin/AdminReports.tsx` | استبدال CSV بـ XLSX |
+| `src/pages/admin/AdminFinance.tsx` | استبدال CSV بـ XLSX |
 
