@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { downloadCSV } from "@/lib/csv-export";
+import { downloadXLSX } from "@/lib/csv-export";
 import { toast } from "sonner";
 
 const roleLabelsMap: Record<string, string> = {
@@ -85,8 +85,8 @@ export function ExportUsersDialog({ open, onOpenChange }: ExportUsersDialogProps
 
       const activeCols = allColumns.filter((c) => selectedColumns.includes(c.key));
 
-      downloadCSV(
-        "users.csv",
+      downloadXLSX(
+        "users.xlsx",
         activeCols.map((c) => c.label),
         rows.map((u: any) => activeCols.map((c) => c.getValue(u, roleMap)))
       );
@@ -150,7 +150,7 @@ export function ExportUsersDialog({ open, onOpenChange }: ExportUsersDialogProps
           <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
           <Button onClick={handleExport} disabled={exporting || selectedColumns.length === 0} className="gap-1">
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            تصدير CSV
+            تصدير Excel
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Lock, Unlock, Snowflake, RotateCcw, AlertTriangle, Eye, Download, FileText, CheckCircle, XCircle, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
-import { downloadCSV } from "@/lib/csv-export";
+// xlsx export is handled by ExportDialog
 
 const escrowExportCols: ExportColumnDef[] = [
   { key: "project", label: "الطلب" }, { key: "payer", label: "الدافع" }, { key: "payee", label: "المستفيد" },
@@ -302,7 +302,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportEscrow(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
               <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{filteredEscrows.length} معاملة</span>
               <Button
@@ -441,7 +441,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportInvoice(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
               <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{filteredInvoices.length} فاتورة</span>
               <Button
@@ -532,7 +532,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportWithdrawal(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
               <span className="text-xs text-muted-foreground bg-background rounded-full px-3 py-1 border">{(withdrawals ?? []).length} طلب</span>
             </div>
@@ -652,7 +652,7 @@ export default function AdminFinance() {
                 className="h-9 gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-medium"
                 onClick={() => setExportBankTransfer(true)}
               >
-                <Download className="h-4 w-4" />تصدير CSV
+                <Download className="h-4 w-4" />تصدير Excel
               </Button>
             </div>
             {loadingBT ? (

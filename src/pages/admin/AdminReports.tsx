@@ -12,7 +12,7 @@ import { Download, ChevronDown, FileText, Printer, Package, CheckCircle2, FileSi
 import { ReportFilters, getDefaultFilters, type ReportFilterValues } from "@/components/admin/ReportFilters";
 import { generateReportFromDOM } from "@/lib/report-pdf";
 import { toast } from "sonner";
-import { downloadCSV } from "@/lib/csv-export";
+import { downloadXLSX } from "@/lib/csv-export";
 
 const STATUS_COLORS = ["#0D9488", "#FB923C", "#F59E0B", "#10B981", "#F43F5E", "#64748B"];
 const ROLE_COLORS = ["#0D9488", "#FB923C", "#6366F1", "#8B5CF6"];
@@ -320,7 +320,7 @@ export default function AdminReports() {
   // --- Export functions ---
   const exportUsers = async () => {
     const { data } = await supabase.from("profiles").select("full_name, phone, organization_name, is_verified, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
-    downloadCSV("users.csv", ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"],
+    downloadXLSX("users.xlsx", ["الاسم", "الهاتف", "المنظمة", "موثق", "تاريخ الانضمام"],
       (data ?? []).map((u: any) => [u.full_name, u.phone ?? "", u.organization_name ?? "", u.is_verified ? "نعم" : "لا", u.created_at?.slice(0, 10)]));
   };
   const exportProjects = async () => {
@@ -328,7 +328,7 @@ export default function AdminReports() {
     if (regionId) q = q.eq("region_id", regionId);
     if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
-    downloadCSV("projects.csv", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
+    downloadXLSX("projects.xlsx", ["المعرف", "العنوان", "الحالة", "الميزانية", "المنطقة", "التصنيف", "تاريخ الإنشاء"],
       (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
   };
   const exportServices = async () => {
@@ -336,14 +336,14 @@ export default function AdminReports() {
     if (regionId) q = q.eq("region_id", regionId);
     if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
-    downloadCSV("services.csv", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
+    downloadXLSX("services.xlsx", ["العنوان", "مقدم الخدمة", "السعر", "التصنيف", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((s: any) => [s.title, (s.profiles as any)?.full_name ?? "", s.price, (s.categories as any)?.name ?? "", s.approval, s.created_at?.slice(0, 10)]));
   };
   const exportFinancial = async () => {
     let q = supabase.from("escrow_transactions").select("amount, status, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
     if ((regionId || cityId) && regionProjectIds?.length) q = q.in("project_id", regionProjectIds);
     const { data } = await q;
-    downloadCSV("financial.csv", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
+    downloadXLSX("financial.xlsx", ["المبلغ", "الحالة", "تاريخ الإنشاء"],
       (data ?? []).map((e: any) => [e.amount, e.status, e.created_at?.slice(0, 10)]));
   };
   const exportInvoices = async () => {
@@ -354,11 +354,11 @@ export default function AdminReports() {
     }
     let q = supabase.from("invoices").select("invoice_number, amount, commission_amount, created_at").gte("created_at", dateFrom).lte("created_at", dateTo);
     if (escrowIds !== null) {
-      if (escrowIds.length === 0) { downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"], []); return; }
+      if (escrowIds.length === 0) { downloadXLSX("invoices.xlsx", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"], []); return; }
       q = q.in("escrow_id", escrowIds);
     }
     const { data } = await q;
-    downloadCSV("invoices.csv", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
+    downloadXLSX("invoices.xlsx", ["رقم الفاتورة", "المبلغ", "العمولة", "تاريخ الإنشاء"],
       (data ?? []).map((i: any) => [i.invoice_number, i.amount, i.commission_amount, i.created_at?.slice(0, 10)]));
   };
 
@@ -375,7 +375,7 @@ export default function AdminReports() {
       ["المانحين النشطين", String(insights?.activeDonors ?? 0)],
       ["تذاكر الدعم", String(insights?.ticketsCount ?? 0)],
     ];
-    downloadCSV("comprehensive-report.csv", ["المؤشر", "القيمة"], rows);
+    downloadXLSX("comprehensive-report.xlsx", ["المؤشر", "القيمة"], rows);
     toast.success("تم تصدير التقرير الشامل");
   };
 

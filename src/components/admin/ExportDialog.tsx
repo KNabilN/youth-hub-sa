@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Loader2 } from "lucide-react";
-import { downloadCSV } from "@/lib/csv-export";
+import { downloadXLSX } from "@/lib/csv-export";
 import { toast } from "sonner";
 
 export interface ExportColumnDef {
@@ -56,7 +56,8 @@ export function ExportDialog({
     setExporting(true);
     try {
       const result = await onExport(selectedColumns, filterValues);
-      downloadCSV(filename, result.headers, result.rows);
+      const xlsxName = filename.replace(/\.csv$/i, ".xlsx");
+      downloadXLSX(xlsxName, result.headers, result.rows);
       toast.success(`تم التصدير بنجاح`);
       onOpenChange(false);
     } catch {
@@ -118,7 +119,7 @@ export function ExportDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
           <Button onClick={handleExport} disabled={exporting || selectedColumns.length === 0} className="gap-1">
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            تصدير CSV
+            تصدير Excel
           </Button>
         </DialogFooter>
       </DialogContent>
