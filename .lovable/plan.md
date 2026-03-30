@@ -1,45 +1,30 @@
 
-
-# تصدير Excel بصيغة XLSX بدلاً من CSV
-
-## المشكلة
-التصدير الحالي ينتج ملف CSV يفتح في Excel بأعمدة ضيقة جداً، النصوص العربية تتداخل، والتواريخ تظهر كـ "########".
-
-## الحل
-تحويل نظام التصدير من CSV إلى XLSX حقيقي باستخدام مكتبة `xlsx` (SheetJS) مع:
-- عرض أعمدة تلقائي بناءً على محتوى البيانات
-- دعم RTL للنصوص العربية
-- تنسيق الهيدر (خط عريض + خلفية ملونة)
+# ترتيب العناصر المعلقة/غير الموثقة في أعلى القائمة
 
 ## التغييرات
 
-### 1. تثبيت مكتبة `xlsx`
-إضافة `xlsx` كـ dependency
+### 1. `src/pages/admin/AdminServices.tsx` — ترتيب "قيد المراجعة" أولاً
+بعد الفلترة (سطر 91-99)، إضافة ترتيب يجعل الخدمات ذات حالة `pending` تظهر أولاً:
+```typescript
+const filtered = (services ?? []).filter(...)
+  .sort((a, b) => {
+    if (a.approval === "pending" && b.approval !== "pending") return -1;
+    if (a.approval !== "pending" && b.approval === "pending") return 1;
+    return 0;
+  });
+```
 
-### 2. تعديل `src/lib/csv-export.ts` → إضافة دالة `downloadXLSX`
-- دالة جديدة `downloadXLSX(filename, headers, rows)` تنشئ ملف XLSX
-- حساب عرض كل عمود تلقائياً من أطول قيمة فيه (مع حد أدنى وأقصى)
-- تنسيق صف الهيدر
-- الإبقاء على `downloadCSV` للاستخدامات الأخرى
-
-### 3. تعديل `src/components/admin/ExportDialog.tsx`
-- استبدال `downloadCSV` بـ `downloadXLSX`
-- تغيير اسم الملف من `.csv` إلى `.xlsx`
-- تغيير نص الزر من "تصدير CSV" إلى "تصدير Excel"
-
-### 4. تعديل صفحات التصدير المباشر
-- `ExportUsersDialog.tsx` — استخدام `downloadXLSX`
-- `AdminReports.tsx` — استخدام `downloadXLSX` في جميع دوال التصدير
-- `AdminFinance.tsx` — استخدام `downloadXLSX`
+### 2. `src/hooks/useAdminUsers.ts` — ترتيب غير الموثقين أولاً
+تعديل استعلام `useAdminUsers` لإضافة ترتيب `is_verified` تصاعدي (false أولاً) قبل ترتيب `created_at`:
+```typescript
+profilesQuery = profilesQuery
+  .order("is_verified", { ascending: true })
+  .order("created_at", { ascending: false });
+```
 
 ### ملفات متأثرة
 
-| الملف | العملية |
+| الملف | التغيير |
 |-------|---------|
-| `package.json` | إضافة `xlsx` |
-| `src/lib/csv-export.ts` | إضافة `downloadXLSX` |
-| `src/components/admin/ExportDialog.tsx` | استبدال CSV بـ XLSX |
-| `src/components/admin/ExportUsersDialog.tsx` | استبدال CSV بـ XLSX |
-| `src/pages/admin/AdminReports.tsx` | استبدال CSV بـ XLSX |
-| `src/pages/admin/AdminFinance.tsx` | استبدال CSV بـ XLSX |
-
+| `src/pages/admin/AdminServices.tsx` | ترتيب pending أولاً بعد الفلترة |
+| `src/hooks/useAdminUsers.ts` | ترتيب بـ `is_verified` تصاعدي قبل `created_at` |
