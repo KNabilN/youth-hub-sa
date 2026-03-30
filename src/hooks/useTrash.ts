@@ -76,6 +76,7 @@ export function useTrashItems() {
         }
       }
 
+      results.sort((a, b) => new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime());
       return results;
     },
   });
