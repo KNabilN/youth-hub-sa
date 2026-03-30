@@ -73,30 +73,21 @@ const projectFields: DirectEditFieldConfig[] = [
 
 export default function AdminProjects() {
   const pagination = usePagination("admin-projects");
-  const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to);
-  const { data: totalCount } = useAdminProjectsCount();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to, search || undefined, statusFilter, categoryFilter);
+  const { data: totalCount } = useAdminProjectsCount(search || undefined, statusFilter, categoryFilter);
   const { data: categories } = useCategories();
   const updateStatus = useUpdateProjectStatus();
   const updateProject = useAdminUpdateProject();
   const toggleVisibility = useToggleProjectNameVisibility();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [editProject, setEditProject] = useState<any>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const softDelete = useSoftDelete();
   const navigate = useNavigate();
   const { saveAndNavigate } = useListHighlight("admin-projects");
-
-  const filtered = (projects ?? []).filter((p: any) => {
-    const q = search.toLowerCase();
-    const displayName = p.profiles?.organization_name || p.profiles?.full_name || "";
-    if (search && !p.title.toLowerCase().includes(q) && !(p.request_number ?? '').toLowerCase().includes(q) && !displayName.toLowerCase().includes(q)) return false;
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
-    if (categoryFilter !== "all" && p.category_id !== categoryFilter) return false;
-    return true;
-  });
 
   const handleStatusChange = (id: string, status: ProjectStatus) => {
     updateStatus.mutate({ id, status }, {
@@ -126,11 +117,11 @@ export default function AdminProjects() {
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">البحث</Label>
-            <Input placeholder="بحث بالعنوان أو الجمعية..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-56" />
+            <Input placeholder="بحث بالعنوان أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination.resetPage(); }} className="w-56" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); pagination.resetPage(); }}>
               <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
@@ -140,7 +131,7 @@ export default function AdminProjects() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">التصنيف</Label>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); pagination.resetPage(); }}>
               <SelectTrigger className="w-40"><SelectValue placeholder="التصنيف" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
@@ -183,7 +174,7 @@ export default function AdminProjects() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((p: any) => {
+                  {(projects ?? []).map((p: any) => {
                     const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
                     return (
                     <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`, pagination.page)}>
@@ -244,7 +235,7 @@ export default function AdminProjects() {
                     </TableRow>
                     );
                   })}
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
+                  {(projects ?? []).length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </div>

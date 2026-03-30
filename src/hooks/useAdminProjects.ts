@@ -5,7 +5,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
-export function useAdminProjects(from = 0, to = 19) {
+export function useAdminProjects(from = 0, to = 19, search?: string, statusFilter?: string, categoryFilter?: string) {
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -19,12 +19,22 @@ export function useAdminProjects(from = 0, to = 19) {
   }, [qc]);
 
   return useQuery({
-    queryKey: ["admin-projects", from, to],
+    queryKey: ["admin-projects", from, to, search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("projects")
         .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name, organization_name)")
-        .is("deleted_at", null)
+        .is("deleted_at", null);
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%`);
+      }
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter as ProjectStatus);
+      }
+      if (categoryFilter && categoryFilter !== "all") {
+        query = query.eq("category_id", categoryFilter);
+      }
+      const { data, error } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;
@@ -33,14 +43,24 @@ export function useAdminProjects(from = 0, to = 19) {
   });
 }
 
-export function useAdminProjectsCount() {
+export function useAdminProjectsCount(search?: string, statusFilter?: string, categoryFilter?: string) {
   return useQuery({
-    queryKey: ["admin-projects-count"],
+    queryKey: ["admin-projects-count", search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const { count, error } = await supabase
+      let query = supabase
         .from("projects")
         .select("*", { count: "exact", head: true })
         .is("deleted_at", null);
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%`);
+      }
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter as ProjectStatus);
+      }
+      if (categoryFilter && categoryFilter !== "all") {
+        query = query.eq("category_id", categoryFilter);
+      }
+      const { count, error } = await query;
       if (error) throw error;
       return count ?? 0;
     },

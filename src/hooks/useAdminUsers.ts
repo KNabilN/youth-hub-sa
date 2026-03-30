@@ -8,6 +8,7 @@ interface AdminUsersFilters {
   dateFrom?: string;
   dateTo?: string;
   verifiedFilter?: string;
+  search?: string;
 }
 
 export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
@@ -17,9 +18,10 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
   const dateFrom = filters?.dateFrom;
   const dateTo = filters?.dateTo;
   const verifiedFilter = filters?.verifiedFilter;
+  const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
+    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
     queryFn: async () => {
       // First get role data, optionally filtered
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
@@ -63,6 +65,10 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
       // Build profiles query
       let profilesQuery = supabase.from("profiles").select("*").is("deleted_at", null).order("is_verified", { ascending: true }).order("created_at", { ascending: false });
 
+      if (search) {
+        profilesQuery = profilesQuery.or(`full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`);
+      }
+
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];
         if (userIds.length === 0) return [];
@@ -105,9 +111,10 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
   const dateFrom = filters?.dateFrom;
   const dateTo = filters?.dateTo;
   const verifiedFilter = filters?.verifiedFilter;
+  const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
+    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
     queryFn: async () => {
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
       if (roleFilter && roleFilter !== "all") {
@@ -134,6 +141,9 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       }
 
       let countQuery = supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      if (search) {
+        countQuery = countQuery.or(`full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`);
+      }
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];
         if (userIds.length === 0) return 0;

@@ -96,6 +96,7 @@ export function UserTable({ pagination }: UserTableProps) {
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
+    search: search || undefined,
   };
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
@@ -103,17 +104,6 @@ export function UserTable({ pagination }: UserTableProps) {
   // Suspension reason dialog state
   const [suspendTarget, setSuspendTarget] = useState<any>(null);
   const [suspensionReason, setSuspensionReason] = useState("");
-
-  const filtered = (users ?? []).filter((u: any) => {
-    if (search) {
-      const q = search.toLowerCase();
-      const matchName = u.full_name?.toLowerCase().includes(q);
-      const matchOrg = u.organization_name?.toLowerCase().includes(q);
-      const matchNumber = u.user_number?.toLowerCase().includes(q);
-      if (!matchName && !matchOrg && !matchNumber) return false;
-    }
-    return true;
-  });
 
   const handleToggle = (id: string, current: boolean) => {
     toggleVerify.mutate({ id, is_verified: !current }, {
@@ -170,7 +160,7 @@ export function UserTable({ pagination }: UserTableProps) {
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">البحث</Label>
-          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-48" />
+          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination?.resetPage?.(); }} className="w-full sm:w-48" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
@@ -265,7 +255,7 @@ export function UserTable({ pagination }: UserTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((u: any) => (
+            {(users ?? []).map((u: any) => (
               <TableRow key={u.id} id={`row-${u.id}`}>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground font-mono">
                   {u.user_number || "—"}
@@ -345,7 +335,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {(users ?? []).length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>
