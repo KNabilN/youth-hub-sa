@@ -43,14 +43,24 @@ export function useAdminProjects(from = 0, to = 19, search?: string, statusFilte
   });
 }
 
-export function useAdminProjectsCount() {
+export function useAdminProjectsCount(search?: string, statusFilter?: string, categoryFilter?: string) {
   return useQuery({
-    queryKey: ["admin-projects-count"],
+    queryKey: ["admin-projects-count", search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const { count, error } = await supabase
+      let query = supabase
         .from("projects")
         .select("*", { count: "exact", head: true })
         .is("deleted_at", null);
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%`);
+      }
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter as ProjectStatus);
+      }
+      if (categoryFilter && categoryFilter !== "all") {
+        query = query.eq("category_id", categoryFilter);
+      }
+      const { count, error } = await query;
       if (error) throw error;
       return count ?? 0;
     },
