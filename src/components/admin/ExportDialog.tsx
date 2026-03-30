@@ -56,7 +56,8 @@ export function ExportDialog({
     setExporting(true);
     try {
       const result = await onExport(selectedColumns, filterValues);
-      downloadCSV(filename, result.headers, result.rows);
+      const xlsxName = filename.replace(/\.csv$/i, ".xlsx");
+      downloadXLSX(xlsxName, result.headers, result.rows);
       toast.success(`تم التصدير بنجاح`);
       onOpenChange(false);
     } catch {
