@@ -121,7 +121,7 @@ export default function AdminProjects() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); pagination.resetPage(); }}>
               <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
