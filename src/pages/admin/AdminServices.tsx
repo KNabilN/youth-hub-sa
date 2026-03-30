@@ -96,6 +96,10 @@ export default function AdminServices() {
     if (approvalFilter !== "all" && s.approval !== approvalFilter) return false;
     if (categoryFilter !== "all" && s.category_id !== categoryFilter) return false;
     return true;
+  }).sort((a: any, b: any) => {
+    if (a.approval === "pending" && b.approval !== "pending") return -1;
+    if (a.approval !== "pending" && b.approval === "pending") return 1;
+    return 0;
   });
 
   const paged = filtered.slice(pagination.from, pagination.to + 1);
