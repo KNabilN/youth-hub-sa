@@ -27,14 +27,23 @@ import { ExportDialog, type ExportColumnDef, type ExportFilterDef } from "@/comp
 
 const serviceExportColumns: ExportColumnDef[] = [
   { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف" },
+  { key: "long_description", label: "الوصف التفصيلي" },
   { key: "provider", label: "مقدم الخدمة" },
   { key: "category", label: "التصنيف" },
   { key: "price", label: "السعر" },
+  { key: "service_type", label: "نوع الخدمة" },
   { key: "approval", label: "الحالة" },
   { key: "service_number", label: "رقم الخدمة" },
-  { key: "created_at", label: "التاريخ" },
+  { key: "region", label: "المنطقة" },
+  { key: "city", label: "المدينة" },
+  { key: "sales_count", label: "عدد المبيعات" },
+  { key: "service_views", label: "عدد المشاهدات" },
+  { key: "is_featured", label: "مميزة" },
+  { key: "created_at", label: "تاريخ الإنشاء" },
+  { key: "updated_at", label: "تاريخ التحديث" },
 ];
-const serviceExportDefaults = ["title", "provider", "category", "price", "approval", "created_at"];
+const serviceExportDefaults = ["title", "description", "provider", "category", "price", "service_type", "approval", "created_at"];
 
 type ApprovalStatus = Database["public"]["Enums"]["approval_status"];
 
@@ -287,17 +296,27 @@ export default function AdminServices() {
           options: Object.entries(approvalLabels).map(([k, v]) => ({ value: k, label: v })),
         }]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("micro_services").select("service_number, title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)");
+          const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)");
           let rows = data ?? [];
           if (filters.approval !== "all") rows = rows.filter((s: any) => s.approval === filters.approval);
+          const serviceTypeLabels: Record<string, string> = { fixed_price: "سعر ثابت", hourly: "بالساعة" };
           const colMap: Record<string, (s: any) => string> = {
             title: (s) => s.title || "",
+            description: (s) => s.description || "",
+            long_description: (s) => s.long_description || "",
             provider: (s) => (s.profiles as any)?.full_name || "",
             category: (s) => (s.categories as any)?.name || "",
             price: (s) => String(s.price),
+            service_type: (s) => serviceTypeLabels[s.service_type] || s.service_type || "",
             approval: (s) => approvalLabels[s.approval] || s.approval,
             service_number: (s) => s.service_number || "",
+            region: (s) => (s.regions as any)?.name || "",
+            city: (s) => (s.cities as any)?.name || "",
+            sales_count: (s) => String(s.sales_count ?? 0),
+            service_views: (s) => String(s.service_views ?? 0),
+            is_featured: (s) => s.is_featured ? "نعم" : "لا",
             created_at: (s) => s.created_at?.slice(0, 10) || "",
+            updated_at: (s) => s.updated_at?.slice(0, 10) || "",
           };
           const activeCols = serviceExportColumns.filter((c) => cols.includes(c.key));
           return {
