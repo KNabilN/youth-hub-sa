@@ -18,9 +18,10 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
   const dateFrom = filters?.dateFrom;
   const dateTo = filters?.dateTo;
   const verifiedFilter = filters?.verifiedFilter;
+  const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter],
+    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
     queryFn: async () => {
       // First get role data, optionally filtered
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
