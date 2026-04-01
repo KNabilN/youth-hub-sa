@@ -96,7 +96,7 @@ export function UserTable({ pagination }: UserTableProps) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success("تم إعادة إرسال إيميل التوثيق بنجاح");
+      toast.success("تم إرسال رابط الدخول بنجاح");
     } catch (err: any) {
       toast.error(err?.message || "حدث خطأ في إعادة إرسال الإيميل");
     } finally {
@@ -337,7 +337,7 @@ export function UserTable({ pagination }: UserTableProps) {
                       className="gap-1"
                       disabled={resendingId === u.id}
                       onClick={() => handleResendConfirmation(u.id)}
-                      title="إعادة إرسال إيميل التوثيق"
+                      title="إرسال رابط الدخول"
                     >
                       {resendingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                     </Button>
