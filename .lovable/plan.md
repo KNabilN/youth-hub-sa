@@ -1,30 +1,38 @@
 
 
-# إضافة زر "إعادة إرسال إيميل التوثيق" في جدول المستخدمين
+# إصلاح إعادة إرسال إيميل التوثيق
 
 ## المشكلة
-إذا لم يؤكد المستخدم بريده الإلكتروني، لا توجد طريقة للأدمن لإعادة إرسال رسالة التأكيد.
+الزر يعمل ويعيد `success: true` لكن الإيميل لا يصل فعلياً. السبب المحتمل:
+1. استدعاء `auth.resend` بدون `emailRedirectTo` قد يمنع إرسال الرسالة
+2. استخدام `getClaims` غير متوفر في بعض إصدارات supabase-js — يجب استبداله بـ `getUser`
 
-## الحل
+## الحل — تعديل `supabase/functions/admin-resend-confirmation/index.ts`
 
-### 1. إنشاء Edge Function جديدة: `admin-resend-confirmation`
-- تستقبل `user_id` من الأدمن
-- تتحقق أن المُستدعي `super_admin`
-- تستخدم `adminClient.auth.admin.generateLink({ type: 'signup', email })` لتوليد رابط تأكيد جديد
-- أو تستخدم `adminClient.auth.resend({ type: 'signup', email })` لإعادة الإرسال
-- ملف: `supabase/functions/admin-resend-confirmation/index.ts`
+### 1. استبدال `getClaims` بـ `getUser` للتحقق من هوية المستدعي
+```typescript
+const { data: { user: callerUser }, error: callerError } = await callerClient.auth.getUser();
+if (callerError || !callerUser) { return 401; }
+const callerId = callerUser.id;
+```
 
-### 2. تعديل `UserTable.tsx`
-- إضافة أيقونة `Mail` من lucide-react
-- إضافة state `resendingId` لتتبع المستخدم الجاري إعادة الإرسال له
-- إضافة زر `إعادة إرسال` بجانب أزرار الإجراءات الأخرى
-- الزر يستدعي Edge Function عبر `supabase.functions.invoke("admin-resend-confirmation", { body: { user_id } })`
-- يظهر toast بالنجاح أو الخطأ
+### 2. إضافة `emailRedirectTo` لـ `auth.resend`
+```typescript
+const { error: resendError } = await adminClient.auth.resend({
+  type: "signup",
+  email,
+  options: {
+    emailRedirectTo: `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.supabase.co')}/auth/v1/callback`
+  }
+});
+```
 
-### ملفات متأثرة
+### 3. إضافة logging لتسهيل التتبع
+إضافة `console.log` قبل وبعد الاستدعاء لرؤية النتيجة في السجلات.
 
-| الملف | العملية |
+### ملف متأثر واحد
+
+| الملف | التغيير |
 |-------|---------|
-| `supabase/functions/admin-resend-confirmation/index.ts` | إنشاء — Edge Function جديدة |
-| `src/components/admin/UserTable.tsx` | تعديل — إضافة زر إعادة الإرسال |
+| `supabase/functions/admin-resend-confirmation/index.ts` | إصلاح التحقق + إضافة emailRedirectTo + logging |
 
