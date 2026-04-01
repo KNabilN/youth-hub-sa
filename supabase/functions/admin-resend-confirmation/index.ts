@@ -148,7 +148,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         to: email,
         subject: "تأكيد حسابك — منصة الشباب",
-        body: buildConfirmationHTML(actionLink),
+        html: buildConfirmationHTML(actionLink),
+        text: `استخدم هذا الرابط للدخول: ${actionLink}`,
       }),
     });
 
