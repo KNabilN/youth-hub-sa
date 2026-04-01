@@ -15,8 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2 } from "lucide-react";
+
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2, Mail, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
 import { format } from "date-fns";
@@ -85,6 +86,23 @@ export function UserTable({ pagination }: UserTableProps) {
   
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResendConfirmation = async (userId: string) => {
+    setResendingId(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-resend-confirmation", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("تم إعادة إرسال إيميل التوثيق بنجاح");
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ في إعادة إرسال الإيميل");
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
@@ -312,6 +330,16 @@ export function UserTable({ pagination }: UserTableProps) {
                     <Button size="sm" variant="ghost" onClick={() => openEdit(u)}><FileEdit className="h-4 w-4" /></Button>
                     <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      disabled={resendingId === u.id}
+                      onClick={() => handleResendConfirmation(u.id)}
+                      title="إعادة إرسال إيميل التوثيق"
+                    >
+                      {resendingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                     </Button>
                     <Button
                       size="sm"
