@@ -86,6 +86,23 @@ export function UserTable({ pagination }: UserTableProps) {
   
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResendConfirmation = async (userId: string) => {
+    setResendingId(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-resend-confirmation", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("تم إعادة إرسال إيميل التوثيق بنجاح");
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ في إعادة إرسال الإيميل");
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
