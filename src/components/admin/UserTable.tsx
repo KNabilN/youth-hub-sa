@@ -333,6 +333,16 @@ export function UserTable({ pagination }: UserTableProps) {
                     </Button>
                     <Button
                       size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      disabled={resendingId === u.id}
+                      onClick={() => handleResendConfirmation(u.id)}
+                      title="إعادة إرسال إيميل التوثيق"
+                    >
+                      {resendingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      size="sm"
                       variant={u.is_suspended ? "outline" : "destructive"}
                       onClick={() => {
                         setSuspendTarget(u);
