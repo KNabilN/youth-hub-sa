@@ -96,7 +96,7 @@ export function UserTable({ pagination }: UserTableProps) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success("تم إعادة إرسال إيميل التوثيق بنجاح");
+      toast.success("تم إرسال رابط الدخول بنجاح");
     } catch (err: any) {
       toast.error(err?.message || "حدث خطأ في إعادة إرسال الإيميل");
     } finally {
