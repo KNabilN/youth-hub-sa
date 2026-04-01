@@ -85,14 +85,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate a new signup confirmation link (this also sends the email)
-    const { error: linkError } = await adminClient.auth.admin.generateLink({
+    // Check if already confirmed
+    if (userData.user.email_confirmed_at) {
+      return new Response(
+        JSON.stringify({ message: "البريد الإلكتروني مؤكد بالفعل" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Resend signup confirmation email
+    const { error: resendError } = await adminClient.auth.resend({
       type: "signup",
       email,
     });
 
-    if (linkError) {
-      return new Response(JSON.stringify({ error: linkError.message }), {
+    if (resendError) {
+      return new Response(JSON.stringify({ error: resendError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
