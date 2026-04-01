@@ -20,23 +20,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify caller is super_admin
+    // Verify caller using getUser instead of getClaims
     const callerClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: { user: callerUser }, error: callerError } = await callerClient.auth.getUser();
+    if (callerError || !callerUser) {
+      console.error("Caller auth failed:", callerError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const callerId = claimsData.claims.sub as string;
+    const callerId = callerUser.id;
 
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
     // Get user email
     const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(user_id);
     if (userError || !userData?.user) {
+      console.error("User not found:", userError?.message);
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -93,18 +94,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Resend signup confirmation email
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    console.log("Resending confirmation email to:", email);
+
+    // Resend signup confirmation email with redirect
     const { error: resendError } = await adminClient.auth.resend({
       type: "signup",
       email,
+      options: {
+        emailRedirectTo: `${supabaseUrl}/auth/v1/callback`,
+      },
     });
 
     if (resendError) {
+      console.error("Resend error:", resendError.message);
       return new Response(JSON.stringify({ error: resendError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("Confirmation email resent successfully to:", email);
 
     return new Response(
       JSON.stringify({ success: true }),
