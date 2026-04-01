@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     }
 
     // Generate a new signup confirmation link (this also sends the email)
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+    const { error: linkError } = await adminClient.auth.admin.generateLink({
       type: "signup",
       email,
     });
