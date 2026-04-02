@@ -99,9 +99,9 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
           </Badge>
         </div>
       )}
-      {s.image_url && (
+      {(s.image_url || s.category?.image_url) && (
         <div className="w-full h-40 overflow-hidden">
-          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={s.image_url || s.category?.image_url!} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
       )}
       <CardHeader className="pb-3">

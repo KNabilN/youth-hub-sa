@@ -109,9 +109,9 @@ export function ServiceApprovalCard({ service }: { service: any }) {
   return (
     <>
       <Card className="overflow-hidden">
-        {service.image_url && (
+        {(service.image_url || (service as any).categories?.image_url) && (
           <div className="w-full h-32 overflow-hidden">
-            <img src={service.image_url} alt={service.title} className="w-full h-full object-cover" />
+            <img src={service.image_url || (service as any).categories?.image_url} alt={service.title} className="w-full h-full object-cover" />
           </div>
         )}
         <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
