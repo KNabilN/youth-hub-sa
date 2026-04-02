@@ -23,7 +23,7 @@ interface Service {
   approval: string;
   is_featured?: boolean;
   sales_count?: number | null;
-  category: { name: string } | null;
+  category: { name: string; image_url?: string | null } | null;
   region: { name: string } | null;
   provider: { full_name: string } | null;
 }
