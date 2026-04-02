@@ -72,7 +72,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
     try {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
+        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
         .eq("approval", "approved")
         .is("deleted_at", null)
         .order("display_order", { ascending: true })
