@@ -1,74 +1,49 @@
 
-# إصلاح فوري لمشكلة زر إعادة الإرسال
 
-## التشخيص
-من مراجعة الكود والسجلات، المشكلة ليست في الزر نفسه:
-- الـ Edge Function تعمل فعلاً
-- يتم توليد Magic Link بنجاح
-- الـ Relay يرجع `200 success`
-- لكن الإيميل لا يصل فعلياً
+# إصلاح فشل رفع صورة الخدمة من حساب الأدمن
 
-السبب الأقرب في هذا المشروع:
-1. الحسابات التي ينشئها الأدمن يتم إنشاؤها أصلاً بـ `email_confirm: true`، لذلك لا يوجد “تأكيد بريد” حقيقي لإرساله
-2. وظيفة `admin-resend-confirmation` ترسل محتوى البريد إلى الـ Relay بالحقل `body`، بينما هذا النوع من الإرسال يجب أن يرسل HTML بشكل صريح عبر `html` كما ظهر في التوجيه التقني
-3. نص الزر الحالي مضلل، لأن ما يتم إرساله فعلياً هو **رابط دخول/تفعيل مباشر** وليس إعادة تشغيل تدفق التحقق الأصلي
-
-## المطلوب تنفيذه
-
-### 1) تعديل `supabase/functions/admin-resend-confirmation/index.ts`
-- الإبقاء على التحقق الأمني الحالي للأدمن
-- الإبقاء على `generateLink({ type: "magiclink", email })`
-- تغيير طلب الـ Relay ليستخدم:
-```ts
-body: JSON.stringify({
-  to: email,
-  subject: "تأكيد حسابك — منصة الشباب",
-  html: buildConfirmationHTML(actionLink),
-})
-```
-بدلاً من:
-```ts
-body: JSON.stringify({
-  to: email,
-  subject: "...",
-  body: buildConfirmationHTML(actionLink),
-})
+## المشكلة
+سياسة RLS على bucket `service-images` تسمح فقط للمستخدم برفع ملفات في مجلد يحمل اسم الـ `user_id` الخاص به:
+```sql
+bucket_id = 'service-images' AND (storage.foldername(name))[1] = auth.uid()::text
 ```
 
-### 2) تحسين التوافق
-لزيادة الأمان التشغيلي، إرسال نسخة نصية/احتياطية إن لزم، لكن الأساس يكون `html` وليس `body`.
+لكن كود الأدمن يرفع الصورة في مجلد `admin/`:
+```ts
+const path = `admin/${Date.now()}_${Math.random()...}.${ext}`;
+```
 
-### 3) تعديل الواجهة في `src/components/admin/UserTable.tsx`
-لأن حسابات الأدمن تبقى مفعلة فوراً:
-- تغيير عنوان الزر/التلميح من:
-  - `إعادة إرسال إيميل التوثيق`
-- إلى شيء أدق مثل:
-  - `إرسال رابط الدخول`
-  - أو `إعادة إرسال رابط التفعيل`
+هذا يعني أن الأدمن لا يملك صلاحية الرفع لأن المجلد لا يطابق الـ `uid` الخاص به.
 
-وكذلك تغيير رسالة النجاح:
-- من `تم إعادة إرسال إيميل التوثيق بنجاح`
-- إلى `تم إرسال رابط الدخول بنجاح`
+## الحل
+إضافة سياسة RLS جديدة تسمح للأدمن (super_admin) برفع الصور في أي مجلد داخل bucket `service-images`.
 
-هذا يمنع اللبس بين:
-- التوثيق الإداري داخل المنصة (`is_verified`)
-- وتأكيد البريد في نظام الدخول
+### 1) إضافة migration لسياسة RLS جديدة
+```sql
+CREATE POLICY "Admins upload service images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'service-images'
+  AND public.has_role(auth.uid(), 'super_admin')
+);
+```
 
-## الملفات المتأثرة
+وأيضاً سياسة للتحديث (upsert يحتاج UPDATE):
+```sql
+CREATE POLICY "Admins update service images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'service-images'
+  AND public.has_role(auth.uid(), 'super_admin')
+);
+```
+
+### الملفات المتأثرة
 | الملف | التغيير |
 |-------|---------|
-| `supabase/functions/admin-resend-confirmation/index.ts` | إصلاح payload المرسل للـ Relay باستخدام `html` |
-| `src/components/admin/UserTable.tsx` | تصحيح نص الزر ورسائل النجاح لتطابق السلوك الحقيقي |
+| Migration جديد | إضافة سياستي RLS للأدمن على `service-images` |
 
-## النتيجة المتوقعة
-بعد هذا التعديل:
-- الزر سيستمر في استدعاء الوظيفة بشكل طبيعي
-- سيتم إرسال البريد بصيغة صحيحة للـ Relay
-- يصل للمستخدم رابط فعلي قابل للاستخدام
-- تختفي مشكلة “الزر نجح لكن لا يوجد إيميل”
-- تصبح التسمية في الواجهة متوافقة مع منطق النظام الحالي
+لا حاجة لتعديل أي كود في الواجهة أو الـ Edge Functions — المشكلة بالكامل في صلاحيات التخزين.
 
-## ملاحظات تقنية
-- لا توجد حاجة لتعديل قاعدة البيانات
-- لا توجد حاجة لتعديل إنشاء المستخدم حالياً، لأن قرارك المعتمد هو أن حسابات الأدمن تبقى مفعلة فوراً
-- هذا الإصلاح يركز على **إرسال رابط فعلي يصل إلى البريد** وليس على إعادة تفعيل signup confirmation التقليدي
