@@ -23,7 +23,7 @@ interface Service {
   approval: string;
   is_featured?: boolean;
   sales_count?: number | null;
-  category: { name: string } | null;
+  category: { name: string; image_url?: string | null } | null;
   region: { name: string } | null;
   provider: { full_name: string } | null;
 }
@@ -72,7 +72,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
     try {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
+        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name)")
         .eq("approval", "approved")
         .is("deleted_at", null)
         .order("display_order", { ascending: true })
@@ -99,9 +99,9 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
           </Badge>
         </div>
       )}
-      {s.image_url && (
+      {(s.image_url || s.category?.image_url) && (
         <div className="w-full h-40 overflow-hidden">
-          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={s.image_url || s.category?.image_url!} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
       )}
       <CardHeader className="pb-3">

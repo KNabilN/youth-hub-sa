@@ -115,7 +115,7 @@ export default function AdminServiceDetail() {
           {/* Main content - 2 cols */}
           <div className="lg:col-span-2 space-y-6">
             {/* Gallery */}
-            <ServiceGallery mainImage={service.image_url} gallery={gallery} />
+            <ServiceGallery mainImage={service.image_url || (service as any).categories?.image_url} gallery={gallery} />
 
             {/* Title & Description */}
             <div className="space-y-3">
