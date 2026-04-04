@@ -89,6 +89,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setErrors({});
       setRegStep(0);
       setShowPassword(false);
+      setShowResend(false);
     }
   }, [open, defaultMode]);
 
