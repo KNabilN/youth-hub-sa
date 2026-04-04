@@ -240,6 +240,23 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
               {loading ? "جارٍ المعالجة..." : "تسجيل الدخول"}
             </Button>
+
+            {showResend && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 space-y-2">
+                <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+                  لم يتم تأكيد بريدك الإلكتروني بعد
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  onClick={handleResend}
+                  disabled={resending}
+                >
+                  {resending ? "جارٍ الإرسال..." : "إعادة إرسال رسالة التوثيق"}
+                </Button>
+              </div>
+            )}
           </>
         ) : regStep === 0 ? (
           <>
