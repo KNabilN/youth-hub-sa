@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Building2, UserCheck, HandCoins, Phone, X, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
 import { translateError } from "@/lib/auth-errors";
+import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -78,6 +79,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [regStep, setRegStep] = useState(0);
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -87,6 +90,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setErrors({});
       setRegStep(0);
       setShowPassword(false);
+      setShowResend(false);
     }
   }, [open, defaultMode]);
 
@@ -122,8 +126,12 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       }
 
       setLoading(true);
+      setShowResend(false);
       const { error } = await signIn(email.trim(), password);
       if (error) {
+        if (error.message?.toLowerCase().includes("email not confirmed")) {
+          setShowResend(true);
+        }
         toast.error(translateError(error.message));
       } else {
         toast.success("مرحباً بعودتك! 👋");
@@ -155,6 +163,17 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     }
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email: email.trim() });
+    if (error) {
+      toast.error(translateError(error.message));
+    } else {
+      toast.success("تم إعادة إرسال رسالة التوثيق. يرجى التحقق من بريدك الإلكتروني.");
+      setShowResend(false);
+    }
+    setResending(false);
+  };
 
   const formContent = (
     <div className="space-y-5 p-6">
@@ -221,6 +240,23 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
               {loading ? "جارٍ المعالجة..." : "تسجيل الدخول"}
             </Button>
+
+            {showResend && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 space-y-2">
+                <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+                  لم يتم تأكيد بريدك الإلكتروني بعد
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  onClick={handleResend}
+                  disabled={resending}
+                >
+                  {resending ? "جارٍ الإرسال..." : "إعادة إرسال رسالة التوثيق"}
+                </Button>
+              </div>
+            )}
           </>
         ) : regStep === 0 ? (
           <>
@@ -386,7 +422,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </span>{" "}
         <button
           type="button"
-          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); }}
+          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); setShowResend(false); }}
           className="text-primary font-semibold hover:underline"
         >
           {isLogin ? "إنشاء حساب" : "تسجيل الدخول"}
