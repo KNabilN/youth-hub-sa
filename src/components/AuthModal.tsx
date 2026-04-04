@@ -126,8 +126,12 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       }
 
       setLoading(true);
+      setShowResend(false);
       const { error } = await signIn(email.trim(), password);
       if (error) {
+        if (error.message?.toLowerCase().includes("email not confirmed")) {
+          setShowResend(true);
+        }
         toast.error(translateError(error.message));
       } else {
         toast.success("مرحباً بعودتك! 👋");
