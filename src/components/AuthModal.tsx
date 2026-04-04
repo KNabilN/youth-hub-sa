@@ -422,7 +422,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </span>{" "}
         <button
           type="button"
-          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); }}
+          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); setShowResend(false); }}
           className="text-primary font-semibold hover:underline"
         >
           {isLogin ? "إنشاء حساب" : "تسجيل الدخول"}
