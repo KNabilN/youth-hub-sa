@@ -163,6 +163,17 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     }
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email: email.trim() });
+    if (error) {
+      toast.error(translateError(error.message));
+    } else {
+      toast.success("تم إعادة إرسال رسالة التوثيق. يرجى التحقق من بريدك الإلكتروني.");
+      setShowResend(false);
+    }
+    setResending(false);
+  };
 
   const formContent = (
     <div className="space-y-5 p-6">
