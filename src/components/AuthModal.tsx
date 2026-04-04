@@ -78,6 +78,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [regStep, setRegStep] = useState(0);
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
