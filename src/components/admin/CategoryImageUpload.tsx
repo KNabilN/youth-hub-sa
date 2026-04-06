@@ -68,6 +68,14 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
       qc.invalidateQueries({ queryKey: ["categories"] });
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["marketplace"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["landing-stats"] });
+      qc.invalidateQueries({ queryKey: ["service-detail"] });
+      qc.invalidateQueries({ queryKey: ["my-services"] });
+      qc.invalidateQueries({ queryKey: ["available-projects"] });
       toast.success("تم حذف صورة التصنيف");
       setOpen(false);
     },
