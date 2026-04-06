@@ -586,6 +586,13 @@ export type Database = {
             referencedRelation: "micro_services"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "discount_code_usages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       discount_codes: {
