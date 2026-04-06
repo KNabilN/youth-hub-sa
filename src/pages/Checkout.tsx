@@ -467,6 +467,45 @@ export default function Checkout() {
               </Card>
             )}
 
+            {/* Discount Code Input */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tags className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">كود الخصم</span>
+                </div>
+                {discount ? (
+                  <div className="flex items-center justify-between p-2 rounded-md bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span className="font-mono font-bold text-sm">{discount.code}</span>
+                      <span className="text-sm text-primary">−{discountDeduction.toLocaleString()} ر.س</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={clearDiscount} className="text-xs text-destructive">
+                      إزالة
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      value={discountInput}
+                      onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                      placeholder="أدخل كود الخصم"
+                      className="font-mono"
+                      dir="ltr"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => validateCode(discountInput)}
+                      disabled={validating || !discountInput.trim()}
+                    >
+                      {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : "تطبيق"}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Payment Method Selection — hidden if grant covers all */}
             {!(useGrantBalance && grantCoversAll) && (
             <Card>
