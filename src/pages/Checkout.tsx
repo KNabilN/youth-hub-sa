@@ -53,6 +53,8 @@ export default function Checkout() {
   const { data: associations } = useVerifiedAssociations();
   const { data: grantBalance } = useAssociationGrantBalance();
   const payFromGrants = usePayFromGrants();
+  const { discount, validating, validateCode, recordUsage, clearDiscount } = useDiscountCode();
+  const [discountInput, setDiscountInput] = useState("");
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
