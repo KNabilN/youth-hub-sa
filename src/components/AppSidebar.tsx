@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FolderKanban, ScrollText, Store, FileText, Users, Settings,
   LogOut, Bell, HandCoins, BarChart3, ClipboardList, Shield, Gavel, Receipt,
   Layers, MessageSquare, UserCog, UserCircle, ChevronLeft, Moon, Sun, ShoppingCart, LayoutTemplate,
-  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen, Clock, Timer,
+  Mail, Trash2, ShoppingBag, Home, Inbox, Heart, Wallet, BookOpen, Clock, Timer, Tags,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
@@ -81,6 +81,7 @@ const menuByRole = {
     { title: "الإشعارات", url: "/admin/notifications", icon: Bell },
     { title: "تذاكر الدعم", url: "/admin/tickets", icon: MessageSquare },
     
+    { title: "أكواد الخصم", url: "/admin/discount-codes", icon: Tags },
     { title: "إدارة المحتوى", url: "/admin/cms", icon: LayoutTemplate },
     { title: "الإعدادات", url: "/admin/settings", icon: Settings },
   ],

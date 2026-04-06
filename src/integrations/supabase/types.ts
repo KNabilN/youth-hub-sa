@@ -526,6 +526,101 @@ export type Database = {
           },
         ]
       }
+      discount_code_usages: {
+        Row: {
+          code_id: string
+          created_at: string
+          discount_amount: number
+          escrow_id: string | null
+          id: string
+          project_id: string | null
+          service_id: string | null
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          created_at?: string
+          discount_amount: number
+          escrow_id?: string | null
+          id?: string
+          project_id?: string | null
+          service_id?: string | null
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          created_at?: string
+          discount_amount?: number
+          escrow_id?: string | null
+          id?: string
+          project_id?: string | null
+          service_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_code_usages_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usages_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usages_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "micro_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_codes: {
+        Row: {
+          amount: number
+          code: string
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          start_date: string
+        }
+        Insert: {
+          amount: number
+          code: string
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          start_date: string
+        }
+        Update: {
+          amount?: number
+          code?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          start_date?: string
+        }
+        Relationships: []
+      }
       dispute_responses: {
         Row: {
           author_id: string

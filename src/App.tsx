@@ -87,6 +87,7 @@ const AdminServiceDetail = lazy(() => import("./pages/admin/AdminServiceDetail")
 const AdminProjectDetail = lazy(() => import("./pages/admin/AdminProjectDetail"));
 const AdminHypotheses = lazy(() => import("./pages/admin/AdminHypotheses"));
 const AdminContracts = lazy(() => import("./pages/admin/AdminContracts"));
+const AdminDiscountCodes = lazy(() => import("./pages/admin/AdminDiscountCodes"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
@@ -198,6 +199,7 @@ const App = () => (
                 <Route path="/admin/tickets/:id" element={<AdminRoute><SuspenseWrap><AdminTicketDetail /></SuspenseWrap></AdminRoute>} />
                 
                 <Route path="/admin/hypotheses" element={<AdminRoute><SuspenseWrap><AdminHypotheses /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/discount-codes" element={<AdminRoute><SuspenseWrap><AdminDiscountCodes /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/cms" element={<AdminRoute><SuspenseWrap><AdminCMS /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><SuspenseWrap><AdminNotifications /></SuspenseWrap></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />

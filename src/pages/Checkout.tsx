@@ -12,7 +12,9 @@ import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
 import { calculatePricing, useCommissionRate } from "@/lib/pricing";
+import { useDiscountCode } from "@/hooks/useDiscountCode";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet, AlertTriangle } from "lucide-react";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Building2, Upload, Copy, Check, Users, ChevronsUpDown, Wallet, AlertTriangle, Tags } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -52,6 +54,8 @@ export default function Checkout() {
   const { data: associations } = useVerifiedAssociations();
   const { data: grantBalance } = useAssociationGrantBalance();
   const payFromGrants = usePayFromGrants();
+  const { discount, validating, validateCode, recordUsage, clearDiscount } = useDiscountCode();
+  const [discountInput, setDiscountInput] = useState("");
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
@@ -72,10 +76,14 @@ export default function Checkout() {
   const isAssociation = role === "youth_association";
   const hasGrantBalance = isAssociation && availableGrant > 0;
 
+  // Calculate discount deduction (applied on total, does not affect provider payout)
+  const discountDeduction = discount ? Math.min(discount.amount, pricing.total) : 0;
+  const totalAfterDiscount = Math.round((pricing.total - discountDeduction) * 100) / 100;
+
   // Calculate how much grant covers and remaining amount
-  const grantDeduction = useGrantBalance ? Math.min(availableGrant, pricing.total) : 0;
-  const remainingAfterGrant = Math.round((pricing.total - grantDeduction) * 100) / 100;
-  const grantCoversAll = grantDeduction >= pricing.total;
+  const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
+  const remainingAfterGrant = Math.round((totalAfterDiscount - grantDeduction) * 100) / 100;
+  const grantCoversAll = grantDeduction >= totalAfterDiscount;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
@@ -180,18 +188,22 @@ export default function Checkout() {
         }
 
         if (grantCoversAll) {
+          // Record discount usage if applied
+          if (discount && discountDeduction > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          }
           await clearCart.mutateAsync();
-          navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "grant_balance" } });
+          navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance" } });
           return;
         }
       }
 
       // Step 2: Pay remaining amount via selected method
       if (!useGrantBalance || !grantCoversAll) {
-        const effectiveTotal = useGrantBalance ? remainingAfterGrant : pricing.total;
+        const effectiveTotal = useGrantBalance ? remainingAfterGrant : totalAfterDiscount;
         const effectiveSubtotal = useGrantBalance
           ? Math.round((remainingAfterGrant / pricing.total) * subtotal * 100) / 100
-          : subtotal;
+          : discount ? Math.round((totalAfterDiscount / pricing.total) * subtotal * 100) / 100 : subtotal;
 
         if (paymentMethod === "electronic") {
           const { data, error } = await supabase.functions.invoke("moyasar-get-config");
@@ -460,6 +472,45 @@ export default function Checkout() {
               </Card>
             )}
 
+            {/* Discount Code Input */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tags className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">كود الخصم</span>
+                </div>
+                {discount ? (
+                  <div className="flex items-center justify-between p-2 rounded-md bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span className="font-mono font-bold text-sm">{discount.code}</span>
+                      <span className="text-sm text-primary">−{discountDeduction.toLocaleString()} ر.س</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={clearDiscount} className="text-xs text-destructive">
+                      إزالة
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      value={discountInput}
+                      onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                      placeholder="أدخل كود الخصم"
+                      className="font-mono"
+                      dir="ltr"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => validateCode(discountInput)}
+                      disabled={validating || !discountInput.trim()}
+                    >
+                      {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : "تطبيق"}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Payment Method Selection — hidden if grant covers all */}
             {!(useGrantBalance && grantCoversAll) && (
             <Card>
@@ -530,7 +581,7 @@ export default function Checkout() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">المبلغ المطلوب تحويله</span>
                       <span className="font-bold text-primary">
-                        {(useGrantBalance ? remainingAfterGrant : pricing.total).toLocaleString()} ر.س
+                        {(useGrantBalance ? remainingAfterGrant : totalAfterDiscount).toLocaleString()} ر.س
                       </span>
                     </div>
                   </div>
@@ -633,18 +684,32 @@ export default function Checkout() {
                 </div>
                 <PricingBreakdownDisplay pricing={pricing} />
 
-                {useGrantBalance && grantDeduction > 0 && (
+                {(discountDeduction > 0 || (useGrantBalance && grantDeduction > 0)) && (
                   <>
                     <Separator />
                     <div className="space-y-1 text-sm">
-                      <div className="flex justify-between text-primary">
-                        <span>خصم رصيد المنح</span>
-                        <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
-                      </div>
-                      {!grantCoversAll && (
+                      {discountDeduction > 0 && (
+                        <div className="flex justify-between text-primary">
+                          <span>خصم كود ({discount?.code})</span>
+                          <span className="font-bold">−{discountDeduction.toLocaleString()} ر.س</span>
+                        </div>
+                      )}
+                      {useGrantBalance && grantDeduction > 0 && (
+                        <div className="flex justify-between text-primary">
+                          <span>خصم رصيد المنح</span>
+                          <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
+                        </div>
+                      )}
+                      {!grantCoversAll && remainingAfterGrant < totalAfterDiscount && (
                         <div className="flex justify-between font-bold text-lg">
                           <span>المتبقي للدفع</span>
                           <span className="text-primary">{remainingAfterGrant.toLocaleString()} ر.س</span>
+                        </div>
+                      )}
+                      {!grantCoversAll && discountDeduction > 0 && !useGrantBalance && (
+                        <div className="flex justify-between font-bold text-lg">
+                          <span>الإجمالي بعد الخصم</span>
+                          <span className="text-primary">{totalAfterDiscount.toLocaleString()} ر.س</span>
                         </div>
                       )}
                     </div>
@@ -671,12 +736,12 @@ export default function Checkout() {
                   ) : useGrantBalance && grantCoversAll ? (
                     <>
                       <Wallet className="h-4 w-4 me-2" />
-                      تأكيد الدفع من المنح — {pricing.total.toLocaleString()} ر.س
+                      تأكيد الدفع من المنح — {totalAfterDiscount.toLocaleString()} ر.س
                     </>
                   ) : paymentMethod === "electronic" ? (
                     <>
                       <CreditCard className="h-4 w-4 me-2" />
-                      تأكيد الدفع — {(useGrantBalance ? remainingAfterGrant : pricing.total).toLocaleString()} ر.س
+                      تأكيد الدفع — {(useGrantBalance ? remainingAfterGrant : totalAfterDiscount).toLocaleString()} ر.س
                     </>
                   ) : (
                     <>
