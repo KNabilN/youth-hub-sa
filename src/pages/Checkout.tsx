@@ -581,7 +581,7 @@ export default function Checkout() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">المبلغ المطلوب تحويله</span>
                       <span className="font-bold text-primary">
-                        {(useGrantBalance ? remainingAfterGrant : pricing.total).toLocaleString()} ر.س
+                        {(useGrantBalance ? remainingAfterGrant : totalAfterDiscount).toLocaleString()} ر.س
                       </span>
                     </div>
                   </div>
