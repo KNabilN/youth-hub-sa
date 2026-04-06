@@ -231,7 +231,9 @@ export default function Checkout() {
             vat: pricing.vat,
             commission_rate: commissionRate,
             grant_deduction: grantDeduction,
-            skip_project_creation: useGrantBalance && grantDeduction > 0, // projects already created above
+            skip_project_creation: useGrantBalance && grantDeduction > 0,
+            discount_code_id: discount?.id || null,
+            discount_amount: discountDeduction > 0 ? discountDeduction : 0,
           };
 
           sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
@@ -263,10 +265,14 @@ export default function Checkout() {
               hours: item.micro_services.service_type === "hourly" ? item.quantity : undefined,
             })),
           });
+          // Record discount usage for bank transfer
+          if (discount && discountDeduction > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          }
           await clearCart.mutateAsync();
           navigate("/payment-success", {
             state: {
-              total: pricing.total,
+              total: totalAfterDiscount,
               count: items.length,
               method: "bank_transfer",
               grantDeduction: grantDeduction > 0 ? grantDeduction : undefined,
@@ -622,7 +628,7 @@ export default function Checkout() {
             {/* Moyasar Payment Form */}
             {showMoyasarForm && moyasarKey && (
               <MoyasarPaymentForm
-                amount={useGrantBalance ? remainingAfterGrant : pricing.total}
+                amount={useGrantBalance ? remainingAfterGrant : totalAfterDiscount}
                 description={(() => {
                   const serviceNames = items.map(i => `"${i.micro_services.title}"`).join("، ");
                   const providerNames = [...new Set(items.map(i => i.micro_services.profiles?.full_name).filter(Boolean))].join("، ");
@@ -771,12 +777,12 @@ export default function Checkout() {
           }
           description={
             useGrantBalance && grantCoversAll
-              ? `هل تريد تأكيد دفع ${pricing.total.toLocaleString()} ر.س من رصيد المنح مقابل ${items.length} خدمات؟`
+              ? `هل تريد تأكيد دفع ${totalAfterDiscount.toLocaleString()} ر.س من رصيد المنح مقابل ${items.length} خدمات؟`
               : useGrantBalance
               ? `سيتم خصم ${grantDeduction.toLocaleString()} ر.س من رصيد المنح ودفع المتبقي ${remainingAfterGrant.toLocaleString()} ر.س ${paymentMethod === "electronic" ? "إلكترونياً" : "عبر تحويل بنكي"}.`
               : paymentMethod === "electronic"
-              ? `هل تريد تأكيد دفع ${pricing.total.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
-              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${pricing.total.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
+              ? `هل تريد تأكيد دفع ${totalAfterDiscount.toLocaleString()} ر.س مقابل ${items.length} خدمات؟ سيتم حجز المبلغ في نظام الضمان.`
+              : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${totalAfterDiscount.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
           }
           confirmLabel={
             useGrantBalance && grantCoversAll
