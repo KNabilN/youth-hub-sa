@@ -1,29 +1,29 @@
 
 
-# تمكين الأدمن من حذف التصنيفات
+# إصلاح عدم تحديث صورة التصنيف في المشاريع والخدمات
 
 ## المشكلة
-عند محاولة حذف تصنيف، يظهر خطأ "لا يمكن حذف التصنيف" لأن هناك قيود مفتاح أجنبي (Foreign Key) من جدولي `projects` و `micro_services` تمنع الحذف إذا كان التصنيف مرتبطاً بأي مشروع أو خدمة.
+عند تغيير صورة التصنيف من إعدادات الأدمن، يتم تحديث بيانات التصنيف فقط (`admin-categories`, `categories`). لكن استعلامات المشاريع والخدمات التي تجلب صورة التصنيف عبر JOIN تبقى مُخزنة مؤقتاً (cached) في React Query ولا تُعاد.
 
-## الحل
-تعديل قيود المفتاح الأجنبي لتُفرّغ (`SET NULL`) حقل `category_id` بدلاً من منع الحذف:
+## الحل — `src/components/admin/CategoryImageUpload.tsx`
 
-### Migration جديد
-```sql
-ALTER TABLE projects DROP CONSTRAINT projects_category_id_fkey;
-ALTER TABLE projects ADD CONSTRAINT projects_category_id_fkey 
-  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+إضافة invalidation لجميع query keys المتأثرة عند نجاح رفع أو حذف صورة التصنيف:
 
-ALTER TABLE micro_services DROP CONSTRAINT micro_services_category_id_fkey;
-ALTER TABLE micro_services ADD CONSTRAINT micro_services_category_id_fkey 
-  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+```typescript
+// في onSuccess لكل من uploadMut و removeMut، إضافة:
+qc.invalidateQueries({ queryKey: ["admin-services"] });
+qc.invalidateQueries({ queryKey: ["admin-projects"] });
+qc.invalidateQueries({ queryKey: ["marketplace"] });
+qc.invalidateQueries({ queryKey: ["projects"] });
+qc.invalidateQueries({ queryKey: ["landing-stats"] });
+qc.invalidateQueries({ queryKey: ["service-detail"] });
+qc.invalidateQueries({ queryKey: ["my-services"] });
+qc.invalidateQueries({ queryKey: ["available-projects"] });
 ```
 
-هذا يعني عند حذف تصنيف، ستُفرّغ قيمة `category_id` في المشاريع والخدمات المرتبطة به بدلاً من رفض الحذف.
+هذا يجبر جميع الصفحات التي تعرض صورة التصنيف كـ fallback على إعادة جلب البيانات الجديدة فوراً.
 
 | الملف | التغيير |
 |-------|---------|
-| Migration جديد | تعديل FK constraints لـ `ON DELETE SET NULL` |
-
-لا حاجة لتعديل أي كود في الواجهة — الزر وكود الحذف موجودان فعلاً.
+| `src/components/admin/CategoryImageUpload.tsx` | إضافة invalidation لاستعلامات الخدمات والمشاريع |
 
