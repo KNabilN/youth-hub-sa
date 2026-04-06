@@ -188,8 +188,12 @@ export default function Checkout() {
         }
 
         if (grantCoversAll) {
+          // Record discount usage if applied
+          if (discount && discountDeduction > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          }
           await clearCart.mutateAsync();
-          navigate("/payment-success", { state: { total: pricing.total, count: items.length, method: "grant_balance" } });
+          navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance" } });
           return;
         }
       }
