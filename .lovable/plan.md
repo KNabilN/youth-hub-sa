@@ -1,29 +1,80 @@
 
 
-# إصلاح عدم تحديث صورة التصنيف في المشاريع والخدمات
+# نظام أكواد الخصم — خطة التنفيذ
 
-## المشكلة
-عند تغيير صورة التصنيف من إعدادات الأدمن، يتم تحديث بيانات التصنيف فقط (`admin-categories`, `categories`). لكن استعلامات المشاريع والخدمات التي تجلب صورة التصنيف عبر JOIN تبقى مُخزنة مؤقتاً (cached) في React Query ولا تُعاد.
+## نظرة عامة
+إضافة نظام أكواد خصم يديره الأدمن ويستخدمه الجمعيات عند الشراء. الخصم يُخصم من إجمالي المبلغ ولا يؤثر على مستحقات مزود الخدمة.
 
-## الحل — `src/components/admin/CategoryImageUpload.tsx`
+## الجزء الأول: قاعدة البيانات
 
-إضافة invalidation لجميع query keys المتأثرة عند نجاح رفع أو حذف صورة التصنيف:
+### جدول `discount_codes`
+| العمود | النوع | الوصف |
+|--------|-------|-------|
+| id | uuid PK | المعرف |
+| code | text UNIQUE | اسم الكود (مثلاً: SAVE100) |
+| amount | numeric | قيمة الخصم بالريال |
+| start_date | date | تاريخ البداية |
+| end_date | date | تاريخ النهاية |
+| is_active | boolean | مفعل/معطل |
+| max_uses | integer | الحد الأقصى للاستخدام (nullable = بلا حد) |
+| created_at | timestamptz | تاريخ الإنشاء |
 
-```typescript
-// في onSuccess لكل من uploadMut و removeMut، إضافة:
-qc.invalidateQueries({ queryKey: ["admin-services"] });
-qc.invalidateQueries({ queryKey: ["admin-projects"] });
-qc.invalidateQueries({ queryKey: ["marketplace"] });
-qc.invalidateQueries({ queryKey: ["projects"] });
-qc.invalidateQueries({ queryKey: ["landing-stats"] });
-qc.invalidateQueries({ queryKey: ["service-detail"] });
-qc.invalidateQueries({ queryKey: ["my-services"] });
-qc.invalidateQueries({ queryKey: ["available-projects"] });
-```
+### جدول `discount_code_usages`
+| العمود | النوع | الوصف |
+|--------|-------|-------|
+| id | uuid PK | المعرف |
+| code_id | uuid FK → discount_codes | الكود المستخدم |
+| user_id | uuid | الجمعية التي استخدمت الكود |
+| escrow_id | uuid | معاملة الضمان المرتبطة |
+| project_id | uuid | المشروع المرتبط (nullable) |
+| service_id | uuid | الخدمة المرتبطة (nullable) |
+| discount_amount | numeric | المبلغ المخصوم فعلياً |
+| created_at | timestamptz | وقت الاستخدام |
 
-هذا يجبر جميع الصفحات التي تعرض صورة التصنيف كـ fallback على إعادة جلب البيانات الجديدة فوراً.
+### سياسات RLS
+- الأدمن: ALL على الجدولين
+- الجمعيات: SELECT فقط على `discount_codes` النشطة + INSERT على `discount_code_usages` لسجلاتهم
 
-| الملف | التغيير |
+## الجزء الثاني: واجهة الأدمن
+
+### صفحة جديدة: `src/pages/admin/AdminDiscountCodes.tsx`
+- عرض كل الأكواد في جدول (الكود، القيمة، الحالة، عدد الاستخدامات، تاريخ البداية/النهاية)
+- حوار إنشاء كود جديد (اسم الكود، القيمة، تاريخ البداية، تاريخ النهاية)
+- عند الضغط على كود: Sheet أو حوار يعرض:
+  - تفاصيل الكود الكاملة
+  - قائمة الاستخدامات (اسم الجمعية، الخدمة/المشروع، المبلغ المخصوم، التاريخ)
+- أزرار: تعديل / تعطيل / حذف
+
+### تعديلات الملاحة
+- `AppSidebar.tsx`: إضافة "أكواد الخصم" في قائمة الأدمن (أيقونة Ticket أو Tags)
+- `App.tsx`: إضافة route `/admin/discount-codes`
+
+## الجزء الثالث: استخدام الكود في الدفع
+
+### تعديل `src/pages/Checkout.tsx`
+- إضافة حقل إدخال كود الخصم في خطوة المراجعة
+- زر "تطبيق" يتحقق من صلاحية الكود (موجود + نشط + ضمن التواريخ + لم يتجاوز الحد الأقصى)
+- عرض مبلغ الخصم في تفاصيل التسعير
+- خصم المبلغ من الإجمالي فقط (لا يؤثر على subtotal الخاص بمزود الخدمة)
+
+### Hook جديد: `src/hooks/useDiscountCode.ts`
+- `validateCode(code)`: يتحقق من صلاحية الكود ويعيد تفاصيله
+- `applyCode(codeId, userId, escrowId, ...)`: يسجل استخدام الكود
+
+### منطق الخصم
+- الخصم يُطبق على الإجمالي النهائي (بعد العمولة والضريبة)
+- إذا كان الخصم أكبر من الإجمالي، يصبح الإجمالي صفر
+- مزود الخدمة يحصل على كامل مبلغه بدون أي تأثير
+
+## الملفات المتأثرة
+
+| الملف | العملية |
 |-------|---------|
-| `src/components/admin/CategoryImageUpload.tsx` | إضافة invalidation لاستعلامات الخدمات والمشاريع |
+| Migration جديد | إنشاء جدولي `discount_codes` و `discount_code_usages` مع RLS |
+| `src/pages/admin/AdminDiscountCodes.tsx` | إنشاء — صفحة إدارة أكواد الخصم |
+| `src/hooks/useDiscountCodes.ts` | إنشاء — hook للأدمن (CRUD) |
+| `src/hooks/useDiscountCode.ts` | إنشاء — hook للتحقق والتطبيق |
+| `src/components/AppSidebar.tsx` | تعديل — إضافة رابط أكواد الخصم |
+| `src/App.tsx` | تعديل — إضافة route جديد |
+| `src/pages/Checkout.tsx` | تعديل — إضافة حقل كود الخصم وتطبيقه |
 
