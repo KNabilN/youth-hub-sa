@@ -5,12 +5,12 @@ Font.register({
   family: "Cairo",
   fonts: [
     {
-      src: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrSQRIl0HxtFhn5kZg.ttf",
+      src: "https://fonts.gstatic.com/s/cairo/v31/SLXgc1nY6HkvangtZmpQdkhzfH5lkSs2SgRjCAGMQ1z0hOA-W1Q.ttf",
       fontWeight: 400,
       fontStyle: "normal",
     },
     {
-      src: "https://fonts.gstatic.com/s/cairo/v28/SLXvx02YPrSQRIl0HxtFhn5kZg.ttf",
+      src: "https://fonts.gstatic.com/s/cairo/v31/SLXgc1nY6HkvangtZmpQdkhzfH5lkSs2SgRjCAGMQ1z0hAc5W1Q.ttf",
       fontWeight: 700,
       fontStyle: "normal",
     },
