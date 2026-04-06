@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,30 +14,42 @@ interface CategoryImageUploadProps {
 
 export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl }: CategoryImageUploadProps) {
   const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!open && preview) {
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
+  }, [open]);
 
   const uploadMut = useMutation({
     mutationFn: async (file: File) => {
       const ext = file.name.split(".").pop();
-      const path = `${categoryId}/image.${ext}`;
+      const path = `${categoryId}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage
         .from("category-images")
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { contentType: file.type, cacheControl: "3600" });
       if (uploadErr) throw uploadErr;
       const { data: urlData } = supabase.storage.from("category-images").getPublicUrl(path);
-      const image_url = `${urlData.publicUrl}?t=${Date.now()}`;
+      const image_url = urlData.publicUrl;
       const { error } = await supabase.from("categories").update({ image_url } as any).eq("id", categoryId);
       if (error) throw error;
       return image_url;
     },
     onSuccess: () => {
+      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
       qc.invalidateQueries({ queryKey: ["categories"] });
       toast.success("تم رفع صورة التصنيف");
       setOpen(false);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
+      toast.error(e.message);
+    },
   });
 
   const removeMut = useMutation({
@@ -61,10 +73,12 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       toast.error("الحد الأقصى 5 ميجابايت");
       return;
     }
+    setPreview(URL.createObjectURL(file));
     uploadMut.mutate(file);
   };
 
   const isPending = uploadMut.isPending || removeMut.isPending;
+  const displayUrl = preview || currentImageUrl;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -82,9 +96,14 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
           <DialogTitle>صورة التصنيف: {categoryName}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {currentImageUrl && (
+          {displayUrl && (
             <div className="relative rounded-lg overflow-hidden border">
-              <img src={currentImageUrl} alt={categoryName} className="w-full aspect-video object-cover" />
+              <img src={displayUrl} alt={categoryName} className="w-full aspect-video object-cover" />
+              {uploadMut.isPending && (
+                <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
             </div>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
