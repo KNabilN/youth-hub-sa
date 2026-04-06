@@ -75,10 +75,14 @@ export default function Checkout() {
   const isAssociation = role === "youth_association";
   const hasGrantBalance = isAssociation && availableGrant > 0;
 
+  // Calculate discount deduction (applied on total, does not affect provider payout)
+  const discountDeduction = discount ? Math.min(discount.amount, pricing.total) : 0;
+  const totalAfterDiscount = Math.round((pricing.total - discountDeduction) * 100) / 100;
+
   // Calculate how much grant covers and remaining amount
-  const grantDeduction = useGrantBalance ? Math.min(availableGrant, pricing.total) : 0;
-  const remainingAfterGrant = Math.round((pricing.total - grantDeduction) * 100) / 100;
-  const grantCoversAll = grantDeduction >= pricing.total;
+  const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
+  const remainingAfterGrant = Math.round((totalAfterDiscount - grantDeduction) * 100) / 100;
+  const grantCoversAll = grantDeduction >= totalAfterDiscount;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
