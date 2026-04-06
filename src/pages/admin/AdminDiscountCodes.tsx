@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useDiscountCodes, useDiscountCodeUsages, useCreateDiscountCode, useUpdateDiscountCode, useDeleteDiscountCode, DiscountCode } from "@/hooks/useDiscountCodes";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +98,7 @@ export default function AdminDiscountCodes() {
         </div>
 
         {!codes?.length ? (
-          <EmptyState title="لا توجد أكواد خصم" description="أنشئ أول كود خصم بالضغط على الزر أعلاه" />
+          <EmptyState icon={Tags} title="لا توجد أكواد خصم" description="أنشئ أول كود خصم بالضغط على الزر أعلاه" />
         ) : (
           <Card>
             <CardContent className="p-0">
@@ -121,7 +121,7 @@ export default function AdminDiscountCodes() {
                       <TableCell>{c.amount.toLocaleString()} ر.س</TableCell>
                       <TableCell>
                         {isActive(c) ? (
-                          <Badge className="bg-green-100 text-green-800">نشط</Badge>
+                          <Badge className="bg-primary/10 text-primary">نشط</Badge>
                         ) : !c.is_active ? (
                           <Badge variant="secondary">معطل</Badge>
                         ) : (
