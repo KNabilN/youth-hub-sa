@@ -732,12 +732,12 @@ export default function Checkout() {
                   ) : useGrantBalance && grantCoversAll ? (
                     <>
                       <Wallet className="h-4 w-4 me-2" />
-                      تأكيد الدفع من المنح — {pricing.total.toLocaleString()} ر.س
+                      تأكيد الدفع من المنح — {totalAfterDiscount.toLocaleString()} ر.س
                     </>
                   ) : paymentMethod === "electronic" ? (
                     <>
                       <CreditCard className="h-4 w-4 me-2" />
-                      تأكيد الدفع — {(useGrantBalance ? remainingAfterGrant : pricing.total).toLocaleString()} ر.س
+                      تأكيد الدفع — {(useGrantBalance ? remainingAfterGrant : totalAfterDiscount).toLocaleString()} ر.س
                     </>
                   ) : (
                     <>
