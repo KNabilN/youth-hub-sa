@@ -73,6 +73,19 @@ export default function PaymentCallback() {
 
         if (data?.verified) {
           sessionStorage.removeItem("moyasar_payment_context");
+
+          // Record discount code usage if applied
+          if (context.discount_code_id && context.discount_amount > 0) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              await supabase.from("discount_code_usages" as any).insert({
+                code_id: context.discount_code_id,
+                user_id: user.id,
+                discount_amount: context.discount_amount,
+              });
+            }
+          }
+
           if (context.type === "project_payment") {
             navigate(`/projects/${context.project_id}`, {
               replace: true,
