@@ -1,32 +1,40 @@
 
 
-# إضافة زر "إعادة إرسال رسالة التوثيق" في صفحة تسجيل الدخول
+# إصلاح بطء رفع صورة التصنيف
 
 ## المشكلة
-عندما يحاول المستخدم تسجيل الدخول بحساب غير موثق، تظهر رسالة خطأ لكن لا يوجد زر لإعادة إرسال رسالة التوثيق.
+رفع صورة 400KB يأخذ وقت طويل بسبب:
+1. **`upsert: true`** يجبر Supabase على فحص وحذف الملف القديم قبل الرفع
+2. لا يوجد معاينة فورية — المستخدم يرى فقط spinner بدون أي تغيير بصري
+3. عدم تحديد `contentType` يجبر الخادم على تخمين النوع
 
-## الحل
-إضافة زر "إعادة إرسال رسالة التوثيق" يظهر تلقائياً عند فشل تسجيل الدخول بسبب عدم تأكيد البريد الإلكتروني.
+## الحل — `src/components/admin/CategoryImageUpload.tsx`
 
-## التغييرات — `src/components/AuthModal.tsx`
+### 1. معاينة فورية للصورة قبل اكتمال الرفع
+إضافة `preview` state باستخدام `URL.createObjectURL(file)` لعرض الصورة فوراً عند اختيارها.
 
-### 1. إضافة state جديد
-- `showResend`: يتحكم في ظهور زر إعادة الإرسال
-- `resending`: حالة التحميل أثناء إعادة الإرسال
+### 2. استخدام اسم ملف فريد بدلاً من upsert
+بدلاً من `upsert: true` على نفس المسار (بطيء):
+```typescript
+// من:
+const path = `${categoryId}/image.${ext}`;
+await supabase.storage.from("category-images").upload(path, file, { upsert: true });
 
-### 2. كشف خطأ "Email not confirmed"
-في `handleSubmit` عند فشل تسجيل الدخول، إذا كانت رسالة الخطأ تحتوي على "Email not confirmed" يتم تفعيل `showResend = true`.
+// إلى:
+const path = `${categoryId}/${Date.now()}.${ext}`;
+await supabase.storage.from("category-images").upload(path, file, {
+  contentType: file.type,
+  cacheControl: "3600",
+});
+```
 
-### 3. إضافة دالة `handleResend`
-تستدعي `supabase.auth.resend({ type: 'signup', email })` لإعادة إرسال رسالة التأكيد، مع toast للنجاح أو الخطأ.
+### 3. تحديد `contentType` صريحاً
+إضافة `contentType: file.type` لتجنب تخمين الخادم.
 
-### 4. عرض الزر في الواجهة
-بعد زر "تسجيل الدخول" مباشرة وقبل رابط "نسيت كلمة المرور؟"، يظهر بانر صغير يحتوي على:
-- نص تنبيهي: "لم يتم تأكيد بريدك الإلكتروني"
-- زر: "إعادة إرسال رسالة التوثيق"
-- الزر يختفي عند تغيير البريد الإلكتروني أو التبديل لوضع التسجيل
+### 4. تنظيف المعاينة عند الإغلاق
+`URL.revokeObjectURL` في cleanup.
 
 | الملف | التغيير |
 |-------|---------|
-| `src/components/AuthModal.tsx` | إضافة زر إعادة إرسال رسالة التوثيق عند خطأ عدم التأكيد |
+| `src/components/admin/CategoryImageUpload.tsx` | معاينة فورية + اسم فريد + contentType |
 
