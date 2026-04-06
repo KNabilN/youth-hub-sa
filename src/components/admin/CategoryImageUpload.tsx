@@ -43,6 +43,14 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
       qc.invalidateQueries({ queryKey: ["categories"] });
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["marketplace"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["landing-stats"] });
+      qc.invalidateQueries({ queryKey: ["service-detail"] });
+      qc.invalidateQueries({ queryKey: ["my-services"] });
+      qc.invalidateQueries({ queryKey: ["available-projects"] });
       toast.success("تم رفع صورة التصنيف");
       setOpen(false);
     },
