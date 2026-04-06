@@ -1,80 +1,45 @@
 
 
-# نظام أكواد الخصم — خطة التنفيذ
+# مراجعة وإصلاح نظام أكواد الخصم — 5 أخطاء
 
-## نظرة عامة
-إضافة نظام أكواد خصم يديره الأدمن ويستخدمه الجمعيات عند الشراء. الخصم يُخصم من إجمالي المبلغ ولا يؤثر على مستحقات مزود الخدمة.
+## الأخطاء المكتشفة
 
-## الجزء الأول: قاعدة البيانات
+### 1. مبلغ Moyasar يتجاهل الخصم
+**السطر 625**: `amount={useGrantBalance ? remainingAfterGrant : pricing.total}`
+يجب أن يكون `totalAfterDiscount` وليس `pricing.total` عند عدم استخدام المنح.
 
-### جدول `discount_codes`
-| العمود | النوع | الوصف |
-|--------|-------|-------|
-| id | uuid PK | المعرف |
-| code | text UNIQUE | اسم الكود (مثلاً: SAVE100) |
-| amount | numeric | قيمة الخصم بالريال |
-| start_date | date | تاريخ البداية |
-| end_date | date | تاريخ النهاية |
-| is_active | boolean | مفعل/معطل |
-| max_uses | integer | الحد الأقصى للاستخدام (nullable = بلا حد) |
-| created_at | timestamptz | تاريخ الإنشاء |
+### 2. لا يتم تسجيل استخدام كود الخصم في مسار الدفع الإلكتروني/البنكي
+`recordUsage` يُستدعى فقط في مسار "المنح تغطي الكل" (سطر 192). في مسار التحويل البنكي والدفع الإلكتروني لا يتم تسجيل الاستخدام أبداً.
 
-### جدول `discount_code_usages`
-| العمود | النوع | الوصف |
-|--------|-------|-------|
-| id | uuid PK | المعرف |
-| code_id | uuid FK → discount_codes | الكود المستخدم |
-| user_id | uuid | الجمعية التي استخدمت الكود |
-| escrow_id | uuid | معاملة الضمان المرتبطة |
-| project_id | uuid | المشروع المرتبط (nullable) |
-| service_id | uuid | الخدمة المرتبطة (nullable) |
-| discount_amount | numeric | المبلغ المخصوم فعلياً |
-| created_at | timestamptz | وقت الاستخدام |
+### 3. مبالغ حوار التأكيد لا تعكس الخصم
+السطور 774-779 تستخدم `pricing.total` بدلاً من `totalAfterDiscount` في نصوص التأكيد.
 
-### سياسات RLS
-- الأدمن: ALL على الجدولين
-- الجمعيات: SELECT فقط على `discount_codes` النشطة + INSERT على `discount_code_usages` لسجلاتهم
+### 4. مبلغ التحويل البنكي في navigate لا يعكس الخصم
+السطر 269: `total: pricing.total` بدلاً من `totalAfterDiscount`.
 
-## الجزء الثاني: واجهة الأدمن
+### 5. استعلام تفاصيل الاستخدام في صفحة الأدمن لن يعمل
+`useDiscountCodeUsages` يحاول JOIN مع `profiles:user_id(...)` لكن لا يوجد FK من `discount_code_usages.user_id` إلى `profiles.id`. نحتاج إضافة FK أو تغيير طريقة الاستعلام.
 
-### صفحة جديدة: `src/pages/admin/AdminDiscountCodes.tsx`
-- عرض كل الأكواد في جدول (الكود، القيمة، الحالة، عدد الاستخدامات، تاريخ البداية/النهاية)
-- حوار إنشاء كود جديد (اسم الكود، القيمة، تاريخ البداية، تاريخ النهاية)
-- عند الضغط على كود: Sheet أو حوار يعرض:
-  - تفاصيل الكود الكاملة
-  - قائمة الاستخدامات (اسم الجمعية، الخدمة/المشروع، المبلغ المخصوم، التاريخ)
-- أزرار: تعديل / تعطيل / حذف
+## الإصلاحات
 
-### تعديلات الملاحة
-- `AppSidebar.tsx`: إضافة "أكواد الخصم" في قائمة الأدمن (أيقونة Ticket أو Tags)
-- `App.tsx`: إضافة route `/admin/discount-codes`
+### `src/pages/Checkout.tsx`
+1. سطر 625: تغيير `pricing.total` إلى `totalAfterDiscount`
+2. إضافة `recordUsage` بعد نجاح التحويل البنكي (قبل `clearCart` في سطر 266) وفي مسار الدفع الإلكتروني (تخزين بيانات الخصم في `paymentContext`)
+3. تحديث نصوص حوار التأكيد لتعكس `totalAfterDiscount` بدلاً من `pricing.total`
+4. سطر 269: تغيير `total: pricing.total` إلى `total: totalAfterDiscount`
 
-## الجزء الثالث: استخدام الكود في الدفع
+### Migration جديد
+إضافة FK من `discount_code_usages.user_id` إلى `profiles.id`:
+```sql
+ALTER TABLE discount_code_usages 
+ADD CONSTRAINT discount_code_usages_user_id_fkey 
+FOREIGN KEY (user_id) REFERENCES profiles(id);
+```
 
-### تعديل `src/pages/Checkout.tsx`
-- إضافة حقل إدخال كود الخصم في خطوة المراجعة
-- زر "تطبيق" يتحقق من صلاحية الكود (موجود + نشط + ضمن التواريخ + لم يتجاوز الحد الأقصى)
-- عرض مبلغ الخصم في تفاصيل التسعير
-- خصم المبلغ من الإجمالي فقط (لا يؤثر على subtotal الخاص بمزود الخدمة)
+### ملفات متأثرة
 
-### Hook جديد: `src/hooks/useDiscountCode.ts`
-- `validateCode(code)`: يتحقق من صلاحية الكود ويعيد تفاصيله
-- `applyCode(codeId, userId, escrowId, ...)`: يسجل استخدام الكود
-
-### منطق الخصم
-- الخصم يُطبق على الإجمالي النهائي (بعد العمولة والضريبة)
-- إذا كان الخصم أكبر من الإجمالي، يصبح الإجمالي صفر
-- مزود الخدمة يحصل على كامل مبلغه بدون أي تأثير
-
-## الملفات المتأثرة
-
-| الملف | العملية |
+| الملف | التغيير |
 |-------|---------|
-| Migration جديد | إنشاء جدولي `discount_codes` و `discount_code_usages` مع RLS |
-| `src/pages/admin/AdminDiscountCodes.tsx` | إنشاء — صفحة إدارة أكواد الخصم |
-| `src/hooks/useDiscountCodes.ts` | إنشاء — hook للأدمن (CRUD) |
-| `src/hooks/useDiscountCode.ts` | إنشاء — hook للتحقق والتطبيق |
-| `src/components/AppSidebar.tsx` | تعديل — إضافة رابط أكواد الخصم |
-| `src/App.tsx` | تعديل — إضافة route جديد |
-| `src/pages/Checkout.tsx` | تعديل — إضافة حقل كود الخصم وتطبيقه |
+| `src/pages/Checkout.tsx` | إصلاح 4 أخطاء في المبالغ وتسجيل الاستخدام |
+| Migration جديد | إضافة FK لـ user_id → profiles |
 
