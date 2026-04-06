@@ -196,10 +196,10 @@ export default function Checkout() {
 
       // Step 2: Pay remaining amount via selected method
       if (!useGrantBalance || !grantCoversAll) {
-        const effectiveTotal = useGrantBalance ? remainingAfterGrant : pricing.total;
+        const effectiveTotal = useGrantBalance ? remainingAfterGrant : totalAfterDiscount;
         const effectiveSubtotal = useGrantBalance
           ? Math.round((remainingAfterGrant / pricing.total) * subtotal * 100) / 100
-          : subtotal;
+          : discount ? Math.round((totalAfterDiscount / pricing.total) * subtotal * 100) / 100 : subtotal;
 
         if (paymentMethod === "electronic") {
           const { data, error } = await supabase.functions.invoke("moyasar-get-config");
