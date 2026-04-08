@@ -11,7 +11,7 @@ import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
-import { calculatePricing, useCommissionRate } from "@/lib/pricing";
+import { calculatePricing, calculatePricingWithDiscount, useCommissionRate } from "@/lib/pricing";
 import { useDiscountCode } from "@/hooks/useDiscountCode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
