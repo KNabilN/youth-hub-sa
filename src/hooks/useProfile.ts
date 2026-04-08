@@ -72,7 +72,7 @@ export function useUpdateProfile() {
         if (admins && admins.length > 0) {
           const notifications = admins.map((a) => ({
             user_id: a.user_id,
-            message: `قام ${displayName} بتعديل ملفه الشخصي ويحتاج مراجعة وإعادة توثيق`,
+            message: `قام ${displayName} بتعديل بياناته المالية ويحتاج مراجعة وإعادة توثيق`,
             type: "profile_updated",
             entity_id: userId,
             entity_type: "profile",
