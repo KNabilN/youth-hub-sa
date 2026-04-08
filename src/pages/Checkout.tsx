@@ -71,14 +71,16 @@ export default function Checkout() {
 
   const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
   const { data: commissionRate = 0.05 } = useCommissionRate();
-  const pricing = calculatePricing(subtotal, commissionRate);
   const availableGrant = grantBalance?.available ?? 0;
   const isAssociation = role === "youth_association";
   const hasGrantBalance = isAssociation && availableGrant > 0;
 
-  // Calculate discount deduction (applied on total, does not affect provider payout)
-  const discountDeduction = discount ? Math.min(discount.amount, pricing.total) : 0;
-  const totalAfterDiscount = Math.round((pricing.total - discountDeduction) * 100) / 100;
+  // Calculate pricing with discount applied to base amount BEFORE commission & VAT
+  const discountAmount = discount ? discount.amount : 0;
+  const pricing = discount
+    ? calculatePricingWithDiscount(subtotal, commissionRate, discountAmount)
+    : calculatePricing(subtotal, commissionRate);
+  const totalAfterDiscount = pricing.total;
 
   // Calculate how much grant covers and remaining amount
   const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
