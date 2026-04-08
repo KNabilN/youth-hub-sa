@@ -25,12 +25,12 @@ export function usePayFromGrants() {
   const mutexRef = useRef(false);
 
   return useMutation({
-    mutationFn: async ({ amount, totalAmount, payeeId, projectId, serviceId }: PayFromGrantsInput) => {
+    mutationFn: async ({ amount, totalAmount, payeeId, projectId, serviceId, discountAmount = 0 }: PayFromGrantsInput) => {
       if (!user) throw new Error("Not authenticated");
       if (mutexRef.current) throw new Error("عملية قيد التنفيذ بالفعل");
       mutexRef.current = true;
       try {
-        return await executeGrantPayment(user.id, amount, totalAmount, payeeId, projectId, serviceId);
+        return await executeGrantPayment(user.id, amount, totalAmount, payeeId, projectId, serviceId, discountAmount);
       } finally {
         mutexRef.current = false;
       }
