@@ -16,6 +16,7 @@ interface PayFromGrantsInput {
   payeeId: string;
   projectId?: string;
   serviceId?: string;
+  discountAmount?: number; // discount applied to base for commission/VAT calc
 }
 
 export function usePayFromGrants() {
