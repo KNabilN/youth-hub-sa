@@ -169,8 +169,9 @@ async function executeGrantPayment(userId: string, amount: number, totalAmount: 
           .maybeSingle();
 
         const rate = config?.rate ?? 0.05;
-        const commissionAmount = Math.round(amount * Number(rate) * 100) / 100;
-        const vatAmount = Math.round(amount * 0.15 * 100) / 100;
+        const discountedBase = Math.max(amount - discountAmount, 0);
+        const commissionAmount = Math.round(discountedBase * Number(rate) * 100) / 100;
+        const vatAmount = Math.round(discountedBase * 0.15 * 100) / 100;
 
         const { error: invError } = await supabase
           .from("invoices")
