@@ -191,8 +191,8 @@ export default function Checkout() {
 
         if (grantCoversAll) {
           // Record discount usage if applied
-          if (discount && discountDeduction > 0 && user) {
-            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          if (discount && discountAmount > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
           }
           await clearCart.mutateAsync();
           navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance" } });
@@ -235,7 +235,7 @@ export default function Checkout() {
             grant_deduction: grantDeduction,
             skip_project_creation: useGrantBalance && grantDeduction > 0,
             discount_code_id: discount?.id || null,
-            discount_amount: discountDeduction > 0 ? discountDeduction : 0,
+            discount_amount: discountAmount > 0 ? discountAmount : 0,
           };
 
           sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
@@ -268,8 +268,8 @@ export default function Checkout() {
             })),
           });
           // Record discount usage for bank transfer
-          if (discount && discountDeduction > 0 && user) {
-            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          if (discount && discountAmount > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
           }
           await clearCart.mutateAsync();
           navigate("/payment-success", {
@@ -492,7 +492,7 @@ export default function Checkout() {
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
                       <span className="font-mono font-bold text-sm">{discount.code}</span>
-                      <span className="text-sm text-primary">−{discountDeduction.toLocaleString()} ر.س</span>
+                      <span className="text-sm text-primary">−{discountAmount.toLocaleString()} ر.س</span>
                     </div>
                     <Button variant="ghost" size="sm" onClick={clearDiscount} className="text-xs text-destructive">
                       إزالة
@@ -692,14 +692,14 @@ export default function Checkout() {
                 </div>
                 <PricingBreakdownDisplay pricing={pricing} />
 
-                {(discountDeduction > 0 || (useGrantBalance && grantDeduction > 0)) && (
+                {(discountAmount > 0 || (useGrantBalance && grantDeduction > 0)) && (
                   <>
                     <Separator />
                     <div className="space-y-1 text-sm">
-                      {discountDeduction > 0 && (
+                      {discountAmount > 0 && (
                         <div className="flex justify-between text-primary">
                           <span>خصم كود ({discount?.code})</span>
-                          <span className="font-bold">−{discountDeduction.toLocaleString()} ر.س</span>
+                          <span className="font-bold">−{discountAmount.toLocaleString()} ر.س</span>
                         </div>
                       )}
                       {useGrantBalance && grantDeduction > 0 && (
@@ -714,7 +714,7 @@ export default function Checkout() {
                           <span className="text-primary">{remainingAfterGrant.toLocaleString()} ر.س</span>
                         </div>
                       )}
-                      {!grantCoversAll && discountDeduction > 0 && !useGrantBalance && (
+                      {!grantCoversAll && discountAmount > 0 && !useGrantBalance && (
                         <div className="flex justify-between font-bold text-lg">
                           <span>الإجمالي بعد الخصم</span>
                           <span className="text-primary">{totalAfterDiscount.toLocaleString()} ر.س</span>
