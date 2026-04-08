@@ -172,8 +172,9 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
         )} />
         <FormField control={form.control} name="long_description" render={({ field }) => (
           <FormItem>
-            <FormLabel>وصف تفصيلي</FormLabel>
-            <FormControl><Textarea placeholder="وصف تفصيلي يظهر في صفحة الخدمة الكاملة" rows={6} maxLength={10000} {...field} /></FormControl>
+            <FormLabel required>وصف تفصيلي</FormLabel>
+            <FormControl><Textarea placeholder="مثال: تهدف الخدمة إلى... وتشمل الأنشطة التالية: 1) ... 2) ... والمخرجات المتوقعة هي..." rows={6} maxLength={10000} {...field} /></FormControl>
+            <p className="text-xs text-muted-foreground">يرجى وصف الخدمة بشكل منظم ومحدد، مع توضيح: أهداف الخدمة، نطاقها، الأنشطة أو المراحل التنفيذية، والمخرجات المتوقعة بشكل قابل للقياس، مع تجنب العبارات العامة أو غير الواضحة.</p>
             <CharCounter current={field.value?.length ?? 0} max={10000} />
             <FormMessage />
           </FormItem>
