@@ -31,10 +31,12 @@ async function createInvoiceAndNotifyAdmin(
   escrowId: string,
   issuedTo: string,
   baseAmount: number,
-  commissionRate: number
+  commissionRate: number,
+  discountAmount: number = 0
 ) {
-  const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vatAmount = Math.round(baseAmount * VAT_RATE * 100) / 100;
+  const discountedBase = Math.max(baseAmount - discountAmount, 0);
+  const commissionAmount = Math.round(discountedBase * commissionRate * 100) / 100;
+  const vatAmount = Math.round(discountedBase * VAT_RATE * 100) / 100;
 
   const { error: invErr } = await adminClient.from("invoices").insert({
     invoice_number: generateInvoiceNumber(),
@@ -42,7 +44,7 @@ async function createInvoiceAndNotifyAdmin(
     commission_amount: commissionAmount,
     issued_to: issuedTo,
     escrow_id: escrowId,
-    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س`,
+    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س${discountAmount > 0 ? ` | خصم: ${discountAmount} ر.س` : ""}`,
   });
   if (invErr) {
     console.error("Invoice creation error:", invErr);
