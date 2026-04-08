@@ -204,8 +204,8 @@ export default function Checkout() {
       if (!useGrantBalance || !grantCoversAll) {
         const effectiveTotal = useGrantBalance ? remainingAfterGrant : totalAfterDiscount;
         const effectiveSubtotal = useGrantBalance
-          ? Math.round((remainingAfterGrant / pricing.total) * subtotal * 100) / 100
-          : discount ? Math.round((totalAfterDiscount / pricing.total) * subtotal * 100) / 100 : subtotal;
+          ? Math.round((remainingAfterGrant / totalAfterDiscount) * subtotal * 100) / 100
+          : subtotal;
 
         if (paymentMethod === "electronic") {
           const { data, error } = await supabase.functions.invoke("moyasar-get-config");
@@ -235,7 +235,7 @@ export default function Checkout() {
             grant_deduction: grantDeduction,
             skip_project_creation: useGrantBalance && grantDeduction > 0,
             discount_code_id: discount?.id || null,
-            discount_amount: discountAmount > 0 ? discountAmount : 0,
+            discount_amount: discountAmount,
           };
 
           sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
