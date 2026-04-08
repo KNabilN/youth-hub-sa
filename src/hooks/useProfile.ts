@@ -50,7 +50,7 @@ export function useUpdateProfile() {
       let wasVerified = false;
       let finalUpdates = { ...updates };
 
-      if (currentProfile && currentProfile.is_verified && hasEssentialChanges(updates, currentProfile as any)) {
+      if (currentProfile && currentProfile.is_verified && hasFinancialChanges(updates, currentProfile as any)) {
         finalUpdates.is_verified = false;
         wasVerified = true;
       }
