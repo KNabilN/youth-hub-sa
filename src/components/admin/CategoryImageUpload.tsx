@@ -48,6 +48,8 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       qc.invalidateQueries({ queryKey: ["marketplace"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["landing-stats"] });
+      qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
+      qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
       qc.invalidateQueries({ queryKey: ["service-detail"] });
       qc.invalidateQueries({ queryKey: ["my-services"] });
       qc.invalidateQueries({ queryKey: ["available-projects"] });
@@ -73,6 +75,8 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       qc.invalidateQueries({ queryKey: ["marketplace"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
       qc.invalidateQueries({ queryKey: ["landing-stats"] });
+      qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
+      qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
       qc.invalidateQueries({ queryKey: ["service-detail"] });
       qc.invalidateQueries({ queryKey: ["my-services"] });
       qc.invalidateQueries({ queryKey: ["available-projects"] });
