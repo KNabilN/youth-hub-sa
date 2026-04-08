@@ -11,7 +11,7 @@ import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
 import { useVerifiedAssociations } from "@/hooks/useVerifiedAssociations";
-import { calculatePricing, useCommissionRate } from "@/lib/pricing";
+import { calculatePricing, calculatePricingWithDiscount, useCommissionRate } from "@/lib/pricing";
 import { useDiscountCode } from "@/hooks/useDiscountCode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,14 +71,16 @@ export default function Checkout() {
 
   const subtotal = items?.reduce((sum, item) => sum + item.micro_services.price * item.quantity, 0) ?? 0;
   const { data: commissionRate = 0.05 } = useCommissionRate();
-  const pricing = calculatePricing(subtotal, commissionRate);
   const availableGrant = grantBalance?.available ?? 0;
   const isAssociation = role === "youth_association";
   const hasGrantBalance = isAssociation && availableGrant > 0;
 
-  // Calculate discount deduction (applied on total, does not affect provider payout)
-  const discountDeduction = discount ? Math.min(discount.amount, pricing.total) : 0;
-  const totalAfterDiscount = Math.round((pricing.total - discountDeduction) * 100) / 100;
+  // Calculate pricing with discount applied to base amount BEFORE commission & VAT
+  const discountAmount = discount ? discount.amount : 0;
+  const pricing = discount
+    ? calculatePricingWithDiscount(subtotal, commissionRate, discountAmount)
+    : calculatePricing(subtotal, commissionRate);
+  const totalAfterDiscount = pricing.total;
 
   // Calculate how much grant covers and remaining amount
   const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
@@ -189,8 +191,8 @@ export default function Checkout() {
 
         if (grantCoversAll) {
           // Record discount usage if applied
-          if (discount && discountDeduction > 0 && user) {
-            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          if (discount && discountAmount > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
           }
           await clearCart.mutateAsync();
           navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance" } });
@@ -202,8 +204,8 @@ export default function Checkout() {
       if (!useGrantBalance || !grantCoversAll) {
         const effectiveTotal = useGrantBalance ? remainingAfterGrant : totalAfterDiscount;
         const effectiveSubtotal = useGrantBalance
-          ? Math.round((remainingAfterGrant / pricing.total) * subtotal * 100) / 100
-          : discount ? Math.round((totalAfterDiscount / pricing.total) * subtotal * 100) / 100 : subtotal;
+          ? Math.round((remainingAfterGrant / totalAfterDiscount) * subtotal * 100) / 100
+          : subtotal;
 
         if (paymentMethod === "electronic") {
           const { data, error } = await supabase.functions.invoke("moyasar-get-config");
@@ -233,7 +235,7 @@ export default function Checkout() {
             grant_deduction: grantDeduction,
             skip_project_creation: useGrantBalance && grantDeduction > 0,
             discount_code_id: discount?.id || null,
-            discount_amount: discountDeduction > 0 ? discountDeduction : 0,
+            discount_amount: discountAmount,
           };
 
           sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
@@ -266,8 +268,8 @@ export default function Checkout() {
             })),
           });
           // Record discount usage for bank transfer
-          if (discount && discountDeduction > 0 && user) {
-            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountDeduction });
+          if (discount && discountAmount > 0 && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
           }
           await clearCart.mutateAsync();
           navigate("/payment-success", {
@@ -490,7 +492,7 @@ export default function Checkout() {
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
                       <span className="font-mono font-bold text-sm">{discount.code}</span>
-                      <span className="text-sm text-primary">−{discountDeduction.toLocaleString()} ر.س</span>
+                      <span className="text-sm text-primary">−{discountAmount.toLocaleString()} ر.س</span>
                     </div>
                     <Button variant="ghost" size="sm" onClick={clearDiscount} className="text-xs text-destructive">
                       إزالة
@@ -690,32 +692,18 @@ export default function Checkout() {
                 </div>
                 <PricingBreakdownDisplay pricing={pricing} />
 
-                {(discountDeduction > 0 || (useGrantBalance && grantDeduction > 0)) && (
+                {(useGrantBalance && grantDeduction > 0) && (
                   <>
                     <Separator />
                     <div className="space-y-1 text-sm">
-                      {discountDeduction > 0 && (
-                        <div className="flex justify-between text-primary">
-                          <span>خصم كود ({discount?.code})</span>
-                          <span className="font-bold">−{discountDeduction.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {useGrantBalance && grantDeduction > 0 && (
-                        <div className="flex justify-between text-primary">
-                          <span>خصم رصيد المنح</span>
-                          <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {!grantCoversAll && remainingAfterGrant < totalAfterDiscount && (
+                      <div className="flex justify-between text-primary">
+                        <span>خصم رصيد المنح</span>
+                        <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
+                      </div>
+                      {!grantCoversAll && (
                         <div className="flex justify-between font-bold text-lg">
                           <span>المتبقي للدفع</span>
                           <span className="text-primary">{remainingAfterGrant.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {!grantCoversAll && discountDeduction > 0 && !useGrantBalance && (
-                        <div className="flex justify-between font-bold text-lg">
-                          <span>الإجمالي بعد الخصم</span>
-                          <span className="text-primary">{totalAfterDiscount.toLocaleString()} ر.س</span>
                         </div>
                       )}
                     </div>

@@ -15,10 +15,12 @@ export function useGenerateInvoice() {
       escrowId,
       amount,
       issuedTo,
+      discountAmount = 0,
     }: {
       escrowId: string;
       amount: number;
       issuedTo: string;
+      discountAmount?: number;
     }) => {
       // Get active commission rate
       const { data: config } = await supabase
@@ -30,8 +32,10 @@ export function useGenerateInvoice() {
         .maybeSingle();
 
       const rate = config?.rate ?? 0.05;
-      const commissionAmount = Math.round(amount * rate * 100) / 100;
-      const vatAmount = Math.round(amount * 0.15 * 100) / 100;
+      // Calculate on discounted base
+      const discountedBase = Math.max(amount - discountAmount, 0);
+      const commissionAmount = Math.round(discountedBase * rate * 100) / 100;
+      const vatAmount = Math.round(discountedBase * 0.15 * 100) / 100;
 
       const { data, error } = await supabase
         .from("invoices")

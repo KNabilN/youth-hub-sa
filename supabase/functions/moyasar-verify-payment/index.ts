@@ -31,10 +31,12 @@ async function createInvoiceAndNotifyAdmin(
   escrowId: string,
   issuedTo: string,
   baseAmount: number,
-  commissionRate: number
+  commissionRate: number,
+  discountAmount: number = 0
 ) {
-  const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vatAmount = Math.round(baseAmount * VAT_RATE * 100) / 100;
+  const discountedBase = Math.max(baseAmount - discountAmount, 0);
+  const commissionAmount = Math.round(discountedBase * commissionRate * 100) / 100;
+  const vatAmount = Math.round(discountedBase * VAT_RATE * 100) / 100;
 
   const { error: invErr } = await adminClient.from("invoices").insert({
     invoice_number: generateInvoiceNumber(),
@@ -42,7 +44,7 @@ async function createInvoiceAndNotifyAdmin(
     commission_amount: commissionAmount,
     issued_to: issuedTo,
     escrow_id: escrowId,
-    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س`,
+    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س${discountAmount > 0 ? ` | خصم: ${discountAmount} ر.س` : ""}`,
   });
   if (invErr) {
     console.error("Invoice creation error:", invErr);
@@ -206,6 +208,8 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
   const items = ctx.items || [];
   const beneficiaryId = ctx.beneficiary_id || null;
   const skipProjectCreation = ctx.skip_project_creation === true;
+  const totalDiscountAmount = ctx.discount_amount || 0;
+  const totalSubtotal = items.reduce((s: number, i: any) => s + (i.price || 0), 0);
 
   // Check if buyer is a youth_association
   const { data: buyerRole } = await adminClient
@@ -217,6 +221,10 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
 
   for (const item of items) {
     let projectId: string | null = item.project_id || null;
+    // Calculate per-item discount proportion
+    const itemDiscount = totalSubtotal > 0
+      ? Math.round((item.price / totalSubtotal) * totalDiscountAmount * 100) / 100
+      : 0;
 
     if (skipProjectCreation) {
       console.log("Skipping project/contract/bid creation as requested by context (hybrid payment)");
@@ -302,6 +310,7 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
       }
     }
 
+    // Escrow holds full item.price (provider gets full amount)
     const { data: escrow, error: escrowErr } = await adminClient
       .from("escrow_transactions")
       .insert({
@@ -320,7 +329,8 @@ async function processCheckout(adminClient: any, userId: string, ctx: any, commi
     if (escrowErr) {
       console.error("Escrow creation error:", escrowErr);
     } else {
-      await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate);
+      // Invoice uses discounted base for commission/VAT calculation
+      await createInvoiceAndNotifyAdmin(adminClient, escrow.id, userId, item.price, commissionRate, itemDiscount);
     }
 
     // Only create donor_contributions for donors, not associations
