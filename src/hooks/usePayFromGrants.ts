@@ -47,7 +47,7 @@ export function usePayFromGrants() {
   });
 }
 
-async function executeGrantPayment(userId: string, amount: number, totalAmount: number, payeeId: string, projectId?: string, serviceId?: string) {
+async function executeGrantPayment(userId: string, amount: number, totalAmount: number, payeeId: string, projectId?: string, serviceId?: string, discountAmount: number = 0) {
 
       // --- Fetch eligible contributions in priority order ---
       let specificContributions: any[] = [];
