@@ -1,66 +1,37 @@
 
 
-# تغيير منطق حساب الخصم — الضريبة والعمولة على المبلغ الأصلي أولاً ثم خصم الكود
+# إصلاح أولوية صورة التصنيف على صورة الخدمة
 
-## المنطق الجديد
-
+## المشكلة
+الخدمات التي رفع مزود الخدمة لها صورة خاصة تعرض صورة الخدمة وتتجاهل صورة التصنيف. المنطق الحالي:
 ```text
-مثال: خدمة 1000 ر.س + كود خصم 200 ر.س + عمولة 5%
-
-الحالي:
-  المبلغ الأساسي:    1000
-  الخصم:            −200
-  المبلغ بعد الخصم:   800
-  العمولة (5%):       40    ← على 800
-  ضريبة (15%):       120    ← على 800
-  الإجمالي:          960
-
-الجديد (المطلوب):
-  المبلغ الأساسي:    1000
-  العمولة (5%):       50    ← على 1000
-  ضريبة (15%):       150    ← على 1000
-  الإجمالي قبل الخصم: 1200
-  الخصم:            −200
-  الإجمالي النهائي:   1000
+الصورة المعروضة = صورة الخدمة || صورة التصنيف
 ```
 
-## التغييرات
+خدمة "استشارات التحول الرقمي" مثلاً لها صورة خاصة مرفوعة من المزود، لذلك لا تستخدم صورة التصنيف.
 
-### 1. `src/lib/pricing.ts` — `calculatePricingWithDiscount`
-العمولة والضريبة تُحسب على المبلغ الأصلي (مثل `calculatePricing`). الخصم يُطرح من الإجمالي النهائي فقط:
-```typescript
-const commission = Math.round(baseAmount * commissionRate * 100) / 100;
-const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
-const totalBeforeDiscount = baseAmount + commission + vat;
-const discount = Math.min(discountAmount, totalBeforeDiscount);
-const total = Math.round((totalBeforeDiscount - discount) * 100) / 100;
+## الحل — عكس الأولوية
+تغيير المنطق ليكون: **صورة التصنيف أولاً** (إن وجدت)، ثم صورة الخدمة كـ fallback:
+```text
+الصورة المعروضة = صورة التصنيف || صورة الخدمة
 ```
 
-### 2. `src/components/payment/PricingBreakdownDisplay.tsx`
-تحديث العرض ليظهر: المبلغ الأساسي → العمولة → الضريبة → الخصم → الإجمالي (بدلاً من عرض "المبلغ بعد الخصم" قبل العمولة والضريبة).
+هذا يضمن أن تغيير صورة التصنيف ينعكس فوراً على جميع الخدمات المرتبطة.
 
-### 3. `supabase/functions/moyasar-verify-payment/index.ts` — `createInvoiceAndNotifyAdmin`
-العمولة والضريبة على `baseAmount` بدلاً من `discountedBase`:
-```typescript
-const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
-const vatAmount = Math.round(baseAmount * VAT_RATE * 100) / 100;
-```
-
-### 4. `src/hooks/usePayFromGrants.ts` — حساب الفاتورة
-نفس التغيير: العمولة والضريبة على `amount` الأصلي.
-
-### 5. `src/hooks/useInvoices.ts` — `useGenerateInvoice`
-نفس التغيير: العمولة والضريبة على `amount` الأصلي.
-
-### 6. `src/pages/Checkout.tsx`
-تعديل حساب `totalAfterDiscount` ليكون: `pricing.total - discountAmount` بدلاً من استخدام `calculatePricingWithDiscount` بمنطق مختلف.
+## الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/lib/pricing.ts` | العمولة والضريبة على الأصلي، الخصم من الإجمالي |
-| `PricingBreakdownDisplay.tsx` | تحديث ترتيب العرض |
-| `moyasar-verify-payment/index.ts` | العمولة والضريبة على الأصلي |
-| `usePayFromGrants.ts` | العمولة والضريبة على الأصلي |
-| `useInvoices.ts` | العمولة والضريبة على الأصلي |
-| `Checkout.tsx` | تحديث حساب الإجمالي بعد الخصم |
+| `src/components/marketplace/ServiceCard.tsx` | سطر 46: عكس الأولوية |
+| `src/components/landing/LandingServicesGrid.tsx` | سطر 102-104: عكس الأولوية |
+| `src/pages/ServiceDetail.tsx` | التحقق من نفس المنطق وتحديثه |
+
+### التغيير في كل ملف
+```typescript
+// قبل
+const displayImage = service.image_url || category?.image_url;
+
+// بعد  
+const displayImage = category?.image_url || service.image_url;
+```
 
