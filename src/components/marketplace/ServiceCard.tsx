@@ -43,7 +43,7 @@ export function ServiceCard({ service }: { service: Service }) {
     <>
       <Card className="card-hover group overflow-hidden">
         {(() => {
-          const displayImage = service.image_url || (service.categories as any)?.image_url;
+          const displayImage = (service.categories as any)?.image_url || service.image_url;
           return displayImage ? (
             <div className="w-full h-40 overflow-hidden">
               <img src={displayImage} alt={service.title} className="w-full h-full object-cover" />
