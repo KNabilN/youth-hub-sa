@@ -35,16 +35,17 @@ export function calculatePricingWithDiscount(
   commissionRate: number,
   discountAmount: number
 ): PricingWithDiscount {
-  const discount = Math.min(discountAmount, baseAmount);
-  const discountedBase = Math.max(baseAmount - discount, 0);
-  const commission = Math.round(discountedBase * commissionRate * 100) / 100;
-  const vat = Math.round(discountedBase * VAT_RATE * 100) / 100;
-  const total = Math.round((discountedBase + commission + vat) * 100) / 100;
+  // Commission & VAT calculated on ORIGINAL base amount
+  const commission = Math.round(baseAmount * commissionRate * 100) / 100;
+  const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
+  const totalBeforeDiscount = Math.round((baseAmount + commission + vat) * 100) / 100;
+  const discount = Math.min(discountAmount, totalBeforeDiscount);
+  const total = Math.round((totalBeforeDiscount - discount) * 100) / 100;
   return {
     originalSubtotal: baseAmount,
-    discountedSubtotal: discountedBase,
+    discountedSubtotal: baseAmount, // base stays the same, discount is from grand total
     discount,
-    subtotal: discountedBase,
+    subtotal: baseAmount,
     commissionRate,
     commission,
     vat,
