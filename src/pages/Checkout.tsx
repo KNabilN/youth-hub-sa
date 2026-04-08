@@ -162,12 +162,16 @@ export default function Checkout() {
             // Grant covers everything — use payFromGrants for full amount
             const itemBase = item.micro_services.price * item.quantity;
             const itemPricing = calculatePricing(itemBase, commissionRate);
+            const itemDiscountPricing = discountAmount > 0
+              ? calculatePricingWithDiscount(itemBase, commissionRate, discountAmount)
+              : itemPricing;
             await payFromGrants.mutateAsync({
               amount: itemBase,
-              totalAmount: itemPricing.total,
+              totalAmount: itemDiscountPricing.total,
               payeeId: item.micro_services.provider_id,
               serviceId: item.micro_services.id,
               projectId,
+              discountAmount: discountAmount,
             });
           } else {
             // Hybrid: consume available grant for partial coverage
@@ -184,6 +188,7 @@ export default function Checkout() {
                 payeeId: item.micro_services.provider_id,
                 serviceId: item.micro_services.id,
                 projectId,
+                discountAmount: discountAmount,
               });
             }
           }
@@ -229,8 +234,12 @@ export default function Checkout() {
             beneficiary_id: selectedAssociation || null,
             total: effectiveTotal,
             subtotal: effectiveSubtotal,
-            commission: pricing.commission,
-            vat: pricing.vat,
+            commission: useGrantBalance && grantDeduction > 0
+              ? Math.round(pricing.commission * (effectiveTotal / totalAfterDiscount) * 100) / 100
+              : pricing.commission,
+            vat: useGrantBalance && grantDeduction > 0
+              ? Math.round(pricing.vat * (effectiveTotal / totalAfterDiscount) * 100) / 100
+              : pricing.vat,
             commission_rate: commissionRate,
             grant_deduction: grantDeduction,
             skip_project_creation: useGrantBalance && grantDeduction > 0,

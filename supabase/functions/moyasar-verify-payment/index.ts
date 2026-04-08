@@ -42,9 +42,10 @@ async function createInvoiceAndNotifyAdmin(
     invoice_number: generateInvoiceNumber(),
     amount: baseAmount,
     commission_amount: commissionAmount,
+    vat_amount: vatAmount,
     issued_to: issuedTo,
     escrow_id: escrowId,
-    notes: `ضريبة القيمة المضافة: ${vatAmount} ر.س${discountAmount > 0 ? ` | خصم: ${discountAmount} ر.س` : ""}`,
+    notes: discountAmount > 0 ? `خصم: ${discountAmount} ر.س` : null,
   });
   if (invErr) {
     console.error("Invoice creation error:", invErr);
