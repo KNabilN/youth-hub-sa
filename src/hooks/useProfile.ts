@@ -2,16 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const ESSENTIAL_FIELDS = [
-  "full_name", "phone", "organization_name", "license_number",
-  "bio", "contact_officer_name", "contact_officer_phone", "contact_officer_email", "contact_officer_title",
-  "skills", "qualifications",
+const FINANCIAL_FIELDS = [
   "bank_name", "bank_account_number", "bank_iban", "bank_account_holder",
-  "region_id", "city_id",
 ];
 
-function hasEssentialChanges(updates: Record<string, unknown>, current: Record<string, unknown>): boolean {
-  for (const key of ESSENTIAL_FIELDS) {
+function hasFinancialChanges(updates: Record<string, unknown>, current: Record<string, unknown>): boolean {
+  for (const key of FINANCIAL_FIELDS) {
     if (!(key in updates)) continue;
     const newVal = JSON.stringify(updates[key] ?? null);
     const oldVal = JSON.stringify(current[key] ?? null);
