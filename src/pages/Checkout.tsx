@@ -692,32 +692,18 @@ export default function Checkout() {
                 </div>
                 <PricingBreakdownDisplay pricing={pricing} />
 
-                {(discountAmount > 0 || (useGrantBalance && grantDeduction > 0)) && (
+                {(useGrantBalance && grantDeduction > 0) && (
                   <>
                     <Separator />
                     <div className="space-y-1 text-sm">
-                      {discountAmount > 0 && (
-                        <div className="flex justify-between text-primary">
-                          <span>خصم كود ({discount?.code})</span>
-                          <span className="font-bold">−{discountAmount.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {useGrantBalance && grantDeduction > 0 && (
-                        <div className="flex justify-between text-primary">
-                          <span>خصم رصيد المنح</span>
-                          <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {!grantCoversAll && remainingAfterGrant < totalAfterDiscount && (
+                      <div className="flex justify-between text-primary">
+                        <span>خصم رصيد المنح</span>
+                        <span className="font-bold">−{grantDeduction.toLocaleString()} ر.س</span>
+                      </div>
+                      {!grantCoversAll && (
                         <div className="flex justify-between font-bold text-lg">
                           <span>المتبقي للدفع</span>
                           <span className="text-primary">{remainingAfterGrant.toLocaleString()} ر.س</span>
-                        </div>
-                      )}
-                      {!grantCoversAll && discountAmount > 0 && !useGrantBalance && (
-                        <div className="flex justify-between font-bold text-lg">
-                          <span>الإجمالي بعد الخصم</span>
-                          <span className="text-primary">{totalAfterDiscount.toLocaleString()} ر.س</span>
                         </div>
                       )}
                     </div>
