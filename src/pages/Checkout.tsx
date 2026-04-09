@@ -746,7 +746,9 @@ export default function Checkout() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <span>
-                    {useGrantBalance && grantCoversAll
+                    {discountCoversAll
+                      ? "كود الخصم يغطي كامل المبلغ — سيتم تأكيد الطلب مباشرة"
+                      : useGrantBalance && grantCoversAll
                       ? "سيتم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي"
                       : paymentMethod === "electronic"
                       ? "سيتم حجز المبلغ في نظام الضمان المالي حتى إتمام الخدمة"
@@ -853,14 +855,18 @@ export default function Checkout() {
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
           title={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? "تأكيد الطلب — مغطى بكود الخصم"
+              : useGrantBalance && grantCoversAll
               ? "تأكيد الدفع من رصيد المنح"
               : paymentMethod === "electronic"
               ? "تأكيد عملية الدفع"
               : "تأكيد إرسال إيصال التحويل"
           }
           description={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? `كود الخصم يغطي كامل المبلغ. هل تريد تأكيد شراء ${items.length} خدمات؟`
+              : useGrantBalance && grantCoversAll
               ? `هل تريد تأكيد دفع ${totalAfterDiscount.toLocaleString()} ر.س من رصيد المنح مقابل ${items.length} خدمات؟`
               : useGrantBalance
               ? `سيتم خصم ${grantDeduction.toLocaleString()} ر.س من رصيد المنح ودفع المتبقي ${remainingAfterGrant.toLocaleString()} ر.س ${paymentMethod === "electronic" ? "إلكترونياً" : "عبر تحويل بنكي"}.`
@@ -869,7 +875,9 @@ export default function Checkout() {
               : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${totalAfterDiscount.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
           }
           confirmLabel={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? "تأكيد الطلب"
+              : useGrantBalance && grantCoversAll
               ? "تأكيد الدفع"
               : paymentMethod === "electronic"
               ? "تأكيد الدفع"
