@@ -106,6 +106,87 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
+      // Discount covers entire amount — skip payment gateway
+      if (discountCoversAll) {
+        for (const item of items) {
+          const assocId = selectedAssociation || user.id;
+          const itemAmount = item.micro_services.price * item.quantity;
+
+          // Create project
+          const { data: proj, error: projErr } = await supabase
+            .from("projects")
+            .insert({
+              title: item.micro_services.title,
+              description: `شراء مباشر من السوق — "${item.micro_services.title}" (مغطى بكود خصم)`,
+              association_id: assocId,
+              assigned_provider_id: item.micro_services.provider_id,
+              status: "in_progress" as any,
+              budget: itemAmount,
+              is_private: true,
+            })
+            .select("id")
+            .single();
+
+          if (!projErr && proj) {
+            const now = new Date().toISOString();
+            await supabase.from("contracts").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              association_id: assocId,
+              terms: `نطاق العمل:\n${item.micro_services.title}\n\nشراء مباشر — مغطى بالكامل بكود خصم.`,
+              association_signed_at: now,
+              provider_signed_at: now,
+            } as any);
+
+            await supabase.from("bids").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              price: itemAmount,
+              timeline_days: 30,
+              cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+              status: "accepted" as any,
+            });
+
+            await supabase.from("notifications").insert({
+              user_id: item.micro_services.provider_id,
+              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+              type: "service_purchased_assigned",
+              entity_id: proj.id,
+              entity_type: "project",
+            });
+          }
+
+          // Create escrow with 0 amount
+          await supabase.from("escrow_transactions").insert({
+            service_id: item.micro_services.id,
+            payer_id: user.id,
+            payee_id: item.micro_services.provider_id,
+            amount: 0,
+            status: "held",
+            project_id: proj?.id || null,
+            beneficiary_id: selectedAssociation || null,
+          } as any);
+
+          // Create donor contribution
+          await supabase.from("donor_contributions").insert({
+            donor_id: user.id,
+            service_id: item.micro_services.id,
+            association_id: selectedAssociation || null,
+            amount: 0,
+          });
+        }
+
+        // Record discount usage
+        if (discount && user) {
+          await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
+        }
+
+        await clearCart.mutateAsync();
+        navigate("/payment-success", {
+          state: { total: 0, count: items.length, method: "discount_code" },
+        });
+        return;
+      }
       // Step 1: If using grant balance, consume grants first
       if (useGrantBalance && grantDeduction > 0) {
         for (const item of items) {
