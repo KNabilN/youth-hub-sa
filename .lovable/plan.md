@@ -1,32 +1,56 @@
 
 
-# إصلاح وتحسين تجربة المستخدم في فلو المدفوعات
+# مراجعة شاملة لنظام تذاكر الدعم والاشتراكات
+
+## الوضع الحالي
+
+### ما يعمل بشكل صحيح
+- **Realtime على `support_tickets`**: مفعّل ✓ (للأدمن وللمستخدم)
+- **Realtime على `ticket_replies`**: مفعّل ✓ (تم تفعيله مؤخراً)
+- **RLS على `ticket_replies`**: الأدمن يقرأ/يكتب الكل، صاحب التذكرة يقرأ/يكتب على تذاكره ✓
+- **RLS على `support_tickets`**: الأدمن يدير الكل، المستخدم يدير تذاكره ✓
+- **Realtime في `useTicketReplies`**: اشتراك مع فلتر `ticket_id` ✓
+- **Realtime في `useSupportTickets`**: اشتراك مع فلتر `user_id` ✓
+- **Realtime في `useAdminTickets`**: اشتراك بدون فلتر (يشوف كل التذاكر) ✓
 
 ## المشاكل المكتشفة
 
-### 1. صفحة النجاح لا تتعامل مع حالة "مغطى بكود الخصم"
-عند إتمام طلب مغطى بالكامل بكود خصم (`method === "discount_code"`)، تعرض صفحة النجاح رسالة "تم الدفع بنجاح!" مع "الإجمالي المدفوع: 0 ر.س" — وهذا مضلل ولا يعكس الواقع.
+### 1. لا يوجد إشعار عند الرد على تذكرة (مشكلة حرجة)
+لا يوجد trigger على جدول `ticket_replies` لإنشاء إشعار. عندما يرد الأدمن، الجمعية لا تحصل على إشعار في جرس الإشعارات ولا بريد إلكتروني. والعكس صحيح — عندما ترد الجمعية، الأدمن لا يحصل على إشعار.
 
-### 2. حالة حدية: خصم + رصيد منح معاً
-إذا فعّل المستخدم "استخدام رصيد المنح" مع وجود كود خصم يغطي كامل المبلغ، لن يتحقق شرط `discountCoversAll` (لأنه يشترط `!useGrantBalance`) ولن يتحقق `grantCoversAll` أيضاً — مما يؤدي لمحاولة عرض نموذج Moyasar بمبلغ 0 أو سالب.
+**الحل**: إنشاء trigger `notify_on_ticket_reply()` على `ticket_replies` يرسل إشعار للطرف الآخر.
 
-## الحل
+### 2. صفحة تفاصيل التذكرة (المستخدم) بدون Realtime للحالة
+`TicketDetail.tsx` يستخدم query عادي بمفتاح `["ticket-detail", id]` بدون اشتراك Realtime. إذا غيّر الأدمن حالة التذكرة، المستخدم لن يرى التغيير إلا بعد تحديث الصفحة.
 
-### 1. `src/pages/PaymentSuccess.tsx`
-إضافة حالة `discount_code` لعرض رسالة مناسبة:
-- العنوان: "تم تأكيد طلبك بنجاح!"
-- الوصف: "كود الخصم غطى كامل المبلغ — تم إنشاء المشروع تلقائياً"
-- إخفاء سطر "الإجمالي المدفوع" عندما يكون 0
+**الحل**: إضافة اشتراك Realtime على `support_tickets` مفلتر بـ `id` في `TicketDetail.tsx`.
 
-### 2. `src/pages/Checkout.tsx`
-تعديل شرط `discountCoversAll` ليشمل حالة وجود رصيد منح:
-```typescript
-const discountCoversAll = totalAfterDiscount <= 0 && discountAmount > 0;
+### 3. تكرار trigger على `support_tickets`
+يوجد 3 triggers متكررة تنفذ نفس الوظيفة `update_support_ticket_updated_at`:
+- `trg_support_tickets_updated_at`
+- `trg_update_support_ticket_updated_at`  
+- `trg_update_ticket_updated_at`
+
+**الحل**: حذف الاثنين الزائدين والإبقاء على واحد.
+
+### 4. `useAdminTicketById` بدون Realtime
+صفحة تفاصيل التذكرة عند الأدمن لا تتحدث تلقائياً عند تغيير الحالة من مكان آخر.
+
+**الحل**: إضافة اشتراك Realtime في `useAdminTicketById`.
+
+## التغييرات المطلوبة
+
+| الملف/المكان | التغيير |
+|---|---|
+| **Migration جديد** | إنشاء function `notify_on_ticket_reply()` + trigger على `ticket_replies` |
+| **Migration جديد** | حذف triggers المكررة على `support_tickets` |
+| **`src/pages/TicketDetail.tsx`** | إضافة اشتراك Realtime لتحديث حالة التذكرة فورياً |
+| **`src/hooks/useAdminTicketById.ts`** | إضافة اشتراك Realtime لتحديث بيانات التذكرة فورياً |
+
+### تفاصيل trigger الإشعار
+```sql
+-- عند إضافة رد جديد:
+-- إذا كان الكاتب هو صاحب التذكرة → إشعار لكل الأدمن
+-- إذا كان الكاتب أدمن → إشعار لصاحب التذكرة
 ```
-وإلغاء تفعيل خيار "استخدام رصيد المنح" تلقائياً عندما يكون الإجمالي بعد الخصم ≤ 0.
-
-| الملف | التغيير |
-|-------|---------|
-| `src/pages/PaymentSuccess.tsx` | إضافة حالة `discount_code` مع رسالة مخصصة |
-| `src/pages/Checkout.tsx` | إصلاح شرط `discountCoversAll` لتجنب الحالة الحدية |
 
