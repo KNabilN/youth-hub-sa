@@ -95,6 +95,13 @@ export default function PaymentSuccess() {
                   })}
                 </div>
               </>
+            ) : state?.method === "discount_code" ? (
+              <>
+                <SuccessAnimation
+                  title="تم تأكيد طلبك بنجاح!"
+                  description="كود الخصم غطى كامل المبلغ — تم إنشاء المشروع والعقد تلقائياً. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                />
+              </>
             ) : state?.method === "grant_balance" ? (
               <>
                 <SuccessAnimation
