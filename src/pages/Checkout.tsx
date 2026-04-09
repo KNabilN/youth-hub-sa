@@ -775,7 +775,9 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
-                      {useGrantBalance && grantCoversAll
+                      {discountCoversAll
+                        ? "كود خصم (مغطى بالكامل)"
+                        : useGrantBalance && grantCoversAll
                         ? "رصيد المنح"
                         : useGrantBalance
                         ? `مختلط (منح + ${paymentMethod === "electronic" ? "إلكتروني" : "تحويل"})`
