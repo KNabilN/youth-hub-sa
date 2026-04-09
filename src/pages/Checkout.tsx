@@ -611,7 +611,7 @@ export default function Checkout() {
             </Card>
 
             {/* Payment Method Selection — hidden if grant covers all */}
-            {!(useGrantBalance && grantCoversAll) && (
+            {!(useGrantBalance && grantCoversAll) && !discountCoversAll && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">طريقة الدفع {useGrantBalance && remainingAfterGrant > 0 ? `— المتبقي ${remainingAfterGrant.toLocaleString()} ر.س` : ""}</CardTitle>
@@ -649,7 +649,7 @@ export default function Checkout() {
             )}
 
             {/* Bank Transfer Details */}
-            {paymentMethod === "bank_transfer" && !(useGrantBalance && grantCoversAll) && (
+            {paymentMethod === "bank_transfer" && !(useGrantBalance && grantCoversAll) && !discountCoversAll && (
               <Card className="border-primary/30">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -719,7 +719,7 @@ export default function Checkout() {
             )}
 
             {/* Moyasar Payment Form */}
-            {showMoyasarForm && moyasarKey && (
+            {showMoyasarForm && moyasarKey && !discountCoversAll && (
               <MoyasarPaymentForm
                 amount={useGrantBalance ? remainingAfterGrant : totalAfterDiscount}
                 description={(() => {
