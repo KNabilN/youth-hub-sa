@@ -1,8 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export function useTicketReplies(ticketId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!ticketId) return;
+    const channel = supabase
+      .channel(`rt-ticket-replies-${ticketId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ticket_replies", filter: `ticket_id=eq.${ticketId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["ticket-replies", ticketId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [ticketId, queryClient]);
+
   return useQuery({
     queryKey: ["ticket-replies", ticketId],
     enabled: !!ticketId,
