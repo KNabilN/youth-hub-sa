@@ -805,7 +805,7 @@ export default function Checkout() {
                   className="w-full"
                   size="lg"
                   onClick={() => {
-                    if (paymentMethod === "bank_transfer" && !receiptFile && !(useGrantBalance && grantCoversAll)) {
+                    if (paymentMethod === "bank_transfer" && !receiptFile && !(useGrantBalance && grantCoversAll) && !discountCoversAll) {
                       toast.error("يرجى رفع صورة إيصال التحويل أولاً");
                       return;
                     }
