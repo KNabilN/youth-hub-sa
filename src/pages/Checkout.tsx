@@ -86,7 +86,7 @@ export default function Checkout() {
   const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
   const remainingAfterGrant = Math.round((totalAfterDiscount - grantDeduction) * 100) / 100;
   const grantCoversAll = grantDeduction >= totalAfterDiscount;
-  const discountCoversAll = !useGrantBalance && totalAfterDiscount <= 0 && discountAmount > 0;
+  const discountCoversAll = totalAfterDiscount <= 0 && discountAmount > 0;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
