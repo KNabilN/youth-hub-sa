@@ -818,6 +818,11 @@ export default function Checkout() {
                       <Loader2 className="h-4 w-4 me-2 animate-spin" />
                       جارٍ المعالجة...
                     </>
+                  ) : discountCoversAll ? (
+                    <>
+                      <Tags className="h-4 w-4 me-2" />
+                      تأكيد — مغطى بالكامل بكود الخصم
+                    </>
                   ) : useGrantBalance && grantCoversAll ? (
                     <>
                       <Wallet className="h-4 w-4 me-2" />
