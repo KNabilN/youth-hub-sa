@@ -130,14 +130,21 @@ export default function PaymentSuccess() {
                   <span className="text-muted-foreground">عدد الخدمات</span>
                   <span className="font-medium">{state.count}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {isBankTransfer ? "المبلغ المحوّل" : "الإجمالي المدفوع"}
-                  </span>
-                  <span className="font-bold text-primary">
-                    {state.total?.toLocaleString()} ر.س
-                  </span>
-                </div>
+                {state.method === "discount_code" ? (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">طريقة الدفع</span>
+                    <span className="font-medium text-primary">مغطى بكود الخصم</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {isBankTransfer ? "المبلغ المحوّل" : "الإجمالي المدفوع"}
+                    </span>
+                    <span className="font-bold text-primary">
+                      {state.total?.toLocaleString()} ر.س
+                    </span>
+                  </div>
+                )}
                 {isBankTransfer && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">الحالة</span>
