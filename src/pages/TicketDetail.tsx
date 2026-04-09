@@ -38,6 +38,20 @@ const priorityColors: Record<TicketPriority, string> = {
 export default function TicketDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`rt-ticket-detail-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["ticket-detail", id] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, queryClient]);
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket-detail", id],
