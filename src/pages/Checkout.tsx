@@ -86,6 +86,7 @@ export default function Checkout() {
   const grantDeduction = useGrantBalance ? Math.min(availableGrant, totalAfterDiscount) : 0;
   const remainingAfterGrant = Math.round((totalAfterDiscount - grantDeduction) * 100) / 100;
   const grantCoversAll = grantDeduction >= totalAfterDiscount;
+  const discountCoversAll = !useGrantBalance && totalAfterDiscount <= 0 && discountAmount > 0;
 
   const checkoutMetadata = useMemo(() => ({
     type: "checkout",
@@ -105,6 +106,87 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
+      // Discount covers entire amount — skip payment gateway
+      if (discountCoversAll) {
+        for (const item of items) {
+          const assocId = selectedAssociation || user.id;
+          const itemAmount = item.micro_services.price * item.quantity;
+
+          // Create project
+          const { data: proj, error: projErr } = await supabase
+            .from("projects")
+            .insert({
+              title: item.micro_services.title,
+              description: `شراء مباشر من السوق — "${item.micro_services.title}" (مغطى بكود خصم)`,
+              association_id: assocId,
+              assigned_provider_id: item.micro_services.provider_id,
+              status: "in_progress" as any,
+              budget: itemAmount,
+              is_private: true,
+            })
+            .select("id")
+            .single();
+
+          if (!projErr && proj) {
+            const now = new Date().toISOString();
+            await supabase.from("contracts").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              association_id: assocId,
+              terms: `نطاق العمل:\n${item.micro_services.title}\n\nشراء مباشر — مغطى بالكامل بكود خصم.`,
+              association_signed_at: now,
+              provider_signed_at: now,
+            } as any);
+
+            await supabase.from("bids").insert({
+              project_id: proj.id,
+              provider_id: item.micro_services.provider_id,
+              price: itemAmount,
+              timeline_days: 30,
+              cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+              status: "accepted" as any,
+            });
+
+            await supabase.from("notifications").insert({
+              user_id: item.micro_services.provider_id,
+              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+              type: "service_purchased_assigned",
+              entity_id: proj.id,
+              entity_type: "project",
+            });
+          }
+
+          // Create escrow with 0 amount
+          await supabase.from("escrow_transactions").insert({
+            service_id: item.micro_services.id,
+            payer_id: user.id,
+            payee_id: item.micro_services.provider_id,
+            amount: 0,
+            status: "held",
+            project_id: proj?.id || null,
+            beneficiary_id: selectedAssociation || null,
+          } as any);
+
+          // Create donor contribution
+          await supabase.from("donor_contributions").insert({
+            donor_id: user.id,
+            service_id: item.micro_services.id,
+            association_id: selectedAssociation || null,
+            amount: 0,
+          });
+        }
+
+        // Record discount usage
+        if (discount && user) {
+          await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
+        }
+
+        await clearCart.mutateAsync();
+        navigate("/payment-success", {
+          state: { total: 0, count: items.length, method: "discount_code" },
+        });
+        return;
+      }
       // Step 1: If using grant balance, consume grants first
       if (useGrantBalance && grantDeduction > 0) {
         for (const item of items) {
@@ -529,7 +611,7 @@ export default function Checkout() {
             </Card>
 
             {/* Payment Method Selection — hidden if grant covers all */}
-            {!(useGrantBalance && grantCoversAll) && (
+            {!(useGrantBalance && grantCoversAll) && !discountCoversAll && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">طريقة الدفع {useGrantBalance && remainingAfterGrant > 0 ? `— المتبقي ${remainingAfterGrant.toLocaleString()} ر.س` : ""}</CardTitle>
@@ -567,7 +649,7 @@ export default function Checkout() {
             )}
 
             {/* Bank Transfer Details */}
-            {paymentMethod === "bank_transfer" && !(useGrantBalance && grantCoversAll) && (
+            {paymentMethod === "bank_transfer" && !(useGrantBalance && grantCoversAll) && !discountCoversAll && (
               <Card className="border-primary/30">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -637,7 +719,7 @@ export default function Checkout() {
             )}
 
             {/* Moyasar Payment Form */}
-            {showMoyasarForm && moyasarKey && (
+            {showMoyasarForm && moyasarKey && !discountCoversAll && (
               <MoyasarPaymentForm
                 amount={useGrantBalance ? remainingAfterGrant : totalAfterDiscount}
                 description={(() => {
@@ -664,7 +746,9 @@ export default function Checkout() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <span>
-                    {useGrantBalance && grantCoversAll
+                    {discountCoversAll
+                      ? "كود الخصم يغطي كامل المبلغ — سيتم تأكيد الطلب مباشرة"
+                      : useGrantBalance && grantCoversAll
                       ? "سيتم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي"
                       : paymentMethod === "electronic"
                       ? "سيتم حجز المبلغ في نظام الضمان المالي حتى إتمام الخدمة"
@@ -691,7 +775,9 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">طريقة الدفع</span>
                     <Badge variant="outline">
-                      {useGrantBalance && grantCoversAll
+                      {discountCoversAll
+                        ? "كود خصم (مغطى بالكامل)"
+                        : useGrantBalance && grantCoversAll
                         ? "رصيد المنح"
                         : useGrantBalance
                         ? `مختلط (منح + ${paymentMethod === "electronic" ? "إلكتروني" : "تحويل"})`
@@ -723,7 +809,7 @@ export default function Checkout() {
                   className="w-full"
                   size="lg"
                   onClick={() => {
-                    if (paymentMethod === "bank_transfer" && !receiptFile && !(useGrantBalance && grantCoversAll)) {
+                    if (paymentMethod === "bank_transfer" && !receiptFile && !(useGrantBalance && grantCoversAll) && !discountCoversAll) {
                       toast.error("يرجى رفع صورة إيصال التحويل أولاً");
                       return;
                     }
@@ -735,6 +821,11 @@ export default function Checkout() {
                     <>
                       <Loader2 className="h-4 w-4 me-2 animate-spin" />
                       جارٍ المعالجة...
+                    </>
+                  ) : discountCoversAll ? (
+                    <>
+                      <Tags className="h-4 w-4 me-2" />
+                      تأكيد — مغطى بالكامل بكود الخصم
                     </>
                   ) : useGrantBalance && grantCoversAll ? (
                     <>
@@ -766,14 +857,18 @@ export default function Checkout() {
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
           title={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? "تأكيد الطلب — مغطى بكود الخصم"
+              : useGrantBalance && grantCoversAll
               ? "تأكيد الدفع من رصيد المنح"
               : paymentMethod === "electronic"
               ? "تأكيد عملية الدفع"
               : "تأكيد إرسال إيصال التحويل"
           }
           description={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? `كود الخصم يغطي كامل المبلغ. هل تريد تأكيد شراء ${items.length} خدمات؟`
+              : useGrantBalance && grantCoversAll
               ? `هل تريد تأكيد دفع ${totalAfterDiscount.toLocaleString()} ر.س من رصيد المنح مقابل ${items.length} خدمات؟`
               : useGrantBalance
               ? `سيتم خصم ${grantDeduction.toLocaleString()} ر.س من رصيد المنح ودفع المتبقي ${remainingAfterGrant.toLocaleString()} ر.س ${paymentMethod === "electronic" ? "إلكترونياً" : "عبر تحويل بنكي"}.`
@@ -782,7 +877,9 @@ export default function Checkout() {
               : `هل تريد إرسال إيصال التحويل البنكي بمبلغ ${totalAfterDiscount.toLocaleString()} ر.س؟ سيتم مراجعته من الإدارة.`
           }
           confirmLabel={
-            useGrantBalance && grantCoversAll
+            discountCoversAll
+              ? "تأكيد الطلب"
+              : useGrantBalance && grantCoversAll
               ? "تأكيد الدفع"
               : paymentMethod === "electronic"
               ? "تأكيد الدفع"
