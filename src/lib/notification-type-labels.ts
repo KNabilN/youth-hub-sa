@@ -60,6 +60,7 @@ export const notificationTypeLabels: Record<string, string> = {
   // الرسائل
   message_received: "رسالة جديدة",
   contact_message: "رسالة تواصل",
+  ticket_reply: "رد على تذكرة دعم",
 
   // التبرعات والمنح
   donation_received: "تبرع مستلم",
