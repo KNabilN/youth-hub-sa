@@ -324,7 +324,7 @@ export default function AdminServices() {
           options: Object.entries(approvalLabels).map(([k, v]) => ({ value: k, label: v })),
         }]}
         onExport={async (cols, filters) => {
-          const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)");
+          const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)").is("deleted_at", null);
           let rows = data ?? [];
           if (filters.approval !== "all") rows = rows.filter((s: any) => s.approval === filters.approval);
           const serviceTypeLabels: Record<string, string> = { fixed_price: "سعر ثابت", hourly: "بالساعة" };
