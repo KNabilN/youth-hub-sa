@@ -1,0 +1,1 @@
+ALTER TABLE public.discount_code_usages ADD CONSTRAINT unique_code_per_user UNIQUE (code_id, user_id);

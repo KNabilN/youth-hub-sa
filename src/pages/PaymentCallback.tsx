@@ -78,11 +78,12 @@ export default function PaymentCallback() {
           if (context.discount_code_id && context.discount_amount > 0) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              await supabase.from("discount_code_usages" as any).insert({
+              // Use upsert-like approach: ignore if already recorded (unique constraint)
+              await supabase.from("discount_code_usages" as any).upsert({
                 code_id: context.discount_code_id,
                 user_id: user.id,
                 discount_amount: context.discount_amount,
-              });
+              }, { onConflict: "code_id,user_id", ignoreDuplicates: true });
             }
           }
 

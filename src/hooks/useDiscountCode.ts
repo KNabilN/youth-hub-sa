@@ -37,6 +37,21 @@ export function useDiscountCode() {
         return null;
       }
 
+      // Check if current user already used this code
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { count: userUsageCount } = await supabase
+          .from("discount_code_usages")
+          .select("id", { count: "exact", head: true })
+          .eq("code_id", (data as any).id)
+          .eq("user_id", user.id);
+        if (userUsageCount && userUsageCount > 0) {
+          toast.error("لقد استخدمت هذا الكود من قبل");
+          setDiscount(null);
+          return null;
+        }
+      }
+
       // Check max uses
       if ((data as any).max_uses) {
         const { count } = await supabase
