@@ -184,8 +184,15 @@ export default function AdminServices() {
           </Button>
           <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
             <Download className="h-4 w-4" />تصدير CSV
-          </Button>
+         </Button>
         </div>
+        {(search || approvalFilter !== "all" || categoryFilter !== "all") && !isLoading && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              نتائج الفلترة: {filtered.length} خدمة
+            </Badge>
+          </div>
+        )}
         {isLoading ? (
           <div className="border rounded-lg p-4 space-y-3">
             {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
