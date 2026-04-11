@@ -1,56 +1,43 @@
 
 
-# مراجعة شاملة لنظام تذاكر الدعم والاشتراكات
+# منع استخدام كود الخصم أكثر من مرة لنفس المستخدم
 
-## الوضع الحالي
+## المشكلة
+نفس الجمعية استخدمت كود `XY300` مرتين في عمليتين مختلفتين (18:13 و 18:27). لا يوجد قيد في قاعدة البيانات أو تحقق في الكود يمنع إعادة استخدام نفس الكود من نفس المستخدم.
 
-### ما يعمل بشكل صحيح
-- **Realtime على `support_tickets`**: مفعّل ✓ (للأدمن وللمستخدم)
-- **Realtime على `ticket_replies`**: مفعّل ✓ (تم تفعيله مؤخراً)
-- **RLS على `ticket_replies`**: الأدمن يقرأ/يكتب الكل، صاحب التذكرة يقرأ/يكتب على تذاكره ✓
-- **RLS على `support_tickets`**: الأدمن يدير الكل، المستخدم يدير تذاكره ✓
-- **Realtime في `useTicketReplies`**: اشتراك مع فلتر `ticket_id` ✓
-- **Realtime في `useSupportTickets`**: اشتراك مع فلتر `user_id` ✓
-- **Realtime في `useAdminTickets`**: اشتراك بدون فلتر (يشوف كل التذاكر) ✓
+## الحل
 
-## المشاكل المكتشفة
-
-### 1. لا يوجد إشعار عند الرد على تذكرة (مشكلة حرجة)
-لا يوجد trigger على جدول `ticket_replies` لإنشاء إشعار. عندما يرد الأدمن، الجمعية لا تحصل على إشعار في جرس الإشعارات ولا بريد إلكتروني. والعكس صحيح — عندما ترد الجمعية، الأدمن لا يحصل على إشعار.
-
-**الحل**: إنشاء trigger `notify_on_ticket_reply()` على `ticket_replies` يرسل إشعار للطرف الآخر.
-
-### 2. صفحة تفاصيل التذكرة (المستخدم) بدون Realtime للحالة
-`TicketDetail.tsx` يستخدم query عادي بمفتاح `["ticket-detail", id]` بدون اشتراك Realtime. إذا غيّر الأدمن حالة التذكرة، المستخدم لن يرى التغيير إلا بعد تحديث الصفحة.
-
-**الحل**: إضافة اشتراك Realtime على `support_tickets` مفلتر بـ `id` في `TicketDetail.tsx`.
-
-### 3. تكرار trigger على `support_tickets`
-يوجد 3 triggers متكررة تنفذ نفس الوظيفة `update_support_ticket_updated_at`:
-- `trg_support_tickets_updated_at`
-- `trg_update_support_ticket_updated_at`  
-- `trg_update_ticket_updated_at`
-
-**الحل**: حذف الاثنين الزائدين والإبقاء على واحد.
-
-### 4. `useAdminTicketById` بدون Realtime
-صفحة تفاصيل التذكرة عند الأدمن لا تتحدث تلقائياً عند تغيير الحالة من مكان آخر.
-
-**الحل**: إضافة اشتراك Realtime في `useAdminTicketById`.
-
-## التغييرات المطلوبة
-
-| الملف/المكان | التغيير |
-|---|---|
-| **Migration جديد** | إنشاء function `notify_on_ticket_reply()` + trigger على `ticket_replies` |
-| **Migration جديد** | حذف triggers المكررة على `support_tickets` |
-| **`src/pages/TicketDetail.tsx`** | إضافة اشتراك Realtime لتحديث حالة التذكرة فورياً |
-| **`src/hooks/useAdminTicketById.ts`** | إضافة اشتراك Realtime لتحديث بيانات التذكرة فورياً |
-
-### تفاصيل trigger الإشعار
+### 1. Migration — إضافة قيد فريد على قاعدة البيانات
 ```sql
--- عند إضافة رد جديد:
--- إذا كان الكاتب هو صاحب التذكرة → إشعار لكل الأدمن
--- إذا كان الكاتب أدمن → إشعار لصاحب التذكرة
+ALTER TABLE discount_code_usages ADD CONSTRAINT unique_code_per_user UNIQUE (code_id, user_id);
 ```
+هذا يمنع على مستوى قاعدة البيانات تسجيل نفس الكود لنفس المستخدم أكثر من مرة.
+
+### 2. `src/hooks/useDiscountCode.ts` — التحقق قبل التطبيق
+في دالة `validateCode`، بعد التحقق من صلاحية الكود وقبل إرجاع النتيجة، نتحقق هل المستخدم الحالي استخدم هذا الكود سابقاً:
+
+```typescript
+// Check if current user already used this code
+const { data: { user } } = await supabase.auth.getUser();
+if (user) {
+  const { count } = await supabase
+    .from("discount_code_usages")
+    .select("id", { count: "exact", head: true })
+    .eq("code_id", data.id)
+    .eq("user_id", user.id);
+  if (count && count > 0) {
+    toast.error("لقد استخدمت هذا الكود من قبل");
+    return null;
+  }
+}
+```
+
+### 3. `src/pages/PaymentCallback.tsx` — حماية إضافية
+إضافة `ON CONFLICT DO NOTHING` أو التحقق قبل الإدراج لمنع الخطأ في حال محاولة التسجيل المكرر.
+
+| الملف | التغيير |
+|---|---|
+| Migration جديد | إضافة `UNIQUE (code_id, user_id)` على `discount_code_usages` |
+| `src/hooks/useDiscountCode.ts` | التحقق من عدم استخدام الكود سابقاً عند التطبيق |
+| `src/pages/PaymentCallback.tsx` | حماية ضد التكرار عند تسجيل الاستخدام |
 
