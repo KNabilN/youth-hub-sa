@@ -381,6 +381,8 @@ export default function Checkout() {
               count: items.length,
               method: "bank_transfer",
               grantDeduction: grantDeduction > 0 ? grantDeduction : undefined,
+              serviceTitles,
+              providerIds,
             },
           });
         }
