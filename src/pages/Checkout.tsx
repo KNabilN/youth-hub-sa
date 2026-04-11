@@ -106,13 +106,17 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
+      // Collect service/provider info for success page
+      const serviceTitles = items.map(i => i.micro_services.title);
+      const providerIds = items.map(i => i.micro_services.provider_id);
+
       // Discount covers entire amount — skip payment gateway
       if (discountCoversAll) {
         for (const item of items) {
           const assocId = selectedAssociation || user.id;
           const itemAmount = item.micro_services.price * item.quantity;
 
-          // Create project
+          // Create project (core operation)
           const { data: proj, error: projErr } = await supabase
             .from("projects")
             .insert({
@@ -147,43 +151,49 @@ export default function Checkout() {
               status: "accepted" as any,
             });
 
-            await supabase.from("notifications").insert({
-              user_id: item.micro_services.provider_id,
-              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
-              type: "service_purchased_assigned",
-              entity_id: proj.id,
-              entity_type: "project",
-            });
+            // Secondary: notification — don't block on failure
+            try {
+              await supabase.from("notifications").insert({
+                user_id: item.micro_services.provider_id,
+                message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                type: "service_purchased_assigned",
+                entity_id: proj.id,
+                entity_type: "project",
+              });
+            } catch {}
           }
 
-          // Create escrow with 0 amount
-          await supabase.from("escrow_transactions").insert({
-            service_id: item.micro_services.id,
-            payer_id: user.id,
-            payee_id: item.micro_services.provider_id,
-            amount: 0,
-            status: "held",
-            project_id: proj?.id || null,
-            beneficiary_id: selectedAssociation || null,
-          } as any);
+          // Secondary: escrow + donor contribution — don't block on failure
+          try {
+            await supabase.from("escrow_transactions").insert({
+              service_id: item.micro_services.id,
+              payer_id: user.id,
+              payee_id: item.micro_services.provider_id,
+              amount: 0,
+              status: "held",
+              project_id: proj?.id || null,
+              beneficiary_id: selectedAssociation || null,
+            } as any);
 
-          // Create donor contribution
-          await supabase.from("donor_contributions").insert({
-            donor_id: user.id,
-            service_id: item.micro_services.id,
-            association_id: selectedAssociation || null,
-            amount: 0,
-          });
+            await supabase.from("donor_contributions").insert({
+              donor_id: user.id,
+              service_id: item.micro_services.id,
+              association_id: selectedAssociation || null,
+              amount: 0,
+            });
+          } catch {}
         }
 
-        // Record discount usage
-        if (discount && user) {
-          await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
-        }
+        // Secondary: Record discount usage
+        try {
+          if (discount && user) {
+            await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
+          }
+        } catch {}
 
         await clearCart.mutateAsync();
         navigate("/payment-success", {
-          state: { total: 0, count: items.length, method: "discount_code" },
+          state: { total: 0, count: items.length, method: "discount_code", serviceTitles, providerIds },
         });
         return;
       }
@@ -230,14 +240,16 @@ export default function Checkout() {
               status: "accepted" as any,
             });
 
-            // Notify provider
-            await supabase.from("notifications").insert({
-              user_id: item.micro_services.provider_id,
-              message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
-              type: "service_purchased_assigned",
-              entity_id: proj.id,
-              entity_type: "project",
-            });
+            // Secondary: Notify provider — don't block
+            try {
+              await supabase.from("notifications").insert({
+                user_id: item.micro_services.provider_id,
+                message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                type: "service_purchased_assigned",
+                entity_id: proj.id,
+                entity_type: "project",
+              });
+            } catch {}
           }
 
           if (grantCoversAll) {
