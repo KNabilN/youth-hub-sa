@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { StepProgress } from "@/components/ui/step-progress";
-import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle, Heart } from "lucide-react";
+import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle, Heart, MessageSquare, ShoppingBag, Handshake, PackageCheck } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,14 +22,78 @@ const bankTransferJourney = [
   { icon: PlayCircle, label: "بدء المشروع", status: "upcoming" as const },
 ];
 
+const purchaseJourney = [
+  { icon: ShoppingBag, label: "تم الشراء بنجاح", status: "done" as const },
+  { icon: Handshake, label: "العقد جاهز للمراجعة", status: "current" as const },
+  { icon: PlayCircle, label: "بدء التنفيذ", status: "upcoming" as const },
+  { icon: PackageCheck, label: "تسليم المشروع", status: "upcoming" as const },
+];
+
+interface SuccessState {
+  total?: number;
+  count?: number;
+  method?: string;
+  serviceTitles?: string[];
+  providerIds?: string[];
+}
+
+function JourneyTimeline({ steps }: { steps: typeof bankTransferJourney }) {
+  return (
+    <div className="w-full bg-muted/30 rounded-xl p-4 space-y-0">
+      <p className="text-xs font-semibold text-muted-foreground mb-3">المراحل القادمة</p>
+      {steps.map((step, idx) => {
+        const Icon = step.icon;
+        const isDone = step.status === "done";
+        const isCurrent = step.status === "current";
+        return (
+          <div key={idx} className="flex items-start gap-3">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                  isDone
+                    ? "bg-primary text-primary-foreground"
+                    : isCurrent
+                    ? "bg-orange-500/15 text-orange-600 ring-2 ring-orange-500/30"
+                    : "bg-muted text-muted-foreground/50"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+              </div>
+              {idx < steps.length - 1 && (
+                <div
+                  className={`w-0.5 h-6 my-0.5 ${
+                    isDone ? "bg-primary" : "bg-border"
+                  }`}
+                />
+              )}
+            </div>
+            <span
+              className={`text-sm pt-1.5 text-right ${
+                isDone
+                  ? "text-foreground font-medium"
+                  : isCurrent
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground/60"
+              }`}
+            >
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useAuth();
-  const state = location.state as { total?: number; count?: number; method?: string } | null;
+  const state = location.state as SuccessState | null;
 
   const isBankTransfer = state?.method === "bank_transfer";
   const isDonor = role === "donor";
+  const serviceTitles = state?.serviceTitles || [];
 
   return (
     <DashboardLayout>
@@ -49,58 +113,15 @@ export default function PaymentSuccess() {
                     سيتم مراجعة إيصال التحويل من قبل الإدارة وسيتم إشعارك بالنتيجة
                   </p>
                 </div>
-
-                {/* Journey Timeline */}
-                <div className="w-full bg-muted/30 rounded-xl p-4 space-y-0">
-                  <p className="text-xs font-semibold text-muted-foreground mb-3">المراحل القادمة</p>
-                  {bankTransferJourney.map((step, idx) => {
-                    const Icon = step.icon;
-                    const isDone = step.status === "done";
-                    const isCurrent = step.status === "current";
-                    return (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="flex flex-col items-center">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                              isDone
-                                ? "bg-primary text-primary-foreground"
-                                : isCurrent
-                                ? "bg-orange-500/15 text-orange-600 ring-2 ring-orange-500/30"
-                                : "bg-muted text-muted-foreground/50"
-                            }`}
-                          >
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          {idx < bankTransferJourney.length - 1 && (
-                            <div
-                              className={`w-0.5 h-6 my-0.5 ${
-                                isDone ? "bg-primary" : "bg-border"
-                              }`}
-                            />
-                          )}
-                        </div>
-                        <span
-                          className={`text-sm pt-1.5 text-right ${
-                            isDone
-                              ? "text-foreground font-medium"
-                              : isCurrent
-                              ? "text-orange-600 font-medium"
-                              : "text-muted-foreground/60"
-                          }`}
-                        >
-                          {step.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                <JourneyTimeline steps={bankTransferJourney} />
               </>
             ) : state?.method === "discount_code" ? (
               <>
                 <SuccessAnimation
                   title="تم تأكيد طلبك بنجاح!"
-                  description="كود الخصم غطى كامل المبلغ — تم إنشاء المشروع والعقد تلقائياً. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                  description="كود الخصم غطى كامل المبلغ — تم إنشاء المشروع والعقد تلقائياً."
                 />
+                <JourneyTimeline steps={purchaseJourney} />
               </>
             ) : state?.method === "grant_balance" ? (
               <>
@@ -108,9 +129,10 @@ export default function PaymentSuccess() {
                   title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع من رصيد المنح!"}
                   description={isDonor
                     ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
-                    : "تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                    : "تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي."
                   }
                 />
+                {!isDonor && <JourneyTimeline steps={purchaseJourney} />}
               </>
             ) : (
               <>
@@ -118,10 +140,24 @@ export default function PaymentSuccess() {
                   title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع بنجاح!"}
                   description={isDonor
                     ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
-                    : "تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي. يرجى مراجعة العقد وتوقيعه لبدء التنفيذ."
+                    : "تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي."
                   }
                 />
+                {!isDonor && <JourneyTimeline steps={purchaseJourney} />}
               </>
+            )}
+
+            {/* Service summary */}
+            {serviceTitles.length > 0 && (
+              <div className="bg-muted/50 rounded-lg p-4 w-full space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">الخدمات المشتراة</p>
+                {serviceTitles.map((title, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-right">{title}</span>
+                  </div>
+                ))}
+              </div>
             )}
 
             {state && (
@@ -171,6 +207,10 @@ export default function PaymentSuccess() {
                   <Button onClick={() => navigate("/contracts")}>
                     <ScrollText className="h-4 w-4 me-1" />
                     مراجعة العقود وتوقيعها
+                  </Button>
+                  <Button variant="secondary" onClick={() => navigate("/messages")}>
+                    <MessageSquare className="h-4 w-4 me-1" />
+                    التواصل مع مزود الخدمة
                   </Button>
                   <Button variant="outline" onClick={() => navigate("/dashboard")}>
                     <ArrowLeft className="h-4 w-4 me-1" />
