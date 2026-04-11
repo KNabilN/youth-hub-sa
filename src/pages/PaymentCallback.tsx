@@ -95,9 +95,11 @@ export default function PaymentCallback() {
           } else {
             const total = data.amount || context.total || 0;
             const count = context.items?.length || 1;
+            const serviceTitles = context.items?.map((i: any) => i.title) || [];
+            const providerIds = context.items?.map((i: any) => i.provider_id) || [];
             navigate("/payment-success", {
               replace: true,
-              state: { total, count, method: "electronic" },
+              state: { total, count, method: "electronic", serviceTitles, providerIds },
             });
           }
         } else {
