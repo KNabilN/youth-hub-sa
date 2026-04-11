@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Loader2, RefreshCw, AlertTriangle, ShieldCheck } from "lucide-react";
 
 declare global {
   interface Window {
@@ -148,6 +148,19 @@ export function MoyasarPaymentForm({
       }
     }, 150);
   };
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <ShieldCheck className="h-8 w-8 text-green-600" />
+            <p className="text-sm text-muted-foreground">المبلغ مغطى بالكامل — لا حاجة للدفع الإلكتروني.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (error) {
     return (

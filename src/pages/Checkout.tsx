@@ -307,6 +307,63 @@ export default function Checkout() {
           : subtotal;
 
         if (paymentMethod === "electronic") {
+          // Guard: if effective total is 0 or less, process as free order
+          if (effectiveTotal <= 0) {
+            for (const item of items) {
+              const assocId = selectedAssociation || user.id;
+              const itemAmount = item.micro_services.price * item.quantity;
+              const { data: proj, error: projErr } = await supabase
+                .from("projects")
+                .insert({
+                  title: item.micro_services.title,
+                  description: `شراء مباشر من السوق — "${item.micro_services.title}" (مغطى بالكامل)`,
+                  association_id: assocId,
+                  assigned_provider_id: item.micro_services.provider_id,
+                  status: "in_progress" as any,
+                  budget: itemAmount,
+                  is_private: true,
+                })
+                .select("id")
+                .single();
+              if (!projErr && proj) {
+                const now = new Date().toISOString();
+                await supabase.from("contracts").insert({
+                  project_id: proj.id,
+                  provider_id: item.micro_services.provider_id,
+                  association_id: assocId,
+                  terms: `نطاق العمل:\n${item.micro_services.title}\n\nشراء مباشر — مغطى بالكامل.`,
+                  association_signed_at: now,
+                  provider_signed_at: now,
+                } as any);
+                await supabase.from("bids").insert({
+                  project_id: proj.id,
+                  provider_id: item.micro_services.provider_id,
+                  price: itemAmount,
+                  timeline_days: 30,
+                  cover_letter: "عرض تلقائي — شراء خدمة من السوق",
+                  status: "accepted" as any,
+                });
+                try {
+                  await supabase.from("notifications").insert({
+                    user_id: item.micro_services.provider_id,
+                    message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                    type: "service_purchased_assigned",
+                    entity_id: proj.id,
+                    entity_type: "project",
+                  });
+                } catch {}
+              }
+            }
+            if (discount && user) {
+              try { await recordUsage({ codeId: discount.id, userId: user.id, discountAmount }); } catch {}
+            }
+            await clearCart.mutateAsync();
+            navigate("/payment-success", {
+              state: { total: 0, count: items.length, method: "discount_code", serviceTitles, providerIds },
+            });
+            return;
+          }
+
           const { data, error } = await supabase.functions.invoke("moyasar-get-config");
           if (error || !data?.publishable_key) {
             toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
@@ -733,7 +790,7 @@ export default function Checkout() {
             )}
 
             {/* Moyasar Payment Form */}
-            {showMoyasarForm && moyasarKey && !discountCoversAll && (
+            {showMoyasarForm && moyasarKey && !discountCoversAll && (useGrantBalance ? remainingAfterGrant : totalAfterDiscount) > 0 && (
               <MoyasarPaymentForm
                 amount={useGrantBalance ? remainingAfterGrant : totalAfterDiscount}
                 description={(() => {
