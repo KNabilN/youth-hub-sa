@@ -332,7 +332,7 @@ export default function AdminReports() {
       (data ?? []).map((p: any) => [p.id, p.title, p.status, p.budget ?? "", (p.regions as any)?.name ?? "", (p.categories as any)?.name ?? "", p.created_at?.slice(0, 10)]));
   };
   const exportServices = async () => {
-    let q = supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)").gte("created_at", dateFrom).lte("created_at", dateTo);
+    let q = supabase.from("micro_services").select("title, price, approval, created_at, categories(name), profiles!micro_services_provider_id_fkey(full_name)").is("deleted_at", null).gte("created_at", dateFrom).lte("created_at", dateTo);
     if (regionId) q = q.eq("region_id", regionId);
     if (cityId) q = q.eq("city_id", cityId);
     const { data } = await q;
