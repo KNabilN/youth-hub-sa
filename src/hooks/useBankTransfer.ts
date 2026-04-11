@@ -148,15 +148,21 @@ export function useCreateBankTransfer() {
         if (btErr) throw btErr;
       }
 
-      // Also create donor_contributions records
-      for (const item of items) {
-        await supabase.from("donor_contributions").insert({
-          donor_id: userId,
-          service_id: item.serviceId,
-          association_id: beneficiaryId || null,
-          amount: item.price,
-          donation_status: "pending",
-        });
+      // Also create donor_contributions records (only for non-association buyers)
+      if (!isAssociation) {
+        for (const item of items) {
+          try {
+            await supabase.from("donor_contributions").insert({
+              donor_id: userId,
+              service_id: item.serviceId,
+              association_id: beneficiaryId || null,
+              amount: item.price,
+              donation_status: "pending",
+            });
+          } catch (e) {
+            console.error("Non-critical: donor_contributions insert failed", e);
+          }
+        }
       }
 
       return { escrowIds };
