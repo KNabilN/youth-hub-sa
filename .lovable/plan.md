@@ -1,34 +1,17 @@
 
 
-# إصلاح تصدير الخدمات — يشمل خدمات محذوفة/غير منشورة
+# إضافة عداد نتائج الفلترة في صفحة إدارة الخدمات
 
-## المشكلة
-استعلام التصدير في صفحة إدارة الخدمات (`AdminServices.tsx`) وصفحة التقارير (`AdminReports.tsx`) لا يُفلتر بـ `deleted_at IS NULL`. هذا يعني أن الخدمات المحذوفة (soft-deleted) والقديمة تظهر في ملف Excel رغم أنها غير موجودة في المنصة.
+## التغيير
+إضافة Badge يعرض عدد النتائج بعد الفلترة (مثلاً "1 خدمة" أو "15 خدمة") بجانب عنوان الصفحة أو أسفل شريط الفلاتر مباشرة.
 
-مثال: خدمة "محسن نور" تظهر كـ "مقبول" في Excel لكنها غير مقبولة فعلياً في المنصة.
-
-## الحل
-
+## الملف المتأثر
 | الملف | التغيير |
 |---|---|
-| `src/pages/admin/AdminServices.tsx` (سطر 327) | إضافة `.is("deleted_at", null)` للاستعلام في دالة `onExport` |
-| `src/pages/admin/AdminReports.tsx` (سطر 335) | إضافة `.is("deleted_at", null)` للاستعلام في دالة `exportServices` |
+| `src/pages/admin/AdminServices.tsx` | إضافة Badge بعدد `filtered.length` يظهر بعد شريط الفلاتر |
 
-### التغيير الدقيق
-
-**AdminServices.tsx** — سطر 327:
-```typescript
-// قبل
-const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)");
-
-// بعد
-const { data } = await supabase.from("micro_services").select("*, categories(name), regions(name), cities(name), profiles!micro_services_provider_id_fkey(full_name)").is("deleted_at", null);
-```
-
-**AdminReports.tsx** — سطر 335:
-```typescript
-// إضافة .is("deleted_at", null) بعد .lte("created_at", dateTo)
-```
-
-تغيير بسيط في سطرين فقط يحل المشكلة بالكامل.
+## التفاصيل
+- بعد سطر الفلاتر (البحث + الحالة + التصنيف)، نضيف شريط صغير يعرض: `نتائج الفلترة: X خدمة`
+- يظهر فقط عند وجود فلتر نشط (بحث أو حالة أو تصنيف غير "الكل")
+- يستخدم `filtered.length` الموجود بالفعل في السطر 120
 
