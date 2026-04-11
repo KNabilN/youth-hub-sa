@@ -1,29 +1,34 @@
 
 
-# إصلاح مشكلة تحميل نموذج الدفع عندما يكون المبلغ = 0
+# إصلاح خطأ التحويل البنكي للجمعيات
 
 ## المشكلة
-عند تطبيق كود خصم يغطي كامل المبلغ (الإجمالي = 0 ر.س)، يظهر نموذج الدفع الإلكتروني (Moyasar) ويبقى في حالة تحميل لا نهائية. السبب أن Moyasar لا يقبل مبلغ 0 وبالتالي لا يتم تهيئة النموذج أبداً.
+عند اختيار "تحويل بنكي" كطريقة دفع من حساب جمعية، يظهر خطأ "حدث خطأ" لأن الكود يحاول إدراج سجل في جدول `donor_contributions` (سطر 152-159 في `useBankTransfer.ts`). سياسات الأمان (RLS) على هذا الجدول تمنع الجمعيات من الإدراج بحالة `pending` — فقط المانحين يمكنهم ذلك.
 
-## الحل — حماية متعددة الطبقات
+## الحل
 
 | الملف | التغيير |
 |---|---|
-| `src/pages/Checkout.tsx` | 1. إضافة حماية في مسار الدفع الإلكتروني: إذا كان المبلغ الفعلي = 0، معالجة الطلب مباشرة بدون بوابة الدفع |
-| `src/pages/Checkout.tsx` | 2. إضافة شرط `amount > 0` لعرض نموذج Moyasar (سطر 736) |
-| `src/components/payment/MoyasarPaymentForm.tsx` | 3. إظهار رسالة خطأ واضحة بدلاً من التحميل اللانهائي عند amount <= 0 |
+| `src/hooks/useBankTransfer.ts` | جعل إدراج `donor_contributions` عملية ثانوية لا تمنع إتمام الدفع (try-catch)، وتخطيها تماماً إذا كان المشتري جمعية |
 
 ### التفاصيل
+في `useCreateBankTransfer` (سطر 151-160)، نلف الحلقة الخاصة بـ `donor_contributions` بـ try-catch ونضيف شرط `!isAssociation` قبل الإدراج. الجمعيات ليست مانحين ولا حاجة لتسجيل مساهمة مانح عند شرائها.
 
-**1. Checkout.tsx — مسار handleCheckout (سطر 309):**
-قبل استدعاء moyasar-get-config، التحقق: إذا كان `effectiveTotal <= 0`، معالجة الطلب كعملية مجانية (إنشاء المشاريع والعقود) ثم التوجيه لصفحة النجاح مباشرة.
+```typescript
+// قبل (يرمي خطأ للجمعيات)
+for (const item of items) {
+  await supabase.from("donor_contributions").insert({...});
+}
 
-**2. Checkout.tsx — عرض النموذج (سطر 736):**
-```tsx
-// إضافة شرط amount > 0
-{showMoyasarForm && moyasarKey && !discountCoversAll && (useGrantBalance ? remainingAfterGrant : totalAfterDiscount) > 0 && (
+// بعد
+if (!isAssociation) {
+  for (const item of items) {
+    try {
+      await supabase.from("donor_contributions").insert({...});
+    } catch {}
+  }
+}
 ```
 
-**3. MoyasarPaymentForm.tsx — حماية دفاعية:**
-في بداية الـ useEffect، الشرط الموجود `amount <= 0` يمنع التهيئة لكنه يترك المستخدم في حالة تحميل. نضيف: إذا كان المبلغ <= 0، إظهار رسالة بدلاً من spinner لا نهائي.
+تغيير بسيط في ملف واحد يحل المشكلة بالكامل.
 
