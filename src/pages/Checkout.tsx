@@ -294,7 +294,7 @@ export default function Checkout() {
             await recordUsage({ codeId: discount.id, userId: user.id, discountAmount: discountAmount });
           }
           await clearCart.mutateAsync();
-          navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance" } });
+          navigate("/payment-success", { state: { total: totalAfterDiscount, count: items.length, method: "grant_balance", serviceTitles, providerIds } });
           return;
         }
       }
