@@ -1,36 +1,25 @@
 
 
-# تنظيف البيانات المالية التجريبية
+# التحقق من نظام تذاكر الدعم وإصلاح المشاكل المكتشفة
 
-## ما سيتم حذفه
-| الجدول | عدد السجلات | الوصف |
-|---|---|---|
-| `escrow_transactions` | 18 | جميع معاملات الضمان المالي |
-| `invoices` | 12 | جميع الفواتير الصادرة |
-| `bank_transfers` | 3 | سجلات التحويلات البنكية |
-| `withdrawal_requests` | 0 | طلبات السحب (فارغ حالياً) |
-| `donor_contributions` | 15 | سجلات مساهمات المانحين |
-| `cart_items` | 11 | عناصر السلة المعلقة |
+## نتائج الفحص
+النظام يعمل بشكل صحيح من ناحية البنية التحتية (الـ Trigger والـ RLS والـ Realtime). لكن تم اكتشاف مشكلتين:
 
-## ما سيتم الحفاظ عليه
-- بيانات المستخدمين (profiles, user_roles)
-- الطلبات/المشاريع (projects)
-- الخدمات المقدمة (micro_services)
-- التصنيفات والمناطق والمدن
-- أكواد الخصم (discount_codes)
-- طلبات المنح (grant_requests)
-- العقود (contracts) والعروض (bids)
+### المشكلة 1: الأدمن يُوجَّه لصفحة المستخدم عند النقر على إشعار التذكرة
+عند نقر الأدمن على إشعار رد تذكرة، يتم توجيهه إلى `/tickets/{id}` (صفحة المستخدم) بدلاً من `/admin/tickets/{id}` (صفحة الأدمن).
 
-## ملاحظة
-- الحذف سيتم عبر أداة إدراج البيانات (DELETE statements)
-- ترتيب الحذف مهم بسبب العلاقات بين الجداول: الفواتير أولاً → التحويلات البنكية → طلبات السحب → مساهمات المانحين → معاملات الضمان → السلة
+### المشكلة 2: نوع `ticket_reply` لا يملك أيقونة مخصصة
+الإشعار يظهر بأيقونة الجرس العامة بدلاً من أيقونة مخصصة للتذاكر.
 
-## التفاصيل التقنية
-سيتم تنفيذ أوامر DELETE بالترتيب التالي:
-1. `DELETE FROM invoices`
-2. `DELETE FROM bank_transfers`
-3. `DELETE FROM withdrawal_requests`
-4. `DELETE FROM donor_contributions`
-5. `DELETE FROM cart_items`
-6. `DELETE FROM escrow_transactions`
+## الحل
+
+| الملف | التغيير |
+|---|---|
+| `src/components/notifications/NotificationItem.tsx` | 1. إضافة `ticket_reply` للـ typeConfig بأيقونة وعنوان مناسب |
+| `src/components/notifications/NotificationItem.tsx` | 2. تعديل `getEntityLink` ليتحقق من دور المستخدم (أدمن → `/admin/tickets/{id}`) |
+
+### التفاصيل
+- إضافة سطر في typeConfig: `ticket_reply: { icon: MessageCircle, label: "رد على تذكرة" }`
+- تعديل دالة `getEntityLink` لتقبل معامل `isAdmin` وتوجه الأدمن للمسار الصحيح `/admin/tickets/{id}`
+- يتم تحديد كون المستخدم أدمن عبر hook موجود أو التحقق من `user_roles`
 
