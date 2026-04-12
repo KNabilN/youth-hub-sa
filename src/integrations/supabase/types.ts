@@ -2058,6 +2058,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "ticket_replies_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ticket_replies_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
