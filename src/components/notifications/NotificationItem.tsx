@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NotificationItemProps {
   id: string;
@@ -58,21 +59,22 @@ const typeConfig: Record<string, { icon: typeof Bell; label: string }> = {
   timelog_submitted: { icon: ClipboardList, label: "تسجيل ساعات" },
   bid_comment: { icon: MessageCircle, label: "تعليق على عرض" },
   invoice_created: { icon: Receipt, label: "فاتورة جديدة" },
+  ticket_reply: { icon: MessageCircle, label: "رد على تذكرة" },
 };
 
-function getEntityLink(entityType?: string | null, entityId?: string | null): string | null {
+function getEntityLink(entityType?: string | null, entityId?: string | null, isAdmin?: boolean): string | null {
   if (!entityType || !entityId) return null;
   switch (entityType) {
     case "project":
-      return `/projects/${entityId}`;
+      return isAdmin ? `/admin/projects/${entityId}` : `/projects/${entityId}`;
     case "service":
-      return `/services/${entityId}`;
+      return isAdmin ? `/admin/services/${entityId}` : `/services/${entityId}`;
     case "dispute":
-      return `/disputes/${entityId}`;
+      return isAdmin ? `/admin/disputes/${entityId}` : `/disputes/${entityId}`;
     case "message":
       return `/messages`;
     case "ticket":
-      return `/tickets/${entityId}`;
+      return isAdmin ? `/admin/tickets/${entityId}` : `/tickets/${entityId}`;
     case "withdrawal":
       return `/earnings`;
     case "grant_request":
@@ -108,8 +110,10 @@ export function NotificationItem({ id, message, type, is_read, created_at, entit
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const isAdmin = role === "super_admin";
 
-  const link = getEntityLink(entity_type, entity_id);
+  const link = getEntityLink(entity_type, entity_id, isAdmin);
 
   const handleClick = () => {
     if (!is_read) onMarkRead(id);
