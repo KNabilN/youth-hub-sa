@@ -1,25 +1,31 @@
 
 
-# التحقق من نظام تذاكر الدعم وإصلاح المشاكل المكتشفة
+# إصلاح سجل المحادثات في التذاكر
 
-## نتائج الفحص
-النظام يعمل بشكل صحيح من ناحية البنية التحتية (الـ Trigger والـ RLS والـ Realtime). لكن تم اكتشاف مشكلتين:
+## المشكلة
+الاستعلام في `useTicketReplies.ts` يستخدم join مع جدول `profiles` عبر `author_id`:
+```typescript
+.select("*, profiles:author_id(full_name, avatar_url)")
+```
+لكن جدول `ticket_replies` لا يحتوي على أي مفتاح أجنبي (Foreign Key) — لا على `author_id` ولا على `ticket_id`. هذا يجعل PostgREST يرفض الاستعلام بخطأ 400، فلا تظهر أي رسائل.
 
-### المشكلة 1: الأدمن يُوجَّه لصفحة المستخدم عند النقر على إشعار التذكرة
-عند نقر الأدمن على إشعار رد تذكرة، يتم توجيهه إلى `/tickets/{id}` (صفحة المستخدم) بدلاً من `/admin/tickets/{id}` (صفحة الأدمن).
+## الحل — خطوتان
 
-### المشكلة 2: نوع `ticket_reply` لا يملك أيقونة مخصصة
-الإشعار يظهر بأيقونة الجرس العامة بدلاً من أيقونة مخصصة للتذاكر.
-
-## الحل
-
-| الملف | التغيير |
+| الخطوة | التغيير |
 |---|---|
-| `src/components/notifications/NotificationItem.tsx` | 1. إضافة `ticket_reply` للـ typeConfig بأيقونة وعنوان مناسب |
-| `src/components/notifications/NotificationItem.tsx` | 2. تعديل `getEntityLink` ليتحقق من دور المستخدم (أدمن → `/admin/tickets/{id}`) |
+| 1. Migration | إضافة مفاتيح أجنبية لجدول `ticket_replies`: `author_id → profiles(id)` و `ticket_id → support_tickets(id)` |
+| 2. `src/hooks/useTicketReplies.ts` | لا تغيير مطلوب — الكود صحيح، فقط يحتاج المفاتيح الأجنبية في قاعدة البيانات |
 
-### التفاصيل
-- إضافة سطر في typeConfig: `ticket_reply: { icon: MessageCircle, label: "رد على تذكرة" }`
-- تعديل دالة `getEntityLink` لتقبل معامل `isAdmin` وتوجه الأدمن للمسار الصحيح `/admin/tickets/{id}`
-- يتم تحديد كون المستخدم أدمن عبر hook موجود أو التحقق من `user_roles`
+### Migration SQL
+```sql
+ALTER TABLE public.ticket_replies
+  ADD CONSTRAINT ticket_replies_author_id_fkey
+    FOREIGN KEY (author_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE public.ticket_replies
+  ADD CONSTRAINT ticket_replies_ticket_id_fkey
+    FOREIGN KEY (ticket_id) REFERENCES public.support_tickets(id) ON DELETE CASCADE;
+```
+
+هذا سيجعل PostgREST يتعرف على العلاقة ويسمح بالـ join، وبالتالي تظهر الرسائل بأسماء المرسلين بشكل صحيح من جهة الأدمن والمستخدم.
 
