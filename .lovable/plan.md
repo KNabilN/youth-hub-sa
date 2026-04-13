@@ -1,35 +1,29 @@
 
 
-# إضافة قوالب إيميلات المانحين (donor)
+# تصحيح قالب donation_received — إضافة اسم الجمعية
 
-## التغييرات — ملف واحد
+## الوضع الحالي
+جميع القوالب الـ 49 مطبقة بشكل صحيح. يوجد فرق واحد فقط:
 
-### `supabase/functions/send-notification-email/index.ts`
+**قالب `donation_received` للمانح:**
+- النص المطلوب: `تم استلام التبرع المرتبط بـ [اسم المشروع/الخدمة] الى (اسم الجمعية) بنجاح`
+- النص الحالي في الكود: `تم استلام التبرع المرتبط بـ ${entity} بنجاح` — ينقصه اسم الجمعية
 
-1. **إضافة دالة `getDonorBody`** بنفس نمط `getProviderBody` و `getAssociationBody`، تحتوي على 6 قوالب:
+## التغييرات
 
-| النوع | العنوان |
-|---|---|
-| donation_received | تم استلام التبرع بنجاح |
-| project_completed | تم إكمال المشروع المدعوم |
-| grant_request_received | وصلكم طلب منحة جديد |
-| bank_transfer_pending | طلب تحويل بنكي جديد بانتظار المراجعة |
-| dispute_opened | تم تسجيل شكوى جديدة |
-| contact_message | وردت رسالة تواصل جديدة |
+### ملف واحد: `supabase/functions/send-notification-email/index.ts`
 
-2. **إضافة عناوين مخصصة للمانحين** في `ROLE_SUBJECT_OVERRIDES`:
-   - `donation_received` → "تم استلام التبرع بنجاح"
-   - `project_completed` → "تم إكمال المشروع المدعوم"
-   - `grant_request_received` → "وصلكم طلب منحة جديد"
-   - `bank_transfer_pending` → "طلب تحويل بنكي جديد بانتظار المراجعة"
-   - `dispute_opened` → "تم تسجيل شكوى جديدة"
-   - `contact_message` → "وردت رسالة تواصل جديدة"
+1. **تحديث `fetchEntityName`** ليُرجع أيضاً اسم الجمعية (صاحبة المشروع) عند `entityType === "project"` — جلب `owner_id` من المشروع ثم `full_name` من `profiles`
 
-3. **تحديث `getCustomBodyForRole`** لإضافة فرع `donor` يستدعي `getDonorBody`
+2. **تحديث `getDonorBody`** ليستقبل parameter إضافي `associationName` ويُدرجه في نص `donation_received`:
+   ```
+   تم استلام التبرع المرتبط بـ ${entity} الى ${associationName} بنجاح
+   ```
 
-4. **إضافة أنواع جديدة** في `CUSTOM_SUBJECTS` للأنواع غير الموجودة (`donation_received` و `contact_message` و `bank_transfer_pending`)
+3. **تحديث `getCustomBodyForRole`** لتمرير اسم الجمعية إلى `getDonorBody`
 
-5. **ملاحظة خاصة**: قالب `donation_received` يحتوي على "(اسم الجمعية)" — سيتم جلب اسم الجمعية من `entity_type` إذا كان متاحاً، وإلا يُستخدم النص العام
+4. **نشر الدالة**
 
-6. **نشر الدالة** بعد التحديث
+## ملاحظة
+إذا كنت تريد فقط التأكد أن القوالب مطبقة كما هي بدون تغيير — فالكود الحالي مطابق 100% لجميع القوالب باستثناء هذا الفرق البسيط في `donation_received`.
 
