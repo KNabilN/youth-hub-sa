@@ -1,59 +1,57 @@
 
 
-# تحديث قوالب إيميلات مزودي الخدمات
+# إضافة قوالب إيميلات الجمعيات الشبابية (youth_association)
 
-## ما سيتم تنفيذه
+## المشكلة
+القوالب الحالية مخصصة لمزودي الخدمات فقط. الجمعيات الشبابية تستلم نفس النصوص، رغم أن صياغة الرسائل يجب أن تختلف حسب الدور. كما أن بعض الأنواع المطلوبة للجمعيات غير موجودة أصلاً (مثل `bid_received`, `project_open`, `bank_transfer_*`, `invoice_created`, `deliverable_submitted`, `grant_request_*`, `inquiry_message`).
 
-تحديث ملف `supabase/functions/send-notification-email/index.ts` لاستبدال القالب العام الحالي بقوالب مخصصة لكل نوع إشعار حسب المحتوى المقدم.
+## التغييرات — ملف واحد
 
-## التغييرات
+### `supabase/functions/send-notification-email/index.ts`
 
-### ملف واحد: `supabase/functions/send-notification-email/index.ts`
+1. **جلب دور المستخدم**: إضافة استعلام لجدول `user_roles` لمعرفة دور المستلم (`youth_association` أو `service_provider`)
 
-1. **إضافة جلب اسم المشروع/الخدمة**: عند وجود `entity_id` و `entity_type` في الإشعار، يتم جلب اسم الكيان من جدول `projects` أو `micro_services` لاستخدامه في القالب
+2. **إضافة عناوين مخصصة للأنواع الجديدة** في `CUSTOM_SUBJECTS`:
+   - `bid_received` → "وصلكم عرض سعر جديد"
+   - `project_open` → "تم فتح المشروع"
+   - `bank_transfer_approved` → "تمت الموافقة على التحويل البنكي"
+   - `bank_transfer_rejected` → "تعذر اعتماد التحويل البنكي"
+   - `invoice_created` → "تم إصدار فاتورة جديدة"
+   - `deliverable_submitted` → "تم رفع تسليم جديد على المشروع"
+   - `grant_request_approved` → "تمت الموافقة على طلب المنحة"
+   - `grant_request_rejected` → "تعذر الموافقة على طلب المنحة"
+   - `grant_request_funded` → "تم تمويل طلب المنحة"
+   - `inquiry_message` → "إشعار جديد"
 
-2. **إضافة map للعناوين المخصصة (subjects)** لكل نوع إشعار:
-   - `bid_accepted` → "تم قبول عرضك - منصة الخدمات المشتركة للجمعيات الشبابية"
-   - `bid_rejected` → "تعذر قبول عرضك - ..."
-   - `project_in_progress` → "بدء العمل على المشروع - ..."
-   - وهكذا لجميع الأنواع الـ 21 المذكورة
+3. **تحويل `getCustomBody` إلى دالة تعتمد على الدور**: إنشاء `getCustomBodyForRole(type, role, recipientName, entityName, actionUrl)` تُرجع النصوص المناسبة حسب الدور:
+   - إذا كان الدور `youth_association` → استخدام القوالب الجديدة (21 قالب من النص المقدم)
+   - إذا كان الدور `service_provider` → استخدام القوالب الحالية (22 قالب)
+   - للأنواع المشتركة (مثل `project_completed`, `contract_created`) → نصوص مختلفة حسب الدور
+   - إذا لم يُعرف الدور → fallback للقالب العام
 
-3. **إضافة map لنصوص البريد المخصصة** لكل نوع، مع استبدال:
-   - `[اسم المستلم]` ← اسم المستخدم من `profiles.full_name`
-   - `[اسم المشروع/الخدمة]` ← اسم الكيان المجلوب من DB
-   - `[رابط الصفحة / رابط الإجراء]` ← رابط مبني من `entity_type` + `entity_id`
-
-4. **تحديث `buildEmailHTML`** ليستقبل النص الكامل المخصص بدلاً من الرسالة العامة، مع الحفاظ على نفس التصميم البصري (الألوان، الشعار، التنسيق)
+4. **بعض العناوين تختلف حسب الدور**:
+   - `message_received`: مزود الخدمة = "لديك رسالة جديدة" / جمعية = "لديكم رسالة جديدة"
+   - `project_in_progress`: مزود = "بدء العمل على المشروع" / جمعية = "بدأ العمل على المشروع"
 
 5. **نشر الدالة** بعد التحديث
 
-### الأنواع المشمولة (21 قالب)
+### الأنواع الجديدة (خاصة بالجمعيات فقط)
 
-| النوع | العنوان |
+| النوع | الوصف |
 |---|---|
-| bid_accepted | تم قبول عرضك |
-| bid_rejected | تعذر قبول عرضك |
-| project_in_progress | بدء العمل على المشروع |
-| project_completed | تم إكمال المشروع |
-| project_cancelled | تم إلغاء المشروع |
-| project_disputed | تم تسجيل شكوى على المشروع |
-| contract_created | تم إنشاء عقد جديد |
-| contract_signed | تم توقيع العقد |
-| escrow_created | تم إنشاء الضمان المالي |
-| escrow_released | تم تحرير الضمان المالي |
-| escrow_refunded | تم استرداد الضمان المالي |
-| withdrawal_approved | تمت الموافقة على طلب السحب |
-| withdrawal_rejected | تعذر الموافقة على طلب السحب |
-| withdrawal_processed | تم تحويل مبلغ السحب |
-| service_approved | تمت الموافقة على الخدمة |
-| service_rejected | تعذر اعتماد الخدمة |
-| service_purchased | تم شراء خدمتك |
-| timelog_approved | تمت الموافقة على الساعات المسجلة |
-| timelog_rejected | تعذر اعتماد الساعات المسجلة |
-| deliverable_accepted | تم قبول التسليمات |
-| deliverable_revision | مطلوب إجراء تعديلات على التسليمات |
-| message_received | لديك رسالة جديدة |
+| bid_received | إشعار بوصول عرض سعر جديد |
+| project_open | تم فتح المشروع لاستقبال العروض |
+| bank_transfer_approved | الموافقة على التحويل البنكي |
+| bank_transfer_rejected | رفض التحويل البنكي |
+| invoice_created | إصدار فاتورة جديدة |
+| deliverable_submitted | رفع تسليم من مزود الخدمة |
+| grant_request_approved | الموافقة على طلب منحة |
+| grant_request_rejected | رفض طلب منحة |
+| grant_request_funded | تمويل طلب منحة |
+| inquiry_message | إشعار جديد متعلق بالاستفسارات |
 
-### الأنواع غير المشمولة في هذه الدفعة
-الأنواع الأخرى (مثل `dispute_opened`, `grant_request_*`, `bank_transfer_*`, إلخ) ستستمر باستخدام القالب العام الحالي حتى توفير قوالبها.
+### النتيجة
+- كل مستلم يحصل على إيميل بصياغة تناسب دوره
+- 21 قالب جديد للجمعيات + 10 أنواع جديدة لم تكن مدعومة
+- القالب العام يبقى fallback للأدوار والأنواع غير المغطاة
 
