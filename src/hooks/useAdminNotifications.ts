@@ -60,11 +60,10 @@ export function useResendNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (notification: { user_id: string; message: string; type: string }) => {
-      const { error } = await supabase.from("notifications").insert({
-        user_id: notification.user_id,
-        message: notification.message,
-        type: notification.type,
-        delivery_status: "delivered",
+      const { error } = await supabase.rpc("send_notification_secure" as any, {
+        _recipient_id: notification.user_id,
+        _message: notification.message,
+        _type: notification.type,
       });
       if (error) throw error;
     },

@@ -52,10 +52,10 @@ export function usePurchaseService() {
         projectId = project.id;
 
         // Notify the association
-        await supabase.from("notifications").insert({
-          user_id: beneficiaryId,
-          message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
-          type: "donor_funded_service",
+        await supabase.rpc("send_notification_secure" as any, {
+          _recipient_id: beneficiaryId,
+          _message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
+          _type: "donor_funded_service",
         });
       } else if (isAssociation) {
         // Association buying directly — auto-create project + contract
@@ -99,12 +99,12 @@ export function usePurchaseService() {
         });
 
         // Notify provider about the purchase and assignment
-        await supabase.from("notifications").insert({
-          user_id: providerId,
-          message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد`,
-          type: "service_purchased_assigned",
-          entity_id: project.id,
-          entity_type: "project",
+        await supabase.rpc("send_notification_secure" as any, {
+          _recipient_id: providerId,
+          _message: `تم شراء خدمتك "${title}" وتعيينك على مشروع جديد`,
+          _type: "service_purchased_assigned",
+          _entity_id: project.id,
+          _entity_type: "project",
         });
       }
 

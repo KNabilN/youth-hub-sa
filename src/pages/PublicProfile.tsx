@@ -39,8 +39,8 @@ export default function PublicProfile() {
     queryKey: ["my-role", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id).maybeSingle();
-      return data?.role ?? null;
+      const { data } = await supabase.rpc("get_user_role", { _user_id: user!.id } as any);
+      return data ?? null;
     },
   });
 
