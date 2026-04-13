@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useProfile, useUpdateProfile, useUploadAvatar } from "@/hooks/useProfile";
+import { useProfile, useUpdateProfile, useUploadAvatar, useBankDetails, useUpdateBankDetails } from "@/hooks/useProfile";
 import { useUploadCover } from "@/hooks/useUploadCover";
 import { useUploadCompanyLogo } from "@/hooks/useUploadCompanyLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,7 +55,9 @@ function RequiredMark({ fieldKey, role }: { fieldKey: string; role: string | nul
 export default function Profile() {
   const { role, user } = useAuth();
   const { data: profile, isLoading } = useProfile();
+  const { data: bankDetails } = useBankDetails();
   const updateProfile = useUpdateProfile();
+  const updateBankDetails = useUpdateBankDetails();
   const uploadAvatar = useUploadAvatar();
   const uploadCover = useUploadCover();
   const uploadCompanyLogo = useUploadCompanyLogo();
@@ -106,10 +108,10 @@ export default function Profile() {
     setNotificationPreferences((profile as any).notification_preferences ?? {});
     setSkills((profile as any).skills ?? []);
     setQualifications((profile as any).qualifications ?? []);
-    setBankName((profile as any).bank_name ?? "");
-    setBankAccountNumber((profile as any).bank_account_number ?? "");
-    setBankIban((profile as any).bank_iban ?? "");
-    setBankAccountHolder((profile as any).bank_account_holder ?? "");
+    setBankName(bankDetails?.bank_name ?? "");
+    setBankAccountNumber(bankDetails?.bank_account_number ?? "");
+    setBankIban(bankDetails?.bank_iban ?? "");
+    setBankAccountHolder(bankDetails?.bank_account_holder ?? "");
     setRegionId((profile as any).region_id ?? null);
     setCityId((profile as any).city_id ?? null);
     setInitialized(true);
@@ -124,6 +126,7 @@ export default function Profile() {
       }
     }
 
+    // Save profile (without bank fields)
     updateProfile.mutate(
       {
         full_name: fullName,
@@ -135,29 +138,28 @@ export default function Profile() {
         contact_officer_phone: contactOfficerPhone,
         contact_officer_email: contactOfficerEmail,
         contact_officer_title: contactOfficerTitle,
-        
         email_notifications: emailNotifications,
         notification_preferences: notificationPreferences,
         skills,
         qualifications,
-        bank_name: bankName,
-        bank_account_number: bankAccountNumber,
-        bank_iban: bankIban,
-        bank_account_holder: bankAccountHolder,
         region_id: regionId || null,
         city_id: cityId || null,
       },
       {
-        onSuccess: (result) => {
-          if (result?.wasVerified) {
-            toast({ title: "تم تحديث الملف الشخصي", description: "سيتم مراجعة التعديلات من قبل الإدارة وإعادة توثيق حسابك." });
-          } else {
-            toast({ title: "تم تحديث الملف الشخصي" });
-          }
+        onSuccess: () => {
+          toast({ title: "تم تحديث الملف الشخصي" });
         },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
       }
     );
+
+    // Save bank details separately
+    if (role === "service_provider" || role === "youth_association") {
+      updateBankDetails.mutate(
+        { bank_name: bankName, bank_account_number: bankAccountNumber, bank_iban: bankIban, bank_account_holder: bankAccountHolder },
+        { onError: () => toast({ title: "حدث خطأ في حفظ البيانات البنكية", variant: "destructive" }) }
+      );
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
