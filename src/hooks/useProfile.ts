@@ -61,26 +61,7 @@ export function useUpdateProfile() {
         .eq("id", userId);
       if (error) throw error;
 
-      // Notify admins if verification was revoked
-      if (wasVerified) {
-        const displayName = (currentProfile as any)?.organization_name || (currentProfile as any)?.full_name || "مستخدم";
-        const { data: admins } = await supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "super_admin");
-
-        if (admins && admins.length > 0) {
-          const notifications = admins.map((a) => ({
-            user_id: a.user_id,
-            message: `قام ${displayName} بتعديل بياناته المالية ويحتاج مراجعة وإعادة توثيق`,
-            type: "profile_updated",
-            entity_id: userId,
-            entity_type: "profile",
-          }));
-          await supabase.from("notifications").insert(notifications);
-        }
-      }
-
+      // Admin notification for financial changes is handled by database trigger
       return { wasVerified };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),

@@ -38,12 +38,9 @@ export function usePublicProfile(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", id!)
-        .single();
+        .rpc("get_user_role", { _user_id: id! } as any);
       if (error) return null;
-      return data?.role ?? null;
+      return data ?? null;
     },
   });
 
