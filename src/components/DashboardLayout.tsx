@@ -7,7 +7,7 @@ import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } fro
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Menu, Bell, CheckCheck } from "lucide-react";
+import { Menu, Bell, CheckCheck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
