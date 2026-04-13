@@ -60,10 +60,10 @@ export function useCreateBankTransfer() {
           if (projErr) throw projErr;
           projectId = project.id;
 
-          await supabase.from("notifications").insert({
-            user_id: beneficiaryId,
-            message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
-            type: "donor_funded_service",
+          await supabase.rpc("send_notification_secure" as any, {
+            _recipient_id: beneficiaryId,
+            _message: `قام مانح بتمويل خدمة "${title}" لصالح جمعيتكم`,
+            _type: "donor_funded_service",
           });
         } else if (isAssociation) {
           const title = item.title || "خدمة من السوق";
@@ -105,12 +105,12 @@ export function useCreateBankTransfer() {
           });
 
           // Notify provider
-          await supabase.from("notifications").insert({
-            user_id: item.providerId,
-            message: `تم شراء خدمتك "${title}" — بانتظار الموافقة على التحويل البنكي`,
-            type: "service_purchased_assigned",
-            entity_id: project.id,
-            entity_type: "project",
+          await supabase.rpc("send_notification_secure" as any, {
+            _recipient_id: item.providerId,
+            _message: `تم شراء خدمتك "${title}" — بانتظار الموافقة على التحويل البنكي`,
+            _type: "service_purchased_assigned",
+            _entity_id: project.id,
+            _entity_type: "project",
           });
         }
 

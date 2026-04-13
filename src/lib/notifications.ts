@@ -7,12 +7,12 @@ export async function sendNotification(
   entityId?: string,
   entityType?: string
 ) {
-  const { error } = await supabase.from("notifications").insert({
-    user_id: userId,
-    message,
-    type,
-    entity_id: entityId || null,
-    entity_type: entityType || null,
+  const { error } = await supabase.rpc("send_notification_secure" as any, {
+    _recipient_id: userId,
+    _message: message,
+    _type: type,
+    _entity_id: entityId || null,
+    _entity_type: entityType || null,
   });
   if (error) console.error("Failed to send notification:", error);
 }
@@ -24,13 +24,16 @@ export async function sendNotifications(
   entityId?: string,
   entityType?: string
 ) {
-  const rows = userIds.map((uid) => ({
-    user_id: uid,
-    message,
-    type,
-    entity_id: entityId || null,
-    entity_type: entityType || null,
-  }));
-  const { error } = await supabase.from("notifications").insert(rows);
-  if (error) console.error("Failed to send notifications:", error);
+  const promises = userIds.map((uid) =>
+    supabase.rpc("send_notification_secure" as any, {
+      _recipient_id: uid,
+      _message: message,
+      _type: type,
+      _entity_id: entityId || null,
+      _entity_type: entityType || null,
+    })
+  );
+  const results = await Promise.all(promises);
+  const errors = results.filter((r) => r.error);
+  if (errors.length) console.error("Failed to send some notifications:", errors);
 }

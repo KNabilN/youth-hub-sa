@@ -2236,6 +2236,16 @@ export type Database = {
       increment_service_views: { Args: { s_id: string }; Returns: undefined }
       is_not_suspended: { Args: { _user_id: string }; Returns: boolean }
       purge_soft_deleted_records: { Args: never; Returns: undefined }
+      send_notification_secure: {
+        Args: {
+          _entity_id?: string
+          _entity_type?: string
+          _message: string
+          _recipient_id: string
+          _type?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
