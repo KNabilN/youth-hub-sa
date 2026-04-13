@@ -368,11 +368,12 @@ function getAssociationBody(type: string, name: string, entity: string, link: st
 }
 
 /* ─── Donor body templates ─── */
-function getDonorBody(type: string, name: string, entity: string, link: string): string[] | null {
+function getDonorBody(type: string, name: string, entity: string, link: string, associationName?: string): string[] | null {
+  const assocDisplay = associationName || "الجمعية";
   const templates: Record<string, string[]> = {
     donation_received: [
       `مرحبًا ${name}،`,
-      `نشكر لكم دعمكم الكريم، ونود إشعاركم عبر ${PLATFORM_NAME} بأنه تم استلام التبرع المرتبط بـ ${entity} بنجاح.`,
+      `نشكر لكم دعمكم الكريم، ونود إشعاركم عبر ${PLATFORM_NAME} بأنه تم استلام التبرع المرتبط بـ ${entity} الى ${assocDisplay} بنجاح.`,
       `يمكنكم متابعة تفاصيل العملية من خلال الرابط التالي:`,
       link,
       `مع خالص الشكر والتقدير،`,
@@ -413,12 +414,12 @@ function getDonorBody(type: string, name: string, entity: string, link: string):
 }
 
 /* ─── Role-aware body resolver ─── */
-function getCustomBodyForRole(type: string, role: string, recipientName: string, entityName: string, actionUrl: string): string[] | null {
+function getCustomBodyForRole(type: string, role: string, recipientName: string, entityName: string, actionUrl: string, associationName?: string): string[] | null {
   const name = recipientName || "";
   const entity = entityName || "الطلب";
 
   if (role === "donor") {
-    const body = getDonorBody(type, name, entity, actionUrl);
+    const body = getDonorBody(type, name, entity, actionUrl, associationName);
     if (body) return body;
   }
 
@@ -458,19 +459,24 @@ async function fetchEntityName(
   supabaseAdmin: ReturnType<typeof createClient>,
   entityType: string | null,
   entityId: string | null
-): Promise<string> {
-  if (!entityType || !entityId) return "";
+): Promise<{ entityName: string; associationName: string }> {
+  if (!entityType || !entityId) return { entityName: "", associationName: "" };
   try {
     if (entityType === "project") {
-      const { data } = await supabaseAdmin.from("projects").select("title").eq("id", entityId).single();
-      return data?.title || "";
+      const { data } = await supabaseAdmin.from("projects").select("title, association_id").eq("id", entityId).single();
+      let assocName = "";
+      if (data?.association_id) {
+        const { data: assocProfile } = await supabaseAdmin.from("profiles").select("full_name, organization_name").eq("id", data.association_id).single();
+        assocName = assocProfile?.organization_name || assocProfile?.full_name || "";
+      }
+      return { entityName: data?.title || "", associationName: assocName };
     }
     if (entityType === "service") {
       const { data } = await supabaseAdmin.from("micro_services").select("title").eq("id", entityId).single();
-      return data?.title || "";
+      return { entityName: data?.title || "", associationName: "" };
     }
   } catch { /* ignore */ }
-  return "";
+  return { entityName: "", associationName: "" };
 }
 
 /* ─── Fetch user role ─── */
@@ -648,8 +654,8 @@ serve(async (req) => {
 
     // Build email - use role-aware custom template if available, otherwise fallback
     const actionUrl = buildActionUrl(notification.entity_type, notification.entity_id);
-    const entityName = await fetchEntityName(supabaseAdmin, notification.entity_type, notification.entity_id);
-    const customBody = getCustomBodyForRole(notification.type, userRole, userName, entityName, actionUrl);
+    const { entityName, associationName } = await fetchEntityName(supabaseAdmin, notification.entity_type, notification.entity_id);
+    const customBody = getCustomBodyForRole(notification.type, userRole, userName, entityName, actionUrl, associationName);
 
     let subject: string;
     let html: string;
