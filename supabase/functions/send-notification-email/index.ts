@@ -8,122 +8,257 @@ const corsHeaders = {
 };
 
 const RELAY_URL = "https://api.sharedservices.solutions/send-email.php";
+const PLATFORM_NAME = "منصة الخدمات المشتركة للجمعيات الشبابية";
+const SITE_URL = "https://youth-hub-sa.lovable.app";
 
 /* ─── defaults per notification type ─── */
 const DEFAULT_ENABLED: Record<string, boolean> = {
-  bid_accepted: true,
-  bid_rejected: true,
-  project_completed: true,
-  project_cancelled: true,
-  project_disputed: true,
-  contract_created: true,
-  contract_signed: true,
-  escrow_released: true,
-  escrow_refunded: true,
-  withdrawal_approved: true,
-  withdrawal_rejected: true,
-  withdrawal_processed: true,
-  service_approved: true,
-  service_rejected: true,
-  bank_transfer_approved: true,
-  bank_transfer_rejected: true,
-  invoice_created: true,
-  dispute_opened: true,
-  dispute_resolved: true,
-  grant_request_approved: true,
-  grant_request_rejected: true,
-  grant_request_funded: true,
-  grant_request_received: true,
-  bank_transfer_pending: true,
-  deliverable_accepted: true,
-  deliverable_revision: true,
-  message_received: true,
-  bid_received: true,
-  escrow_created: true,
-  escrow_frozen: true,
-  timelog_approved: true,
-  timelog_rejected: true,
-  timelog_submitted: true,
-  project_in_progress: true,
-  project_open: true,
-  project_suspended: true,
-  service_purchased: true,
-  service_suspended: true,
-  deliverable_submitted: true,
-  bid_comment: true,
-  contact_message: true,
-  donation_received: true,
-  inquiry_created: true,
-  inquiry_message: true,
+  bid_accepted: true, bid_rejected: true, project_completed: true,
+  project_cancelled: true, project_disputed: true, contract_created: true,
+  contract_signed: true, escrow_released: true, escrow_refunded: true,
+  withdrawal_approved: true, withdrawal_rejected: true, withdrawal_processed: true,
+  service_approved: true, service_rejected: true, bank_transfer_approved: true,
+  bank_transfer_rejected: true, invoice_created: true, dispute_opened: true,
+  dispute_resolved: true, grant_request_approved: true, grant_request_rejected: true,
+  grant_request_funded: true, grant_request_received: true, bank_transfer_pending: true,
+  deliverable_accepted: true, deliverable_revision: true, message_received: true,
+  bid_received: true, escrow_created: true, escrow_frozen: true,
+  timelog_approved: true, timelog_rejected: true, timelog_submitted: true,
+  project_in_progress: true, project_open: true, project_suspended: true,
+  service_purchased: true, service_suspended: true, deliverable_submitted: true,
+  bid_comment: true, contact_message: true, donation_received: true,
+  inquiry_created: true, inquiry_message: true,
 };
 
-function isTypeEnabled(
-  preferences: Record<string, boolean> | null,
-  type: string
-): boolean {
+function isTypeEnabled(preferences: Record<string, boolean> | null, type: string): boolean {
   if (preferences && type in preferences) return preferences[type];
   return DEFAULT_ENABLED[type] ?? true;
 }
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-const typeLabels: Record<string, string> = {
-  info: "إشعار",
-  bid_received: "عرض سعر جديد",
-  bid_accepted: "تم قبول عرضك",
-  bid_rejected: "تم رفض عرضك",
-  bid_comment: "تعليق على عرض",
-  contract_created: "عقد جديد",
-  contract_signed: "توقيع عقد",
-  escrow_created: "ضمان مالي",
-  escrow_released: "تحرير ضمان مالي",
-  escrow_refunded: "استرداد ضمان مالي",
-  escrow_frozen: "تجميد ضمان مالي",
-  project_open: "مشروع مفتوح",
-  project_in_progress: "بدء العمل",
-  project_completed: "إكمال مشروع",
-  project_cancelled: "إلغاء مشروع",
-  project_disputed: "شكوى على مشروع",
-  project_suspended: "تعليق مشروع",
-  dispute_opened: "شكوى جديدة",
-  dispute_resolved: "حل شكوى",
-  service_approved: "الموافقة على خدمة",
-  service_rejected: "رفض خدمة",
-  service_suspended: "تعليق خدمة",
-  service_purchased: "شراء خدمة",
-  withdrawal_approved: "الموافقة على سحب",
-  withdrawal_rejected: "رفض سحب",
-  withdrawal_processed: "تحويل سحب",
-  bank_transfer_pending: "تحويل بنكي جديد",
-  bank_transfer_approved: "الموافقة على تحويل",
-  bank_transfer_rejected: "رفض تحويل",
-  invoice_created: "فاتورة جديدة",
-  timelog_submitted: "تسجيل ساعات",
-  timelog_approved: "الموافقة على ساعات",
-  timelog_rejected: "رفض ساعات",
-  deliverable_submitted: "تسليم ملفات",
-  deliverable_accepted: "قبول تسليمات",
-  deliverable_revision: "طلب تعديلات",
-  message_received: "رسالة جديدة",
-  grant_request_received: "طلب منحة",
-  grant_request_approved: "الموافقة على منحة",
-  grant_request_rejected: "رفض منحة",
-  grant_request_funded: "تمويل منحة",
-  contact_message: "رسالة تواصل",
-  donation_received: "تبرع جديد",
+/* ─── Custom subjects per type ─── */
+const CUSTOM_SUBJECTS: Record<string, string> = {
+  bid_accepted: `تم قبول عرضك - ${PLATFORM_NAME}`,
+  bid_rejected: `تعذر قبول عرضك - ${PLATFORM_NAME}`,
+  project_in_progress: `بدء العمل على المشروع - ${PLATFORM_NAME}`,
+  project_completed: `تم إكمال المشروع - ${PLATFORM_NAME}`,
+  project_cancelled: `تم إلغاء المشروع - ${PLATFORM_NAME}`,
+  project_disputed: `تم تسجيل شكوى على المشروع - ${PLATFORM_NAME}`,
+  contract_created: `تم إنشاء عقد جديد - ${PLATFORM_NAME}`,
+  contract_signed: `تم توقيع العقد - ${PLATFORM_NAME}`,
+  escrow_created: `تم إنشاء الضمان المالي - ${PLATFORM_NAME}`,
+  escrow_released: `تم تحرير الضمان المالي - ${PLATFORM_NAME}`,
+  escrow_refunded: `تم استرداد الضمان المالي - ${PLATFORM_NAME}`,
+  withdrawal_approved: `تمت الموافقة على طلب السحب - ${PLATFORM_NAME}`,
+  withdrawal_rejected: `تعذر الموافقة على طلب السحب - ${PLATFORM_NAME}`,
+  withdrawal_processed: `تم تحويل مبلغ السحب - ${PLATFORM_NAME}`,
+  service_approved: `تمت الموافقة على الخدمة - ${PLATFORM_NAME}`,
+  service_rejected: `تعذر اعتماد الخدمة - ${PLATFORM_NAME}`,
+  service_purchased: `تم شراء خدمتك - ${PLATFORM_NAME}`,
+  timelog_approved: `تمت الموافقة على الساعات المسجلة - ${PLATFORM_NAME}`,
+  timelog_rejected: `تعذر اعتماد الساعات المسجلة - ${PLATFORM_NAME}`,
+  deliverable_accepted: `تم قبول التسليمات - ${PLATFORM_NAME}`,
+  deliverable_revision: `مطلوب إجراء تعديلات على التسليمات - ${PLATFORM_NAME}`,
+  message_received: `لديك رسالة جديدة - ${PLATFORM_NAME}`,
 };
 
-function buildEmailHTML(toName: string, message: string, type: string): string {
-  const label = typeLabels[type] || "إشعار";
-  const safeName = escapeHtml(toName);
-  const safeMessage = escapeHtml(message);
+/* ─── Custom body templates (returns paragraphs array) ─── */
+function getCustomBody(type: string, recipientName: string, entityName: string, actionUrl: string): string[] | null {
+  const name = recipientName || "";
+  const entity = entityName || "الطلب";
+  const link = actionUrl;
+
+  const templates: Record<string, string[]> = {
+    bid_accepted: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم قبول العرض المقدم من قبلكم على ${entity}.`,
+      `يمكنكم الآن متابعة الخطوات التالية الخاصة بالمشروع والاطلاع على التفاصيل المعتمدة من خلال الرابط التالي:`,
+      link,
+      `نشكر لكم تفاعلكم، ونتطلع إلى تعاون مثمر.`,
+    ],
+    bid_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم يتم قبول العرض المقدم من قبلكم على ${entity}.`,
+      `يمكنكم إعادة مراجعة تفاصيل الطلب ونشره من خلال الرابط التالي:`,
+      link,
+    ],
+    project_in_progress: [
+      `مرحبًا ${name}،`,
+      `يرجى متابعة حالة المشروع والالتزام بالمخرجات والمدة المحددة، ويمكنكم الاطلاع على التفاصيل من خلال الرابط التالي:`,
+      link,
+    ],
+    project_completed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إكمال ${entity} بنجاح.`,
+      `يمكنكم الدخول إلى المنصة للاطلاع على حالة المشروع والتفاصيل المرتبطة به عبر الرابط التالي:`,
+      link,
+      `شكرًا لتعاونكم.`,
+    ],
+    project_cancelled: [
+      `مرحبًا ${name}،`,
+      `نحيطكم علمًا عبر ${PLATFORM_NAME} بأنه تم إلغاء ${entity}.`,
+      `يرجى مراجعة تفاصيل المشروع وأسباب الإلغاء، إن وجدت، من خلال الرابط التالي:`,
+      link,
+    ],
+    project_disputed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تسجيل شكوى أو ملاحظة على ${entity}.`,
+      `يرجى الدخول إلى المنصة والاطلاع على تفاصيل الشكوى واتخاذ الإجراء المناسب عبر الرابط التالي:`,
+      link,
+    ],
+    contract_created: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إنشاء عقد جديد مرتبط بـ ${entity}.`,
+      `يرجى مراجعة العقد والاطلاع على بنوده واستكمال الإجراء المطلوب من قبلكم عبر الرابط التالي:`,
+      link,
+    ],
+    contract_signed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم توقيع العقد الخاص بـ ${entity} بنجاح.`,
+      `يمكنكم الاطلاع على العقد ومتابعة الخطوات التالية من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_created: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إنشاء الضمان المالي الخاص بـ ${entity}.`,
+      `يأتي ذلك ضمن إجراءات المنصة لحفظ الحقوق وتنظيم العملية التعاقدية والمالية.`,
+      `يمكنكم مراجعة التفاصيل من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_released: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تحرير الضمان المالي المرتبط بـ ${entity}.`,
+      `يمكنكم الاطلاع على تفاصيل العملية من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_refunded: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت معالجة استرداد الضمان المالي الخاص بـ ${entity}.`,
+      `يمكنكم مراجعة تفاصيل العملية المالية من خلال الرابط التالي:`,
+      link,
+    ],
+    withdrawal_approved: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت الموافقة على طلب السحب المقدم من قبلكم.`,
+      `سيتم استكمال الإجراءات المالية وفق الآلية المعتمدة في المنصة، ويمكنكم متابعة الحالة من خلال الرابط التالي:`,
+      link,
+    ],
+    withdrawal_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم تتم الموافقة على طلب السحب المقدم من قبلكم في الوقت الحالي.`,
+      `يرجى مراجعة تفاصيل الطلب وأسباب الرفض أو المتطلبات الإضافية، إن وجدت، من خلال الرابط التالي:`,
+      link,
+    ],
+    withdrawal_processed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت معالجة طلب السحب وتحويل المبلغ وفق البيانات المعتمدة في حسابكم.`,
+      `يمكنكم مراجعة تفاصيل العملية من خلال الرابط التالي:`,
+      link,
+    ],
+    service_approved: [
+      `مرحبًا ${name}،`,
+      `يسرنا إشعاركم عبر ${PLATFORM_NAME} بأنه تمت الموافقة على الخدمة ${entity}.`,
+      `يمكنكم الآن متابعة حالة الخدمة واستقبال الطلبات من خلال الرابط التالي:`,
+      link,
+    ],
+    service_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم تتم الموافقة على الخدمة ${entity} في الوقت الحالي.`,
+      `يرجى مراجعة الملاحظات أو التعديلات المطلوبة، إن وجدت، من خلال الرابط التالي:`,
+      link,
+    ],
+    service_purchased: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم شراء الخدمة ${entity} بنجاح.`,
+      `يرجى الدخول إلى حسابكم لمراجعة تفاصيل الطلب والبدء في تنفيذ الخدمة عبر الرابط التالي:`,
+      link,
+    ],
+    timelog_approved: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت الموافقة على الساعات المسجلة من قبلكم على ${entity}.`,
+      `يمكنكم مراجعة الساعات المعتمدة من خلال الرابط التالي:`,
+      link,
+    ],
+    timelog_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم تتم الموافقة على الساعات المسجلة من قبلكم على ${entity}.`,
+      `يرجى مراجعة التفاصيل وإعادة التقديم بعد استيفاء الملاحظات المطلوبة من خلال الرابط التالي:`,
+      link,
+    ],
+    deliverable_accepted: [
+      `مرحبًا ${name}،`,
+      `يسرنا إشعاركم عبر ${PLATFORM_NAME} بأنه تم قبول التسليمات الخاصة بـ ${entity}.`,
+      `يمكنكم متابعة حالة المشروع أو الخدمة من خلال الرابط التالي:`,
+      link,
+      `شكرًا لتعاونكم والتزامكم.`,
+    ],
+    deliverable_revision: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بوجود ملاحظات على التسليمات المرفوعة الخاصة بـ ${entity}.`,
+      `يرجى مراجعة الملاحظات وإجراء التعديلات المطلوبة ثم إعادة رفع النسخة المحدثة عبر الرابط التالي:`,
+      link,
+    ],
+    message_received: [
+      `مرحبًا ${name}،`,
+      `وردتكم رسالة جديدة عبر ${PLATFORM_NAME} بخصوص ${entity}.`,
+      `يمكنكم الاطلاع على محتوى الرسالة والرد عليها من خلال الرابط التالي:`,
+      link,
+    ],
+  };
+
+  return templates[type] || null;
+}
+
+/* ─── Build action URL from entity ─── */
+function buildActionUrl(entityType: string | null, entityId: string | null): string {
+  if (!entityType || !entityId) return `${SITE_URL}/notifications`;
+  const map: Record<string, string> = {
+    project: `/projects/${entityId}`,
+    service: `/marketplace/${entityId}`,
+    dispute: `/my-disputes`,
+    message: `/messages`,
+    invoice: `/invoices`,
+    withdrawal: `/earnings`,
+    ticket: `/support-tickets/${entityId}`,
+    grant_request: `/my-grant-requests`,
+    escrow: `/earnings`,
+  };
+  return `${SITE_URL}${map[entityType] || "/notifications"}`;
+}
+
+/* ─── Fetch entity name from DB ─── */
+async function fetchEntityName(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  entityType: string | null,
+  entityId: string | null
+): Promise<string> {
+  if (!entityType || !entityId) return "";
+  try {
+    if (entityType === "project") {
+      const { data } = await supabaseAdmin.from("projects").select("title").eq("id", entityId).single();
+      return data?.title || "";
+    }
+    if (entityType === "service") {
+      const { data } = await supabaseAdmin.from("micro_services").select("title").eq("id", entityId).single();
+      return data?.title || "";
+    }
+  } catch { /* ignore */ }
+  return "";
+}
+
+/* ─── Build email HTML ─── */
+function buildEmailHTML(paragraphs: string[], actionUrl: string): string {
+  const bodyContent = paragraphs.map((p) => {
+    if (p.startsWith("http")) {
+      return `<a href="${escapeHtml(p)}" style="display:inline-block;margin:8px 0;padding:10px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;">عرض التفاصيل</a>`;
+    }
+    return `<p style="margin:0 0 10px;color:#334155;font-size:15px;line-height:1.8;">${escapeHtml(p)}</p>`;
+  }).join("\n");
+
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -131,25 +266,72 @@ function buildEmailHTML(toName: string, message: string, type: string): string {
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <tr>
       <td style="background:linear-gradient(135deg,#0f766e,#14b8a6);padding:24px 30px;text-align:center;">
-        <h1 style="margin:0;color:#fff;font-size:22px;">منصة الشباب</h1>
-        <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Youth Hub SA</p>
+        <h1 style="margin:0;color:#fff;font-size:22px;">${escapeHtml(PLATFORM_NAME)}</h1>
       </td>
     </tr>
     <tr>
       <td style="padding:30px;">
-        <p style="margin:0 0 8px;color:#64748b;font-size:13px;">${label}</p>
-        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${safeName || ""},</p>
-        <div style="background:#f8fafc;border-right:4px solid #14b8a6;padding:16px 20px;border-radius:8px;margin:16px 0;">
-          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${safeMessage}</p>
+        <div style="background:#f8fafc;border-right:4px solid #14b8a6;padding:20px 24px;border-radius:8px;">
+          ${bodyContent}
         </div>
-        <a href="https://youth-hub-sa.lovable.app/notifications" style="display:inline-block;margin-top:20px;padding:10px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;">
-          عرض الإشعارات
-        </a>
+        <p style="margin:20px 0 0;color:#64748b;font-size:13px;text-align:center;">مع خالص التقدير،<br>فريق ${escapeHtml(PLATFORM_NAME)}</p>
       </td>
     </tr>
     <tr>
       <td style="background:#f8fafc;padding:16px 30px;text-align:center;border-top:1px solid #e2e8f0;">
-        <p style="margin:0;color:#94a3b8;font-size:11px;">هذا البريد تم إرساله تلقائياً من منصة الشباب. يمكنك إيقاف إشعارات البريد من إعدادات حسابك.</p>
+        <p style="margin:0;color:#94a3b8;font-size:11px;">هذا البريد تم إرساله تلقائياً من ${escapeHtml(PLATFORM_NAME)}. يمكنك إيقاف إشعارات البريد من إعدادات حسابك.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/* ─── Fallback for types without custom templates ─── */
+function buildFallbackHTML(toName: string, message: string, type: string): string {
+  const typeLabels: Record<string, string> = {
+    info: "إشعار", bid_received: "عرض سعر جديد", bid_accepted: "تم قبول عرضك",
+    bid_rejected: "تم رفض عرضك", bid_comment: "تعليق على عرض", contract_created: "عقد جديد",
+    contract_signed: "توقيع عقد", escrow_created: "ضمان مالي", escrow_released: "تحرير ضمان مالي",
+    escrow_refunded: "استرداد ضمان مالي", escrow_frozen: "تجميد ضمان مالي", project_open: "مشروع مفتوح",
+    project_in_progress: "بدء العمل", project_completed: "إكمال مشروع", project_cancelled: "إلغاء مشروع",
+    project_disputed: "شكوى على مشروع", project_suspended: "تعليق مشروع", dispute_opened: "شكوى جديدة",
+    dispute_resolved: "حل شكوى", service_approved: "الموافقة على خدمة", service_rejected: "رفض خدمة",
+    service_suspended: "تعليق خدمة", service_purchased: "شراء خدمة", withdrawal_approved: "الموافقة على سحب",
+    withdrawal_rejected: "رفض سحب", withdrawal_processed: "تحويل سحب", bank_transfer_pending: "تحويل بنكي جديد",
+    bank_transfer_approved: "الموافقة على تحويل", bank_transfer_rejected: "رفض تحويل",
+    invoice_created: "فاتورة جديدة", timelog_submitted: "تسجيل ساعات", timelog_approved: "الموافقة على ساعات",
+    timelog_rejected: "رفض ساعات", deliverable_submitted: "تسليم ملفات", deliverable_accepted: "قبول تسليمات",
+    deliverable_revision: "طلب تعديلات", message_received: "رسالة جديدة",
+    grant_request_received: "طلب منحة", grant_request_approved: "الموافقة على منحة",
+    grant_request_rejected: "رفض منحة", grant_request_funded: "تمويل منحة",
+    contact_message: "رسالة تواصل", donation_received: "تبرع جديد",
+  };
+  const label = typeLabels[type] || "إشعار";
+  return `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:'Segoe UI',Tahoma,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <tr>
+      <td style="background:linear-gradient(135deg,#0f766e,#14b8a6);padding:24px 30px;text-align:center;">
+        <h1 style="margin:0;color:#fff;font-size:22px;">${escapeHtml(PLATFORM_NAME)}</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px;">
+        <p style="margin:0 0 8px;color:#64748b;font-size:13px;">${escapeHtml(label)}</p>
+        <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">مرحباً ${escapeHtml(toName || "")}</p>
+        <div style="background:#f8fafc;border-right:4px solid #14b8a6;padding:16px 20px;border-radius:8px;margin:16px 0;">
+          <p style="margin:0;color:#334155;font-size:15px;line-height:1.7;">${escapeHtml(message)}</p>
+        </div>
+        <a href="${SITE_URL}/notifications" style="display:inline-block;margin-top:20px;padding:10px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;">عرض الإشعارات</a>
+        <p style="margin:20px 0 0;color:#64748b;font-size:13px;text-align:center;">مع خالص التقدير،<br>فريق ${escapeHtml(PLATFORM_NAME)}</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:#f8fafc;padding:16px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+        <p style="margin:0;color:#94a3b8;font-size:11px;">هذا البريد تم إرساله تلقائياً من ${escapeHtml(PLATFORM_NAME)}. يمكنك إيقاف إشعارات البريد من إعدادات حسابك.</p>
       </td>
     </tr>
   </table>
@@ -175,96 +357,76 @@ serve(async (req) => {
 
     if (!notification_id) {
       return new Response(JSON.stringify({ error: "Missing notification_id" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch the notification
     const { data: notification, error: nErr } = await supabaseAdmin
-      .from("notifications")
-      .select("*")
-      .eq("id", notification_id)
-      .single();
+      .from("notifications").select("*").eq("id", notification_id).single();
 
     if (nErr || !notification) {
       console.error("Notification not found:", nErr);
       return new Response(JSON.stringify({ error: "Notification not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch user profile
     const { data: profile, error: pErr } = await supabaseAdmin
-      .from("profiles")
-      .select("full_name, email_notifications, notification_preferences")
-      .eq("id", notification.user_id)
-      .single();
+      .from("profiles").select("full_name, email_notifications, notification_preferences")
+      .eq("id", notification.user_id).single();
 
     if (pErr || !profile) {
-      console.error("Profile not found:", pErr);
       return new Response(JSON.stringify({ skipped: true, reason: "profile_not_found" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check master toggle
     if (!profile.email_notifications) {
-      console.log(`⏭️ Skipped: email_notifications disabled for user ${notification.user_id}`);
       return new Response(JSON.stringify({ skipped: true, reason: "master_disabled" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check per-type preference
     const prefs = (profile.notification_preferences as Record<string, boolean>) || {};
     if (!isTypeEnabled(prefs, notification.type)) {
-      console.log(`⏭️ Skipped: type "${notification.type}" disabled for user ${notification.user_id}`);
       return new Response(JSON.stringify({ skipped: true, reason: "type_disabled" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Get user email from auth
-    const { data: authUser, error: aErr } = await supabaseAdmin.auth.admin.getUserById(
-      notification.user_id
-    );
+    const { data: authUser, error: aErr } = await supabaseAdmin.auth.admin.getUserById(notification.user_id);
     if (aErr || !authUser?.user?.email) {
-      console.error("Auth user not found or no email:", aErr);
       return new Response(JSON.stringify({ skipped: true, reason: "no_email" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const userEmail = authUser.user.email;
     const userName = profile.full_name || "";
 
-    // Build email
-    const subject = `${typeLabels[notification.type] || "إشعار"} - منصة الشباب`;
-    const html = buildEmailHTML(userName, notification.message, notification.type);
+    // Build email - use custom template if available, otherwise fallback
+    const actionUrl = buildActionUrl(notification.entity_type, notification.entity_id);
+    const entityName = await fetchEntityName(supabaseAdmin, notification.entity_type, notification.entity_id);
+    const customBody = getCustomBody(notification.type, userName, entityName, actionUrl);
 
-    // Send via PHP relay
-    const relayApiKey = Deno.env.get("RELAY_API_KEY");
-    if (!relayApiKey) {
-      throw new Error("RELAY_API_KEY secret is not configured");
+    let subject: string;
+    let html: string;
+
+    if (customBody) {
+      subject = CUSTOM_SUBJECTS[notification.type] || `إشعار - ${PLATFORM_NAME}`;
+      html = buildEmailHTML(customBody, actionUrl);
+    } else {
+      subject = `${notification.type === "info" ? "إشعار" : notification.type} - ${PLATFORM_NAME}`;
+      html = buildFallbackHTML(userName, notification.message, notification.type);
     }
+
+    const relayApiKey = Deno.env.get("RELAY_API_KEY");
+    if (!relayApiKey) throw new Error("RELAY_API_KEY secret is not configured");
 
     const relayResponse = await fetch(RELAY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": relayApiKey,
-      },
-      body: JSON.stringify({
-        to: userEmail,
-        subject,
-        body: html,
-      }),
+      headers: { "Content-Type": "application/json", "X-API-Key": relayApiKey },
+      body: JSON.stringify({ to: userEmail, subject, body: html }),
     });
 
     if (!relayResponse.ok) {
@@ -272,15 +434,10 @@ serve(async (req) => {
       throw new Error(`Relay returned ${relayResponse.status}: ${errorText}`);
     }
 
-    // Consume response body
     const relayResult = await relayResponse.text();
     console.log(`📧 Relay response: ${relayResult}`);
 
-    // Update delivery_status to sent
-    await supabaseAdmin
-      .from("notifications")
-      .update({ delivery_status: "email_sent" })
-      .eq("id", notification_id);
+    await supabaseAdmin.from("notifications").update({ delivery_status: "email_sent" }).eq("id", notification_id);
 
     console.log(`📧 Email sent to ${userEmail} for type "${notification.type}"`);
 
@@ -290,20 +447,13 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in send-notification-email:", error);
-
-    // Mark as failed in DB
     if (notificationId) {
       try {
-        await supabaseAdmin
-          .from("notifications")
-          .update({ delivery_status: "failed" })
-          .eq("id", notificationId);
-        console.log(`❌ Marked notification ${notificationId} as failed`);
+        await supabaseAdmin.from("notifications").update({ delivery_status: "failed" }).eq("id", notificationId);
       } catch (dbErr) {
         console.error("Failed to update delivery_status:", dbErr);
       }
     }
-
     return new Response(
       JSON.stringify({ error: "Internal server error", details: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
