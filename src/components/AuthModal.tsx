@@ -81,6 +81,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const [regStep, setRegStep] = useState(0);
   const [showResend, setShowResend] = useState(false);
   const [resending, setResending] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -91,6 +93,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setRegStep(0);
       setShowPassword(false);
       setShowResend(false);
+      setRegistrationComplete(false);
+      setRegisteredEmail("");
     }
   }, [open, defaultMode]);
 
@@ -156,8 +160,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       if (error) {
         toast.error(translateError(error.message));
       } else {
-        toast.success("تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.");
-        onOpenChange(false);
+        setRegisteredEmail(email.trim());
+        setRegistrationComplete(true);
       }
       setLoading(false);
     }
@@ -174,6 +178,63 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     }
     setResending(false);
   };
+
+  const handleResendRegistration = async () => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email: registeredEmail });
+    if (error) {
+      toast.error(translateError(error.message));
+    } else {
+      toast.success("تم إعادة إرسال رسالة التأكيد بنجاح");
+    }
+    setResending(false);
+  };
+
+  const registrationCompleteContent = (
+    <div className="space-y-6 p-6 text-center">
+      <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-16 w-auto object-contain" />
+      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="20" height="16" x="2" y="4" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground">تم إنشاء حسابك بنجاح! 🎉</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          يرجى التحقق من بريدك الإلكتروني
+        </p>
+        <p className="text-sm font-medium text-foreground bg-muted rounded-lg py-2 px-3 inline-block" dir="ltr">
+          {registeredEmail}
+        </p>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          وتأكيد حسابك من خلال الرابط المرسل إليك
+        </p>
+      </div>
+      <div className="space-y-3 pt-2">
+        <Button
+          variant="outline"
+          className="w-full h-11"
+          onClick={handleResendRegistration}
+          disabled={resending}
+        >
+          {resending ? "جارٍ الإرسال..." : "إعادة إرسال رسالة التأكيد"}
+        </Button>
+        <Button
+          className="w-full h-11"
+          onClick={() => {
+            setRegistrationComplete(false);
+            setIsLogin(true);
+            setEmail(registeredEmail);
+            setPassword("");
+            setRegStep(0);
+          }}
+        >
+          الانتقال لتسجيل الدخول
+        </Button>
+      </div>
+    </div>
+  );
 
   const formContent = (
     <div className="space-y-5 p-6">
@@ -439,7 +500,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             <DrawerTitle>{isLogin ? "تسجيل الدخول" : "إنشاء حساب"}</DrawerTitle>
           </VisuallyHidden>
           <ScrollArea className="overflow-y-auto max-h-[85vh]">
-            {formContent}
+            {registrationComplete ? registrationCompleteContent : formContent}
           </ScrollArea>
         </DrawerContent>
       </Drawer>
@@ -460,7 +521,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
-          {formContent}
+          {registrationComplete ? registrationCompleteContent : formContent}
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>

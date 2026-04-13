@@ -7,7 +7,7 @@ import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } fro
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Menu, Bell, CheckCheck } from "lucide-react";
+import { Menu, Bell, CheckCheck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -153,6 +153,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <HeaderNotifications isAdmin={isAdmin} />
             <HeaderUserInfo />
           </header>
+          {!isAdmin && profile && !profile.is_verified && (
+            <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 px-4 md:px-6 py-3">
+              <div className="flex items-center gap-3 max-w-4xl mx-auto">
+                <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    حسابك بانتظار التوثيق من قبل إدارة المنصة
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                    سيتم إشعارك فور اعتماد حسابك
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <ProfileCompletionBanner />
           <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
             {children}
