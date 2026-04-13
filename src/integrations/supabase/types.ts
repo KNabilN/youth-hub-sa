@@ -91,6 +91,39 @@ export type Database = {
           },
         ]
       }
+      bank_details: {
+        Row: {
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_iban: string | null
+          bank_name: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bank_transfers: {
         Row: {
           admin_note: string | null
@@ -1504,10 +1537,6 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          bank_account_holder: string | null
-          bank_account_number: string | null
-          bank_iban: string | null
-          bank_name: string | null
           bio: string | null
           city_id: string | null
           company_logo_url: string | null
@@ -1541,10 +1570,6 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_iban?: string | null
-          bank_name?: string | null
           bio?: string | null
           city_id?: string | null
           company_logo_url?: string | null
@@ -1578,10 +1603,6 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_iban?: string | null
-          bank_name?: string | null
           bio?: string | null
           city_id?: string | null
           company_logo_url?: string | null

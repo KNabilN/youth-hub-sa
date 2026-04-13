@@ -556,7 +556,8 @@ export default function AdminFinance() {
                   </TableHeader>
                   <TableBody>
                     {(withdrawals ?? []).map((w: any, idx: number) => {
-                      const profile = (w as any).profiles;
+                       const profile = (w as any).profiles;
+                       const bankInfo = (w as any).bank_details;
                       const providerName = profile?.full_name || profile?.organization_name || "—";
                       const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
                       return (
@@ -605,11 +606,11 @@ export default function AdminFinance() {
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(w.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                           <TableCell><Badge className={statusColor}>{wStatusLabels[w.status] ?? w.status}</Badge></TableCell>
                           <TableCell>
-                            {profile?.bank_name ? (
+                             {bankInfo?.bank_name ? (
                               <div className="text-xs space-y-0.5">
-                                <p className="font-medium">{profile.bank_name}</p>
-                                {profile.bank_iban && <p className="text-muted-foreground font-mono text-[11px] truncate max-w-[180px]" title={profile.bank_iban}>{profile.bank_iban}</p>}
-                                {profile.bank_account_holder && <p className="text-muted-foreground">{profile.bank_account_holder}</p>}
+                                <p className="font-medium">{bankInfo.bank_name}</p>
+                                {bankInfo.bank_iban && <p className="text-muted-foreground font-mono text-[11px] truncate max-w-[180px]" title={bankInfo.bank_iban}>{bankInfo.bank_iban}</p>}
+                                {bankInfo.bank_account_holder && <p className="text-muted-foreground">{bankInfo.bank_account_holder}</p>}
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">لم يُحدد</span>
@@ -928,8 +929,8 @@ export default function AdminFinance() {
             const colMap: Record<string, (w: any) => string> = {
               provider: (w) => (w as any).profiles?.full_name || (w as any).profiles?.organization_name || "",
               amount: (w) => String(w.amount),
-              bank: (w) => (w as any).profiles?.bank_name || "",
-              iban: (w) => (w as any).profiles?.bank_iban || "",
+               bank: (w) => (w as any).bank_details?.bank_name || "",
+               iban: (w) => (w as any).bank_details?.bank_iban || "",
               status: (w) => wStatusLabels[w.status] || w.status,
               created_at: (w) => w.created_at?.slice(0, 10) || "",
             };

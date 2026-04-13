@@ -2,20 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const FINANCIAL_FIELDS = [
-  "bank_name", "bank_account_number", "bank_iban", "bank_account_holder",
-];
-
-function hasFinancialChanges(updates: Record<string, unknown>, current: Record<string, unknown>): boolean {
-  for (const key of FINANCIAL_FIELDS) {
-    if (!(key in updates)) continue;
-    const newVal = JSON.stringify(updates[key] ?? null);
-    const oldVal = JSON.stringify(current[key] ?? null);
-    if (newVal !== oldVal) return true;
-  }
-  return false;
-}
-
 export function useProfile() {
   const { user } = useAuth();
   return useQuery({
@@ -33,38 +19,58 @@ export function useProfile() {
   });
 }
 
+export function useBankDetails() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["bank-details", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bank_details")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useUpdateProfile() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (updates: Record<string, unknown>) => {
       const userId = user!.id;
-
-      // Get current profile to compare
-      const { data: currentProfile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      let wasVerified = false;
-      let finalUpdates = { ...updates };
-
-      if (currentProfile && currentProfile.is_verified && hasFinancialChanges(updates, currentProfile as any)) {
-        finalUpdates.is_verified = false;
-        wasVerified = true;
-      }
-
       const { error } = await supabase
         .from("profiles")
-        .update(finalUpdates as any)
+        .update(updates as any)
         .eq("id", userId);
       if (error) throw error;
-
-      // Admin notification for financial changes is handled by database trigger
-      return { wasVerified };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+  });
+}
+
+export function useUpdateBankDetails() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (updates: { bank_name: string; bank_account_number: string; bank_iban: string; bank_account_holder: string }) => {
+      const userId = user!.id;
+      // Upsert: insert if not exists, update if exists
+      const { error } = await supabase
+        .from("bank_details")
+        .upsert(
+          { user_id: userId, ...updates } as any,
+          { onConflict: "user_id" }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bank-details"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
   });
 }
 

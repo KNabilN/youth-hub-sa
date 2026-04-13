@@ -27,7 +27,7 @@ export function useWithdrawals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("*, profiles:provider_id(full_name, organization_name, bank_name, bank_iban, bank_account_holder)")
+        .select("*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)")
         .eq("provider_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -73,7 +73,7 @@ export function useAllWithdrawals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("*, profiles:provider_id(full_name, organization_name, bank_name, bank_iban, bank_account_holder)")
+        .select("*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
