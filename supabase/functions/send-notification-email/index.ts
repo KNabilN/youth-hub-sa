@@ -40,10 +40,12 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-/* ─── Custom subjects per type ─── */
+/* ─── Custom subjects per type (default / service_provider) ─── */
 const CUSTOM_SUBJECTS: Record<string, string> = {
   bid_accepted: `تم قبول عرضك - ${PLATFORM_NAME}`,
   bid_rejected: `تعذر قبول عرضك - ${PLATFORM_NAME}`,
+  bid_received: `وصلكم عرض سعر جديد - ${PLATFORM_NAME}`,
+  project_open: `تم فتح المشروع - ${PLATFORM_NAME}`,
   project_in_progress: `بدء العمل على المشروع - ${PLATFORM_NAME}`,
   project_completed: `تم إكمال المشروع - ${PLATFORM_NAME}`,
   project_cancelled: `تم إلغاء المشروع - ${PLATFORM_NAME}`,
@@ -63,15 +65,33 @@ const CUSTOM_SUBJECTS: Record<string, string> = {
   timelog_rejected: `تعذر اعتماد الساعات المسجلة - ${PLATFORM_NAME}`,
   deliverable_accepted: `تم قبول التسليمات - ${PLATFORM_NAME}`,
   deliverable_revision: `مطلوب إجراء تعديلات على التسليمات - ${PLATFORM_NAME}`,
+  deliverable_submitted: `تم رفع تسليم جديد على المشروع - ${PLATFORM_NAME}`,
   message_received: `لديك رسالة جديدة - ${PLATFORM_NAME}`,
+  bank_transfer_approved: `تمت الموافقة على التحويل البنكي - ${PLATFORM_NAME}`,
+  bank_transfer_rejected: `تعذر اعتماد التحويل البنكي - ${PLATFORM_NAME}`,
+  invoice_created: `تم إصدار فاتورة جديدة - ${PLATFORM_NAME}`,
+  grant_request_approved: `تمت الموافقة على طلب المنحة - ${PLATFORM_NAME}`,
+  grant_request_rejected: `تعذر الموافقة على طلب المنحة - ${PLATFORM_NAME}`,
+  grant_request_funded: `تم تمويل طلب المنحة - ${PLATFORM_NAME}`,
+  inquiry_message: `إشعار جديد - ${PLATFORM_NAME}`,
 };
 
-/* ─── Custom body templates (returns paragraphs array) ─── */
-function getCustomBody(type: string, recipientName: string, entityName: string, actionUrl: string): string[] | null {
-  const name = recipientName || "";
-  const entity = entityName || "الطلب";
-  const link = actionUrl;
+/* ─── Role-specific subject overrides ─── */
+const ROLE_SUBJECT_OVERRIDES: Record<string, Record<string, string>> = {
+  youth_association: {
+    message_received: `لديكم رسالة جديدة - ${PLATFORM_NAME}`,
+    project_in_progress: `بدأ العمل على المشروع - ${PLATFORM_NAME}`,
+  },
+};
 
+function getSubjectForRole(type: string, role: string): string {
+  const override = ROLE_SUBJECT_OVERRIDES[role]?.[type];
+  if (override) return override;
+  return CUSTOM_SUBJECTS[type] || `إشعار - ${PLATFORM_NAME}`;
+}
+
+/* ─── Service Provider body templates ─── */
+function getProviderBody(type: string, name: string, entity: string, link: string): string[] | null {
   const templates: Record<string, string[]> = {
     bid_accepted: [
       `مرحبًا ${name}،`,
@@ -209,8 +229,153 @@ function getCustomBody(type: string, recipientName: string, entityName: string, 
       link,
     ],
   };
-
   return templates[type] || null;
+}
+
+/* ─── Youth Association body templates ─── */
+function getAssociationBody(type: string, name: string, entity: string, link: string): string[] | null {
+  const templates: Record<string, string[]> = {
+    bid_received: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بوصول عرض سعر جديد على ${entity}.`,
+      `يرجى الدخول إلى حسابكم للاطلاع على تفاصيل العرض ومراجعته واتخاذ الإجراء المناسب عبر الرابط التالي:`,
+      link,
+    ],
+    project_open: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم نشر ${entity} وأصبح متاحًا لإستقبال العروض.`,
+      `يمكنكم مراجعة تفاصيل الطلب من خلال الرابط التالي:`,
+      link,
+    ],
+    project_in_progress: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم بدء العمل على ${entity}.`,
+      `يمكنكم متابعة سير العمل والتحديثات المرتبطة بالمشروع من خلال الرابط التالي:`,
+      link,
+    ],
+    project_completed: [
+      `مرحبًا ${name}،`,
+      `يسرنا إشعاركم عبر ${PLATFORM_NAME} بأنه تم إكمال ${entity} بنجاح.`,
+      `يمكنكم الدخول إلى المنصة للاطلاع على التفاصيل والمخرجات المرتبطة بالمشروع من خلال الرابط التالي:`,
+      link,
+    ],
+    project_cancelled: [
+      `مرحبًا ${name}،`,
+      `نحيطكم علمًا عبر ${PLATFORM_NAME} بأنه تم إلغاء ${entity}.`,
+      `يرجى مراجعة تفاصيل الإلغاء من خلال الرابط التالي:`,
+      link,
+    ],
+    project_disputed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تسجيل شكوى متعلقة بـ ${entity}.`,
+      `يرجى الاطلاع على التفاصيل واتخاذ الإجراء المناسب من خلال الرابط التالي:`,
+      link,
+    ],
+    contract_created: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إنشاء عقد جديد مرتبط بـ ${entity}.`,
+      `يرجى مراجعة العقد واستكمال الإجراء المطلوب من خلال الرابط التالي:`,
+      link,
+    ],
+    contract_signed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم توقيع العقد الخاص بـ ${entity} بنجاح.`,
+      `يمكنكم الاطلاع على نسخة العقد ومتابعة الحالة من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_created: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إنشاء الضمان المالي الخاص بـ ${entity}.`,
+      `يمكنكم مراجعة تفاصيل العملية المالية من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_released: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تحرير الضمان المالي المرتبط بـ ${entity}.`,
+      `يمكنكم مراجعة تفاصيل العملية من خلال الرابط التالي:`,
+      link,
+    ],
+    escrow_refunded: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت معالجة استرداد الضمان المالي الخاص بـ ${entity}.`,
+      `يمكنكم مراجعة التفاصيل المالية من خلال الرابط التالي:`,
+      link,
+    ],
+    bank_transfer_approved: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تمت الموافقة على طلب التحويل البنكي المرتبط بحسابكم.`,
+      `يمكنكم متابعة حالة العملية عبر الرابط التالي:`,
+      link,
+    ],
+    bank_transfer_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم تتم الموافقة على طلب التحويل البنكي في الوقت الحالي.`,
+      `يرجى مراجعة سبب الرفض أو المتطلبات الإضافية من خلال الرابط التالي:`,
+      link,
+    ],
+    invoice_created: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إصدار فاتورة جديدة مرتبطة بـ ${entity}.`,
+      `يرجى الدخول إلى حسابكم للاطلاع على تفاصيل الفاتورة واستكمال الإجراء المطلوب عبر الرابط التالي:`,
+      link,
+    ],
+    deliverable_submitted: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم رفع تسليم جديد خاص بـ ${entity} من قبل مزود الخدمة.`,
+      `يرجى مراجعة الملفات أو المخرجات المرفوعة واتخاذ الإجراء المناسب من خلال الرابط التالي:`,
+      link,
+    ],
+    grant_request_approved: [
+      `مرحبًا ${name}،`,
+      `يسرنا إشعاركم عبر ${PLATFORM_NAME} بأنه تمت الموافقة على طلب المنحة المرتبط بـ ${entity}.`,
+      `يمكنكم الاطلاع على الخطوات التالية من خلال الرابط التالي:`,
+      link,
+    ],
+    grant_request_rejected: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه لم تتم الموافقة على طلب المنحة المرتبط بـ ${entity} في الوقت الحالي.`,
+      `يرجى مراجعة التفاصيل ذات العلاقة من خلال الرابط التالي:`,
+      link,
+    ],
+    grant_request_funded: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تمويل طلب المنحة المرتبط بـ ${entity}.`,
+      `يمكنكم الاطلاع على تفاصيل المنح والشراء من خلال الرابط التالي:`,
+      link,
+    ],
+    message_received: [
+      `مرحبًا ${name}،`,
+      `وردتكم رسالة جديدة عبر ${PLATFORM_NAME} بخصوص ${entity}.`,
+      `يمكنكم الاطلاع على محتوى الرسالة والرد عليها من خلال الرابط التالي:`,
+      link,
+    ],
+    inquiry_message: [
+      `مرحبًا ${name}،`,
+      `وردكم إشعار جديد عبر ${PLATFORM_NAME} يتعلق بأحد الطلبات أو الاستفسارات المرتبطة بحسابكم.`,
+      `يرجى مراجعة التفاصيل واتخاذ الإجراء المناسب من خلال الرابط التالي:`,
+      link,
+    ],
+  };
+  return templates[type] || null;
+}
+
+/* ─── Role-aware body resolver ─── */
+function getCustomBodyForRole(type: string, role: string, recipientName: string, entityName: string, actionUrl: string): string[] | null {
+  const name = recipientName || "";
+  const entity = entityName || "الطلب";
+
+  if (role === "youth_association") {
+    const body = getAssociationBody(type, name, entity, actionUrl);
+    if (body) return body;
+  }
+
+  if (role === "service_provider") {
+    const body = getProviderBody(type, name, entity, actionUrl);
+    if (body) return body;
+  }
+
+  // Fallback: try provider templates for any role (covers shared types)
+  return getProviderBody(type, name, entity, actionUrl);
 }
 
 /* ─── Build action URL from entity ─── */
@@ -248,6 +413,19 @@ async function fetchEntityName(
     }
   } catch { /* ignore */ }
   return "";
+}
+
+/* ─── Fetch user role ─── */
+async function fetchUserRole(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  userId: string
+): Promise<string> {
+  try {
+    const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId).single();
+    return data?.role || "service_provider";
+  } catch {
+    return "service_provider";
+  }
 }
 
 /* ─── Build email HTML ─── */
@@ -371,9 +549,15 @@ serve(async (req) => {
       });
     }
 
-    const { data: profile, error: pErr } = await supabaseAdmin
-      .from("profiles").select("full_name, email_notifications, notification_preferences")
-      .eq("id", notification.user_id).single();
+    // Fetch profile and role in parallel
+    const [profileResult, roleResult] = await Promise.all([
+      supabaseAdmin.from("profiles").select("full_name, email_notifications, notification_preferences")
+        .eq("id", notification.user_id).single(),
+      fetchUserRole(supabaseAdmin, notification.user_id),
+    ]);
+
+    const { data: profile, error: pErr } = profileResult;
+    const userRole = roleResult;
 
     if (pErr || !profile) {
       return new Response(JSON.stringify({ skipped: true, reason: "profile_not_found" }), {
@@ -404,16 +588,16 @@ serve(async (req) => {
     const userEmail = authUser.user.email;
     const userName = profile.full_name || "";
 
-    // Build email - use custom template if available, otherwise fallback
+    // Build email - use role-aware custom template if available, otherwise fallback
     const actionUrl = buildActionUrl(notification.entity_type, notification.entity_id);
     const entityName = await fetchEntityName(supabaseAdmin, notification.entity_type, notification.entity_id);
-    const customBody = getCustomBody(notification.type, userName, entityName, actionUrl);
+    const customBody = getCustomBodyForRole(notification.type, userRole, userName, entityName, actionUrl);
 
     let subject: string;
     let html: string;
 
     if (customBody) {
-      subject = CUSTOM_SUBJECTS[notification.type] || `إشعار - ${PLATFORM_NAME}`;
+      subject = getSubjectForRole(notification.type, userRole);
       html = buildEmailHTML(customBody, actionUrl);
     } else {
       subject = `${notification.type === "info" ? "إشعار" : notification.type} - ${PLATFORM_NAME}`;
@@ -439,10 +623,10 @@ serve(async (req) => {
 
     await supabaseAdmin.from("notifications").update({ delivery_status: "email_sent" }).eq("id", notification_id);
 
-    console.log(`📧 Email sent to ${userEmail} for type "${notification.type}"`);
+    console.log(`📧 Email sent to ${userEmail} for type "${notification.type}" role "${userRole}"`);
 
     return new Response(
-      JSON.stringify({ success: true, to: userEmail, type: notification.type }),
+      JSON.stringify({ success: true, to: userEmail, type: notification.type, role: userRole }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
