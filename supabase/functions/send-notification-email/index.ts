@@ -82,6 +82,14 @@ const ROLE_SUBJECT_OVERRIDES: Record<string, Record<string, string>> = {
     message_received: `لديكم رسالة جديدة - ${PLATFORM_NAME}`,
     project_in_progress: `بدأ العمل على المشروع - ${PLATFORM_NAME}`,
   },
+  donor: {
+    donation_received: `تم استلام التبرع بنجاح - ${PLATFORM_NAME}`,
+    project_completed: `تم إكمال المشروع المدعوم - ${PLATFORM_NAME}`,
+    grant_request_received: `وصلكم طلب منحة جديد - ${PLATFORM_NAME}`,
+    bank_transfer_pending: `طلب تحويل بنكي جديد بانتظار المراجعة - ${PLATFORM_NAME}`,
+    dispute_opened: `تم تسجيل شكوى جديدة - ${PLATFORM_NAME}`,
+    contact_message: `وردت رسالة تواصل جديدة - ${PLATFORM_NAME}`,
+  },
 };
 
 function getSubjectForRole(type: string, role: string): string {
@@ -359,10 +367,60 @@ function getAssociationBody(type: string, name: string, entity: string, link: st
   return templates[type] || null;
 }
 
+/* ─── Donor body templates ─── */
+function getDonorBody(type: string, name: string, entity: string, link: string): string[] | null {
+  const templates: Record<string, string[]> = {
+    donation_received: [
+      `مرحبًا ${name}،`,
+      `نشكر لكم دعمكم الكريم، ونود إشعاركم عبر ${PLATFORM_NAME} بأنه تم استلام التبرع المرتبط بـ ${entity} بنجاح.`,
+      `يمكنكم متابعة تفاصيل العملية من خلال الرابط التالي:`,
+      link,
+      `مع خالص الشكر والتقدير،`,
+    ],
+    project_completed: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم إكمال ${entity} المرتبط بدعمكم بنجاح.`,
+      `نشكر لكم مساهمتكم في تحقيق هذا الأثر، ويمكنكم الاطلاع على التفاصيل من خلال الرابط التالي:`,
+      link,
+      `مع خالص الشكر والتقدير،`,
+    ],
+    grant_request_received: [
+      `مرحبًا ${name}،`,
+      `ورد إلى حسابكم عبر ${PLATFORM_NAME} طلب منحة جديد مرتبط بـ ${entity}.`,
+      `يرجى مراجعة الطلب واتخاذ ما ترونه مناسبًا من خلال الرابط التالي:`,
+      link,
+    ],
+    bank_transfer_pending: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بوجود طلب تحويل بنكي جديد مرتبط بأحد العمليات في المنصة وهو بانتظار المراجعة.`,
+      `يمكنكم الاطلاع على التفاصيل واستكمال المتابعة من خلال الرابط التالي:`,
+      link,
+    ],
+    dispute_opened: [
+      `مرحبًا ${name}،`,
+      `نود إشعاركم عبر ${PLATFORM_NAME} بأنه تم تسجيل شكوى جديدة مرتبطة بـ ${entity}.`,
+      `يرجى مراجعة التفاصيل واتخاذ الإجراء المناسب وفق الصلاحيات المتاحة من خلال الرابط التالي:`,
+      link,
+    ],
+    contact_message: [
+      `مرحبًا ${name}،`,
+      `وردتكم رسالة تواصل جديدة عبر ${PLATFORM_NAME} مرتبطة بـ ${entity}.`,
+      `يمكنكم الاطلاع على محتوى الرسالة ومتابعتها من خلال الرابط التالي:`,
+      link,
+    ],
+  };
+  return templates[type] || null;
+}
+
 /* ─── Role-aware body resolver ─── */
 function getCustomBodyForRole(type: string, role: string, recipientName: string, entityName: string, actionUrl: string): string[] | null {
   const name = recipientName || "";
   const entity = entityName || "الطلب";
+
+  if (role === "donor") {
+    const body = getDonorBody(type, name, entity, actionUrl);
+    if (body) return body;
+  }
 
   if (role === "youth_association") {
     const body = getAssociationBody(type, name, entity, actionUrl);
