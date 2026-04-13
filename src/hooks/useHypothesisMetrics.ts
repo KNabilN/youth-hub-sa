@@ -148,7 +148,7 @@ export function useHypothesisMetrics() {
         supabase.from("escrow_transactions").select("id, project_id, service_id, grant_request_id, status, amount, created_at"),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("micro_services").select("id, provider_id, packages, service_type, price"),
-        supabase.from("profiles").select("id, full_name, bio, phone, skills, region_id, city_id, avatar_url, organization_name, license_number, bank_iban, created_at"),
+        supabase.from("profiles").select("id, full_name, bio, phone, skills, region_id, city_id, avatar_url, organization_name, license_number, created_at"),
         supabase.from("support_tickets").select("id", { count: "exact", head: true }),
       ]);
 
@@ -552,7 +552,7 @@ export function useHypothesisMetrics() {
       // ========== H25: Profile Completeness ==========
       const completenessFields = [
         "full_name", "bio", "phone", "skills", "region_id", "city_id",
-        "avatar_url", "organization_name", "license_number", "bank_iban",
+        "avatar_url", "organization_name", "license_number",
       ];
       const completenessScores = allProfiles.map((p: any) => {
         const filled = completenessFields.filter((f) => {
