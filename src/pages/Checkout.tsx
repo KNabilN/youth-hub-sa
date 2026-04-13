@@ -153,12 +153,12 @@ export default function Checkout() {
 
             // Secondary: notification — don't block on failure
             try {
-              await supabase.from("notifications").insert({
-                user_id: item.micro_services.provider_id,
-                message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
-                type: "service_purchased_assigned",
-                entity_id: proj.id,
-                entity_type: "project",
+              await supabase.rpc("send_notification_secure" as any, {
+                _recipient_id: item.micro_services.provider_id,
+                _message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                _type: "service_purchased_assigned",
+                _entity_id: proj.id,
+                _entity_type: "project",
               });
             } catch {}
           }
@@ -242,12 +242,12 @@ export default function Checkout() {
 
             // Secondary: Notify provider — don't block
             try {
-              await supabase.from("notifications").insert({
-                user_id: item.micro_services.provider_id,
-                message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
-                type: "service_purchased_assigned",
-                entity_id: proj.id,
-                entity_type: "project",
+              await supabase.rpc("send_notification_secure" as any, {
+                _recipient_id: item.micro_services.provider_id,
+                _message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                _type: "service_purchased_assigned",
+                _entity_id: proj.id,
+                _entity_type: "project",
               });
             } catch {}
           }
@@ -344,12 +344,12 @@ export default function Checkout() {
                   status: "accepted" as any,
                 });
                 try {
-                  await supabase.from("notifications").insert({
-                    user_id: item.micro_services.provider_id,
-                    message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
-                    type: "service_purchased_assigned",
-                    entity_id: proj.id,
-                    entity_type: "project",
+                  await supabase.rpc("send_notification_secure" as any, {
+                    _recipient_id: item.micro_services.provider_id,
+                    _message: `تم شراء خدمتك "${item.micro_services.title}" وتعيينك على مشروع جديد`,
+                    _type: "service_purchased_assigned",
+                    _entity_id: proj.id,
+                    _entity_type: "project",
                   });
                 } catch {}
               }
