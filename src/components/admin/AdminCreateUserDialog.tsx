@@ -65,9 +65,26 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
       toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
       return;
     }
+    if (role === "youth_association" && !licenseNumber.trim()) {
+      toast.error("رقم الترخيص مطلوب للجمعيات");
+      return;
+    }
 
     setLoading(true);
     try {
+      // License uniqueness check
+      if (role === "youth_association" && licenseNumber.trim()) {
+        const { data: exists, error: chkErr } = await supabase.rpc("check_license_number_exists", {
+          p_license: licenseNumber.trim(),
+        });
+        if (chkErr) throw chkErr;
+        if (exists === true) {
+          toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
+          setLoading(false);
+          return;
+        }
+      }
+
       const fullPhone = phone ? `+966${phone}` : "";
       const fullContactPhone = contactOfficerPhone ? `+966${contactOfficerPhone}` : "";
 
@@ -96,7 +113,12 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
       onOpenChange(false);
       resetForm();
     } catch (err: any) {
-      toast.error(translateError(err.message || "حدث خطأ أثناء إنشاء الحساب"));
+      const msg = String(err?.message || "");
+      if (msg.includes("23505") || msg.toLowerCase().includes("license_number")) {
+        toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
+      } else {
+        toast.error(translateError(msg || "حدث خطأ أثناء إنشاء الحساب"));
+      }
     } finally {
       setLoading(false);
     }
