@@ -414,8 +414,28 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
-            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep}>
-              التالي
+            {role === "youth_association" && (
+              <div className="space-y-2">
+                <Label htmlFor="modal-license">رقم الترخيص <span className="text-destructive">*</span></Label>
+                <Input
+                  id="modal-license"
+                  value={licenseNumber}
+                  onChange={(e) => {
+                    setLicenseNumber(e.target.value);
+                    if (errors.licenseNumber) setErrors((p) => ({ ...p, licenseNumber: "" }));
+                  }}
+                  placeholder="أدخل رقم ترخيص الجمعية"
+                  required
+                  dir="ltr"
+                  className={cn("text-start h-11", errors.licenseNumber && "border-destructive")}
+                />
+                {errors.licenseNumber && <p className="text-xs text-destructive">{errors.licenseNumber}</p>}
+                <p className="text-xs text-muted-foreground">رقم الترخيص يجب أن يكون فريداً ولا يُسمح بتكراره</p>
+              </div>
+            )}
+
+            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep} disabled={licenseChecking}>
+              {licenseChecking ? "جارٍ التحقق..." : "التالي"}
               <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             </Button>
           </>
