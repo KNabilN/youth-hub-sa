@@ -57,7 +57,7 @@ export default function Marketplace() {
   // Map flat RPC rows to the nested shape ServiceCard expects
   const services = (data ?? []).map((row: any) => ({
     ...row,
-    categories: row.category_id ? { id: row.category_id, name: row.category_name, image_url: null } : null,
+    categories: row.category_id ? { id: row.category_id, name: row.category_name, image_url: row.category_image_url } : null,
     regions: row.region_id ? { id: row.region_id, name: row.region_name } : null,
     cities: row.city_id ? { name: row.city_name } : null,
     profiles: { full_name: row.provider_name },
