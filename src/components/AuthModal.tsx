@@ -99,10 +99,11 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setShowResend(false);
       setRegistrationComplete(false);
       setRegisteredEmail("");
+      setLicenseNumber("");
     }
   }, [open, defaultMode]);
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     setErrors({});
     const parsed = step1Schema.safeParse({ fullName, phone });
     if (!parsed.success) {
@@ -113,6 +114,29 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       });
       setErrors(fieldErrors);
       return;
+    }
+    // Association: license is mandatory + must be unique
+    if (role === "youth_association") {
+      const licenseParse = associationLicenseSchema.safeParse(licenseNumber);
+      if (!licenseParse.success) {
+        setErrors({ licenseNumber: licenseParse.error.errors[0].message });
+        return;
+      }
+      setLicenseChecking(true);
+      try {
+        const { data, error } = await supabase.rpc("check_license_number_exists", {
+          p_license: licenseNumber.trim(),
+        });
+        if (error) throw error;
+        if (data === true) {
+          setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
+          setLicenseChecking(false);
+          return;
+        }
+      } catch {
+        // network error: allow continue, final unique constraint will catch it
+      }
+      setLicenseChecking(false);
     }
     setRegStep(1);
   };
