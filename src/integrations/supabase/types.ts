@@ -2241,6 +2241,46 @@ export type Database = {
         Returns: boolean
       }
       get_landing_stats: { Args: never; Returns: Json }
+      get_marketplace_services: {
+        Args: {
+          p_category?: string
+          p_city?: string
+          p_limit?: number
+          p_offset?: number
+          p_price_max?: number
+          p_price_min?: number
+          p_region?: string
+          p_search?: string
+          p_service_type?: string
+          p_sort?: string
+        }
+        Returns: {
+          avg_rating: number
+          category_id: string
+          category_image_url: string
+          category_name: string
+          city_id: string
+          city_name: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          image_url: string
+          is_featured: boolean
+          price: number
+          provider_id: string
+          provider_name: string
+          rating_count: number
+          region_id: string
+          region_name: string
+          sales_count: number
+          service_number: string
+          service_type: Database["public"]["Enums"]["service_type"]
+          service_views: number
+          title: string
+          total_count: number
+        }[]
+      }
       get_public_profile: { Args: { p_id: string }; Returns: Json }
       get_public_project: { Args: { p_id: string }; Returns: Json }
       get_user_email_admin: { Args: { p_user_id: string }; Returns: string }

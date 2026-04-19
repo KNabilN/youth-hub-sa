@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ServiceCard } from "@/components/marketplace/ServiceCard";
 import { ServiceFilters } from "@/components/marketplace/ServiceFilters";
@@ -23,7 +23,6 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState("newest");
   const pagination = usePagination();
 
-  // Debounced search using useRef
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const handleSearchChange = useCallback((v: string) => {
@@ -35,91 +34,42 @@ export default function Marketplace() {
     }, 400);
   }, [pagination]);
 
-  const { data: services, isLoading } = useQuery({
-    queryKey: ["marketplace", category, region, city, serviceType, debouncedSearch, priceMin, priceMax, pagination.from, pagination.to],
+  const { data, isLoading } = useQuery({
+    queryKey: ["marketplace-rpc", category, region, city, serviceType, debouncedSearch, priceMin, priceMax, sortBy, pagination.from, pagination.pageSize],
     queryFn: async () => {
-      let query = supabase
-        .from("micro_services")
-        .select("*, categories(*), regions(*), cities(*), profiles:provider_id(full_name)")
-        .eq("approval", "approved")
-        .is("deleted_at", null)
-        .order("display_order" as any, { ascending: true })
-        .order("created_at", { ascending: false })
-        .range(pagination.from, pagination.to);
-      if (category !== "all") query = query.eq("category_id", category);
-      if (region !== "all") query = query.eq("region_id", region);
-      if (city !== "all") query = query.eq("city_id", city);
-      if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
-      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
-      if (priceMin) query = query.gte("price", Number(priceMin));
-      if (priceMax) query = query.lte("price", Number(priceMax));
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: totalCount } = useQuery({
-    queryKey: ["marketplace-count", category, region, city, serviceType, debouncedSearch, priceMin, priceMax],
-    queryFn: async () => {
-      let query = supabase
-        .from("micro_services")
-        .select("*", { count: "exact", head: true })
-        .eq("approval", "approved")
-        .is("deleted_at", null);
-      if (category !== "all") query = query.eq("category_id", category);
-      if (region !== "all") query = query.eq("region_id", region);
-      if (city !== "all") query = query.eq("city_id", city);
-      if (serviceType !== "all") query = query.eq("service_type", serviceType as any);
-      if (debouncedSearch.trim()) query = query.or(`title.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
-      if (priceMin) query = query.gte("price", Number(priceMin));
-      if (priceMax) query = query.lte("price", Number(priceMax));
-      const { count, error } = await query;
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
-
-  const { data: ratingsMap } = useQuery({
-    queryKey: ["provider-ratings-map"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ratings")
-        .select("contract_id, quality_score, timing_score, communication_score, contracts(provider_id)");
-      if (error) throw error;
-      const map: Record<string, { total: number; count: number }> = {};
-      data?.forEach((r: any) => {
-        const pid = r.contracts?.provider_id;
-        if (!pid) return;
-        if (!map[pid]) map[pid] = { total: 0, count: 0 };
-        map[pid].total += (r.quality_score + r.timing_score + r.communication_score) / 3;
-        map[pid].count += 1;
+      const { data, error } = await supabase.rpc("get_marketplace_services" as any, {
+        p_category: category !== "all" ? category : null,
+        p_region: region !== "all" ? region : null,
+        p_city: city !== "all" ? city : null,
+        p_service_type: serviceType !== "all" ? serviceType : null,
+        p_search: debouncedSearch.trim() || null,
+        p_price_min: priceMin ? Number(priceMin) : null,
+        p_price_max: priceMax ? Number(priceMax) : null,
+        p_sort: sortBy,
+        p_offset: pagination.from,
+        p_limit: pagination.pageSize,
       });
-      return map;
+      if (error) throw error;
+      return data as any[];
     },
   });
 
-  const sortedServices = useMemo(() => {
-    if (!services) return [];
-    const list = [...services];
-    if (sortBy === "price_asc") list.sort((a, b) => a.price - b.price);
-    else if (sortBy === "price_desc") list.sort((a, b) => b.price - a.price);
-    else if (sortBy === "rating" && ratingsMap) {
-      list.sort((a, b) => {
-        const ra = ratingsMap[a.provider_id];
-        const rb = ratingsMap[b.provider_id];
-        const avgA = ra ? ra.total / ra.count : 0;
-        const avgB = rb ? rb.total / rb.count : 0;
-        return avgB - avgA;
-      });
-    }
-    return list;
-  }, [services, sortBy, ratingsMap]);
+  // Map flat RPC rows to the nested shape ServiceCard expects
+  const services = (data ?? []).map((row: any) => ({
+    ...row,
+    categories: row.category_id ? { id: row.category_id, name: row.category_name, image_url: row.category_image_url } : null,
+    regions: row.region_id ? { id: row.region_id, name: row.region_name } : null,
+    cities: row.city_id ? { name: row.city_name } : null,
+    profiles: { full_name: row.provider_name },
+  }));
+
+  const totalCount = data && data.length > 0 ? Number(data[0].total_count) : 0;
 
   const handleCategoryChange = (v: string) => { setCategory(v); pagination.resetPage(); };
   const handleRegionChange = (v: string) => { setRegion(v); setCity("all"); pagination.resetPage(); };
   const handleCityChange = (v: string) => { setCity(v); pagination.resetPage(); };
   const handleServiceTypeChange = (v: string) => { setServiceType(v); pagination.resetPage(); };
+  const handleSortChange = (v: string) => { setSortBy(v); pagination.resetPage(); };
 
   const activeFiltersCount = [category !== "all", region !== "all", city !== "all", serviceType !== "all", !!priceMin, !!priceMax, !!debouncedSearch].filter(Boolean).length;
 
@@ -158,7 +108,7 @@ export default function Marketplace() {
               />
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-40 h-9">
                     <SelectValue placeholder="ترتيب حسب" />
                   </SelectTrigger>
@@ -187,7 +137,7 @@ export default function Marketplace() {
               </Card>
             ))}
           </div>
-        ) : !sortedServices.length ? (
+        ) : !services.length ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
               <div className="bg-muted p-4 rounded-full mb-4">
@@ -201,14 +151,14 @@ export default function Marketplace() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedServices.map(s => <ServiceCard key={s.id} service={s as any} />)}
+            {services.map(s => <ServiceCard key={s.id} service={s as any} />)}
           </div>
         )}
 
         <PaginationControls
           page={pagination.page}
           pageSize={pagination.pageSize}
-          totalFetched={services?.length ?? 0}
+          totalFetched={services.length}
           totalItems={totalCount}
           onPrev={pagination.prevPage}
           onNext={pagination.nextPage}
