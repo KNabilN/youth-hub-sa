@@ -1,40 +1,36 @@
 
-## الطلب
-عند تسجيل جمعية شبابية جديدة:
-1. جعل **رقم الترخيص** حقلاً إلزامياً
-2. جعله **فريداً** (Unique) — لا يُسمح بتكرار رقم ترخيص مسجَّل مسبقاً
+## المشكلة
+في صفحة `/marketplace`، الترتيب (sortBy) يتم على مستوى **الصفحة الحالية فقط** لأن:
+- `price_asc` / `price_desc` / `rating` يطبَّق في `useMemo` على نتيجة الـ query بعد تطبيق `.range(from, to)` (أي بعد الـ pagination)
+- الترتيب الفعلي في الـ query ثابت دائماً: `display_order` ثم `created_at`
+- `rating` يُحسب client-side من `ratingsMap` لكن فقط على 20 صف ظاهر
 
-## التحقيق السريع
-- حقل `license_number` موجود في جدول `profiles` (نوع text، nullable، بدون قيد unique)
-- يظهر حقل الترخيص حالياً في `AuthModal` ضمن خطوة استكمال بيانات الجمعية، لكنه ليس إلزامياً ولا يوجد فحص تكرار
-- يوجد ضابط (trigger) `handle_new_user` ينشئ صف `profiles` تلقائياً عند التسجيل
+النتيجة: تغيير "الأعلى سعراً" يرتب 20 خدمة فقط من أصل 4 صفحات بدلاً من ترتيب الـ 80 خدمة كلها واختيار الأعلى.
 
-## التغييرات
+## الحل
 
-### 1. قاعدة البيانات (Migration)
-- إضافة **Unique Partial Index** على `profiles.license_number`:
-  ```sql
-  CREATE UNIQUE INDEX profiles_license_number_unique
-  ON public.profiles (license_number)
-  WHERE license_number IS NOT NULL AND btrim(license_number) <> '';
-  ```
-  (يستخدم Partial Index ليتجاهل القيم الفارغة لأن المانحين ومزودي الخدمة لا يملكون رقم ترخيص)
+### `src/pages/Marketplace.tsx`
+نقل الترتيب إلى **جانب الخادم (server-side)** ضمن استعلام Supabase قبل الـ `.range()`:
 
-- إضافة دالة فحص متاحة للجمهور (لتجنب السباق race condition قبل الإرسال):
-  ```sql
-  CREATE FUNCTION public.check_license_number_exists(p_license text)
-  RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER ...
-  ```
+1. **`newest`** → `.order("created_at", { ascending: false })` (مع إبقاء `display_order` كأولوية أولى أو إزالته حسب الترتيب المختار)
+2. **`price_asc`** → `.order("price", { ascending: true })`
+3. **`price_desc`** → `.order("price", { ascending: false })`
+4. **`rating`** → يحتاج معالجة خاصة:
+   - إما إضافة عمود محسوب `avg_rating` على جدول `micro_services` (الأمثل للأداء عبر trigger يحدّثه عند إضافة تقييم)
+   - أو إنشاء **Database View / RPC** يرجّع الخدمات مرتبة حسب متوسط تقييم المزود
+   - **الخيار المقترح**: إنشاء RPC function `get_marketplace_services` تقبل الفلاتر + الترتيب + الـ pagination، وتُرجع الخدمات مع متوسط التقييم محسوباً، مع ORDER BY على المستوى الكامل قبل LIMIT/OFFSET
 
-### 2. واجهة التسجيل — `src/components/AuthModal.tsx`
-- جعل حقل **رقم الترخيص** إلزامياً عند اختيار دور `youth_association`
-- إضافة فحص فوري (on blur) باستخدام `check_license_number_exists` لإظهار رسالة "رقم الترخيص مسجَّل مسبقاً"
-- منع المتابعة إذا كان الحقل فارغاً أو مكرراً
-- ترجمة خطأ Postgres `23505` (unique violation) إلى رسالة عربية واضحة عند الإرسال النهائي
+### الخطوات
+1. **Migration**: إنشاء RPC function `public.get_marketplace_services(...)` تقبل: `p_category, p_region, p_city, p_service_type, p_search, p_price_min, p_price_max, p_sort, p_offset, p_limit` وتُرجع الخدمات مع `avg_rating` وعمود `total_count` (للـ pagination) — كلها مرتبة على كامل البيانات.
+2. **`Marketplace.tsx`**: استبدال الـ query المباشر بـ `supabase.rpc("get_marketplace_services", {...})`.
+3. **إزالة `useMemo` للترتيب** — لم يعد ضرورياً.
+4. **إزالة `ratingsMap` query** — التقييم سيأتي ضمن RPC.
+5. **إبقاء `useQuery` للعدد الكلي** أو دمجه مع RPC (window function `count(*) over()`).
 
-### 3. صفحة الملف الشخصي — `src/pages/Profile.tsx`
-- إضافة نفس فحص التكرار عند تحديث رقم الترخيص (يستثني المستخدم نفسه)
-- ترجمة خطأ unique violation إلى عربية
+### ملاحظة على باقي الصفحات
+هذه المشكلة قد تتكرر في صفحات أخرى تستخدم pagination + sort client-side (مثل `AvailableProjects`, `MyServices`, إلخ). نقترح فحصها لاحقاً عند الحاجة، لكن هذا الـ plan يركّز على `Marketplace` فقط حسب طلبك المحدد.
 
-### 4. أداة الإدارة — `src/components/admin/AdminCreateUserDialog.tsx`
-- إذا كان الدور `youth_association`: جعل رقم الترخيص إلزامياً + معالجة خطأ unique violation
+### النتيجة
+- الترتيب يطبّق على كامل الـ 80+ خدمة قبل تقسيمها لصفحات
+- الأداء يتحسن (لا حاجة لجلب جميع التقييمات client-side)
+- الفلاتر (موجودة أصلاً server-side) تستمر بالعمل بنفس الطريقة الصحيحة
