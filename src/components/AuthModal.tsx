@@ -43,6 +43,8 @@ const step1Schema = z.object({
   phone: z.string().trim().length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة").regex(/^[0-9]+$/, "رقم جوال غير صالح"),
 });
 
+const associationLicenseSchema = z.string().trim().min(3, "رقم الترخيص مطلوب").max(50, "رقم الترخيص طويل جداً");
+
 const step2Schema = z.object({
   email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
@@ -75,6 +77,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<AppRole>("youth_association");
   const [phone, setPhone] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [licenseChecking, setLicenseChecking] = useState(false);
   const [pdplConsent, setPdplConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -95,10 +99,11 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       setShowResend(false);
       setRegistrationComplete(false);
       setRegisteredEmail("");
+      setLicenseNumber("");
     }
   }, [open, defaultMode]);
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     setErrors({});
     const parsed = step1Schema.safeParse({ fullName, phone });
     if (!parsed.success) {
@@ -109,6 +114,29 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       });
       setErrors(fieldErrors);
       return;
+    }
+    // Association: license is mandatory + must be unique
+    if (role === "youth_association") {
+      const licenseParse = associationLicenseSchema.safeParse(licenseNumber);
+      if (!licenseParse.success) {
+        setErrors({ licenseNumber: licenseParse.error.errors[0].message });
+        return;
+      }
+      setLicenseChecking(true);
+      try {
+        const { data, error } = await supabase.rpc("check_license_number_exists", {
+          p_license: licenseNumber.trim(),
+        });
+        if (error) throw error;
+        if (data === true) {
+          setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
+          setLicenseChecking(false);
+          return;
+        }
+      } catch {
+        // network error: allow continue, final unique constraint will catch it
+      }
+      setLicenseChecking(false);
     }
     setRegStep(1);
   };
@@ -156,9 +184,23 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       }
 
       setLoading(true);
-      const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
+      const { error } = await signUp(
+        email.trim(),
+        password,
+        fullName.trim(),
+        role,
+        `+966${phone.trim()}`,
+        role === "youth_association" ? licenseNumber.trim() : undefined,
+      );
       if (error) {
-        toast.error(translateError(error.message));
+        const msg = String(error.message || "");
+        if (msg.includes("23505") || msg.toLowerCase().includes("license_number")) {
+          setRegStep(0);
+          setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
+          toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
+        } else {
+          toast.error(translateError(error.message));
+        }
       } else {
         setRegisteredEmail(email.trim());
         setRegistrationComplete(true);
@@ -386,8 +428,28 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
-            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep}>
-              التالي
+            {role === "youth_association" && (
+              <div className="space-y-2">
+                <Label htmlFor="modal-license">رقم الترخيص <span className="text-destructive">*</span></Label>
+                <Input
+                  id="modal-license"
+                  value={licenseNumber}
+                  onChange={(e) => {
+                    setLicenseNumber(e.target.value);
+                    if (errors.licenseNumber) setErrors((p) => ({ ...p, licenseNumber: "" }));
+                  }}
+                  placeholder="أدخل رقم ترخيص الجمعية"
+                  required
+                  dir="ltr"
+                  className={cn("text-start h-11", errors.licenseNumber && "border-destructive")}
+                />
+                {errors.licenseNumber && <p className="text-xs text-destructive">{errors.licenseNumber}</p>}
+                <p className="text-xs text-muted-foreground">رقم الترخيص يجب أن يكون فريداً ولا يُسمح بتكراره</p>
+              </div>
+            )}
+
+            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep} disabled={licenseChecking}>
+              {licenseChecking ? "جارٍ التحقق..." : "التالي"}
               <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             </Button>
           </>

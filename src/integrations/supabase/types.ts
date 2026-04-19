@@ -2236,6 +2236,10 @@ export type Database = {
         Returns: undefined
       }
       check_email_exists: { Args: { p_email: string }; Returns: boolean }
+      check_license_number_exists: {
+        Args: { p_exclude_user_id?: string; p_license: string }
+        Returns: boolean
+      }
       get_landing_stats: { Args: never; Returns: Json }
       get_public_profile: { Args: { p_id: string }; Returns: Json }
       get_public_project: { Args: { p_id: string }; Returns: Json }

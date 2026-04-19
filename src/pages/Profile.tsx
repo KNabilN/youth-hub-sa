@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const roleLabels: Record<string, string> = {
   super_admin: "مدير النظام",
@@ -117,12 +118,29 @@ export default function Profile() {
     setInitialized(true);
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // IBAN validation for roles that need bank info
     if ((role === "service_provider" || role === "youth_association") && bankIban && bankIban.length > 0) {
       if (!bankIban.startsWith("SA") || bankIban.length !== 24) {
         toast({ title: "رقم IBAN غير صحيح", description: "يجب أن يبدأ بـ SA ويتكون من 24 حرف", variant: "destructive" });
         return;
+      }
+    }
+
+    // License uniqueness check for associations
+    if (role === "youth_association" && licenseNumber.trim()) {
+      try {
+        const { data, error } = await supabase.rpc("check_license_number_exists", {
+          p_license: licenseNumber.trim(),
+          p_exclude_user_id: profile?.id,
+        });
+        if (error) throw error;
+        if (data === true) {
+          toast({ title: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى", variant: "destructive" });
+          return;
+        }
+      } catch {
+        // network error: continue, DB unique index will catch it
       }
     }
 
@@ -149,7 +167,14 @@ export default function Profile() {
         onSuccess: () => {
           toast({ title: "تم تحديث الملف الشخصي" });
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: (err: any) => {
+          const msg = String(err?.message || "");
+          if (msg.includes("23505") || msg.toLowerCase().includes("license_number")) {
+            toast({ title: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى", variant: "destructive" });
+          } else {
+            toast({ title: "حدث خطأ", variant: "destructive" });
+          }
+        },
       }
     );
 
