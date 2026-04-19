@@ -170,10 +170,19 @@ export function AdminCreateUserDialog({ open, onOpenChange }: AdminCreateUserDia
               <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} />
             </div>
             <div>
-              <Label>رقم الترخيص</Label>
-              <Input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} dir="ltr" />
+              <Label>
+                رقم الترخيص {role === "youth_association" && <span className="text-destructive">*</span>}
+              </Label>
+              <Input
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+                dir="ltr"
+                required={role === "youth_association"}
+              />
+              {role === "youth_association" && (
+                <p className="text-xs text-muted-foreground mt-1">رقم الترخيص يجب أن يكون فريداً ولا يُسمح بتكراره</p>
+              )}
             </div>
-
             <div className="border-t pt-4">
               <p className="text-sm font-medium text-muted-foreground mb-3">بيانات ضابط الاتصال</p>
               <div className="space-y-4">
