@@ -184,9 +184,23 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       }
 
       setLoading(true);
-      const { error } = await signUp(email.trim(), password, fullName.trim(), role, `+966${phone.trim()}`);
+      const { error } = await signUp(
+        email.trim(),
+        password,
+        fullName.trim(),
+        role,
+        `+966${phone.trim()}`,
+        role === "youth_association" ? licenseNumber.trim() : undefined,
+      );
       if (error) {
-        toast.error(translateError(error.message));
+        const msg = String(error.message || "");
+        if (msg.includes("23505") || msg.toLowerCase().includes("license_number")) {
+          setRegStep(0);
+          setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
+          toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
+        } else {
+          toast.error(translateError(error.message));
+        }
       } else {
         setRegisteredEmail(email.trim());
         setRegistrationComplete(true);
