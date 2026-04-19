@@ -43,6 +43,8 @@ const step1Schema = z.object({
   phone: z.string().trim().length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة").regex(/^[0-9]+$/, "رقم جوال غير صالح"),
 });
 
+const associationLicenseSchema = z.string().trim().min(3, "رقم الترخيص مطلوب").max(50, "رقم الترخيص طويل جداً");
+
 const step2Schema = z.object({
   email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
