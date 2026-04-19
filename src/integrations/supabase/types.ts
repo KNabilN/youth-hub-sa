@@ -2257,6 +2257,7 @@ export type Database = {
         Returns: {
           avg_rating: number
           category_id: string
+          category_image_url: string
           category_name: string
           city_id: string
           city_name: string
