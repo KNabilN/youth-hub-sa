@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion } from "lucide-react";
@@ -15,22 +15,41 @@ interface ServiceInquirySheetProps {
 
 export function ServiceInquirySheet({ serviceId, providerId, serviceTitle }: ServiceInquirySheetProps) {
   const [open, setOpen] = useState(false);
-  const { data: inquiry, isLoading } = useServiceInquiry(open ? serviceId : undefined);
+  // Always enabled — prefetch existing inquiry so it's ready before user clicks
+  const { data: inquiry, isLoading, refetch } = useServiceInquiry(serviceId);
   const createInquiry = useCreateInquiry();
   const [createdInquiry, setCreatedInquiry] = useState<string | null>(null);
+  const creatingRef = useRef(false);
 
   const inquiryId = inquiry?.id ?? createdInquiry;
 
   const handleOpen = async (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen && !inquiry && !createdInquiry) {
-      try {
-        const result = await createInquiry.mutateAsync({ serviceId, providerId });
-        setCreatedInquiry(result.id);
-      } catch {
-        toast.error("تعذر فتح الاستفسار");
-        setOpen(false);
+    if (!isOpen) return;
+    if (createdInquiry || creatingRef.current) return;
+
+    // Wait for query to settle if still loading
+    let existing = inquiry;
+    if (!existing) {
+      const r = await refetch();
+      existing = r.data ?? undefined;
+    }
+    if (existing) return;
+
+    creatingRef.current = true;
+    try {
+      const result = await createInquiry.mutateAsync({ serviceId, providerId });
+      setCreatedInquiry(result.id);
+    } catch (err: any) {
+      // Unique violation — inquiry already exists, silently recover by refetching
+      if (err?.code === "23505") {
+        const r = await refetch();
+        if (r.data) return;
       }
+      toast.error("تعذر فتح الاستفسار");
+      setOpen(false);
+    } finally {
+      creatingRef.current = false;
     }
   };
 
