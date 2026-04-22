@@ -175,10 +175,7 @@ export default function MyServices() {
                   long_description: (editingService as any).long_description ?? "",
                   category_id: editingService.category_id ?? "",
                   region_id: editingService.region_id ?? "",
-                  service_type: editingService.service_type,
                   price: editingService.price,
-                  faq: (editingService as any).faq ?? [],
-                  packages: (editingService as any).packages ?? [],
                 }}
                 defaultImageUrl={(editingService as any).image_url}
                 defaultGallery={(editingService as any).gallery ?? []}
