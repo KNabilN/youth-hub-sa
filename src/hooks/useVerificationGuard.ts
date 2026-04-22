@@ -63,3 +63,35 @@ export function usePublishGuard() {
 
   return { canPublish, guardPublish, isVerified, isComplete, missingFields, blockReason, isLoading };
 }
+
+export function useBidGuard() {
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { missingFields, isLoading: completenessLoading } = useProfileCompleteness();
+  const isVerified = profile?.is_verified ?? false;
+  const hasPortfolio = !missingFields.includes("نموذج عمل واحد على الأقل");
+  const isLoading = profileLoading || completenessLoading;
+  const canBid = isVerified && hasPortfolio;
+
+  const blockReason: "verification" | "portfolio" | null = !isVerified
+    ? "verification"
+    : !hasPortfolio
+      ? "portfolio"
+      : null;
+
+  const guardBid = useCallback(
+    (callback: () => void) => {
+      if (!isVerified) {
+        toast.error("يجب توثيق حسابك أولاً لتقديم عروض");
+        return;
+      }
+      if (!hasPortfolio) {
+        toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض");
+        return;
+      }
+      callback();
+    },
+    [isVerified, hasPortfolio],
+  );
+
+  return { canBid, guardBid, isVerified, hasPortfolio, blockReason, isLoading };
+}
