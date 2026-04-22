@@ -26,7 +26,7 @@ export default function MyServices() {
   const deleteService = useDeleteService();
   const updateStatus = useUpdateServiceStatus();
   const { toast } = useToast();
-  const { isVerified, guardAction } = useVerificationGuard();
+  const { canPublish, guardPublish, blockReason } = usePublishGuard();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
