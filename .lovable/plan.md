@@ -1,29 +1,54 @@
 
 
-## التنظيف المطلوب في `src/pages/MyServices.tsx`
+## اشتراط إكمال الملف الشخصي + معرض الأعمال قبل النشر
 
-نموذج `ServiceForm` بعد التبسيط لم يعد يقبل props أو حقول الصور/المعرض/الباقات/الأسئلة، لكن `MyServices.tsx` لا يزال يمررها. سأحذف كل ما لا فائدة منه.
+### القاعدة الجديدة
+- **مزود الخدمة**: لا يمكنه نشر خدمة جديدة إلا بعد:
+  1. اكتمال الملف الشخصي (الحقول الحالية في `useProfileCompleteness`)
+  2. **وجود عمل واحد على الأقل في معرض الأعمال** (`portfolio_items`)
+- **الجمعية**: لا يمكنها نشر طلب جديد إلا بعد اكتمال الملف الشخصي (لا يُطلب منها معرض أعمال)
+- **المتبرع / المدير**: لا يتأثرون
 
 ### التغييرات
 
-**1. حذف props غير موجودة في `ServiceForm` عند فتح نافذة التعديل:**
-- إزالة `defaultImageUrl={(editingService as any).image_url}`
-- إزالة `defaultGallery={(editingService as any).gallery ?? []}`
-- إزالة `long_description` من `defaultValues` (لم يعد ضمن نموذج النشر الجديد — تم إعادة استخدامه ضمن "المخرجات والتسليمات" والتي يديرها الـ ServiceForm نفسه عبر defaultValues إذا توفّرت)
-  - **تصحيح**: حقل `long_description` ما زال جزءاً من schema الجديد (يمثّل "المخرجات والتسليمات")، لذا يبقى ضمن `defaultValues`. سنزيل فقط الـ casts غير الضرورية ونحوله إلى وصول مباشر.
+**1. توسيع `useProfileCompleteness.ts`**
+- إضافة جلب عدد عناصر `portfolio_items` لمزود الخدمة عبر query إضافية
+- إضافة شرط افتراضي للمزود: "إضافة عمل واحد على الأقل في معرض الأعمال"
+- يظهر هذا الشرط ضمن `missingFields` كنص "نموذج عمل واحد على الأقل" مع رابط مباشر للملف الشخصي → تبويب الأعمال
+- النتيجة: `isComplete` تصبح `false` حتى للمزود الذي أكمل بياناته لكن بدون أعمال
 
-**2. تنظيف الـ `as any` غير الضرورية:**
-- استخدام النوع المُصدَّر `ServiceFormValues` بدل `any` في معالِجات `handleCreate` / `handleCreateDraft` / `handleEdit`
-- إزالة `as any` من mutate calls
+**2. تحديث `useVerificationGuard.ts`**
+- إضافة دالة جديدة `useProfileGuard()` (أو توسيع الحالية) ترجع:
+  - `canPublish: boolean` = `is_verified && isProfileComplete`
+  - `guardPublish(callback)` يعرض رسالة مناسبة:
+    - إذا غير موثق → "يجب توثيق حسابك أولاً"
+    - إذا الملف ناقص → "يجب إكمال الملف الشخصي أولاً" + التوجيه لـ `/profile`
+    - إذا مزود بدون أعمال → "يجب إضافة عمل واحد على الأقل في معرض الأعمال"
+- نُبقي `guardAction` الحالية كما هي (للشراء/التبرع/إلخ — توثيق فقط)، ونضيف `guardPublish` للنشر
 
-**3. حذف الـ import غير المستخدم:**
-- `ServiceFormValues` كان مستورداً لكن غير مستخدم → سيُستخدم الآن في تواقيع المعالِجات
+**3. تطبيق `guardPublish` في صفحات النشر**
+- `src/pages/MyServices.tsx`: زر "إضافة خدمة" يستخدم `guardPublish` بدل `guardAction`
+- `src/pages/ProjectCreate.tsx`: حماية فتح المعالج وحفظ المسودة باستخدام `guardPublish`
+- في كلا الصفحتين: يظهر `Alert` واضح أعلى الصفحة عند عدم الاستيفاء يحتوي على:
+  - سبب المنع (موثق/ملف/أعمال)
+  - زر "إكمال الملف الشخصي" → `/profile`
+  - زر إضافي للمزود "إضافة نموذج عمل" → `/profile?tab=portfolio`
 
-### النتيجة النهائية لـ `MyServices.tsx`
-- لا إشارة إلى `image_url`, `gallery`, `packages`, `faq`, `service_type`, `defaultImageUrl`, `defaultGallery`
-- type-safe بدون `as any` العشوائي
-- نموذج التعديل يمرر فقط الحقول الستة المعتمدة: `title, description, long_description, category_id, region_id, price`
+**4. تحديث `ProfileCompletionBanner.tsx`**
+- البانر الحالي يعتمد على `useProfileCompleteness` وسيلتقط الشرط الجديد تلقائياً
+- لا تغيير في المنطق، فقط النص "الحقول المتبقية" سيُظهر "نموذج عمل واحد على الأقل" للمزود عند الحاجة
 
-### الملفات المتأثرة
-- `src/pages/MyServices.tsx` فقط — لا تغييرات على قاعدة البيانات أو على `ServiceForm` أو على `MyServiceCard` (الأخير لا يزال يعرض الصورة إن وُجدت في الخدمات القديمة، وهذا سلوك مرغوب).
+### الملفات المعدّلة
+- `src/hooks/useProfileCompleteness.ts` — إضافة فحص portfolio للمزود
+- `src/hooks/useVerificationGuard.ts` — إضافة `guardPublish` + `canPublish`
+- `src/pages/MyServices.tsx` — استبدال `guardAction` بـ `guardPublish` لزر النشر
+- `src/pages/ProjectCreate.tsx` — حماية إنشاء الطلب بـ `guardPublish`
+
+### بدون تغييرات
+- لا migrations في قاعدة البيانات (الجداول والأعمدة موجودة)
+- لا تغيير في `Profile.tsx` (تبويب الأعمال موجود ويعمل)
+- لا تأثير على الشراء/التبرع/تقديم العروض (تبقى بـ `guardAction` الحالية = توثيق فقط)
+
+### ملاحظة للتأكيد
+هل تريد أيضاً منع **تقديم عرض السعر (Bid)** من المزود إذا لم يكن لديه نموذج عمل؟ خطتي الحالية لا تشمل ذلك (فقط نشر الخدمات والطلبات كما طلبت حرفياً). إن أردت إضافته فقط أخبرني.
 
