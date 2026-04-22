@@ -45,7 +45,7 @@ export default function MyServices() {
     });
   };
 
-  const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleCreateDraft = (values: any) => {
     if (createService.isPending) return;
     createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => {
@@ -56,7 +56,7 @@ export default function MyServices() {
     });
   };
 
-  const handleEdit = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleEdit = (values: any) => {
     if (!editingId || updateService.isPending) return;
     updateService.mutate({ id: editingId, ...values, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
