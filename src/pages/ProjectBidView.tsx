@@ -24,7 +24,7 @@ export default function ProjectBidView() {
   const submitBid = useSubmitBid();
   const uploadAttachment = useUploadAttachment();
   const { toast } = useToast();
-  const { isVerified } = useVerificationGuard();
+  const { canBid, blockReason } = useBidGuard();
   const [createdBidId, setCreatedBidId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
