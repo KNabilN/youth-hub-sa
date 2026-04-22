@@ -12,6 +12,7 @@ import { useUnreadCount } from "@/hooks/useNotifications";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import { useAdminUnreadTotal, useUserAdminUnread } from "@/hooks/useAdminMessages";
 import { useCartCount } from "@/hooks/useCart";
 import { useAdminFinancePending } from "@/hooks/useAdminFinancePending";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -111,6 +112,10 @@ export function AppSidebar() {
 
   // Admin finance pending counts
   const { data: financePending } = useAdminFinancePending();
+
+  // Admin direct-messages unread counters
+  const { data: adminMsgUnreadTotal } = useAdminUnreadTotal();
+  const { data: userAdminMsgUnread } = useUserAdminUnread();
 
   // In-progress tickets count (admin sees all, non-admin sees own)
   const { data: activeTicketsCount } = useQuery({
@@ -273,6 +278,8 @@ export function AppSidebar() {
     if ((url === "/admin/tickets" || url === "/tickets") && (activeTicketsCount ?? 0) > 0) return activeTicketsCount;
     if (url === "/cart" && cartCount > 0) return cartCount;
     if (url === "/admin/finance" && (financePending?.total ?? 0) > 0) return financePending!.total;
+    if (url === "/admin/messages" && (adminMsgUnreadTotal ?? 0) > 0) return adminMsgUnreadTotal;
+    if (url === "/messages" && (userAdminMsgUnread ?? 0) > 0) return userAdminMsgUnread;
     if (url === "/invoices" && (newInvoicesCount ?? 0) > 0) return newInvoicesCount;
     if (url === "/contracts" && (role === "service_provider" || role === "youth_association") && (unsignedContractsCount ?? 0) > 0) return unsignedContractsCount;
     const grantCount = grantRequestsCounts?.[url];
