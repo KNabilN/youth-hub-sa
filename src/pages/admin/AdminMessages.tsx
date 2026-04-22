@@ -29,7 +29,7 @@ export default function AdminMessages() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="border rounded-2xl overflow-hidden bg-card" style={{ height: "calc(100vh - 250px)" }}>
+        <div className="border rounded-2xl overflow-hidden bg-card shadow-sm" style={{ height: "min(calc(100vh - 220px), 720px)" }}>
           <div className="grid grid-cols-1 md:grid-cols-[min(340px,40vw)_1fr] h-full">
             {/* Conversation list */}
             <div className={cn("border-s overflow-y-auto", selected && "hidden md:block")}>
