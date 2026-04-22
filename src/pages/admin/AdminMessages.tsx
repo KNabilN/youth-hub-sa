@@ -128,20 +128,20 @@ export default function AdminMessages() {
                       العودة للمحادثات
                     </Button>
                   </div>
-                  <div className="p-4 border-b bg-card">
+                  <div className="p-4 border-b-2 border-primary/10 bg-gradient-to-l from-primary/5 via-primary/[0.02] to-transparent">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-11 w-11 ring-2 ring-primary/20">
                         <AvatarImage src={selected.user?.avatar_url || undefined} />
                         <AvatarFallback>
                           {(selected.user ? getDisplayName(selected.user as any) : "؟")[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <h2 className="font-bold">
+                      <div className="flex-1 min-w-0">
+                        <h2 className="font-bold truncate">
                           {selected.user ? getDisplayName(selected.user as any) : "مستخدم"}
                         </h2>
                         {selected.user?.user_number && (
-                          <p className="text-xs text-muted-foreground font-mono">
+                          <p className="text-xs text-muted-foreground font-mono truncate">
                             {selected.user.user_number}
                           </p>
                         )}
