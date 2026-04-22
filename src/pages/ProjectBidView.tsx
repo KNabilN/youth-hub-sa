@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useVerificationGuard } from "@/hooks/useVerificationGuard";
-import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle, Building2, ExternalLink } from "lucide-react";
+import { useBidGuard } from "@/hooks/useVerificationGuard";
+import { ArrowRight, MapPin, Clock, DollarSign, CheckCircle, Building2, ExternalLink, AlertCircle, Briefcase } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +24,7 @@ export default function ProjectBidView() {
   const submitBid = useSubmitBid();
   const uploadAttachment = useUploadAttachment();
   const { toast } = useToast();
-  const { isVerified } = useVerificationGuard();
+  const { canBid, blockReason } = useBidGuard();
   const [createdBidId, setCreatedBidId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -135,13 +136,30 @@ export default function ProjectBidView() {
           <Card>
             <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
             <CardContent>
-              {isVerified ? (
+              {canBid ? (
                 <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              ) : blockReason === "verification" ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>الحساب غير موثّق</AlertTitle>
+                  <AlertDescription className="space-y-3">
+                    <p>يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/profile")}>
+                      الذهاب للملف الشخصي
+                    </Button>
+                  </AlertDescription>
+                </Alert>
               ) : (
-                <div className="text-center py-8 space-y-2">
-                  <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات</p>
-                  <Button variant="outline" onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
-                </div>
+                <Alert>
+                  <Briefcase className="h-4 w-4" />
+                  <AlertTitle>معرض الأعمال فارغ</AlertTitle>
+                  <AlertDescription className="space-y-3">
+                    <p>يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/profile?tab=portfolio")}>
+                      إضافة نموذج عمل
+                    </Button>
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
