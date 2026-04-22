@@ -34,7 +34,7 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleCreate = (values: any) => {
     if (createService.isPending) return;
     createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => {
@@ -45,7 +45,7 @@ export default function MyServices() {
     });
   };
 
-  const handleCreateDraft = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleCreateDraft = (values: any) => {
     if (createService.isPending) return;
     createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => {
@@ -56,7 +56,7 @@ export default function MyServices() {
     });
   };
 
-  const handleEdit = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleEdit = (values: any) => {
     if (!editingId || updateService.isPending) return;
     updateService.mutate({ id: editingId, ...values, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
@@ -175,10 +175,7 @@ export default function MyServices() {
                   long_description: (editingService as any).long_description ?? "",
                   category_id: editingService.category_id ?? "",
                   region_id: editingService.region_id ?? "",
-                  service_type: editingService.service_type,
                   price: editingService.price,
-                  faq: (editingService as any).faq ?? [],
-                  packages: (editingService as any).packages ?? [],
                 }}
                 defaultImageUrl={(editingService as any).image_url}
                 defaultGallery={(editingService as any).gallery ?? []}
