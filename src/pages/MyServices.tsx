@@ -34,7 +34,7 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => {
+  const handleCreate = (values: any) => {
     if (createService.isPending) return;
     createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
       onSuccess: () => {
