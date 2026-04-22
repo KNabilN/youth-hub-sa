@@ -29,7 +29,7 @@ export default function AdminMessages() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="border rounded-2xl overflow-hidden bg-card" style={{ height: "calc(100vh - 250px)" }}>
+        <div className="border rounded-2xl overflow-hidden bg-card shadow-sm" style={{ height: "min(calc(100vh - 220px), 720px)" }}>
           <div className="grid grid-cols-1 md:grid-cols-[min(340px,40vw)_1fr] h-full">
             {/* Conversation list */}
             <div className={cn("border-s overflow-y-auto", selected && "hidden md:block")}>
@@ -128,20 +128,20 @@ export default function AdminMessages() {
                       العودة للمحادثات
                     </Button>
                   </div>
-                  <div className="p-4 border-b bg-card">
+                  <div className="p-4 border-b-2 border-primary/10 bg-gradient-to-l from-primary/5 via-primary/[0.02] to-transparent">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-11 w-11 ring-2 ring-primary/20">
                         <AvatarImage src={selected.user?.avatar_url || undefined} />
                         <AvatarFallback>
                           {(selected.user ? getDisplayName(selected.user as any) : "؟")[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <h2 className="font-bold">
+                      <div className="flex-1 min-w-0">
+                        <h2 className="font-bold truncate">
                           {selected.user ? getDisplayName(selected.user as any) : "مستخدم"}
                         </h2>
                         {selected.user?.user_number && (
-                          <p className="text-xs text-muted-foreground font-mono">
+                          <p className="text-xs text-muted-foreground font-mono truncate">
                             {selected.user.user_number}
                           </p>
                         )}

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Send, Paperclip, FileText, X, Shield } from "lucide-react";
+import { Send, Paperclip, FileText, X, Shield, MessageSquare, ArrowDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -108,15 +108,21 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
             ))}
           </div>
         ) : !messages?.length ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center px-4 animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent mx-auto mb-5 flex items-center justify-center ring-1 ring-primary/10">
+              <MessageSquare className="h-9 w-9 text-primary" />
             </div>
-            <p className="text-muted-foreground">لا توجد رسائل بعد</p>
-            <p className="text-xs text-muted-foreground mt-1">ابدأ المحادثة بكتابة أول رسالة</p>
+            <h3 className="text-lg font-bold text-foreground mb-1.5">ابدأ المحادثة</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              اكتب رسالتك في الأسفل لإرسال أول رسالة في هذه المحادثة
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-1.5 text-primary">
+              <ArrowDown className="h-5 w-5 animate-bounce" />
+              <span className="text-[11px] font-medium opacity-70">صندوق الكتابة</span>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {messages.map((m) => (
               <Bubble
                 key={m.id}
@@ -143,7 +149,7 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
         </div>
       )}
 
-      <div className="p-4 border-t bg-card">
+      <div className="p-4 border-t-2 border-primary/10 bg-muted/40 shadow-[0_-4px_12px_-6px_hsl(var(--primary)/0.08)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -162,24 +168,26 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
             type="button"
             variant="ghost"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 h-11 w-11 rounded-full hover:bg-background"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
+            title="إرفاق ملف"
           >
             <Paperclip className={cn("h-5 w-5", uploading && "animate-spin")} />
           </Button>
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="اكتب رسالتك..."
-            className="flex-1"
+            placeholder="اكتب رسالتك هنا..."
+            className="flex-1 h-11 rounded-full bg-background border-2 px-5 text-base focus-visible:ring-primary/40 focus-visible:border-primary/40 placeholder:text-muted-foreground/70"
             disabled={send.isPending}
           />
           <Button
             type="submit"
             size="icon"
             disabled={send.isPending || (!text.trim() && !attachment)}
-            className="shrink-0"
+            className="shrink-0 h-11 w-11 rounded-full shadow-md hover:shadow-lg transition-shadow disabled:shadow-none"
+            title="إرسال"
           >
             <Send className="h-4 w-4" />
           </Button>
@@ -212,19 +220,19 @@ function Bubble({
           {isOwn ? "أنا" : (otherPartyName?.[0] ?? <Shield className="h-3.5 w-3.5" />)}
         </AvatarFallback>
       </Avatar>
-      <div className="max-w-[70%] space-y-1">
-        <p className={cn("text-[11px] font-medium", isOwn ? "text-end" : "text-start")}>
+      <div className="max-w-[75%] space-y-1">
+        <p className={cn("text-[11px] font-medium text-muted-foreground", isOwn ? "text-end" : "text-start")}>
           {isOwn ? "أنت" : otherPartyName ?? "الإدارة"}
         </p>
         <div
           className={cn(
-            "rounded-2xl px-4 py-2.5 text-sm",
+            "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
             isOwn
               ? "bg-primary text-primary-foreground rounded-ss-sm"
               : "bg-muted rounded-se-sm"
           )}
         >
-          {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
+          {msg.content && <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>}
           {msg.attachment_url && msg.attachment_name && (
             <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="mt-2 block">
               {isImage(msg.attachment_name) ? (
@@ -246,10 +254,15 @@ function Bubble({
               )}
             </a>
           )}
+          <p
+            className={cn(
+              "text-[10px] mt-1.5 opacity-70",
+              isOwn ? "text-end text-primary-foreground" : "text-start text-muted-foreground"
+            )}
+          >
+            {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: ar })}
+          </p>
         </div>
-        <p className={cn("text-[10px] text-muted-foreground", isOwn ? "text-end" : "text-start")}>
-          {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: ar })}
-        </p>
       </div>
     </div>
   );

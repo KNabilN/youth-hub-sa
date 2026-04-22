@@ -53,7 +53,7 @@ export default function Messages() {
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="border rounded-2xl overflow-hidden bg-card" style={{ height: "calc(100vh - 250px)" }}>
+        <div className="border rounded-2xl overflow-hidden bg-card shadow-sm" style={{ height: "min(calc(100vh - 220px), 720px)" }}>
           <div className="grid grid-cols-1 md:grid-cols-[min(320px,40vw)_1fr] h-full">
             {/* Conversation List */}
             <div className={cn(
@@ -146,12 +146,16 @@ export default function Messages() {
                       </div>
                     ) : selected.type === "admin" ? (
                       <div className="flex flex-col h-full">
-                        <div className="p-4 border-b bg-card">
-                          <div className="flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-primary" />
-                            <h2 className="font-bold text-lg">الإدارة</h2>
+                        <div className="p-4 border-b-2 border-primary/10 bg-gradient-to-l from-primary/5 via-primary/[0.02] to-transparent">
+                          <div className="flex items-center gap-3">
+                            <div className="h-11 w-11 rounded-full bg-primary/10 ring-2 ring-primary/20 flex items-center justify-center shrink-0">
+                              <Shield className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h2 className="font-bold text-lg leading-tight">الإدارة</h2>
+                              <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
+                            </div>
                           </div>
-                          <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
                         </div>
                         <div className="flex-1 min-h-0">
                           <AdminUserChatThread userId={selected.id} otherPartyName="الإدارة" />
