@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -11,50 +11,62 @@ import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
 import { CategorySelectWithOther } from "@/components/ui/category-select-with-other";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { ImagePlus, X, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
 import { CharCounter } from "@/components/ui/char-counter";
+import { cn } from "@/lib/utils";
+
+const countWords = (text: string) =>
+  (text ?? "").trim().split(/\s+/).filter(Boolean).length;
 
 const serviceSchema = z.object({
-  title: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(80, "العنوان يجب ألا يتجاوز 80 حرفاً"),
-  description: z.string().min(20, "الوصف يجب أن يكون 20 حرفاً على الأقل").max(5000),
-  long_description: z.string().max(10000).optional(),
+  title: z
+    .string()
+    .min(5, "العنوان يجب أن يكون 5 أحرف على الأقل")
+    .max(80, "العنوان يجب ألا يتجاوز 80 حرفاً"),
+  description: z
+    .string()
+    .max(5000)
+    .refine((v) => countWords(v) >= 50, {
+      message: "يجب ألا يقل الوصف عن 50 كلمة",
+    }),
+  long_description: z
+    .string()
+    .min(10, "يرجى كتابة المخرجات والتسليمات")
+    .max(10000),
   category_id: z.string().min(1, "اختر التصنيف"),
   region_id: z.string().min(1, "اختر المنطقة"),
   city_id: z.string().optional().nullable(),
-  service_type: z.enum(["fixed_price", "hourly"]),
   price: z.coerce.number().positive("يجب أن يكون رقماً موجباً"),
-  faq: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).optional(),
-  packages: z.array(z.object({
-    name: z.string().min(1),
-    description: z.string().min(1),
-    price: z.coerce.number().positive(),
-    old_price: z.coerce.number().optional(),
-  })).optional(),
 });
 
 export type ServiceFormValues = z.infer<typeof serviceSchema>;
+
+interface ServiceFormSubmitValues extends ServiceFormValues {
+  image_url?: string | null;
+  gallery?: string[];
+  service_type?: "fixed_price" | "hourly";
+  packages?: any[];
+  faq?: any[];
+}
 
 interface ServiceFormProps {
   defaultValues?: Partial<ServiceFormValues>;
   defaultImageUrl?: string | null;
   defaultGallery?: string[];
-  onSubmit: (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => void;
-  onSaveDraft?: (values: ServiceFormValues & { image_url?: string | null; gallery?: string[] }) => void;
+  onSubmit: (values: ServiceFormSubmitValues) => void;
+  onSaveDraft?: (values: ServiceFormSubmitValues) => void;
   isLoading?: boolean;
   submitLabel?: string;
 }
 
-export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, onSubmit, onSaveDraft, isLoading, submitLabel = "حفظ" }: ServiceFormProps) {
+export function ServiceForm({
+  defaultValues,
+  onSubmit,
+  onSaveDraft,
+  isLoading,
+  submitLabel = "حفظ",
+}: ServiceFormProps) {
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
-  const { user } = useAuth();
-  const [imageUrl, setImageUrl] = useState<string | null>(defaultImageUrl ?? null);
-  const [galleryUrls, setGalleryUrls] = useState<string[]>(defaultGallery ?? []);
-  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
@@ -65,10 +77,7 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
       category_id: "",
       region_id: "",
       city_id: null,
-      service_type: "fixed_price",
       price: 0,
-      faq: [],
-      packages: [],
       ...defaultValues,
     },
   });
@@ -76,7 +85,6 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
   const selectedRegionId = form.watch("region_id");
   const { data: cities } = useCities(selectedRegionId);
 
-  // Reset city when region changes
   useEffect(() => {
     const currentCity = form.getValues("city_id");
     if (currentCity && cities && !cities.find((c: any) => c.id === currentCity)) {
@@ -84,219 +92,197 @@ export function ServiceForm({ defaultValues, defaultImageUrl, defaultGallery, on
     }
   }, [selectedRegionId, cities]);
 
-  const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control: form.control, name: "faq" });
-  const { fields: pkgFields, append: appendPkg, remove: removePkg } = useFieldArray({ control: form.control, name: "packages" });
+  const descriptionValue = form.watch("description") ?? "";
+  const wordCount = countWords(descriptionValue);
+  const remainingWords = Math.max(0, 50 - wordCount);
+  const wordsOk = wordCount >= 50;
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("الحد الأقصى لحجم الصورة 5 ميجابايت"); return; }
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("service-images").upload(path, file);
-    if (error) { setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("service-images").getPublicUrl(path);
-    if (isGallery) {
-      setGalleryUrls(prev => [...prev, urlData.publicUrl]);
-    } else {
-      setImageUrl(urlData.publicUrl);
-    }
-    setUploading(false);
-  };
+  const buildPayload = (values: ServiceFormValues): ServiceFormSubmitValues => ({
+    ...values,
+    image_url: null,
+    gallery: [],
+    service_type: "fixed_price",
+    packages: [],
+    faq: [],
+  });
 
   const handleSubmit = (values: ServiceFormValues) => {
-    onSubmit({ ...values, image_url: imageUrl, gallery: galleryUrls });
+    onSubmit(buildPayload(values));
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Main image */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">صورة الخدمة الرئيسية (اختياري)</label>
-          {imageUrl ? (
-            <div className="relative w-full h-40 rounded-lg overflow-hidden border">
-              <img src={imageUrl} alt="صورة الخدمة" className="w-full h-full object-cover" />
-              <Button type="button" variant="destructive" size="icon" className="absolute top-2 left-2 h-7 w-7" onClick={() => setImageUrl(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-              <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
-              <span className="text-sm text-muted-foreground">{uploading ? "جارٍ الرفع..." : "اضغط لرفع صورة"}</span>
-              <span className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 800×500 بكسل • الحد الأقصى: 5 MB</span>
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, false)} disabled={uploading} />
-            </label>
-          )}
-        </div>
-
-        {/* Gallery */}
-        <div>
-          <label className="text-sm font-medium mb-1 block">معرض الصور (اختياري - حتى 5 صور إضافية)</label>
-          <p className="text-xs text-muted-foreground mb-2">الأبعاد المُوصى بها: 800×500 بكسل • الحد الأقصى: 5 MB</p>
-          <div className="flex gap-2 flex-wrap">
-            {galleryUrls.map((url, i) => (
-              <div key={i} className="relative w-24 h-20 rounded-md overflow-hidden border">
-                <img src={url} alt="" className="w-full h-full object-cover" />
-                <Button type="button" variant="destructive" size="icon" className="absolute top-1 left-1 h-5 w-5" onClick={() => setGalleryUrls(prev => prev.filter((_, idx) => idx !== i))}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-            {galleryUrls.length < 5 && (
-              <label className="flex flex-col items-center justify-center w-24 h-20 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-                <Plus className="h-5 w-5 text-muted-foreground" />
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, true)} disabled={uploading} />
-              </label>
-            )}
-          </div>
-        </div>
-
-        <FormField control={form.control} name="title" render={({ field }) => (
-          <FormItem>
-            <FormLabel required>عنوان الخدمة</FormLabel>
-            <FormControl><Input placeholder="أدخل عنوان الخدمة" maxLength={80} {...field} /></FormControl>
-            <CharCounter current={field.value?.length ?? 0} max={80} />
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="description" render={({ field }) => (
-          <FormItem>
-            <FormLabel required>وصف مختصر</FormLabel>
-            <FormControl><Textarea placeholder="وصف مختصر يظهر في بطاقة الخدمة" rows={3} maxLength={5000} {...field} /></FormControl>
-            <CharCounter current={field.value?.length ?? 0} max={5000} />
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="long_description" render={({ field }) => (
-          <FormItem>
-            <FormLabel required>وصف تفصيلي</FormLabel>
-            <FormControl><Textarea placeholder="مثال: تهدف الخدمة إلى... وتشمل الأنشطة التالية: 1) ... 2) ... والمخرجات المتوقعة هي..." rows={6} maxLength={10000} {...field} /></FormControl>
-            <p className="text-xs text-muted-foreground">يرجى وصف الخدمة بشكل منظم ومحدد، مع توضيح: أهداف الخدمة، نطاقها، الأنشطة أو المراحل التنفيذية، والمخرجات المتوقعة بشكل قابل للقياس، مع تجنب العبارات العامة أو غير الواضحة.</p>
-            <CharCounter current={field.value?.length ?? 0} max={10000} />
-            <FormMessage />
-          </FormItem>
-        )} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField control={form.control} name="category_id" render={({ field }) => (
+        {/* 1. Title */}
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel required>التصنيف</FormLabel>
+              <FormLabel required>عنوان الخدمة</FormLabel>
               <FormControl>
-                <CategorySelectWithOther categories={categories ?? []} value={field.value} onChange={field.onChange} entityType="service" />
+                <Input placeholder="أدخل عنوان الخدمة" maxLength={80} {...field} />
               </FormControl>
+              <CharCounter current={field.value?.length ?? 0} max={80} />
               <FormMessage />
             </FormItem>
-          )} />
-          <FormField control={form.control} name="region_id" render={({ field }) => (
+          )}
+        />
+
+        {/* 2. Description (>= 50 words) */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel required>المنطقة</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl><SelectTrigger><SelectValue placeholder="اختر المنطقة" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {regions?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <FormLabel required>وصف الخدمة</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="وصف مختصر لا يقل عن 50 كلمة يظهر في بطاقة الخدمة"
+                  rows={5}
+                  maxLength={5000}
+                  {...field}
+                />
+              </FormControl>
+              <p
+                className={cn(
+                  "text-xs",
+                  wordsOk ? "text-green-600 dark:text-green-500" : "text-destructive"
+                )}
+              >
+                {wordCount} كلمة من 50
+                {!wordsOk && ` (تبقّى ${remainingWords} كلمة)`}
+              </p>
               <FormMessage />
             </FormItem>
-          )} />
-        </div>
-        {selectedRegionId && (
-          <FormField control={form.control} name="city_id" render={({ field }) => (
+          )}
+        />
+
+        {/* 3. Deliverables (long_description) */}
+        <FormField
+          control={form.control}
+          name="long_description"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>المدينة</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                <FormControl><SelectTrigger><SelectValue placeholder="اختر المدينة" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <FormLabel required>المخرجات والتسليمات</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="الرجاء كتابة قائمة المخرجات التي سيتم تسليمها للجمعية"
+                  rows={6}
+                  maxLength={10000}
+                  {...field}
+                />
+              </FormControl>
+              <CharCounter current={field.value?.length ?? 0} max={10000} />
               <FormMessage />
             </FormItem>
-          )} />
-        )}
+          )}
+        />
+
+        {/* 4. Price */}
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel required>سعر الخدمة (غير شامل الضريبة)</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="0" {...field} />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">
+                السعر غير شامل ضريبة القيمة المضافة
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* 5. Category & 6. Region */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField control={form.control} name="service_type" render={({ field }) => (
-            <FormItem>
-              <FormLabel required>نوع الخدمة</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                <SelectContent>
-                  <SelectItem value="fixed_price">سعر ثابت</SelectItem>
-                  <SelectItem value="hourly">بالساعة</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="price" render={({ field }) => (
-            <FormItem>
-              <FormLabel required>السعر الأساسي (ر.س)</FormLabel>
-              <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <FormField
+            control={form.control}
+            name="category_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel required>التصنيف</FormLabel>
+                <FormControl>
+                  <CategorySelectWithOther
+                    categories={categories ?? []}
+                    value={field.value}
+                    onChange={field.onChange}
+                    entityType="service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="region_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel required>المنطقة</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر المنطقة" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {regions?.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Packages */}
-        <Separator />
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">باقات الأسعار (اختياري)</label>
-            <Button type="button" variant="outline" size="sm" onClick={() => appendPkg({ name: "", description: "", price: 0 })}>
-              <Plus className="h-4 w-4 me-1" /> إضافة باقة
-            </Button>
-          </div>
-          {pkgFields.map((field, i) => (
-            <div key={field.id} className="rounded-lg border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">باقة {i + 1}</span>
-                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removePkg(i)}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="اسم الباقة" {...form.register(`packages.${i}.name`)} />
-                <Input type="number" placeholder="السعر" {...form.register(`packages.${i}.price`, { valueAsNumber: true })} />
-              </div>
-              <Input placeholder="وصف الباقة" {...form.register(`packages.${i}.description`)} />
-              <Input type="number" placeholder="السعر القديم (اختياري)" {...form.register(`packages.${i}.old_price`, { valueAsNumber: true })} />
-            </div>
-          ))}
-        </div>
+        {selectedRegionId && (
+          <FormField
+            control={form.control}
+            name="city_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>المدينة</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر المدينة" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {cities?.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        {/* FAQ */}
-        <Separator />
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">الأسئلة المتكررة (اختياري)</label>
-            <Button type="button" variant="outline" size="sm" onClick={() => appendFaq({ question: "", answer: "" })}>
-              <Plus className="h-4 w-4 me-1" /> إضافة سؤال
-            </Button>
-          </div>
-          {faqFields.map((field, i) => (
-            <div key={field.id} className="rounded-lg border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">سؤال {i + 1}</span>
-                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFaq(i)}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button>
-              </div>
-              <Input placeholder="السؤال" {...form.register(`faq.${i}.question`)} />
-              <Textarea placeholder="الإجابة" rows={2} {...form.register(`faq.${i}.answer`)} />
-            </div>
-          ))}
-        </div>
-
-        <Separator />
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-2">
           {onSaveDraft && (
-            <Button type="button" variant="outline" disabled={isLoading || uploading} onClick={() => onSaveDraft({ ...form.getValues(), image_url: imageUrl, gallery: galleryUrls })} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isLoading}
+              onClick={() => onSaveDraft(buildPayload(form.getValues()))}
+              className="flex-1"
+            >
               حفظ كمسودة
             </Button>
           )}
-          <Button type="submit" disabled={isLoading || uploading} className="flex-1">
+          <Button type="submit" disabled={isLoading} className="flex-1">
             {isLoading ? "جارٍ الحفظ..." : submitLabel}
           </Button>
         </div>
