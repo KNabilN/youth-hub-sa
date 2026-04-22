@@ -34,9 +34,9 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: any) => {
+  const handleCreate = (values: ServiceFormValues) => {
     if (createService.isPending) return;
-    createService.mutate(values as any, {
+    createService.mutate(values as Parameters<typeof createService.mutate>[0], {
       onSuccess: () => {
         toast({ title: "تم إنشاء الخدمة بنجاح" });
         setFormOpen(false);
@@ -45,20 +45,23 @@ export default function MyServices() {
     });
   };
 
-  const handleCreateDraft = (values: any) => {
+  const handleCreateDraft = (values: ServiceFormValues) => {
     if (createService.isPending) return;
-    createService.mutate({ ...values, title: values.title || "خدمة جديدة (مسودة)", approval: "draft" } as any, {
-      onSuccess: () => {
-        toast({ title: "تم حفظ الخدمة كمسودة" });
-        setFormOpen(false);
-      },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-    });
+    createService.mutate(
+      { ...values, title: values.title || "خدمة جديدة (مسودة)", approval: "draft" } as Parameters<typeof createService.mutate>[0],
+      {
+        onSuccess: () => {
+          toast({ title: "تم حفظ الخدمة كمسودة" });
+          setFormOpen(false);
+        },
+        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      }
+    );
   };
 
-  const handleEdit = (values: any) => {
+  const handleEdit = (values: ServiceFormValues) => {
     if (!editingId || updateService.isPending) return;
-    updateService.mutate({ id: editingId, ...values } as any, {
+    updateService.mutate({ id: editingId, ...values } as Parameters<typeof updateService.mutate>[0], {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
@@ -172,13 +175,11 @@ export default function MyServices() {
                 defaultValues={{
                   title: editingService.title,
                   description: editingService.description,
-                  long_description: (editingService as any).long_description ?? "",
+                  long_description: editingService.long_description ?? "",
                   category_id: editingService.category_id ?? "",
                   region_id: editingService.region_id ?? "",
                   price: editingService.price,
                 }}
-                defaultImageUrl={(editingService as any).image_url}
-                defaultGallery={(editingService as any).gallery ?? []}
                 onSubmit={handleEdit}
                 isLoading={updateService.isPending}
                 submitLabel="حفظ التعديلات"
