@@ -149,7 +149,7 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
         </div>
       )}
 
-      <div className="p-4 border-t bg-card">
+      <div className="p-4 border-t-2 border-primary/10 bg-muted/40 shadow-[0_-4px_12px_-6px_hsl(var(--primary)/0.08)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -168,24 +168,26 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
             type="button"
             variant="ghost"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 h-11 w-11 rounded-full hover:bg-background"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
+            title="إرفاق ملف"
           >
             <Paperclip className={cn("h-5 w-5", uploading && "animate-spin")} />
           </Button>
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="اكتب رسالتك..."
-            className="flex-1"
+            placeholder="اكتب رسالتك هنا..."
+            className="flex-1 h-11 rounded-full bg-background border-2 px-5 text-base focus-visible:ring-primary/40 focus-visible:border-primary/40 placeholder:text-muted-foreground/70"
             disabled={send.isPending}
           />
           <Button
             type="submit"
             size="icon"
             disabled={send.isPending || (!text.trim() && !attachment)}
-            className="shrink-0"
+            className="shrink-0 h-11 w-11 rounded-full shadow-md hover:shadow-lg transition-shadow disabled:shadow-none"
+            title="إرسال"
           >
             <Send className="h-4 w-4" />
           </Button>
