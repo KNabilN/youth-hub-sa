@@ -108,15 +108,21 @@ export function AdminUserChatThread({ userId, otherPartyName, otherPartyAvatar }
             ))}
           </div>
         ) : !messages?.length ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center px-4 animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent mx-auto mb-5 flex items-center justify-center ring-1 ring-primary/10">
+              <MessageSquare className="h-9 w-9 text-primary" />
             </div>
-            <p className="text-muted-foreground">لا توجد رسائل بعد</p>
-            <p className="text-xs text-muted-foreground mt-1">ابدأ المحادثة بكتابة أول رسالة</p>
+            <h3 className="text-lg font-bold text-foreground mb-1.5">ابدأ المحادثة</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              اكتب رسالتك في الأسفل لإرسال أول رسالة في هذه المحادثة
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-1.5 text-primary">
+              <ArrowDown className="h-5 w-5 animate-bounce" />
+              <span className="text-[11px] font-medium opacity-70">صندوق الكتابة</span>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {messages.map((m) => (
               <Bubble
                 key={m.id}
