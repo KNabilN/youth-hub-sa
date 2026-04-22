@@ -1,11 +1,13 @@
 import { useProfile, useBankDetails } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 
 interface FieldDef {
   key: string;
   label: string;
-  source: "profile" | "bank";
+  source: "profile" | "bank" | "portfolio";
 }
 
 const commonFields: FieldDef[] = [
@@ -31,17 +33,36 @@ const roleFields: Record<string, FieldDef[]> = {
   service_provider: [
     { key: "bio", label: "النبذة التعريفية", source: "profile" },
     ...bankFields,
+    { key: "portfolio_count", label: "نموذج عمل واحد على الأقل", source: "portfolio" },
   ],
   donor: [],
   super_admin: [],
 };
 
+function usePortfolioCount() {
+  const { user, role } = useAuth();
+  return useQuery({
+    queryKey: ["portfolio-count", user?.id],
+    enabled: !!user && role === "service_provider",
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("portfolio_items")
+        .select("id", { count: "exact", head: true })
+        .eq("provider_id", user!.id)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 export function useProfileCompleteness() {
   const { role } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: bankDetails, isLoading: bankLoading } = useBankDetails();
+  const { data: portfolioCount, isLoading: portfolioLoading } = usePortfolioCount();
 
-  const isLoading = profileLoading || bankLoading;
+  const isLoading = profileLoading || bankLoading || (role === "service_provider" && portfolioLoading);
 
   return useMemo(() => {
     if (isLoading || !profile || !role) {
@@ -52,8 +73,14 @@ export function useProfileCompleteness() {
     const missing: string[] = [];
 
     for (const f of required) {
-      const source = f.source === "bank" ? (bankDetails ?? {}) : profile;
-      const val = (source as any)[f.key];
+      let val: unknown;
+      if (f.source === "bank") {
+        val = (bankDetails ?? {} as Record<string, unknown>)[f.key];
+      } else if (f.source === "portfolio") {
+        val = (portfolioCount ?? 0) > 0 ? 1 : 0;
+      } else {
+        val = (profile as Record<string, unknown>)[f.key];
+      }
       if (val === null || val === undefined || val === "" || val === 0) {
         missing.push(f.label);
       }
@@ -70,5 +97,5 @@ export function useProfileCompleteness() {
       requiredFields: required,
       isLoading,
     };
-  }, [profile, bankDetails, role, isLoading]);
+  }, [profile, bankDetails, portfolioCount, role, isLoading]);
 }
