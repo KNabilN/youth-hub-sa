@@ -79,6 +79,10 @@ export const notificationTypeLabels: Record<string, string> = {
   inquiry_created: "استفسار جديد عن خدمة",
   inquiry_message: "رسالة استفسار عن خدمة",
 
+  // رسائل الإدارة المباشرة
+  admin_message: "رسالة من الإدارة",
+  admin_message_reply: "رد على محادثة إدارية",
+
   // عام
   info: "إشعار عام",
   warning: "تنبيه",

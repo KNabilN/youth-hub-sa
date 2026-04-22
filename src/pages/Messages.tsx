@@ -5,7 +5,10 @@ import { ChatThread } from "@/components/messages/ChatThread";
 import { useConversations } from "@/hooks/useMessages";
 import { useInquiryConversations, type InquiryConversation } from "@/hooks/useServiceInquiry";
 import { ServiceInquiryChat } from "@/components/services/ServiceInquiryChat";
-import { MessageSquare, ArrowRight, ShoppingBag } from "lucide-react";
+import { useUserAdminConversation, useUserAdminUnread } from "@/hooks/useAdminMessages";
+import { AdminUserChatThread } from "@/components/admin/AdminUserChatThread";
+import { useAuth } from "@/hooks/useAuth";
+import { MessageSquare, ArrowRight, ShoppingBag, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,14 +18,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
-type ActiveTab = "projects" | "inquiries";
-type SelectedItem = { type: "project"; id: string; title: string } | { type: "inquiry"; id: string; title: string };
+type ActiveTab = "projects" | "inquiries" | "admin";
+type SelectedItem =
+  | { type: "project"; id: string; title: string }
+  | { type: "inquiry"; id: string; title: string }
+  | { type: "admin"; id: string; title: string };
 
 export default function Messages() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>("projects");
   const [selected, setSelected] = useState<SelectedItem>();
   const { data: conversations } = useConversations();
   const { data: inquiryConversations, isLoading: inquiriesLoading } = useInquiryConversations();
+  const { data: adminConv, isLoading: adminLoading } = useUserAdminConversation();
+  const { data: adminUnread } = useUserAdminUnread();
 
   const selectedConv = selected?.type === "project"
     ? conversations?.find((c) => c.project_id === selected.id)
@@ -54,12 +63,18 @@ export default function Messages() {
               <div className="p-3 border-b space-y-2">
                 <h2 className="text-sm font-bold text-muted-foreground">المحادثات</h2>
                 <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as ActiveTab); setSelected(undefined); }}>
-                  <TabsList className="w-full grid grid-cols-2">
+                  <TabsList className="w-full grid grid-cols-3">
                     <TabsTrigger value="projects">الطلبات</TabsTrigger>
                     <TabsTrigger value="inquiries" className="gap-1.5">
                       استفسارات
                       {totalInquiryUnread > 0 && (
                         <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">{totalInquiryUnread}</Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="admin" className="gap-1.5">
+                      الإدارة
+                      {(adminUnread ?? 0) > 0 && (
+                        <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">{adminUnread}</Badge>
                       )}
                     </TabsTrigger>
                   </TabsList>
@@ -74,12 +89,19 @@ export default function Messages() {
                     setSelected({ type: "project", id, title: conv?.project_title ?? "" });
                   }}
                 />
-              ) : (
+              ) : activeTab === "inquiries" ? (
                 <InquiryConversationList
                   conversations={inquiryConversations ?? []}
                   isLoading={inquiriesLoading}
                   selectedInquiryId={selected?.type === "inquiry" ? selected.id : undefined}
                   onSelect={(inq) => setSelected({ type: "inquiry", id: inq.inquiry_id, title: inq.service_title })}
+                />
+              ) : (
+                <AdminConversationListItem
+                  isLoading={adminLoading}
+                  conversation={adminConv}
+                  selected={selected?.type === "admin"}
+                  onSelect={() => user && setSelected({ type: "admin", id: user.id, title: "الإدارة" })}
                 />
               )}
             </div>
@@ -122,6 +144,19 @@ export default function Messages() {
                           <ServiceInquiryChat inquiryId={selected.id} />
                         </div>
                       </div>
+                    ) : selected.type === "admin" ? (
+                      <div className="flex flex-col h-full">
+                        <div className="p-4 border-b bg-card">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-primary" />
+                            <h2 className="font-bold text-lg">الإدارة</h2>
+                          </div>
+                          <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <AdminUserChatThread userId={selected.id} otherPartyName="الإدارة" />
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 </div>
@@ -141,6 +176,88 @@ export default function Messages() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+/** Admin conversation single item (a user has at most one admin conversation) */
+function AdminConversationListItem({
+  isLoading,
+  conversation,
+  selected,
+  onSelect,
+}: {
+  isLoading: boolean;
+  conversation: { hasConversation: boolean; last_message: string; last_message_at: string | null; unread_count: number } | null | undefined;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="space-y-2 p-3">
+        <div className="flex items-center gap-3 p-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!conversation?.hasConversation) {
+    return (
+      <div className="text-center py-16 px-4">
+        <div className="w-14 h-14 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+          <Shield className="h-6 w-6 text-muted-foreground/50" />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">لا توجد رسائل من الإدارة</p>
+        <p className="text-xs text-muted-foreground mt-1">ستظهر هنا عند تواصل الإدارة معك</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-2">
+      <button
+        onClick={onSelect}
+        className={cn(
+          "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
+          selected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/50"
+        )}
+      >
+        <div className="relative shrink-0">
+          <Avatar className="h-11 w-11 bg-primary/10">
+            <AvatarFallback className="bg-primary/10 text-primary">
+              <Shield className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          {conversation.unread_count > 0 && (
+            <div className="absolute -top-1 [inset-inline-end:-0.25rem] h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+              {conversation.unread_count}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold truncate">الإدارة</p>
+            {conversation.last_message_at && (
+              <span className="text-[10px] text-muted-foreground shrink-0">
+                {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false, locale: ar })}
+              </span>
+            )}
+          </div>
+          <p
+            className={cn(
+              "text-xs truncate mt-0.5",
+              conversation.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"
+            )}
+          >
+            {conversation.last_message || "—"}
+          </p>
+        </div>
+      </button>
+    </div>
   );
 }
 

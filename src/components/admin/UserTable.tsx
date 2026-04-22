@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2, Mail, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2, Mail, Loader2, MessageSquare } from "lucide-react";
+import { AdminUserChatSheet } from "@/components/admin/AdminUserChatSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
 import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
@@ -87,6 +88,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [chatUser, setChatUser] = useState<any>(null);
 
   const handleResendConfirmation = async (userId: string) => {
     setResendingId(userId);
@@ -327,6 +329,14 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setChatUser(u)}
+                      title="مراسلة المستخدم"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
                     <Button size="sm" variant="ghost" onClick={() => openEdit(u)}><FileEdit className="h-4 w-4" /></Button>
                     <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
@@ -456,6 +466,12 @@ export function UserTable({ pagination }: UserTableProps) {
             onError: () => toast.error("حدث خطأ"),
           });
         }}
+      />
+
+      <AdminUserChatSheet
+        open={!!chatUser}
+        onOpenChange={(o) => !o && setChatUser(null)}
+        user={chatUser}
       />
     </div>
   );
