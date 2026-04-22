@@ -7,14 +7,15 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
 import { getFriendlyDatabaseError } from "@/lib/db-errors";
-import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { usePublishGuard } from "@/hooks/useVerificationGuard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function ProjectCreate() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
-  const { isVerified } = useVerificationGuard();
+  const { canPublish, blockReason } = usePublishGuard();
   const [draftId, setDraftId] = useState<string | null>(null);
 
   // Create draft so attachments can be uploaded in step 3
@@ -94,13 +95,22 @@ export default function ProjectCreate() {
           <h1 className="text-2xl font-bold">إنشاء طلب جديد</h1>
           <p className="text-sm text-muted-foreground mt-1">أضف تفاصيل الطلب وانشره لمقدمي الخدمات</p>
         </div>
-        {!isVerified && (
+        {!canPublish && blockReason && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>حسابك غير موثق. يجب توثيق حسابك أولاً لإنشاء طلبات جديدة.</AlertDescription>
+            <AlertDescription className="flex flex-wrap items-center gap-3">
+              <span>
+                {blockReason === "verification" && "حسابك غير موثق. يجب توثيق حسابك أولاً لإنشاء طلبات جديدة."}
+                {blockReason === "profile" && "ملفك الشخصي غير مكتمل. يجب إكمال البيانات المطلوبة قبل إنشاء طلبات جديدة."}
+                {blockReason === "portfolio" && "يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل إنشاء طلبات جديدة."}
+              </span>
+              <Link to={blockReason === "portfolio" ? "/profile?tab=portfolio" : "/profile"} className="font-semibold underline underline-offset-4">
+                {blockReason === "portfolio" ? "إضافة نموذج عمل" : "إكمال الملف الشخصي"}
+              </Link>
+            </AlertDescription>
           </Alert>
         )}
-        {isVerified ? (
+        {canPublish ? (
           <ProjectForm
             onSubmit={handleSubmit}
             onSaveDraft={handleSaveDraft}
@@ -109,7 +119,7 @@ export default function ProjectCreate() {
             submitLabel="إنشاء طلب"
           />
         ) : (
-          <p className="text-center text-muted-foreground py-8">يرجى توثيق حسابك من صفحة الملف الشخصي أولاً</p>
+          <p className="text-center text-muted-foreground py-8">يرجى استكمال المتطلبات أعلاه قبل إنشاء طلب جديد</p>
         )}
       </div>
     </DashboardLayout>
