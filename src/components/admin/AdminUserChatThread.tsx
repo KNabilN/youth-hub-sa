@@ -220,19 +220,19 @@ function Bubble({
           {isOwn ? "أنا" : (otherPartyName?.[0] ?? <Shield className="h-3.5 w-3.5" />)}
         </AvatarFallback>
       </Avatar>
-      <div className="max-w-[70%] space-y-1">
-        <p className={cn("text-[11px] font-medium", isOwn ? "text-end" : "text-start")}>
+      <div className="max-w-[75%] space-y-1">
+        <p className={cn("text-[11px] font-medium text-muted-foreground", isOwn ? "text-end" : "text-start")}>
           {isOwn ? "أنت" : otherPartyName ?? "الإدارة"}
         </p>
         <div
           className={cn(
-            "rounded-2xl px-4 py-2.5 text-sm",
+            "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
             isOwn
               ? "bg-primary text-primary-foreground rounded-ss-sm"
               : "bg-muted rounded-se-sm"
           )}
         >
-          {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
+          {msg.content && <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>}
           {msg.attachment_url && msg.attachment_name && (
             <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="mt-2 block">
               {isImage(msg.attachment_name) ? (
@@ -254,10 +254,15 @@ function Bubble({
               )}
             </a>
           )}
+          <p
+            className={cn(
+              "text-[10px] mt-1.5 opacity-70",
+              isOwn ? "text-end text-primary-foreground" : "text-start text-muted-foreground"
+            )}
+          >
+            {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: ar })}
+          </p>
         </div>
-        <p className={cn("text-[10px] text-muted-foreground", isOwn ? "text-end" : "text-start")}>
-          {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: ar })}
-        </p>
       </div>
     </div>
   );
