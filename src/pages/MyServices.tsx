@@ -36,7 +36,7 @@ export default function MyServices() {
 
   const handleCreate = (values: any) => {
     if (createService.isPending) return;
-    createService.mutate({ title: values.title, description: values.description, category_id: values.category_id, region_id: values.region_id, service_type: values.service_type, price: values.price, image_url: values.image_url, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
+    createService.mutate(values as any, {
       onSuccess: () => {
         toast({ title: "تم إنشاء الخدمة بنجاح" });
         setFormOpen(false);
@@ -47,7 +47,7 @@ export default function MyServices() {
 
   const handleCreateDraft = (values: any) => {
     if (createService.isPending) return;
-    createService.mutate({ title: values.title || "خدمة جديدة (مسودة)", description: values.description || "", category_id: values.category_id || null, region_id: values.region_id || null, service_type: values.service_type, price: values.price || 0, image_url: values.image_url, approval: "draft" as any, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
+    createService.mutate({ ...values, title: values.title || "خدمة جديدة (مسودة)", approval: "draft" } as any, {
       onSuccess: () => {
         toast({ title: "تم حفظ الخدمة كمسودة" });
         setFormOpen(false);
@@ -58,7 +58,7 @@ export default function MyServices() {
 
   const handleEdit = (values: any) => {
     if (!editingId || updateService.isPending) return;
-    updateService.mutate({ id: editingId, ...values, long_description: values.long_description ?? "", gallery: values.gallery ?? [], faq: values.faq ?? [], packages: values.packages ?? [] } as any, {
+    updateService.mutate({ id: editingId, ...values } as any, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
