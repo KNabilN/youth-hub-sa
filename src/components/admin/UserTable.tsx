@@ -467,6 +467,12 @@ export function UserTable({ pagination }: UserTableProps) {
           });
         }}
       />
+
+      <AdminUserChatSheet
+        open={!!chatUser}
+        onOpenChange={(o) => !o && setChatUser(null)}
+        user={chatUser}
+      />
     </div>
   );
 }

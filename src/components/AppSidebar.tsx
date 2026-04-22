@@ -80,6 +80,7 @@ const menuByRole = {
     { title: "الفرضيات", url: "/admin/hypotheses", icon: ClipboardList },
     { title: "الإشعارات", url: "/admin/notifications", icon: Bell },
     { title: "تذاكر الدعم", url: "/admin/tickets", icon: MessageSquare },
+    { title: "رسائل المستخدمين", url: "/admin/messages", icon: Mail },
     
     { title: "أكواد الخصم", url: "/admin/discount-codes", icon: Tags },
     { title: "إدارة المحتوى", url: "/admin/cms", icon: LayoutTemplate },
