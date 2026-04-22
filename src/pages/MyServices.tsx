@@ -175,13 +175,11 @@ export default function MyServices() {
                 defaultValues={{
                   title: editingService.title,
                   description: editingService.description,
-                  long_description: (editingService as any).long_description ?? "",
+                  long_description: editingService.long_description ?? "",
                   category_id: editingService.category_id ?? "",
                   region_id: editingService.region_id ?? "",
                   price: editingService.price,
                 }}
-                defaultImageUrl={(editingService as any).image_url}
-                defaultGallery={(editingService as any).gallery ?? []}
                 onSubmit={handleEdit}
                 isLoading={updateService.isPending}
                 submitLabel="حفظ التعديلات"
