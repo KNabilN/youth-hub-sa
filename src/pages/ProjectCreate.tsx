@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 export default function ProjectCreate() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
-  const { isVerified } = useVerificationGuard();
+  const { canPublish, blockReason } = usePublishGuard();
   const [draftId, setDraftId] = useState<string | null>(null);
 
   // Create draft so attachments can be uploaded in step 3
