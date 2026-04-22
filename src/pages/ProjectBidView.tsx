@@ -136,13 +136,30 @@ export default function ProjectBidView() {
           <Card>
             <CardHeader><CardTitle className="text-lg">تقديم عرض</CardTitle></CardHeader>
             <CardContent>
-              {isVerified ? (
+              {canBid ? (
                 <BidForm onSubmit={handleSubmit} isLoading={submitBid.isPending || uploading} />
+              ) : blockReason === "verification" ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>الحساب غير موثّق</AlertTitle>
+                  <AlertDescription className="space-y-3">
+                    <p>يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/profile")}>
+                      الذهاب للملف الشخصي
+                    </Button>
+                  </AlertDescription>
+                </Alert>
               ) : (
-                <div className="text-center py-8 space-y-2">
-                  <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم عروض على طلبات الجمعيات</p>
-                  <Button variant="outline" onClick={() => navigate("/profile")}>الذهاب للملف الشخصي</Button>
-                </div>
+                <Alert>
+                  <Briefcase className="h-4 w-4" />
+                  <AlertTitle>معرض الأعمال فارغ</AlertTitle>
+                  <AlertDescription className="space-y-3">
+                    <p>يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/profile?tab=portfolio")}>
+                      إضافة نموذج عمل
+                    </Button>
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
