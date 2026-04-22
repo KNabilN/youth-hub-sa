@@ -179,6 +179,88 @@ export default function Messages() {
   );
 }
 
+/** Admin conversation single item (a user has at most one admin conversation) */
+function AdminConversationListItem({
+  isLoading,
+  conversation,
+  selected,
+  onSelect,
+}: {
+  isLoading: boolean;
+  conversation: { hasConversation: boolean; last_message: string; last_message_at: string | null; unread_count: number } | null | undefined;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="space-y-2 p-3">
+        <div className="flex items-center gap-3 p-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!conversation?.hasConversation) {
+    return (
+      <div className="text-center py-16 px-4">
+        <div className="w-14 h-14 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+          <Shield className="h-6 w-6 text-muted-foreground/50" />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">لا توجد رسائل من الإدارة</p>
+        <p className="text-xs text-muted-foreground mt-1">ستظهر هنا عند تواصل الإدارة معك</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-2">
+      <button
+        onClick={onSelect}
+        className={cn(
+          "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
+          selected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/50"
+        )}
+      >
+        <div className="relative shrink-0">
+          <Avatar className="h-11 w-11 bg-primary/10">
+            <AvatarFallback className="bg-primary/10 text-primary">
+              <Shield className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          {conversation.unread_count > 0 && (
+            <div className="absolute -top-1 [inset-inline-end:-0.25rem] h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+              {conversation.unread_count}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold truncate">الإدارة</p>
+            {conversation.last_message_at && (
+              <span className="text-[10px] text-muted-foreground shrink-0">
+                {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false, locale: ar })}
+              </span>
+            )}
+          </div>
+          <p
+            className={cn(
+              "text-xs truncate mt-0.5",
+              conversation.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"
+            )}
+          >
+            {conversation.last_message || "—"}
+          </p>
+        </div>
+      </button>
+    </div>
+  );
+}
+
 /** Inquiry conversation list sub-component */
 function InquiryConversationList({
   conversations,
