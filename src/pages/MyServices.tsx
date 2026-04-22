@@ -34,9 +34,9 @@ export default function MyServices() {
 
   const editingService = editingId ? services?.find(s => s.id === editingId) : null;
 
-  const handleCreate = (values: any) => {
+  const handleCreate = (values: ServiceFormValues) => {
     if (createService.isPending) return;
-    createService.mutate(values as any, {
+    createService.mutate(values, {
       onSuccess: () => {
         toast({ title: "تم إنشاء الخدمة بنجاح" });
         setFormOpen(false);
@@ -45,9 +45,9 @@ export default function MyServices() {
     });
   };
 
-  const handleCreateDraft = (values: any) => {
+  const handleCreateDraft = (values: ServiceFormValues) => {
     if (createService.isPending) return;
-    createService.mutate({ ...values, title: values.title || "خدمة جديدة (مسودة)", approval: "draft" } as any, {
+    createService.mutate({ ...values, title: values.title || "خدمة جديدة (مسودة)", approval: "draft" }, {
       onSuccess: () => {
         toast({ title: "تم حفظ الخدمة كمسودة" });
         setFormOpen(false);
@@ -56,9 +56,9 @@ export default function MyServices() {
     });
   };
 
-  const handleEdit = (values: any) => {
+  const handleEdit = (values: ServiceFormValues) => {
     if (!editingId || updateService.isPending) return;
-    updateService.mutate({ id: editingId, ...values } as any, {
+    updateService.mutate({ id: editingId, ...values }, {
       onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
