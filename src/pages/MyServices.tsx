@@ -89,10 +89,25 @@ export default function MyServices() {
               <p className="text-sm text-muted-foreground">أدر خدماتك المقدمة وأضف خدمات جديدة</p>
             </div>
           </div>
-          <Button onClick={() => guardAction(() => setFormOpen(true))} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md" disabled={!isVerified}>
-            <Plus className="h-4 w-4 me-2" />{isVerified ? "إضافة خدمة" : "يجب توثيق الحساب"}
+          <Button onClick={() => guardPublish(() => setFormOpen(true))} className="bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md" disabled={!canPublish}>
+            <Plus className="h-4 w-4 me-2" />{canPublish ? "إضافة خدمة" : blockReason === "verification" ? "يجب توثيق الحساب" : blockReason === "portfolio" ? "أضف نموذج عمل أولاً" : "أكمل ملفك الشخصي"}
           </Button>
         </div>
+        {!canPublish && blockReason && (
+          <Alert variant="default" className="border-warning bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="flex flex-wrap items-center gap-3">
+              <span className="text-sm">
+                {blockReason === "verification" && "حسابك غير موثق. يجب توثيق الحساب قبل نشر الخدمات."}
+                {blockReason === "profile" && "ملفك الشخصي غير مكتمل. أكمل البيانات المطلوبة قبل نشر الخدمات."}
+                {blockReason === "portfolio" && "يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل نشر الخدمات."}
+              </span>
+              <Link to={blockReason === "portfolio" ? "/profile?tab=portfolio" : "/profile"} className="text-sm font-semibold text-primary underline underline-offset-4">
+                {blockReason === "portfolio" ? "إضافة نموذج عمل" : "إكمال الملف الشخصي"}
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {/* Filter & Sort */}
