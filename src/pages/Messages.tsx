@@ -146,12 +146,16 @@ export default function Messages() {
                       </div>
                     ) : selected.type === "admin" ? (
                       <div className="flex flex-col h-full">
-                        <div className="p-4 border-b bg-card">
-                          <div className="flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-primary" />
-                            <h2 className="font-bold text-lg">الإدارة</h2>
+                        <div className="p-4 border-b-2 border-primary/10 bg-gradient-to-l from-primary/5 via-primary/[0.02] to-transparent">
+                          <div className="flex items-center gap-3">
+                            <div className="h-11 w-11 rounded-full bg-primary/10 ring-2 ring-primary/20 flex items-center justify-center shrink-0">
+                              <Shield className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h2 className="font-bold text-lg leading-tight">الإدارة</h2>
+                              <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
+                            </div>
                           </div>
-                          <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
                         </div>
                         <div className="flex-1 min-h-0">
                           <AdminUserChatThread userId={selected.id} otherPartyName="الإدارة" />
