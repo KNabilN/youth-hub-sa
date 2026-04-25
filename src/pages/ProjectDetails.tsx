@@ -651,19 +651,32 @@ export default function ProjectDetails() {
             )}
           </TabsContent>
 
+          {project.assigned_provider_id && (isAssociation || isProvider) && (
+            <TabsContent value="messages" className="mt-4">
+              <Card>
+                <CardContent className="p-0">
+                  <ChatThread projectId={project.id} projectTitle={project.title} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
           <TabsContent value="attachments" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Paperclip className="h-5 w-5" />
-                  مرفقات الطلب
+                  مرفقات الطلب ومكتبة المواد التشغيلية
                 </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  شارك الهوية البصرية، المحتوى، والمرفقات التشغيلية مع الطرف الآخر بتنظيم واضح.
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(isAssociation || isProvider) && (
-                  <FileUploader entityType="project" entityId={project.id} />
+                  <FileUploader entityType="project" entityId={project.id} showCategory />
                 )}
-                <AttachmentList entityType="project" entityId={project.id} />
+                <AttachmentList entityType="project" entityId={project.id} groupByCategory />
               </CardContent>
             </Card>
           </TabsContent>
