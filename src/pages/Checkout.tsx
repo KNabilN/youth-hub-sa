@@ -354,6 +354,25 @@ export default function Checkout() {
                   });
                 } catch {}
               }
+              // Provider gets full base amount even when discount covers everything (add-on pricing model)
+              try {
+                await supabase.from("escrow_transactions").insert({
+                  service_id: item.micro_services.id,
+                  payer_id: user.id,
+                  payee_id: item.micro_services.provider_id,
+                  amount: itemAmount,
+                  status: "released",
+                  project_id: proj?.id || null,
+                  beneficiary_id: selectedAssociation || null,
+                } as any);
+
+                await supabase.from("donor_contributions").insert({
+                  donor_id: user.id,
+                  service_id: item.micro_services.id,
+                  association_id: selectedAssociation || null,
+                  amount: itemAmount,
+                });
+              } catch {}
             }
             if (discount && user) {
               try { await recordUsage({ codeId: discount.id, userId: user.id, discountAmount }); } catch {}
