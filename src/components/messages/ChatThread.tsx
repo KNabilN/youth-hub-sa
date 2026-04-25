@@ -164,11 +164,18 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
           >
             <Paperclip className={cn("h-5 w-5", uploading && "animate-spin")} />
           </Button>
-          <Input
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="اكتب رسالتك..."
-            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="اكتب رسالتك... (Shift+Enter لسطر جديد)"
+            className="flex-1 min-h-[44px] max-h-32 resize-none"
+            rows={1}
             disabled={sendMessage.isPending}
           />
           <Button
