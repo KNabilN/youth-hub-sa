@@ -31,6 +31,8 @@ const ALLOWED_TYPES = [
 
 export type EntityType = "project" | "contract" | "ticket" | "dispute" | "bid" | "service" | "deliverable";
 
+export type AttachmentCategory = "brand_identity" | "content" | "operational";
+
 export interface Attachment {
   id: string;
   user_id: string;
@@ -40,6 +42,7 @@ export interface Attachment {
   file_path: string;
   file_size: number;
   mime_type: string;
+  category: string | null;
   created_at: string;
 }
 
@@ -69,10 +72,12 @@ export function useUploadAttachment() {
       file,
       entityType,
       entityId,
+      category,
     }: {
       file: File;
       entityType: EntityType;
       entityId: string;
+      category?: AttachmentCategory;
     }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
       const maxSize = entityType === "deliverable" ? DELIVERABLE_MAX_FILE_SIZE : MAX_FILE_SIZE;
@@ -96,6 +101,7 @@ export function useUploadAttachment() {
         file_path: filePath,
         file_size: file.size,
         mime_type: file.type,
+        category: category ?? null,
       });
       if (insertError) {
         // Cleanup uploaded file on metadata failure

@@ -29,7 +29,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil, CreditCard } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil, CreditCard, MessageSquare } from "lucide-react";
 
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { BidPaymentDialog } from "@/components/bids/BidPaymentDialog";
@@ -40,6 +40,8 @@ import { useDeliverable } from "@/hooks/useDeliverables";
 import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
 import { WorkTimer } from "@/components/provider/WorkTimer";
 import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
+import { ChatThread } from "@/components/messages/ChatThread";
+import { useMessages } from "@/hooks/useMessages";
 
 
 
@@ -484,6 +486,13 @@ export default function ProjectDetails() {
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
             <TabsTrigger value="bids">{role === "service_provider" ? "عرضي" : "العروض"}</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
+            {project.assigned_provider_id && (isAssociation || isProvider) && (
+              <TabsTrigger value="messages" className="flex items-center gap-1">
+                <MessageSquare className="h-3.5 w-3.5" />
+                المراسلة
+                <UnreadBadge projectId={project.id} />
+              </TabsTrigger>
+            )}
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
             <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
             <TabsTrigger value="attachments" className="flex items-center gap-1">
@@ -642,19 +651,32 @@ export default function ProjectDetails() {
             )}
           </TabsContent>
 
+          {project.assigned_provider_id && (isAssociation || isProvider) && (
+            <TabsContent value="messages" className="mt-4">
+              <Card>
+                <CardContent className="p-0">
+                  <ChatThread projectId={project.id} projectTitle={project.title} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
           <TabsContent value="attachments" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Paperclip className="h-5 w-5" />
-                  مرفقات الطلب
+                  مرفقات الطلب ومكتبة المواد التشغيلية
                 </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  شارك الهوية البصرية، المحتوى، والمرفقات التشغيلية مع الطرف الآخر بتنظيم واضح.
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(isAssociation || isProvider) && (
-                  <FileUploader entityType="project" entityId={project.id} />
+                  <FileUploader entityType="project" entityId={project.id} showCategory />
                 )}
-                <AttachmentList entityType="project" entityId={project.id} />
+                <AttachmentList entityType="project" entityId={project.id} groupByCategory />
               </CardContent>
             </Card>
           </TabsContent>
@@ -708,3 +730,16 @@ export default function ProjectDetails() {
     </DashboardLayout>
   );
 }
+
+function UnreadBadge({ projectId }: { projectId: string }) {
+  const { user } = useAuth();
+  const { data: messages } = useMessages(projectId);
+  const unread = messages?.filter((m) => m.sender_id !== user?.id && !m.is_read).length ?? 0;
+  if (!unread) return null;
+  return (
+    <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px]">
+      {unread}
+    </Badge>
+  );
+}
+
