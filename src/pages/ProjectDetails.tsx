@@ -29,7 +29,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DisputeResponseThread } from "@/components/disputes/DisputeResponseThread";
 import { ContractTimeline } from "@/components/contracts/ContractTimeline";
 import { ContractVersionsList } from "@/components/contracts/ContractVersionsList";
-import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil, CreditCard } from "lucide-react";
+import { Send, FileText, Check, AlertTriangle, CheckCircle, XCircle, PenLine, Paperclip, Shield, Clock, PackageCheck, Plus, Pencil, CreditCard, MessageSquare } from "lucide-react";
 
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { BidPaymentDialog } from "@/components/bids/BidPaymentDialog";
@@ -40,6 +40,8 @@ import { useDeliverable } from "@/hooks/useDeliverables";
 import { TimeEntryForm, type TimeEntryFormValues } from "@/components/provider/TimeEntryForm";
 import { WorkTimer } from "@/components/provider/WorkTimer";
 import { useCreateTimeLog } from "@/hooks/useProviderTimeLogs";
+import { ChatThread } from "@/components/messages/ChatThread";
+import { useMessages } from "@/hooks/useMessages";
 
 
 
