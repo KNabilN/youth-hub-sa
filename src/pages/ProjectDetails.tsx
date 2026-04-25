@@ -486,6 +486,13 @@ export default function ProjectDetails() {
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
             <TabsTrigger value="bids">{role === "service_provider" ? "عرضي" : "العروض"}</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
+            {project.assigned_provider_id && (isAssociation || isProvider) && (
+              <TabsTrigger value="messages" className="flex items-center gap-1">
+                <MessageSquare className="h-3.5 w-3.5" />
+                المراسلة
+                <UnreadBadge projectId={project.id} />
+              </TabsTrigger>
+            )}
             <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
             <TabsTrigger value="disputes">الشكاوى</TabsTrigger>
             <TabsTrigger value="attachments" className="flex items-center gap-1">
