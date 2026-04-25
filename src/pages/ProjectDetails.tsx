@@ -730,3 +730,16 @@ export default function ProjectDetails() {
     </DashboardLayout>
   );
 }
+
+function UnreadBadge({ projectId }: { projectId: string }) {
+  const { user } = useAuth();
+  const { data: messages } = useMessages(projectId);
+  const unread = messages?.filter((m) => m.sender_id !== user?.id && !m.is_read).length ?? 0;
+  if (!unread) return null;
+  return (
+    <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px]">
+      {unread}
+    </Badge>
+  );
+}
+
