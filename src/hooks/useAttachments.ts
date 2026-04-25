@@ -72,10 +72,12 @@ export function useUploadAttachment() {
       file,
       entityType,
       entityId,
+      category,
     }: {
       file: File;
       entityType: EntityType;
       entityId: string;
+      category?: AttachmentCategory;
     }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
       const maxSize = entityType === "deliverable" ? DELIVERABLE_MAX_FILE_SIZE : MAX_FILE_SIZE;
@@ -99,6 +101,7 @@ export function useUploadAttachment() {
         file_path: filePath,
         file_size: file.size,
         mime_type: file.type,
+        category: category ?? null,
       });
       if (insertError) {
         // Cleanup uploaded file on metadata failure
