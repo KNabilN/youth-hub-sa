@@ -31,6 +31,8 @@ const ALLOWED_TYPES = [
 
 export type EntityType = "project" | "contract" | "ticket" | "dispute" | "bid" | "service" | "deliverable";
 
+export type AttachmentCategory = "brand_identity" | "content" | "operational";
+
 export interface Attachment {
   id: string;
   user_id: string;
@@ -40,6 +42,7 @@ export interface Attachment {
   file_path: string;
   file_size: number;
   mime_type: string;
+  category: string | null;
   created_at: string;
 }
 
