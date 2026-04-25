@@ -163,14 +163,15 @@ export default function Checkout() {
             } catch {}
           }
 
-          // Secondary: escrow + donor contribution — don't block on failure
+          // Provider always receives the full base amount — discount is absorbed at platform level (add-on pricing model)
+          // status: 'released' because the association is not paying anything (discount covers all)
           try {
             await supabase.from("escrow_transactions").insert({
               service_id: item.micro_services.id,
               payer_id: user.id,
               payee_id: item.micro_services.provider_id,
-              amount: 0,
-              status: "held",
+              amount: itemAmount,
+              status: "released",
               project_id: proj?.id || null,
               beneficiary_id: selectedAssociation || null,
             } as any);
@@ -179,7 +180,7 @@ export default function Checkout() {
               donor_id: user.id,
               service_id: item.micro_services.id,
               association_id: selectedAssociation || null,
-              amount: 0,
+              amount: itemAmount,
             });
           } catch {}
         }
