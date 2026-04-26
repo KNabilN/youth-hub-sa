@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { MessageCircle, Send, Paperclip } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
@@ -35,9 +35,9 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
       {
         onSuccess: () => {
           setMessage("");
-          toast({ title: "تم إرسال الرد" });
+          toast.success("تم إرسال الرد");
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       }
     );
   };
@@ -109,11 +109,17 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
         {canRespond && (
           <div className="flex gap-2 border-t pt-3">
             <Textarea
-              placeholder="اكتب ردك..."
+              placeholder="اكتب ردك... (Shift+Enter لسطر جديد)"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
               rows={2}
-              className="flex-1"
+              className="flex-1 resize-none"
             />
             <Button
               size="icon"

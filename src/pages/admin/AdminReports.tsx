@@ -65,16 +65,7 @@ function CustomChartTooltip({ active, payload, label }: any) {
   );
 }
 
-/* ─── Custom Bar Label ─── */
-function renderBarLabel(props: any) {
-  const { x, y, width, value } = props;
-  if (!value || value === 0) return null;
-  return (
-    <text x={x + width / 2} y={y - 8} fill="#374151" textAnchor="middle" fontSize={11} fontWeight={600}>
-      {typeof value === "number" ? value.toLocaleString() : value}
-    </text>
-  );
-}
+/* (renderBarLabel removed — switched to recharts <LabelList position="top" formatter=...> to avoid ref warning) */
 
 /* ─── Custom Pie Label ─── */
 const RADIAN = Math.PI / 180;
@@ -515,7 +506,7 @@ export default function AdminReports() {
                     <Tooltip content={<CustomChartTooltip />} />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
                       {(usersByRole ?? []).map((_: any, i: number) => <Cell key={i} fill={`url(#roleGrad${i % ROLE_COLORS.length})`} />)}
-                      <LabelList dataKey="value" content={renderBarLabel} />
+                      <LabelList dataKey="value" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -557,7 +548,7 @@ export default function AdminReports() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomChartTooltip />} />
                     <Bar dataKey="value" fill="url(#regionGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="value" content={renderBarLabel} />
+                      <LabelList dataKey="value" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -583,7 +574,7 @@ export default function AdminReports() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomChartTooltip />} />
                     <Bar dataKey="amount" fill="url(#donationGrad)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out" name="المبلغ">
-                      <LabelList dataKey="amount" content={renderBarLabel} />
+                      <LabelList dataKey="amount" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -629,10 +620,10 @@ export default function AdminReports() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomChartTooltip />} />
                     <Bar dataKey="total" fill="url(#escrowTotalGrad)" name="إجمالي" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="total" content={renderBarLabel} />
+                      <LabelList dataKey="total" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                     <Bar dataKey="released" fill="url(#escrowRelGrad)" name="محرّر" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="released" content={renderBarLabel} />
+                      <LabelList dataKey="released" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                     <Legend />
                   </BarChart>
@@ -670,7 +661,7 @@ export default function AdminReports() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomChartTooltip />} />
                     <Bar dataKey="amount" fill="url(#donorGrad)" name="المبلغ" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="amount" content={renderBarLabel} />
+                      <LabelList dataKey="amount" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -702,10 +693,10 @@ export default function AdminReports() {
                     <Tooltip content={<CustomChartTooltip />} />
                     <Legend />
                     <Bar yAxisId="left" dataKey="charities" fill="url(#donorCharitiesGrad)" name="عدد الجمعيات المدعومة" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="charities" content={renderBarLabel} />
+                      <LabelList dataKey="charities" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                     <Bar yAxisId="right" dataKey="amount" fill="url(#donorAmountGrad)" name="إجمالي المنح (ر.س)" radius={[6, 6, 0, 0]} animationDuration={800} animationEasing="ease-out">
-                      <LabelList dataKey="amount" content={renderBarLabel} />
+                      <LabelList dataKey="amount" position="top" formatter={(v: any) => (v ? Number(v).toLocaleString() : "")} style={{ fill: "#374151", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
