@@ -105,9 +105,15 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
           <div className="flex gap-2 border-t pt-3">
             <div className="flex-1 space-y-1">
               <Textarea
-                placeholder="اكتب ردك..."
+                placeholder="اكتب ردك... (Shift+Enter لسطر جديد)"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
                 rows={2}
                 maxLength={2000}
               />
