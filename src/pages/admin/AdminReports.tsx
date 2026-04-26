@@ -65,16 +65,7 @@ function CustomChartTooltip({ active, payload, label }: any) {
   );
 }
 
-/* ─── Custom Bar Label (plain function, not a component — avoids ref warning) ─── */
-const renderBarLabel = (props: any) => {
-  const { x, y, width, value } = props;
-  if (!value || value === 0) return null;
-  return (
-    <text x={x + width / 2} y={y - 8} fill="#374151" textAnchor="middle" fontSize={11} fontWeight={600}>
-      {typeof value === "number" ? value.toLocaleString() : value}
-    </text>
-  );
-};
+/* (renderBarLabel removed — switched to recharts <LabelList position="top" formatter=...> to avoid ref warning) */
 
 /* ─── Custom Pie Label ─── */
 const RADIAN = Math.PI / 180;
