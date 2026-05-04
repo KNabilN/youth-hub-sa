@@ -72,7 +72,9 @@ export function useSubmitDeliverable() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
-      toast.success("تم تقديم التسليمات للمراجعة");
+      toast.success("تم إرسال التسليم بنجاح", {
+        description: "وصل العمل للجمعية وهي الآن بانتظار المراجعة",
+      });
     },
     onError: (err: Error) => {
       toast.error(translateError(err.message || "حدث خطأ"));

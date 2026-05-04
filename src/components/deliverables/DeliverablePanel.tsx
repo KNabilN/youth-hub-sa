@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { useDeliverables, useSubmitDeliverable, useReviewDeliverable, Deliverable } from "@/hooks/useDeliverables";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PackageCheck, Send, CheckCircle, RotateCcw, AlertTriangle, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { PackageCheck, Send, CheckCircle, CheckCircle2, RotateCcw, AlertTriangle, Clock, ChevronDown, ChevronUp } from "lucide-react";
 
 interface DeliverablePanelProps {
   projectId: string;
@@ -62,6 +63,12 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
                 {new Date(deliverable.created_at).toLocaleDateString("ar-SA")}
               </span>
             </div>
+            {deliverable.status === "pending_review" && (
+              <p className="text-[11px] text-success flex items-center gap-1 mt-1">
+                <CheckCircle2 className="h-3 w-3" />
+                تم الإرسال للجمعية في {new Date(deliverable.created_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" })}
+              </p>
+            )}
           </div>
           {expanded ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
         </button>
@@ -151,6 +158,8 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
   const { data: deliverables, isLoading } = useDeliverables(projectId);
   const submitDeliverable = useSubmitDeliverable();
   const [notes, setNotes] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmInfo, setConfirmInfo] = useState<{ versionNumber: number; submittedAt: string } | null>(null);
 
   if (isLoading) return <Skeleton className="h-48" />;
 
@@ -158,6 +167,11 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
   const canReview = isAssociation;
   const latest = allDeliverables[0];
   const showRevisionBanner = isProvider && latest?.status === "revision_requested";
+  const showReceiptBanner = isProvider && latest?.status === "pending_review";
+
+  const scrollToHistory = () => {
+    document.getElementById("deliverables-history")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="space-y-4">
@@ -179,6 +193,23 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           </CardContent>
         </Card>
       )}
+
+      {showReceiptBanner && latest && (
+        <Card className="border-info/40 bg-info/5 animate-fade-in">
+          <CardContent className="p-4 flex items-start gap-3">
+            <Send className="h-5 w-5 text-info shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-info">
+                تسليمك #{allDeliverables.length} وصل للجمعية ✓
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                تم الإرسال بتاريخ {new Date(latest.created_at).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })} — بانتظار المراجعة. سيتم إشعارك فور الرد.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Provider: Submit new version — always available */}
       {isProvider && (
         <Card>
@@ -190,7 +221,7 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع الملفات.
+              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع الملفات وسيتم إشعار الجمعية مباشرة.
             </p>
             <Textarea
               placeholder="ملاحظات حول التسليمات..."
@@ -200,7 +231,18 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
             />
             <Button
               onClick={() => {
-                submitDeliverable.mutate({ projectId, notes });
+                submitDeliverable.mutate(
+                  { projectId, notes },
+                  {
+                    onSuccess: () => {
+                      setConfirmInfo({
+                        versionNumber: allDeliverables.length + 1,
+                        submittedAt: new Date().toISOString(),
+                      });
+                      setConfirmOpen(true);
+                    },
+                  }
+                );
                 setNotes("");
               }}
               disabled={submitDeliverable.isPending}
@@ -214,7 +256,7 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
 
       {/* Submission history */}
       {allDeliverables.length > 0 && (
-        <div className="space-y-3">
+        <div id="deliverables-history" className="space-y-3 scroll-mt-24">
           <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" />
             سجل التسليمات ({allDeliverables.length})
@@ -246,6 +288,38 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           لا توجد تسليمات
         </p>
       )}
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center animate-scale-in">
+              <CheckCircle2 className="h-9 w-9 text-success" />
+            </div>
+            <DialogTitle className="text-center text-xl mt-3">تم إرسال التسليم بنجاح ✓</DialogTitle>
+            <DialogDescription className="text-center text-sm leading-relaxed">
+              وصل تسليمك للجمعية وهي الآن بانتظار مراجعته. سيتم إشعارك فور الرد على التسليم سواء بالقبول أو طلب تعديلات.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmInfo && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-center text-xs text-muted-foreground space-y-1">
+              <p>رقم التسليم: <strong className="text-foreground">#{confirmInfo.versionNumber}</strong></p>
+              <p>{new Date(confirmInfo.submittedAt).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })}</p>
+            </div>
+          )}
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmOpen(false);
+                setTimeout(scrollToHistory, 100);
+              }}
+            >
+              عرض سجل التسليمات
+            </Button>
+            <Button onClick={() => setConfirmOpen(false)}>حسناً</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
