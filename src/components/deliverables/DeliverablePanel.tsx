@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { useDeliverables, useSubmitDeliverable, useReviewDeliverable, Deliverable } from "@/hooks/useDeliverables";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PackageCheck, Send, CheckCircle, RotateCcw, AlertTriangle, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { PackageCheck, Send, CheckCircle, CheckCircle2, RotateCcw, AlertTriangle, Clock, ChevronDown, ChevronUp } from "lucide-react";
 
 interface DeliverablePanelProps {
   projectId: string;
