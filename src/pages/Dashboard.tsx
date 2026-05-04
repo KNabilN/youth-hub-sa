@@ -24,6 +24,8 @@ import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 import { AssociationActionItems } from "@/components/dashboard/AssociationActionItems";
 import { DonorActionItems } from "@/components/donor/DonorActionItems";
+import { useProviderDeliverableAlerts } from "@/hooks/useDeliverables";
+import { PackageCheck, RotateCcw } from "lucide-react";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
