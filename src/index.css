@@ -268,3 +268,16 @@
     display: none;
   }
 }
+
+@media print {
+  body * { visibility: hidden; }
+  #contract-document, #contract-document * { visibility: visible; }
+  #contract-document {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  @page { margin: 1.2cm; }
+}
