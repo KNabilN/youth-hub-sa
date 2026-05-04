@@ -152,6 +152,8 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
   const { data: deliverables, isLoading } = useDeliverables(projectId);
   const submitDeliverable = useSubmitDeliverable();
   const [notes, setNotes] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmInfo, setConfirmInfo] = useState<{ versionNumber: number; submittedAt: string } | null>(null);
 
   if (isLoading) return <Skeleton className="h-48" />;
 
@@ -159,6 +161,11 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
   const canReview = isAssociation;
   const latest = allDeliverables[0];
   const showRevisionBanner = isProvider && latest?.status === "revision_requested";
+  const showReceiptBanner = isProvider && latest?.status === "pending_review";
+
+  const scrollToHistory = () => {
+    document.getElementById("deliverables-history")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="space-y-4">
