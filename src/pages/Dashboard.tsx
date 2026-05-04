@@ -24,6 +24,8 @@ import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 import { AssociationActionItems } from "@/components/dashboard/AssociationActionItems";
 import { DonorActionItems } from "@/components/donor/DonorActionItems";
+import { useProviderDeliverableAlerts } from "@/hooks/useDeliverables";
+import { PackageCheck, RotateCcw } from "lucide-react";
 
 const roleTitles: Record<string, string> = {
   super_admin: "لوحة تحكم المدير",
@@ -139,10 +141,66 @@ function ProviderActionItems() {
     },
   });
 
-  if (!unsignedContracts?.length && !pendingWithdrawals) return null;
+  const { data: deliverableAlerts } = useProviderDeliverableAlerts();
+  const revisionAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "revision_requested");
+  const awaitingAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "awaiting_submission");
+  const pendingReviewAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "pending_review");
+
+  if (
+    !unsignedContracts?.length &&
+    !pendingWithdrawals &&
+    !revisionAlerts.length &&
+    !awaitingAlerts.length &&
+    !pendingReviewAlerts.length
+  ) return null;
 
   return (
     <div className="space-y-2">
+      {/* Highest priority: revisions requested */}
+      {revisionAlerts.map((a) => (
+        <Alert key={`rev-${a.project_id}`} className="border-destructive bg-destructive/5 animate-fade-in">
+          <RotateCcw className="h-4 w-4 text-destructive" />
+          <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-sm">
+              مطلوب تعديلات على تسليمك في مشروع: <strong>{a.project_title}</strong>
+            </span>
+            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+              فتح صفحة التسليمات
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ))}
+
+      {/* Awaiting submission */}
+      {awaitingAlerts.map((a) => (
+        <Alert key={`new-${a.project_id}`} className="border-warning bg-warning/5 animate-fade-in">
+          <PackageCheck className="h-4 w-4 text-warning" />
+          <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-sm">
+              مشروع بانتظار تسليمك: <strong>{a.project_title}</strong>
+            </span>
+            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+              تقديم التسليمات
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ))}
+
+      {/* Informational: pending review */}
+      {pendingReviewAlerts.map((a) => (
+        <Alert key={`pend-${a.project_id}`} className="border-info bg-info/5 animate-fade-in">
+          <Clock className="h-4 w-4 text-info" />
+          <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-sm">
+              تسليمك بانتظار مراجعة الجمعية: <strong>{a.project_title}</strong>
+            </span>
+            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+              عرض التفاصيل
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ))}
+
       {(unsignedContracts?.length ?? 0) > 0 && (
         <Alert className="border-primary bg-primary/5 animate-fade-in">
           <FileSignature className="h-4 w-4 text-primary" />

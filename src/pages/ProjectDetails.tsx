@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
 import { useSignContract } from "@/hooks/useContracts";
@@ -48,6 +48,8 @@ import { useMessages } from "@/hooks/useMessages";
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "bids";
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
@@ -482,7 +484,7 @@ export default function ProjectDetails() {
           </Card>
         )}
 
-        <Tabs defaultValue="bids" dir="rtl">
+        <Tabs defaultValue={initialTab} dir="rtl">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
             <TabsTrigger value="bids">{role === "service_provider" ? "عرضي" : "العروض"}</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
@@ -503,6 +505,12 @@ export default function ProjectDetails() {
               <TabsTrigger value="deliverables" className="flex items-center gap-1">
                 <PackageCheck className="h-3.5 w-3.5" />
                 التسليمات
+                {isProvider && deliverable?.status === "revision_requested" && (
+                  <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">تعديلات</Badge>
+                )}
+                {isProvider && !deliverable && contract?.association_signed_at && contract?.provider_signed_at && (
+                  <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-warning/20 text-warning-foreground">جديد</Badge>
+                )}
               </TabsTrigger>
             )}
             {role === "super_admin" && <TabsTrigger value="activity">سجل النشاط</TabsTrigger>}

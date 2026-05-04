@@ -156,9 +156,29 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
 
   const allDeliverables = deliverables ?? [];
   const canReview = isAssociation;
+  const latest = allDeliverables[0];
+  const showRevisionBanner = isProvider && latest?.status === "revision_requested";
 
   return (
     <div className="space-y-4">
+      {showRevisionBanner && (
+        <Card className="border-destructive/40 bg-destructive/5 animate-fade-in">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-destructive">
+                مطلوب منك تعديلات على التسليم #{allDeliverables.length}
+              </p>
+              {latest?.revision_note && (
+                <p className="text-sm mt-1 text-foreground/80">{latest.revision_note}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                قدّم نسخة جديدة من النموذج بالأسفل بعد إجراء التعديلات المطلوبة.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Provider: Submit new version — always available */}
       {isProvider && (
         <Card>

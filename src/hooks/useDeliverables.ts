@@ -80,6 +80,82 @@ export function useSubmitDeliverable() {
   });
 }
 
+export interface ProviderDeliverableAlert {
+  project_id: string;
+  project_title: string;
+  state: "awaiting_submission" | "revision_requested" | "pending_review";
+  latest_status: Deliverable["status"] | null;
+  revision_note?: string;
+}
+
+/**
+ * Returns active projects assigned to the current provider with their deliverable state.
+ * Only includes projects where the contract is fully signed.
+ */
+export function useProviderDeliverableAlerts() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime: refresh when any deliverable for this provider changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`rt-provider-deliverables-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "project_deliverables", filter: `provider_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["provider-deliverable-alerts", user.id] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
+
+  return useQuery({
+    queryKey: ["provider-deliverable-alerts", user?.id],
+    enabled: !!user,
+    queryFn: async (): Promise<ProviderDeliverableAlert[]> => {
+      // Fetch active projects assigned to this provider with a fully-signed contract
+      const { data: projects, error: pErr } = await supabase
+        .from("projects")
+        .select("id, title, status, contracts!inner(association_signed_at, provider_signed_at, deleted_at)")
+        .eq("assigned_provider_id", user!.id)
+        .in("status", ["in_progress"])
+        .is("deleted_at", null);
+      if (pErr) throw pErr;
+
+      const eligible = (projects ?? []).filter((p: any) => {
+        const c = Array.isArray(p.contracts) ? p.contracts[0] : p.contracts;
+        return c && !c.deleted_at && c.association_signed_at && c.provider_signed_at;
+      });
+      if (!eligible.length) return [];
+
+      const ids = eligible.map((p: any) => p.id);
+      const { data: dels, error: dErr } = await (supabase as any)
+        .from("project_deliverables")
+        .select("project_id, status, revision_note, created_at")
+        .in("project_id", ids)
+        .order("created_at", { ascending: false });
+      if (dErr) throw dErr;
+
+      const latestByProject = new Map<string, any>();
+      for (const d of (dels ?? [])) {
+        if (!latestByProject.has(d.project_id)) latestByProject.set(d.project_id, d);
+      }
+
+      const alerts: ProviderDeliverableAlert[] = [];
+      for (const p of eligible) {
+        const latest = latestByProject.get(p.id);
+        if (!latest) {
+          alerts.push({ project_id: p.id, project_title: p.title, state: "awaiting_submission", latest_status: null });
+        } else if (latest.status === "revision_requested") {
+          alerts.push({ project_id: p.id, project_title: p.title, state: "revision_requested", latest_status: latest.status, revision_note: latest.revision_note });
+        } else if (latest.status === "pending_review") {
+          alerts.push({ project_id: p.id, project_title: p.title, state: "pending_review", latest_status: latest.status });
+        }
+        // accepted → no alert
+      }
+      return alerts;
+    },
+  });
+}
+
 export function useReviewDeliverable() {
   const queryClient = useQueryClient();
 
