@@ -484,7 +484,7 @@ export default function ProjectDetails() {
           </Card>
         )}
 
-        <Tabs defaultValue="bids" dir="rtl">
+        <Tabs defaultValue={initialTab} dir="rtl">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap scrollbar-hide h-auto p-1">
             <TabsTrigger value="bids">{role === "service_provider" ? "عرضي" : "العروض"}</TabsTrigger>
             <TabsTrigger value="contract">العقد</TabsTrigger>
