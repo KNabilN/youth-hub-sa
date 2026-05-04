@@ -1,56 +1,54 @@
-# مراجعة شاملة للمنصة
+# خطة تحسين قسم التسليمات لمقدم الخدمة
 
-أجريت فحصاً للمشروع (50+ صفحة، 83 hook، تكامل Supabase، أدوار متعددة). الخبر السار: البنية سليمة بشكل عام (RLS مطبّقة، Realtime مفعّل، Triggers للإشعارات، نظام ترقيم موحّد، Lazy loading، ErrorBoundary، Skeletons). أدناه النتائج والإصلاحات المقترحة.
+## المشكلة (من تعليق العميل)
+- مقدم الخدمة مش واضح له فين قسم التسليمات.
+- مفيش تنبيه عند الدخول للمنصة لما يكون فيه مشروع محتاج تسليم أو فيه تعديلات مطلوبة.
+- المسار للوصول للصفحة طويل (يدخل المشروع → تبويب التسليمات).
 
-## 1) ربط قاعدة البيانات
-- الجداول الأساسية (`projects`, `bids`, `contracts`, `escrow_transactions`, `notifications`, `attachments`, `service_inquiries`, `messages`, `support_tickets`) جميعها مرتبطة عبر FK وRLS.
-- Triggers الإشعارات تغطي: العقود، العروض، التسليمات، الضمان المالي، التحويلات البنكية، السحب، التذاكر، النزاعات، الفواتير، الاستفسارات، رفع المرفقات.
-- لا توجد جداول معزولة أو روابط مكسورة.
-- **لا تغييرات مطلوبة** على قاعدة البيانات.
+## الحل المقترح
 
-## 2) ثبات الواجهة (UI/UX) — إصلاحات مطلوبة
+### 1. تنبيهات مباشرة في لوحة التحكم (Dashboard)
+أضيف Hook جديد `useProviderDeliverableAlerts` يجيب للمقدم:
+- المشاريع النشطة (assigned + عقد موقّع من الطرفين) اللي **مفيهاش أي تسليم** بعد → "بانتظار تسليمك".
+- المشاريع اللي آخر تسليم فيها `revision_requested` → "مطلوب تعديلات".
+- المشاريع اللي آخر تسليم فيها `pending_review` → "بانتظار مراجعة الجمعية" (معلوماتي فقط).
 
-**أ. تحذير React في `/admin/reports`** (ظاهر في console الآن):
-> `Function components cannot be given refs` على `LabelList` بسبب تمرير `renderBarLabel` كدالة عادية إلى `content`.
-- الحل: تحويل `renderBarLabel` إلى `React.forwardRef` أو تمريره كعنصر `<LabelContent />` بدل دالة، لإزالة التحذير.
+تُعرض كـ Alerts ملوّنة في `ProviderActionItems` بـ `src/pages/Dashboard.tsx` بنفس نمط تنبيه العقود غير الموقّعة، مع زر سريع:
+- "افتح صفحة التسليمات" → يوجّه لـ `/projects/:id?tab=deliverables`.
 
-**ب. توحيد سلوك إدخال الرسائل (Enter للإرسال + Shift+Enter لسطر جديد)**:
-- ✅ `ChatThread`, `BidCommentThread`, `AdminUserChatThread`: مطبّق.
-- ❌ `ServiceInquiryChat`: لا يزال `Input` (سطر واحد، لا يدعم سطر جديد).
-- ❌ `TicketReplyThread` و `DisputeResponseThread`: `Textarea` لكن بدون `onKeyDown` للإرسال بـ Enter.
-- الحل: تطبيق نفس النمط على هذه المكوّنات الثلاثة (Textarea + onKeyDown موحّد + placeholder بنفس الصياغة).
+ترتيب الأولوية في العرض:
+1. تعديلات مطلوبة (destructive — أحمر).
+2. بانتظار تسليمك (warning — أصفر).
+3. بانتظار مراجعة الجمعية (info — أزرق، اختياري ومخفي افتراضياً لو الكثير).
 
-**ج. توحيد نظام Toast**:
-- 56 ملفاً يستخدم `sonner` مباشرة، و25 ملفاً لا يزال يستخدم `@/hooks/use-toast` القديم.
-- الحل: ترحيل الـ 25 ملفاً إلى `sonner` مع توحيد صيغة `toast.success/.error` (مذكرة المشروع تنص على ذلك صراحةً).
+### 2. دعم فتح التبويب من الـ URL
+في `ProjectDetails.tsx`:
+- اقرأ `?tab=deliverables` من الـ search params وحدّد `defaultValue` للـ Tabs بناءً عليه.
+- Scroll تلقائي للتبويب بعد التحميل.
 
-## 3) كفاءة الدوال
-- لا أخطاء runtime مسجّلة.
-- لا توجد كتل `catch {}` فارغة تبتلع الأخطاء.
-- استعلامات TanStack تستعمل `queryKey` صحيح وتُبطل الكاش بعد التحوّلات.
-- `useEscrow` يستخدم Optimistic Lock لمنع التحرير المزدوج — سليم.
-- **لا تغييرات مطلوبة**.
+### 3. تمييز تبويب "التسليمات" داخل صفحة المشروع
+- إضافة Badge أحمر صغير بجانب اسم التبويب لما يكون فيه `revision_requested` على آخر نسخة، أو لما العقد موقّع ومفيش أي تسليم بعد (للمقدم).
+- إضافة أيقونة `PackageCheck` مع لون مميز عشان يبان بسرعة.
 
-## 4) تدفقات المستخدم
-- التسجيل → استكمال الملف → التوثيق → الشراء/التعاقد: مكتمل ومتسق (Banner، Guard، Verification).
-- شراء خدمة → عقد آلي → محادثة في `/messages` + تبويب المراسلة داخل الطلب: مكتمل.
-- عرض سعر → دفع → عقد → تسليمات → تقييم: مكتمل.
-- المنح والتبرعات والشكاوى ونظام المرفقات المصنّفة: مكتمل.
-- **لا فجوات وظيفية مكتشفة**.
+### 4. Sidebar shortcut (اختياري ومفيد)
+إضافة عنصر جانبي جديد في `AppSidebar` لمقدم الخدمة باسم "التسليمات المعلّقة" مع Badge بعدد المشاريع اللي محتاجة تسليم/تعديل، يفتح `/my-projects` مع فلتر افتراضي على الحالات دي.
 
----
+> ملاحظة: لو حابب أبسّط، نكتفي بالتنبيهات في الـ Dashboard ونأجّل الـ Sidebar.
 
-## ملخص التغييرات التي سأنفذها بعد الموافقة
+### 5. تحسين بصري داخل `DeliverablePanel`
+- Banner علوي واضح في حالة `revision_requested` بلون destructive وعنوان كبير: "مطلوب منك تعديلات على التسليم #X" مع زر "ارفع نسخة جديدة" يعمل scroll لنموذج التقديم.
+- إخفاء/تصغير سجل النسخ القديمة افتراضياً (حالياً أول واحد بس مفتوح — كويس)، لكن إضافة عدّاد واضح "النسخة الحالية: X من Y".
 
-| # | الملف | التغيير |
-|---|------|--------|
-| 1 | `src/pages/admin/AdminReports.tsx` | تحويل `renderBarLabel` لمكوّن صحيح يزيل تحذير React. |
-| 2 | `src/components/services/ServiceInquiryChat.tsx` | استبدال `Input` بـ `Textarea` + Enter للإرسال + Shift+Enter لسطر جديد. |
-| 3 | `src/components/tickets/TicketReplyThread.tsx` | إضافة `onKeyDown` لتفعيل نفس السلوك. |
-| 4 | `src/components/disputes/DisputeResponseThread.tsx` | إضافة `onKeyDown` لتفعيل نفس السلوك. |
-| 5 | الـ 25 ملفاً المستخدمة لـ `use-toast` | ترحيل تدريجي لـ `sonner` للحفاظ على الاتساق. |
+## الملفات اللي هتتعدل
+- `src/hooks/useDeliverables.ts` — إضافة `useProviderDeliverableAlerts()` جديد.
+- `src/pages/Dashboard.tsx` — توسيع `ProviderActionItems` لعرض التنبيهات.
+- `src/pages/ProjectDetails.tsx` — قراءة `?tab=` من URL + Badge على التبويب.
+- `src/components/deliverables/DeliverablePanel.tsx` — Banner التعديلات + تحسينات بصرية.
+- `src/components/AppSidebar.tsx` — (اختياري) رابط مختصر مع Badge.
 
-## خارج النطاق
-- لا تغييرات على RLS أو schema.
-- لا تغييرات على المنطق المالي أو العقود أو الإشعارات.
-- لا إعادة تصميم بصري — فقط تحسينات اتساق وإصلاح تحذير.
+## التقنيات
+- Query واحد بجلب المشاريع المسندة للمقدم + آخر deliverable لكل مشروع (join على `project_deliverables` مرتب بـ `created_at desc`).
+- Realtime موجود فعلاً على `project_deliverables`، فالتنبيهات هتحدّث تلقائياً.
+- لا توجد تغييرات على قاعدة البيانات.
+
+هل توافق على الخطة دي بالكامل، ولا حابب نستغني عن أي جزء (مثلاً Sidebar shortcut)؟
