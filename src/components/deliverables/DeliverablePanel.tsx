@@ -282,6 +282,38 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           لا توجد تسليمات
         </p>
       )}
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center animate-scale-in">
+              <CheckCircle2 className="h-9 w-9 text-success" />
+            </div>
+            <DialogTitle className="text-center text-xl mt-3">تم إرسال التسليم بنجاح ✓</DialogTitle>
+            <DialogDescription className="text-center text-sm leading-relaxed">
+              وصل تسليمك للجمعية وهي الآن بانتظار مراجعته. سيتم إشعارك فور الرد على التسليم سواء بالقبول أو طلب تعديلات.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmInfo && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-center text-xs text-muted-foreground space-y-1">
+              <p>رقم التسليم: <strong className="text-foreground">#{confirmInfo.versionNumber}</strong></p>
+              <p>{new Date(confirmInfo.submittedAt).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })}</p>
+            </div>
+          )}
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmOpen(false);
+                setTimeout(scrollToHistory, 100);
+              }}
+            >
+              عرض سجل التسليمات
+            </Button>
+            <Button onClick={() => setConfirmOpen(false)}>حسناً</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
