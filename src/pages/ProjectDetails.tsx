@@ -505,6 +505,12 @@ export default function ProjectDetails() {
               <TabsTrigger value="deliverables" className="flex items-center gap-1">
                 <PackageCheck className="h-3.5 w-3.5" />
                 التسليمات
+                {isProvider && deliverable?.status === "revision_requested" && (
+                  <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">تعديلات</Badge>
+                )}
+                {isProvider && !deliverable && contract?.association_signed_at && contract?.provider_signed_at && (
+                  <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-warning/20 text-warning-foreground">جديد</Badge>
+                )}
               </TabsTrigger>
             )}
             {role === "super_admin" && <TabsTrigger value="activity">سجل النشاط</TabsTrigger>}
