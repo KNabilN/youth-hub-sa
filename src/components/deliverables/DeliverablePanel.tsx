@@ -63,6 +63,12 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
                 {new Date(deliverable.created_at).toLocaleDateString("ar-SA")}
               </span>
             </div>
+            {deliverable.status === "pending_review" && (
+              <p className="text-[11px] text-success flex items-center gap-1 mt-1">
+                <CheckCircle2 className="h-3 w-3" />
+                تم الإرسال للجمعية في {new Date(deliverable.created_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" })}
+              </p>
+            )}
           </div>
           {expanded ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
         </button>
