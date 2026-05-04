@@ -171,9 +171,14 @@ export default function AdminContracts() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${(c as any).project_id}`)}>
-                          <Eye className="h-4 w-4 me-1" />عرض المشروع
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="default" onClick={() => navigate(`/admin/contracts/${c.id}`)}>
+                            <ScrollText className="h-4 w-4 me-1" />عرض العقد
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${(c as any).project_id}`)}>
+                            <Eye className="h-4 w-4 me-1" />المشروع
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
