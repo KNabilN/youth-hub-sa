@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
 import { useSignContract } from "@/hooks/useContracts";
