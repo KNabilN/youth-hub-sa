@@ -250,7 +250,7 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
 
       {/* Submission history */}
       {allDeliverables.length > 0 && (
-        <div className="space-y-3">
+        <div id="deliverables-history" className="space-y-3 scroll-mt-24">
           <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" />
             سجل التسليمات ({allDeliverables.length})
