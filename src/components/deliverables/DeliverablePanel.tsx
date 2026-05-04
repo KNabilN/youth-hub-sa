@@ -187,6 +187,23 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           </CardContent>
         </Card>
       )}
+
+      {showReceiptBanner && latest && (
+        <Card className="border-info/40 bg-info/5 animate-fade-in">
+          <CardContent className="p-4 flex items-start gap-3">
+            <Send className="h-5 w-5 text-info shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-info">
+                تسليمك #{allDeliverables.length} وصل للجمعية ✓
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                تم الإرسال بتاريخ {new Date(latest.created_at).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })} — بانتظار المراجعة. سيتم إشعارك فور الرد.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Provider: Submit new version — always available */}
       {isProvider && (
         <Card>
@@ -198,7 +215,7 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع الملفات.
+              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع الملفات وسيتم إشعار الجمعية مباشرة.
             </p>
             <Textarea
               placeholder="ملاحظات حول التسليمات..."
@@ -208,7 +225,18 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
             />
             <Button
               onClick={() => {
-                submitDeliverable.mutate({ projectId, notes });
+                submitDeliverable.mutate(
+                  { projectId, notes },
+                  {
+                    onSuccess: () => {
+                      setConfirmInfo({
+                        versionNumber: allDeliverables.length + 1,
+                        submittedAt: new Date().toISOString(),
+                      });
+                      setConfirmOpen(true);
+                    },
+                  }
+                );
                 setNotes("");
               }}
               disabled={submitDeliverable.isPending}
