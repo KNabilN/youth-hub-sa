@@ -48,6 +48,8 @@ import { useMessages } from "@/hooks/useMessages";
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "bids";
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
