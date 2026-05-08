@@ -69,7 +69,7 @@ export function PendingCategoriesManager() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
+            <Lightbulb className="h-5 w-5 text-warning" />
             <CardTitle className="text-lg">تصنيفات مقترحة</CardTitle>
           </div>
           {count > 0 && <Badge variant="destructive">{count}</Badge>}
@@ -115,7 +115,7 @@ export function PendingCategoriesManager() {
                         disabled={approveMut.isPending}
                         title="موافقة"
                       >
-                        <Check className="h-4 w-4 text-emerald-600" />
+                        <Check className="h-4 w-4 text-success" />
                       </Button>
                       <Button
                         size="icon"

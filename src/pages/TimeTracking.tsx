@@ -12,9 +12,9 @@ import { ClipboardList, Clock, CheckCircle2, Timer, AlertCircle } from "lucide-r
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const approvalLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; border: string }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
-  approved: { label: "معتمد", variant: "default", border: "border-e-4 border-emerald-500" },
-  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-red-500" },
+  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-warning/30" },
+  approved: { label: "معتمد", variant: "default", border: "border-e-4 border-success/30" },
+  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-destructive/30" },
 };
 
 export default function TimeTracking() {
@@ -46,8 +46,8 @@ export default function TimeTracking() {
 
   const miniStats = [
     { label: "إجمالي الساعات", value: totalHours, icon: Clock, bg: "bg-primary/10", text: "text-primary" },
-    { label: "ساعات معتمدة", value: approvedHours, icon: CheckCircle2, bg: "bg-emerald-500/10", text: "text-emerald-600" },
-    { label: "ساعات قيد المراجعة", value: pendingHours, icon: Timer, bg: "bg-yellow-500/10", text: "text-yellow-600" },
+    { label: "ساعات معتمدة", value: approvedHours, icon: CheckCircle2, bg: "bg-success/10", text: "text-success" },
+    { label: "ساعات قيد المراجعة", value: pendingHours, icon: Timer, bg: "bg-warning/10", text: "text-warning" },
   ];
 
   return (

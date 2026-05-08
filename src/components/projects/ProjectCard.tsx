@@ -121,7 +121,7 @@ export function ProjectCard({ project, onSuspend, onReactivate, onSubmitForAppro
             </Button>
           )}
           {(project.status === "suspended" || project.status === "cancelled") && onReactivate && (
-            <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => onReactivate(project.id)}>
+            <Button size="sm" variant="outline" className="text-success hover:bg-success/10" onClick={() => onReactivate(project.id)}>
               <Play className="h-3.5 w-3.5 me-1" />
               إعادة تقديم
             </Button>

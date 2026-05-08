@@ -31,8 +31,8 @@ function CompareBar({ labelA, labelB, valueA, valueB, suffix = "%" }: {
   labelA: string; labelB: string; valueA: number | null; valueB: number | null; suffix?: string;
 }) {
   if (valueA === null || valueB === null) return null;
-  const colorA = valueA >= valueB ? "text-emerald-600" : "text-destructive";
-  const colorB = valueB >= valueA ? "text-emerald-600" : "text-destructive";
+  const colorA = valueA >= valueB ? "text-success" : "text-destructive";
+  const colorB = valueB >= valueA ? "text-success" : "text-destructive";
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
       <div className="flex-1 text-center">
@@ -53,7 +53,7 @@ function ProgressToTarget({ label, current, target, unit = "%" }: {
 }) {
   if (current === null) return null;
   const pct = Math.min(Math.round((current / target) * 100), 100);
-  const color = pct >= 80 ? "[&>div]:bg-emerald-500" : pct >= 50 ? "[&>div]:bg-amber-500" : "[&>div]:bg-destructive";
+  const color = pct >= 80 ? "[&>div]:bg-success" : pct >= 50 ? "[&>div]:bg-warning" : "[&>div]:bg-destructive";
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -75,8 +75,8 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="مزودين نشطين (30 يوم)" value={m.activeCount} icon={Users} color="text-primary" />
-            <MiniKPI label="% نشاط" value={m.activeProviderPct} suffix="%" icon={TrendingUp} color="text-emerald-600" />
-            <MiniKPI label="بقاء 90 يوم" value={m.retentionPct90} suffix="%" icon={Repeat} color="text-amber-600" />
+            <MiniKPI label="% نشاط" value={m.activeProviderPct} suffix="%" icon={TrendingUp} color="text-success" />
+            <MiniKPI label="بقاء 90 يوم" value={m.retentionPct90} suffix="%" icon={Repeat} color="text-warning" />
             <MiniKPI label="إجمالي مزودين" value={m.totalProviders} icon={Users} />
           </div>
           <ProgressToTarget label="نشاط المزودين → الهدف 60%" current={m.activeProviderPct} target={60} />
@@ -89,7 +89,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="متوسط ساعات أول عرض" value={m.avgHoursToFirstBid} suffix="h" icon={Clock} color="text-primary" />
-            <MiniKPI label="% خلال 48 ساعة" value={m.pctWithin48h} suffix="%" icon={TrendingUp} color="text-emerald-600" />
+            <MiniKPI label="% خلال 48 ساعة" value={m.pctWithin48h} suffix="%" icon={TrendingUp} color="text-success" />
             <MiniKPI label="مشاريع بعروض" value={m.totalProjectsWithBids} icon={BarChart3} />
           </div>
           <CompareBar labelA="إغلاق (سريع ≤48h)" labelB="إغلاق (بطيء >48h)" valueA={m.closureWithFast} valueB={m.closureWithSlow} />
@@ -122,7 +122,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="مزودين بباقات" value={m.providersWithPackages} icon={FileCheck} color="text-primary" />
-            <MiniKPI label="% من الإجمالي" value={m.pct} suffix="%" icon={Percent} color="text-emerald-600" />
+            <MiniKPI label="% من الإجمالي" value={m.pct} suffix="%" icon={Percent} color="text-success" />
           </div>
           <ProgressToTarget label="% مزودين بباقات → الهدف 30%" current={m.pct} target={30} />
         </div>
@@ -133,7 +133,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% تقييم ≥4/5" value={m.ratingPct} suffix="%" icon={Star} color="text-emerald-600" />
+            <MiniKPI label="% تقييم ≥4/5" value={m.ratingPct} suffix="%" icon={Star} color="text-success" />
             <MiniKPI label="% شكاوى" value={m.complaintsPct} suffix="%" icon={AlertTriangle} color="text-destructive" />
             <MiniKPI label="إجمالي التقييمات" value={m.totalRatings} icon={BarChart3} />
           </div>
@@ -146,9 +146,9 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% بلا شكوى" value={m.noDisputePct} suffix="%" icon={ShieldCheck} color="text-emerald-600" />
+            <MiniKPI label="% بلا شكوى" value={m.noDisputePct} suffix="%" icon={ShieldCheck} color="text-success" />
             <MiniKPI label="متوسط أيام الحل" value={m.avgResolutionDays} suffix=" يوم" icon={Clock} color="text-primary" />
-            <MiniKPI label="% حُلت ≤7 أيام" value={m.pctResolvedIn7} suffix="%" icon={TrendingUp} color="text-amber-600" />
+            <MiniKPI label="% حُلت ≤7 أيام" value={m.pctResolvedIn7} suffix="%" icon={TrendingUp} color="text-warning" />
           </div>
           <ProgressToTarget label="% بلا شكوى → الهدف 90%" current={m.noDisputePct} target={90} />
         </div>
@@ -160,7 +160,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="متوسط تقييم الوقت" value={m.avgTimingScore} suffix="/5" icon={Clock} color="text-primary" />
-            <MiniKPI label="% إعادة شراء" value={m.repeatPurchasePct} suffix="%" icon={Repeat} color="text-emerald-600" />
+            <MiniKPI label="% إعادة شراء" value={m.repeatPurchasePct} suffix="%" icon={Repeat} color="text-success" />
             <MiniKPI label="جمعيات مكررة" value={m.repeatAssociations} icon={Users} />
           </div>
           <ProgressToTarget label="% إعادة شراء → الهدف 40%" current={m.repeatPurchasePct} target={40} />
@@ -176,7 +176,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
             <MiniKPI label="متوسط ساعات أول عرض" value={m.avgHoursToFirstBid} suffix="h" icon={Clock} color="text-primary" />
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-            {isPositive ? <TrendingUp className="h-4 w-4 text-emerald-600" /> : <Minus className="h-4 w-4 text-muted-foreground" />}
+            {isPositive ? <TrendingUp className="h-4 w-4 text-success" /> : <Minus className="h-4 w-4 text-muted-foreground" />}
             <span className="text-xs">ارتباط سرعة الاستجابة بالإغلاق: <strong>{m.closureCorrelation}</strong></span>
           </div>
         </div>
@@ -188,8 +188,8 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="طلبات/90 يوم" value={m.avgRequestsPer90Days} icon={Repeat} color="text-primary" />
-            <MiniKPI label="جمعيات نشطة" value={m.activeAssociations} icon={Users} color="text-emerald-600" />
-            <MiniKPI label="جمعيات مكررة" value={m.repeatAssociations} icon={UserCheck} color="text-amber-600" />
+            <MiniKPI label="جمعيات نشطة" value={m.activeAssociations} icon={Users} color="text-success" />
+            <MiniKPI label="جمعيات مكررة" value={m.repeatAssociations} icon={UserCheck} color="text-warning" />
           </div>
           <ProgressToTarget label="متوسط الطلبات/90 يوم → الهدف 2" current={m.avgRequestsPer90Days} target={2} unit="" />
         </div>
@@ -200,7 +200,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% تحول لأول طلب" value={m.conversionPct} suffix="%" icon={TrendingUp} color="text-emerald-600" />
+            <MiniKPI label="% تحول لأول طلب" value={m.conversionPct} suffix="%" icon={TrendingUp} color="text-success" />
             <MiniKPI label="متوسط أيام التحول" value={m.avgDaysToFirstProject} suffix=" يوم" icon={Clock} color="text-primary" />
             <MiniKPI label="تحولت" value={m.convertedAssociations} icon={UserCheck} />
             <MiniKPI label="إجمالي جمعيات" value={m.totalAssociations} icon={Users} />
@@ -234,8 +234,8 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% إعادة شراء (120 يوم)" value={m.repeatPurchasePct120} suffix="%" icon={Repeat} color="text-emerald-600" />
-            <MiniKPI label="تذاكر/مشروع" value={m.avgTicketsPerProject} icon={AlertTriangle} color="text-amber-600" />
+            <MiniKPI label="% إعادة شراء (120 يوم)" value={m.repeatPurchasePct120} suffix="%" icon={Repeat} color="text-success" />
+            <MiniKPI label="تذاكر/مشروع" value={m.avgTicketsPerProject} icon={AlertTriangle} color="text-warning" />
           </div>
           <ProgressToTarget label="% إعادة شراء → الهدف 30%" current={m.repeatPurchasePct120} target={30} />
         </div>
@@ -246,7 +246,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
       return (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <MiniKPI label="% دفع ذاتي" value={m.selfPayPct} suffix="%" icon={CreditCard} color="text-emerald-600" />
+            <MiniKPI label="% دفع ذاتي" value={m.selfPayPct} suffix="%" icon={CreditCard} color="text-success" />
             <MiniKPI label="ذاتي" value={m.selfPayCount} icon={UserCheck} color="text-primary" />
             <MiniKPI label="إجمالي ضمانات" value={m.totalEscrow} icon={BarChart3} />
           </div>
@@ -272,7 +272,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="متوسط أيام الحل" value={m.avgResolutionDays} suffix=" يوم" icon={Clock} color="text-primary" />
-            <MiniKPI label="% حُلت ≤7 أيام" value={m.pctIn7Days} suffix="%" icon={ShieldCheck} color="text-emerald-600" />
+            <MiniKPI label="% حُلت ≤7 أيام" value={m.pctIn7Days} suffix="%" icon={ShieldCheck} color="text-success" />
             <MiniKPI label="شكاوى محلولة" value={m.totalResolved} icon={BarChart3} />
           </div>
           <ProgressToTarget label="% حل ≤7 أيام → الهدف 80%" current={m.pctIn7Days} target={80} />
@@ -294,7 +294,7 @@ export function HypothesisMetricsPanel({ hypothesisNumber, metrics }: MetricsPan
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             <MiniKPI label="% اكتمال متوسط" value={m.avgCompleteness} suffix="%" icon={FileCheck} color="text-primary" />
-            <MiniKPI label="مكتملة ≥90%" value={m.fullyComplete} icon={UserCheck} color="text-emerald-600" />
+            <MiniKPI label="مكتملة ≥90%" value={m.fullyComplete} icon={UserCheck} color="text-success" />
             <MiniKPI label="إجمالي ملفات" value={m.totalProfiles} icon={Users} />
           </div>
           <ProgressToTarget label="% اكتمال → الهدف 70%" current={m.avgCompleteness} target={70} />

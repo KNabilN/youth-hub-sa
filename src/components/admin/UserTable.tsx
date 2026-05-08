@@ -310,7 +310,7 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
                 <TableCell>
                   {u.is_verified ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 ms-1" />موثق</Badge>
+                    <Badge className="bg-success/10 text-success border-success/30"><CheckCircle className="h-3 w-3 ms-1" />موثق</Badge>
                   ) : (
                     <Badge variant="outline" className="text-muted-foreground"><XCircle className="h-3 w-3 ms-1" />غير موثق</Badge>
                   )}
@@ -326,7 +326,7 @@ export function UserTable({ pagination }: UserTableProps) {
                       )}
                     </div>
                   ) : (
-                    <Badge variant="outline" className="text-emerald-600 border-emerald-200 text-xs">نشط</Badge>
+                    <Badge variant="outline" className="text-success border-success/30 text-xs">نشط</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">

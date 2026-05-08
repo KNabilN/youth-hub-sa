@@ -24,7 +24,7 @@ export default function Testimonials() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.text}</p>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: item.rating || 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-amber-400 text-warning" />
                   ))}
                 </div>
                 <div className="border-t border-border pt-3">

@@ -17,14 +17,14 @@ const actionLabels: Record<string, string> = {
 };
 
 const actionColors: Record<string, string> = {
-  INSERT: "bg-emerald-500/10 text-emerald-600",
+  INSERT: "bg-success/10 text-success",
   UPDATE: "bg-primary/10 text-primary",
   DELETE: "bg-destructive/10 text-destructive",
   suspend: "bg-orange-500/10 text-orange-600",
-  unsuspend: "bg-emerald-500/10 text-emerald-600",
-  approve: "bg-emerald-500/10 text-emerald-600",
+  unsuspend: "bg-success/10 text-success",
+  approve: "bg-success/10 text-success",
   reject: "bg-destructive/10 text-destructive",
-  reactivate: "bg-emerald-500/10 text-emerald-600",
+  reactivate: "bg-success/10 text-success",
 };
 
 // Field name translations

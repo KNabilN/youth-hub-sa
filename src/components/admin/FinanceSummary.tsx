@@ -23,9 +23,9 @@ export function FinanceSummary() {
   const vatRevenue = (invoices ?? []).reduce((s: number, i: any) => s + Number(i.vat_amount ?? 0), 0);
 
   const items = [
-    { title: "الضمان المحتجز", value: held, icon: Lock, color: "text-yellow-600", description: "مبالغ محجوزة بانتظار اكتمال الطلب وتأكيد التسليم" },
-    { title: "الضمان المجمّد", value: frozen, icon: Snowflake, color: "text-blue-600", description: "مبالغ تم تجميدها مؤقتاً بسبب شكوى أو مراجعة إدارية" },
-    { title: "المبالغ المحرّرة", value: released, icon: Unlock, color: "text-emerald-600", description: "مبالغ تم تحريرها لمقدمي الخدمات بعد اكتمال الطلب بنجاح" },
+    { title: "الضمان المحتجز", value: held, icon: Lock, color: "text-warning", description: "مبالغ محجوزة بانتظار اكتمال الطلب وتأكيد التسليم" },
+    { title: "الضمان المجمّد", value: frozen, icon: Snowflake, color: "text-info", description: "مبالغ تم تجميدها مؤقتاً بسبب شكوى أو مراجعة إدارية" },
+    { title: "المبالغ المحرّرة", value: released, icon: Unlock, color: "text-success", description: "مبالغ تم تحريرها لمقدمي الخدمات بعد اكتمال الطلب بنجاح" },
     { title: "المبالغ المستردة", value: refunded, icon: RotateCcw, color: "text-muted-foreground", description: "مبالغ تم إعادتها للجمعيات بعد إلغاء أو رفض الطلب" },
     { title: "إيرادات العمولات", value: commissions, icon: DollarSign, color: "text-primary", description: "إجمالي العمولات المحصّلة من المنصة على جميع المعاملات المكتملة" },
     { title: "إيرادات الضريبة (15%)", value: vatRevenue, icon: Receipt, color: "text-orange-600", description: "إجمالي ضريبة القيمة المضافة المحصّلة على جميع المعاملات" },

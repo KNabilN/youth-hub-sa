@@ -156,16 +156,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <HeaderUserInfo />
           </header>
           {!isAdmin && profile && !profile.is_verified && (
-            <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 px-4 md:px-6 py-3">
+            <div className="bg-info/10 dark:bg-blue-950/30 border-b border-info/30 dark:border-info/30 px-4 md:px-6 py-3">
               <div className="flex items-center gap-3 max-w-4xl mx-auto">
-                <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-9 h-9 rounded-full bg-info/10 dark:bg-info/50 flex items-center justify-center shrink-0">
+                  <Clock className="h-5 w-5 text-info dark:text-info" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <p className="text-sm font-medium text-info dark:text-blue-200">
                     حسابك بانتظار التوثيق من قبل إدارة المنصة
                   </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                  <p className="text-xs text-info dark:text-info mt-0.5">
                     سيتم إشعارك فور اعتماد حسابك
                   </p>
                 </div>

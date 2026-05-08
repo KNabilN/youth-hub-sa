@@ -21,12 +21,12 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 
 function getDonationType(g: any): { label: string; className: string } {
   if (g.project_id && g.projects?.title) {
-    return { label: "مخصص لطلب", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" };
+    return { label: "مخصص لطلب", className: "bg-info/10 text-info dark:bg-info/30 dark:text-blue-300" };
   }
   if (g.service_id && g.micro_services?.title) {
     return { label: "مخصص لخدمة", className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
   }
-  return { label: "دعم عام", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" };
+  return { label: "دعم عام", className: "bg-success/10 text-success dark:bg-success/30 dark:text-emerald-300" };
 }
 
 function getLinkedEntityName(g: any): string | null {

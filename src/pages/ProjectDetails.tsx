@@ -324,14 +324,14 @@ export default function ProjectDetails() {
                           <p className="text-muted-foreground">لا يمكن إتمام الطلب حتى يتم استيفاء المتطلبات التالية:</p>
                           <ul className="space-y-2">
                             <li className="flex items-center gap-2">
-                              {hasEscrow ? <Check className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
-                              <span className={hasEscrow ? "text-green-700" : "text-destructive font-medium"}>
+                              {hasEscrow ? <Check className="h-4 w-4 text-success" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                              <span className={hasEscrow ? "text-success" : "text-destructive font-medium"}>
                                 {hasEscrow ? "الضمان المالي محتجز ✓" : "لا يوجد ضمان مالي محتجز — يجب إنشاء الضمان المالي أولاً"}
                               </span>
                             </li>
                             <li className="flex items-center gap-2">
-                              {hasAcceptedDeliverable ? <Check className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
-                              <span className={hasAcceptedDeliverable ? "text-green-700" : "text-destructive font-medium"}>
+                              {hasAcceptedDeliverable ? <Check className="h-4 w-4 text-success" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                              <span className={hasAcceptedDeliverable ? "text-success" : "text-destructive font-medium"}>
                                 {hasAcceptedDeliverable ? "التسليمات مقبولة ✓" : "لا توجد تسليمات مقبولة — يجب قبول التسليمات أولاً"}
                               </span>
                             </li>

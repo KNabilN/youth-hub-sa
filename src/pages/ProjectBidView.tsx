@@ -115,7 +115,7 @@ export default function ProjectBidView() {
 
         {createdBidId ? (
           <>
-            <div className="flex items-center gap-3 text-emerald-600">
+            <div className="flex items-center gap-3 text-success">
               <CheckCircle className="h-6 w-6" />
               <h2 className="text-xl font-bold">تم تقديم العرض بنجاح</h2>
             </div>

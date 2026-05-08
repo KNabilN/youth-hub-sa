@@ -27,7 +27,7 @@ const signatureLabels: Record<SignatureStatus, string> = {
 const signatureColors: Record<SignatureStatus, string> = {
   unsigned: "bg-muted text-muted-foreground",
   partial: "bg-orange-500/10 text-orange-600",
-  completed: "bg-emerald-500/10 text-emerald-600",
+  completed: "bg-success/10 text-success",
 };
 
 const exportColumns: ExportColumnDef[] = [

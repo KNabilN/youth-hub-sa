@@ -20,9 +20,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useListHighlight } from "@/hooks/useListHighlight";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
-  accepted: { label: "مقبول", variant: "default", border: "border-e-4 border-emerald-500" },
-  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-red-500" },
+  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-warning/30" },
+  accepted: { label: "مقبول", variant: "default", border: "border-e-4 border-success/30" },
+  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-destructive/30" },
   withdrawn: { label: "تم السحب", variant: "outline", border: "border-e-4 border-muted-foreground/40" },
 };
 
@@ -182,7 +182,7 @@ export default function MyBids() {
                           </Button>
                         )}
                         {contract?.provider_signed_at && (
-                          <Badge variant="outline" className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                          <Badge variant="outline" className="flex items-center gap-1 bg-success/10 text-success border-success/30/30">
                             <FileText className="h-3 w-3" />
                             تم التوقيع
                           </Badge>

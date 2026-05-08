@@ -354,7 +354,7 @@ export default function AdminUserDetail() {
                   </Badge>
                 )}
                 {user.is_verified ? (
-                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-sm px-3 py-1">
+                  <Badge className="bg-success/10 text-success border-success/30 text-sm px-3 py-1">
                     <CheckCircle className="h-3.5 w-3.5 me-1.5" />
                     موثق
                   </Badge>

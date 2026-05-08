@@ -22,9 +22,9 @@ const statusLabels: Record<string, string> = {
   frozen: "مجمد",
 };
 const statusColors: Record<string, string> = {
-  released: "bg-emerald-500/10 text-emerald-600",
-  held: "bg-yellow-500/10 text-yellow-600",
-  frozen: "bg-blue-500/10 text-blue-600",
+  released: "bg-success/10 text-success",
+  held: "bg-warning/10 text-warning",
+  frozen: "bg-info/10 text-info",
 };
 
 export function WithdrawalEscrowDetails({ escrow }: Props) {

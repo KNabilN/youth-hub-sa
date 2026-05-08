@@ -40,13 +40,13 @@ export function ProviderProjectCard({ project, hasBid, onViewDetails }: Provider
           <CardTitle className="text-base">{project.title}</CardTitle>
           <div className="flex items-center gap-1.5 shrink-0">
             {isNew && (
-              <Badge className="gap-1 bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1.5">
+              <Badge className="gap-1 bg-warning/10 text-warning border-warning/30 text-[10px] px-1.5">
                 <Sparkles className="h-2.5 w-2.5" />
                 جديد
               </Badge>
             )}
             {hasBid && (
-              <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200">
+              <Badge className="gap-1 bg-success/10 text-success border-success/30">
                 <CheckCircle2 className="h-3 w-3" />
                 تم التقديم
               </Badge>

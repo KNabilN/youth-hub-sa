@@ -16,12 +16,12 @@ import { ar } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 
 const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "تمت الموافقة", rejected: "مرفوض", processed: "تم التحويل" };
-const statusBorders: Record<string, string> = { pending: "border-e-4 border-yellow-500", approved: "border-e-4 border-emerald-500", rejected: "border-e-4 border-red-500", processed: "border-e-4 border-blue-500" };
+const statusBorders: Record<string, string> = { pending: "border-e-4 border-warning/30", approved: "border-e-4 border-success/30", rejected: "border-e-4 border-destructive/30", processed: "border-e-4 border-info/30" };
 const statusColors: Record<string, string> = {
-  pending: "bg-yellow-500/10 text-yellow-600",
-  approved: "bg-emerald-500/10 text-emerald-600",
-  rejected: "bg-red-500/10 text-red-600",
-  processed: "bg-blue-500/10 text-blue-600"
+  pending: "bg-warning/10 text-warning",
+  approved: "bg-success/10 text-success",
+  rejected: "bg-destructive/10 text-destructive",
+  processed: "bg-info/10 text-info"
 };
 
 export default function Earnings() {

@@ -72,19 +72,19 @@ export default function Index() {
           </div>
           <div className="container mx-auto max-w-5xl text-center space-y-8 relative z-10">
             {h.badge &&
-            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
+            <div className="inline-flex items-center gap-2 bg-card/15 text-primary-foreground text-sm font-medium px-4 py-2 rounded-full animate-fade-in backdrop-blur-sm border border-white/20">
                 <Zap className="w-4 h-4" />
                 {h.badge}
               </div>
             }
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-white drop-shadow-md">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-primary-foreground drop-shadow-md">
               {h.title}
               <br />
-              <span className="text-white/90">{h.subtitle}</span>
+              <span className="text-primary-foreground/90">{h.subtitle}</span>
             </h1>
             {h.description &&
             <p
-              className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1"
+              className="text-lg text-primary-foreground/80 max-w-2xl mx-auto leading-relaxed animate-fade-in stagger-1"
               style={{ animationFillMode: "both" }}>
               
                 {h.description}
@@ -93,7 +93,7 @@ export default function Index() {
             <div className="flex gap-3 justify-center animate-fade-in stagger-2" style={{ animationFillMode: "both" }}>
               <Button
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
+                className="bg-card text-primary hover:bg-card/90 shadow-lg hover:shadow-xl transition-shadow text-base px-8 font-bold"
                 onClick={() => navigate(user ? "/dashboard" : "/auth")}>
                 {user ? "لوحة التحكم" : h.cta_text}
                 <ArrowLeft className="me-2 h-4 w-4" />
@@ -102,7 +102,7 @@ export default function Index() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-base px-8 font-bold backdrop-blur-sm"
+                  className="bg-card/10 text-primary-foreground border-white/30 hover:bg-card/20 text-base px-8 font-bold backdrop-blur-sm"
                   onClick={() => {
                     document.getElementById("services-section")?.scrollIntoView({ behavior: "smooth" });
                   }}>
@@ -213,10 +213,10 @@ export default function Index() {
           <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="text-right space-y-4 flex-1">
-                <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground leading-snug">
                   {ct.title}
                 </h2>
-                <p className="text-white/70 text-sm leading-relaxed max-w-xl">
+                <p className="text-primary-foreground/70 text-sm leading-relaxed max-w-xl">
                   {ct.description}
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function Index() {
               <div className="shrink-0 flex flex-col items-center gap-3">
                 <Button
                   size="lg"
-                  className="bg-white text-primary hover:bg-white/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
+                  className="bg-card text-primary hover:bg-card/90 shadow-lg text-base px-10 py-6 text-lg font-bold"
                   onClick={() => navigate(user ? "/dashboard" : "/auth")}>
                   {user ? "لوحة التحكم" : (ct.button_text || "سجّل مجاناً")}
                   <ArrowLeft className="me-2 h-5 w-5" />

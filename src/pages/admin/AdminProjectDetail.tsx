@@ -45,8 +45,8 @@ function getAdminAllowedStatuses(current: string): string[] {
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
-  open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
-  completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
+  open: "bg-primary/10 text-primary", in_progress: "bg-warning/10 text-warning",
+  completed: "bg-success/10 text-success", disputed: "bg-destructive/10 text-destructive",
   cancelled: "bg-muted text-muted-foreground", rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
 };

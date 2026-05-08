@@ -20,9 +20,9 @@ const statusLabels: Record<TicketStatus, string> = {
   open: "مفتوحة", in_progress: "قيد المعالجة", resolved: "تم الحل", closed: "مغلقة",
 };
 const statusColors: Record<TicketStatus, string> = {
-  open: "bg-blue-500/10 text-blue-700 border-blue-200",
-  in_progress: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
-  resolved: "bg-green-500/10 text-green-700 border-green-200",
+  open: "bg-info/10 text-info border-info/30",
+  in_progress: "bg-warning/10 text-warning border-warning/30",
+  resolved: "bg-success/10 text-success border-success/30",
   closed: "bg-muted text-muted-foreground",
 };
 const priorityLabels: Record<TicketPriority, string> = {
@@ -30,7 +30,7 @@ const priorityLabels: Record<TicketPriority, string> = {
 };
 const priorityColors: Record<TicketPriority, string> = {
   low: "bg-muted text-muted-foreground",
-  medium: "bg-blue-500/10 text-blue-700",
+  medium: "bg-info/10 text-info",
   high: "bg-orange-500/10 text-orange-700",
   urgent: "bg-destructive/10 text-destructive",
 };

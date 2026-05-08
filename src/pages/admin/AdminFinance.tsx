@@ -57,9 +57,9 @@ const escrowStatusLabels: Record<string, string> = {
   under_review: "قيد المراجعة",
 };
 const escrowStatusColors: Record<string, string> = {
-  held: "bg-yellow-500/10 text-yellow-600",
-  released: "bg-emerald-500/10 text-emerald-600",
-  frozen: "bg-blue-500/10 text-blue-600",
+  held: "bg-warning/10 text-warning",
+  released: "bg-success/10 text-success",
+  frozen: "bg-info/10 text-info",
   refunded: "bg-muted text-muted-foreground",
   pending_payment: "bg-orange-500/10 text-orange-600",
   failed: "bg-destructive/10 text-destructive",
@@ -350,10 +350,10 @@ export default function AdminFinance() {
                           <div className="flex gap-1 flex-wrap">
                             {e.status === "held" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
+                                <Button size="sm" variant="outline" className="text-success hover:bg-success/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-blue-600 hover:bg-blue-500/10" onClick={() => handleEscrowStatus(e.id, "frozen", "held")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-info hover:bg-info/10" onClick={() => handleEscrowStatus(e.id, "frozen", "held")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
@@ -363,10 +363,10 @@ export default function AdminFinance() {
                             )}
                             {e.status === "frozen" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-yellow-600 hover:bg-yellow-500/10" onClick={() => handleEscrowStatus(e.id, "held", "frozen")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-warning hover:bg-warning/10" onClick={() => handleEscrowStatus(e.id, "held", "frozen")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />إعادة احتجاز
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-emerald-600 hover:bg-emerald-500/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
+                                <Button size="sm" variant="outline" className="text-success hover:bg-success/10" onClick={() => { setEscrowActionDialog({ id: e.id, action: "released", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
                                   <Unlock className="h-3.5 w-3.5 me-1" />تحرير
                                 </Button>
                                 <Button size="sm" variant="outline" className="text-muted-foreground" onClick={() => { setEscrowActionDialog({ id: e.id, action: "refunded", escrow: e }); setEscrowReceiptFile(null); }} disabled={updateEscrow.isPending || escrowUploading}>
@@ -376,10 +376,10 @@ export default function AdminFinance() {
                             )}
                             {e.status === "under_review" && (
                               <>
-                                <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleEscrowStatus(e.id, "held", "under_review")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-warning" onClick={() => handleEscrowStatus(e.id, "held", "under_review")} disabled={updateEscrow.isPending}>
                                   <Lock className="h-3.5 w-3.5 me-1" />احتجاز
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-blue-600" onClick={() => handleEscrowStatus(e.id, "frozen", "under_review")} disabled={updateEscrow.isPending}>
+                                <Button size="sm" variant="outline" className="text-info" onClick={() => handleEscrowStatus(e.id, "frozen", "under_review")} disabled={updateEscrow.isPending}>
                                   <Snowflake className="h-3.5 w-3.5 me-1" />تجميد
                                 </Button>
                               </>
@@ -559,7 +559,7 @@ export default function AdminFinance() {
                        const profile = (w as any).profiles;
                        const bankInfo = (w as any).bank_details;
                       const providerName = profile?.full_name || profile?.organization_name || "—";
-                      const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
+                      const statusColor = w.status === "pending" ? "bg-orange-500/10 text-orange-600" : w.status === "approved" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive";
                       return (
                         <React.Fragment key={w.id}>
                         <TableRow className="cursor-pointer hover:bg-muted/40" onClick={() => setExpandedWithdrawalId(expandedWithdrawalId === w.id ? null : w.id)}>
@@ -678,7 +678,7 @@ export default function AdminFinance() {
                   <TableBody>
                     {(bankTransfers ?? []).map((bt: any) => {
                       const statusLabel = bt.status === "pending" ? "قيد المراجعة" : bt.status === "approved" ? "تمت الموافقة" : "مرفوض";
-                      const statusColor = bt.status === "pending" ? "bg-orange-500/10 text-orange-600" : bt.status === "approved" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive";
+                      const statusColor = bt.status === "pending" ? "bg-orange-500/10 text-orange-600" : bt.status === "approved" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive";
                       const escrowData = bt.escrow_transactions;
                       const serviceOrProject = escrowData?.micro_services?.title || escrowData?.projects?.title || "—";
                       return (

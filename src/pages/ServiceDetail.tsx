@@ -104,7 +104,7 @@ export default function ServiceDetail() {
           {(service as any).cities && <Badge variant="outline">{(service as any).cities.name}</Badge>}
           {avgRating && (
             <span className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <Star className="h-4 w-4 fill-yellow-400 text-warning" />
               {avgRating} ({ratings.length})
             </span>
           )}
@@ -192,8 +192,8 @@ export default function ServiceDetail() {
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-medium text-sm">{r.profiles?.full_name}</span>
-                    <span className="flex items-center gap-1 text-sm text-yellow-600">
-                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                    <span className="flex items-center gap-1 text-sm text-warning">
+                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-warning" />
                       {avg}
                     </span>
                   </div>

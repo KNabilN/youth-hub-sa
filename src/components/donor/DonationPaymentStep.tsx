@@ -141,7 +141,7 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-medium text-sm">{BANK_INFO.accountNumber}</span>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyAccount}>
-                    {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                 </div>
               </div>

@@ -212,7 +212,7 @@ export function CategoryManager() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
+                          <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-success" /></Button>
                           <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
@@ -258,7 +258,7 @@ export function CategoryManager() {
             <Separator />
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-amber-500" />
+                <Lightbulb className="h-4 w-4 text-warning" />
                 <h3 className="text-sm font-semibold">تصنيفات مقترحة ({pendingCount})</h3>
               </div>
               <Table>
@@ -285,7 +285,7 @@ export function CategoryManager() {
                       <TableCell>
                         <div className="flex gap-1">
                           <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(item)} disabled={approveMut.isPending} title="موافقة">
-                            <Check className="h-4 w-4 text-emerald-600" />
+                            <Check className="h-4 w-4 text-success" />
                           </Button>
                           <Button size="icon" variant="ghost" onClick={() => rejectMut.mutate(item.id)} disabled={rejectMut.isPending} title="رفض">
                             <X className="h-4 w-4 text-destructive" />

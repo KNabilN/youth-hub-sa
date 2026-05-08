@@ -323,16 +323,16 @@ export default function Profile() {
                 {coverUrl && (
                   <img src={coverUrl} alt="غلاف" className="w-full h-full object-cover" />
                 )}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="text-white text-center">
+                <div className="absolute inset-0 bg-foreground/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-primary-foreground text-center">
                     <ImageIcon className="h-8 w-8 mx-auto mb-1" />
                     <p className="text-sm">تغيير صورة الغلاف</p>
-                    <p className="text-xs text-white/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
+                    <p className="text-xs text-primary-foreground/70 mt-0.5">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
                   </div>
                 </div>
                 {uploadCover.isPending && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <p className="text-white text-sm">جارٍ الرفع...</p>
+                  <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center">
+                    <p className="text-primary-foreground text-sm">جارٍ الرفع...</p>
                   </div>
                 )}
                 <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
@@ -347,9 +347,9 @@ export default function Profile() {
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="text-3xl bg-primary/10 text-primary font-bold">{fullName?.[0] ?? "؟"}</AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="h-6 w-6 text-white" />
-                    <p className="text-[9px] text-white/70 mt-0.5">200×200 • 2 MB</p>
+                  <div className="absolute inset-0 bg-foreground/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="h-6 w-6 text-primary-foreground" />
+                    <p className="text-[9px] text-primary-foreground/70 mt-0.5">200×200 • 2 MB</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 </div>

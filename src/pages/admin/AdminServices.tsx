@@ -59,7 +59,7 @@ const approvalLabels: Record<string, string> = {
 const approvalColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   pending: "bg-orange-500/10 text-orange-600",
-  approved: "bg-emerald-500/10 text-emerald-600",
+  approved: "bg-success/10 text-success",
   rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600",
 };

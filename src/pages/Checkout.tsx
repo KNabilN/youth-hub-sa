@@ -612,7 +612,7 @@ export default function Checkout() {
                   </PopoverContent>
                 </Popover>
                 {!selectedAssociation && (
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-warning">
                     يُنصح باختيار جمعية مستفيدة لإنشاء مشروع تلقائي وتتبع التسليم
                   </p>
                 )}

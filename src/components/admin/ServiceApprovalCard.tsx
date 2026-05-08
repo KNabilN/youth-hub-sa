@@ -19,8 +19,8 @@ const approvalLabels: Record<string, string> = {
 };
 const approvalColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
-  pending: "bg-yellow-500/10 text-yellow-600",
-  approved: "bg-emerald-500/10 text-emerald-600",
+  pending: "bg-warning/10 text-warning",
+  approved: "bg-success/10 text-success",
   rejected: "bg-destructive/10 text-destructive",
   suspended: "bg-orange-500/10 text-orange-600",
   archived: "bg-muted text-muted-foreground",
@@ -143,7 +143,7 @@ export function ServiceApprovalCard({ service }: { service: any }) {
               </Button>
             )}
             {service.approval === "suspended" && (
-              <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => openReasonDialog("approved")} disabled={update.isPending}>
+              <Button size="sm" variant="outline" className="text-success" onClick={() => openReasonDialog("approved")} disabled={update.isPending}>
                 <Play className="h-4 w-4 me-1" />إعادة تفعيل
               </Button>
             )}

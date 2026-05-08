@@ -41,14 +41,14 @@ const priorityLabels: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   open: "bg-primary/10 text-primary",
-  in_progress: "bg-yellow-500/10 text-yellow-600",
-  resolved: "bg-emerald-500/10 text-emerald-600",
+  in_progress: "bg-warning/10 text-warning",
+  resolved: "bg-success/10 text-success",
   closed: "bg-muted text-muted-foreground",
 };
 
 const priorityColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
-  medium: "bg-yellow-500/10 text-yellow-600",
+  medium: "bg-warning/10 text-warning",
   high: "bg-orange-500/10 text-orange-600",
   urgent: "bg-destructive/10 text-destructive",
 };

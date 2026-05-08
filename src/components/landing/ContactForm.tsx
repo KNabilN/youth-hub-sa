@@ -82,7 +82,7 @@ export function ContactForm() {
     return (
       <Card className="max-w-lg mx-auto text-center">
         <CardContent className="py-12 space-y-4">
-          <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto" />
+          <CheckCircle className="h-12 w-12 text-success mx-auto" />
           <h3 className="text-xl font-bold">شكراً لتواصلك!</h3>
           <p className="text-muted-foreground">سنرد عليك في أقرب وقت ممكن.</p>
           <Button variant="outline" onClick={() => setSent(false)}>إرسال رسالة أخرى</Button>

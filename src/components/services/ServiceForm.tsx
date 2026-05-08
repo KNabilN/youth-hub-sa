@@ -147,7 +147,7 @@ export function ServiceForm({
               <p
                 className={cn(
                   "text-xs",
-                  wordsOk ? "text-green-600 dark:text-green-500" : "text-destructive"
+                  wordsOk ? "text-success dark:text-success" : "text-destructive"
                 )}
               >
                 {wordCount} كلمة من 50

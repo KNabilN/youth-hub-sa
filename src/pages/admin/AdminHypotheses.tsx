@@ -21,8 +21,8 @@ import {
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
   not_tested: { label: "لم تُختبر", color: "bg-muted text-muted-foreground", icon: Clock },
-  testing: { label: "قيد الاختبار", color: "bg-amber-500/15 text-amber-700 dark:text-amber-400", icon: FlaskConical },
-  verified: { label: "تم التحقق", color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400", icon: CheckCircle2 },
+  testing: { label: "قيد الاختبار", color: "bg-warning/15 text-warning dark:text-warning", icon: FlaskConical },
+  verified: { label: "تم التحقق", color: "bg-success/15 text-success dark:text-success", icon: CheckCircle2 },
   not_verified: { label: "لم تتحقق", color: "bg-destructive/15 text-destructive", icon: XCircle },
 };
 
@@ -153,8 +153,8 @@ function AdminHypotheses() {
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <KPICard icon={Gauge} label="التقدم الكلي" value={`${progressPct}%`} sub={`${counts.verified + counts.not_verified} من ${all.length}`} color="text-primary" />
-          <KPICard icon={CheckCircle2} label="تم التحقق" value={counts.verified} color="text-emerald-600" />
-          <KPICard icon={FlaskConical} label="قيد الاختبار" value={counts.testing} color="text-amber-600" />
+          <KPICard icon={CheckCircle2} label="تم التحقق" value={counts.verified} color="text-success" />
+          <KPICard icon={FlaskConical} label="قيد الاختبار" value={counts.testing} color="text-warning" />
           <KPICard icon={Clock} label="لم تُختبر" value={counts.not_tested} color="text-muted-foreground" />
           <KPICard icon={XCircle} label="لم تتحقق" value={counts.not_verified} color="text-destructive" />
         </div>
@@ -239,11 +239,11 @@ function HypothesisCard({
     h.status === "verified" ? 100 : h.status === "not_verified" ? 100 : h.status === "testing" ? 50 : 0;
   const progressColor =
     h.status === "verified"
-      ? "[&>div]:bg-emerald-500"
+      ? "[&>div]:bg-success"
       : h.status === "not_verified"
       ? "[&>div]:bg-destructive"
       : h.status === "testing"
-      ? "[&>div]:bg-amber-500"
+      ? "[&>div]:bg-warning"
       : "[&>div]:bg-muted-foreground/30";
 
   return (

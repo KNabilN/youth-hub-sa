@@ -87,7 +87,7 @@ function CityManager({ regionId, regionName }: { regionId: string; regionName: s
               {editId === c.id ? (
                 <>
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-7 text-sm flex-1" onKeyDown={(e) => { if (e.key === "Enter") updateMut.mutate({ id: editId, name: editName }); if (e.key === "Escape") setEditId(null); }} />
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateMut.mutate({ id: editId, name: editName })}><Check className="h-3 w-3 text-emerald-600" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateMut.mutate({ id: editId, name: editName })}><Check className="h-3 w-3 text-success" /></Button>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditId(null)}><X className="h-3 w-3" /></Button>
                 </>
               ) : (
@@ -254,7 +254,7 @@ export function RegionManager() {
                     {editId === r.id ? (
                       <>
                         <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 flex-1" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }} />
-                        <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
+                        <Button size="icon" variant="ghost" onClick={saveEdit} disabled={updateMut.isPending}><Check className="h-4 w-4 text-success" /></Button>
                         <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
                       </>
                     ) : (

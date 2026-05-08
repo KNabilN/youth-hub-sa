@@ -93,7 +93,7 @@ export default function LandingServicesGrid({ services, loading, title, subtitle
     <Card key={s.id} className="card-hover group overflow-hidden relative">
       {(s as any).is_featured && (
         <div className="absolute top-2 start-2 z-10">
-          <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-500 text-white border-0 text-xs">
+          <Badge className="gap-1 bg-warning hover:bg-warning text-primary-foreground border-0 text-xs">
             <Star className="w-3 h-3 fill-white" />
             مميزة
           </Badge>

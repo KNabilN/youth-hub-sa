@@ -50,7 +50,7 @@ export function ContractCard({ contract, canSign, onSign, isSignPending }: Contr
           <span className="text-muted-foreground">توقيع الجمعية:</span>
           <span className="flex items-center gap-1">
             {contract.association_signed_at ? (
-              <><Check className="h-3.5 w-3.5 text-green-600" /> {new Date(contract.association_signed_at).toLocaleDateString("ar-SA")}</>
+              <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.association_signed_at).toLocaleDateString("ar-SA")}</>
             ) : (
               <><Clock className="h-3.5 w-3.5 text-muted-foreground" /> لم يوقّع بعد</>
             )}
@@ -58,7 +58,7 @@ export function ContractCard({ contract, canSign, onSign, isSignPending }: Contr
           <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
           <span className="flex items-center gap-1">
             {contract.provider_signed_at ? (
-              <><Check className="h-3.5 w-3.5 text-green-600" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</>
+              <><Check className="h-3.5 w-3.5 text-success" /> {new Date(contract.provider_signed_at).toLocaleDateString("ar-SA")}</>
             ) : (
               <><Clock className="h-3.5 w-3.5 text-muted-foreground" /> لم يوقّع بعد</>
             )}

@@ -302,7 +302,7 @@ export function AppSidebar() {
                 {(getDisplayName(profile, role)?.[0] || "؟")}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 [inset-inline-end:-0.25rem] h-4 w-4 rounded-full bg-emerald-500 border-2 border-sidebar-background" />
+            <div className="absolute -bottom-1 [inset-inline-end:-0.25rem] h-4 w-4 rounded-full bg-success border-2 border-sidebar-background" />
           </div>
           <div className="space-y-0.5">
             <p className="text-sm font-bold text-sidebar-foreground">{getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : "مستخدم"}</p>

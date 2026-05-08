@@ -44,7 +44,7 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
       title: `تعديل العقد - الإصدار ${v.version_number}`,
       detail: v.change_note || undefined,
       icon: History,
-      color: "text-blue-500",
+      color: "text-info",
     });
   });
 
@@ -55,7 +55,7 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
       date: contract.association_signed_at,
       title: "توقيع الجمعية",
       icon: Check,
-      color: "text-green-600",
+      color: "text-success",
     });
   }
   if (contract.provider_signed_at) {
@@ -64,7 +64,7 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
       date: contract.provider_signed_at,
       title: "توقيع مقدم الخدمة",
       icon: Check,
-      color: "text-green-600",
+      color: "text-success",
     });
   }
 
@@ -76,7 +76,7 @@ export function ContractTimeline({ contract, escrow, timeLogs, disputes }: Contr
       title: `ضمان مالي: ${escrow.amount} ر.س`,
       detail: escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "تم التحرير" : escrow.status === "refunded" ? "مسترد" : escrow.status,
       icon: DollarSign,
-      color: "text-amber-500",
+      color: "text-warning",
     });
   }
 

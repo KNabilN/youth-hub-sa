@@ -395,10 +395,10 @@ export default function AdminReports() {
   const chartPerDonor = topNWithOthersAmount(donorAnalytics?.perDonor ?? []);
 
   const insightCards = [
-    { label: "الخدمات المعتمدة", value: insights?.servicesCount ?? 0, icon: Package, color: "text-blue-600 bg-blue-100" },
-    { label: "المشاريع المكتملة", value: insights?.completedProjects ?? 0, icon: CheckCircle2, color: "text-emerald-600 bg-emerald-100" },
+    { label: "الخدمات المعتمدة", value: insights?.servicesCount ?? 0, icon: Package, color: "text-info bg-info/10" },
+    { label: "المشاريع المكتملة", value: insights?.completedProjects ?? 0, icon: CheckCircle2, color: "text-success bg-success/10" },
     { label: "العقود", value: insights?.contractsCount ?? 0, icon: FileSignature, color: "text-violet-600 bg-violet-100" },
-    { label: "الضمانات المحتجزة", value: `${(insights?.heldEscrow ?? 0).toLocaleString()} ر.س`, icon: Shield, color: "text-amber-600 bg-amber-100" },
+    { label: "الضمانات المحتجزة", value: `${(insights?.heldEscrow ?? 0).toLocaleString()} ر.س`, icon: Shield, color: "text-warning bg-warning/10" },
     { label: "المانحين النشطين", value: insights?.activeDonors ?? 0, icon: HeartHandshake, color: "text-rose-600 bg-rose-100" },
     { label: "تذاكر الدعم", value: insights?.ticketsCount ?? 0, icon: LifeBuoy, color: "text-cyan-600 bg-cyan-100" },
   ];

@@ -42,7 +42,7 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
     <Card className={
       index === 0
         ? deliverable.status === "accepted"
-          ? "border-green-500/30 bg-green-500/5"
+          ? "border-success/30/30 bg-success/5"
           : deliverable.status === "revision_requested"
             ? "border-destructive/30 bg-destructive/5"
             : "border-primary/30 bg-primary/5"

@@ -316,7 +316,7 @@ export default function AdminDisputeDetail() {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {canRelease && (
-                    <Button size="sm" variant="outline" className="gap-1.5 text-emerald-600 hover:bg-emerald-500/10" disabled={escrowLoading} onClick={() => { setEscrowActionDialog({ action: "released", escrow }); setEscrowReceiptFile(null); }}>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-success hover:bg-success/10" disabled={escrowLoading} onClick={() => { setEscrowActionDialog({ action: "released", escrow }); setEscrowReceiptFile(null); }}>
                       <Banknote className="h-4 w-4" /> تحرير الضمان
                     </Button>
                   )}
@@ -326,7 +326,7 @@ export default function AdminDisputeDetail() {
                     </Button>
                   )}
                   {canFreeze && (
-                    <Button size="sm" variant="outline" className="gap-1.5 text-blue-600 hover:bg-blue-500/10" disabled={escrowLoading} onClick={() => handleEscrowAction("freeze")}>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-info hover:bg-info/10" disabled={escrowLoading} onClick={() => handleEscrowAction("freeze")}>
                       <Lock className="h-4 w-4" /> تجميد
                     </Button>
                   )}

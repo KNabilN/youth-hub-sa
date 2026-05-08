@@ -345,14 +345,14 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             </Button>
 
             {showResend && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 space-y-2">
-                <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+              <div className="rounded-lg border border-warning/30 bg-warning/10 dark:border-warning/30 dark:bg-amber-950/30 p-3 space-y-2">
+                <p className="text-sm text-warning dark:text-amber-200 text-center">
                   لم يتم تأكيد بريدك الإلكتروني بعد
                 </p>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  className="w-full h-10 border-warning/30 text-warning hover:bg-warning/10 dark:border-warning/30 dark:text-amber-200 dark:hover:bg-warning/50"
                   onClick={handleResend}
                   disabled={resending}
                 >
@@ -572,7 +572,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="bg-black/40 backdrop-blur-md" />
+        <DialogOverlay className="bg-foreground/40 backdrop-blur-md" />
         <DialogPrimitive.Content
           className="fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] border border-border/50 bg-background shadow-2xl rounded-lg max-h-[90vh] overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
         >

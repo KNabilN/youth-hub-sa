@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, Wallet, ArrowDownToLine } from "lucide-react";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  held: { label: "محتجز", variant: "secondary", border: "border-e-4 border-amber-500" },
-  released: { label: "صُرف", variant: "default", border: "border-e-4 border-emerald-500" },
-  frozen: { label: "مجمّد", variant: "outline", border: "border-e-4 border-blue-500" },
-  refunded: { label: "مسترد", variant: "destructive", border: "border-e-4 border-red-500" },
+  held: { label: "محتجز", variant: "secondary", border: "border-e-4 border-warning/30" },
+  released: { label: "صُرف", variant: "default", border: "border-e-4 border-success/30" },
+  frozen: { label: "مجمّد", variant: "outline", border: "border-e-4 border-info/30" },
+  refunded: { label: "مسترد", variant: "destructive", border: "border-e-4 border-destructive/30" },
 };
 
 interface EarningsSummaryProps {
@@ -42,7 +42,7 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions,
           </CardContent>
         </Card>
 
-        <Card className="border-e-4 border-amber-500 bg-gradient-to-l from-amber-500/5 to-amber-500/10">
+        <Card className="border-e-4 border-warning/30 bg-gradient-to-l from-amber-500/5 to-amber-500/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-1.5">
               <Wallet className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function EarningsSummary({ totalEarnings, availableBalance, transactions,
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-3xl font-bold text-amber-600">{availableBalance.toLocaleString()} ر.س</div>
+            <div className="text-xl sm:text-3xl font-bold text-warning">{availableBalance.toLocaleString()} ر.س</div>
           </CardContent>
         </Card>
       </div>
