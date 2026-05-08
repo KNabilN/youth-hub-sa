@@ -32,6 +32,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
@@ -72,7 +73,7 @@ const statusLabels: Record<
 export default function MyBids() {
   const [filter, setFilter] = useState("all");
   const { user } = useAuth();
-  const { data: allBids, isLoading } = useProviderBids(filter);
+  const { data: allBids, isLoading, isError, refetch } = useProviderBids(filter);
   const withdrawBid = useWithdrawBid();
   const signContract = useSignContract();
   const pagination = usePagination("my-bids");

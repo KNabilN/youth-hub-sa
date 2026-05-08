@@ -1,6 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { AssociationCard } from "@/components/donor/AssociationCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { useState, useMemo } from "react";
 
 export default function Associations() {
   const [search, setSearch] = useState("");
-  const { data: associations, isLoading } = useQuery({
+  const { data: associations, isLoading, isError, refetch } = useQuery({
     queryKey: ["associations"],
     queryFn: async () => {
       const { data: ids, error: rpcError } = await supabase.rpc(

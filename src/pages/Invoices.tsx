@@ -4,6 +4,7 @@ import { useMyInvoices } from "@/hooks/useMyInvoices";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -53,7 +54,7 @@ const statusLabels: Record<
 };
 
 export default function Invoices() {
-  const { data: invoices, isLoading } = useMyInvoices();
+  const { data: invoices, isLoading, isError, refetch } = useMyInvoices();
   const { data: profile } = useProfile();
   const { data: templateContent } = useSiteContent("invoice_template");
   const queryClient = useQueryClient();

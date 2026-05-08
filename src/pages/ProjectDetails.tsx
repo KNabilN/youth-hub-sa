@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { toast } from "sonner";
 
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -86,7 +87,7 @@ export default function ProjectDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "bids";
-  const { data: project, isLoading } = useProject(id);
+  const { data: project, isLoading, isError, refetch } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
   const updateTimeLog = useUpdateTimeLogApproval();

@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { ErrorState } from "@/components/ErrorState";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +20,7 @@ export default function Ratings() {
   const qc = useQueryClient();
   const isProvider = role === "service_provider";
 
-  const { data: contracts, isLoading } = useQuery({
+  const { data: contracts, isLoading, isError, refetch } = useQuery({
     queryKey: ["ratable-contracts", user?.id, role],
     enabled: !!user,
     queryFn: async () => {

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { ProviderProjectCard } from "@/components/provider/ProviderProjectCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
@@ -69,7 +70,7 @@ export default function AvailableProjects() {
     },
   });
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, isError, refetch } = useQuery({
     queryKey: [
       "available-projects",
       user?.id,

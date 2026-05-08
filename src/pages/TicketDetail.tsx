@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { ErrorState } from "@/components/ErrorState";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,7 @@ export default function TicketDetail() {
     };
   }, [id, queryClient]);
 
-  const { data: ticket, isLoading } = useQuery({
+  const { data: ticket, isLoading, isError, refetch } = useQuery({
     queryKey: ["ticket-detail", id],
     enabled: !!id,
     queryFn: async () => {
