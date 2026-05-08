@@ -39,7 +39,7 @@ export default function MyServices() {
     if (createService.isPending) return;
     createService.mutate(values as Parameters<typeof createService.mutate>[0], {
       onSuccess: () => {
-        toast({ title: "تم إنشاء الخدمة بنجاح" });
+        toast({ title: "تم إنشاء الخدمة بنجاح", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" });
         setFormOpen(false);
       },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
