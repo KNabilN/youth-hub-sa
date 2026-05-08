@@ -8,7 +8,14 @@ import { ServiceInquirySheet } from "@/components/services/ServiceInquirySheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, ShoppingBag, Star, Paperclip, Home, ChevronLeft } from "lucide-react";
+import {
+  Eye,
+  ShoppingBag,
+  Star,
+  Paperclip,
+  Home,
+  ChevronLeft,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
 import { useGuestCart } from "@/hooks/useGuestCart";
@@ -18,192 +25,246 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 
 export default function ServiceDetail() {
- const { id } = useParams<{ id: string }>();
- const { service, isLoading, ratings, ratingsLoading } = useServiceDetail(id);
- const { user, role } = useAuth();
- const addToCart = useAddToCart();
- const navigate = useNavigate();
- const { data: cartItems } = useCartItems();
- const { items: guestItems } = useGuestCart();
- const { isVerified, guardAction } = useVerificationGuard();
+  const { id } = useParams<{ id: string }>();
+  const { service, isLoading, ratings, ratingsLoading } = useServiceDetail(id);
+  const { user, role } = useAuth();
+  const addToCart = useAddToCart();
+  const navigate = useNavigate();
+  const { data: cartItems } = useCartItems();
+  const { items: guestItems } = useGuestCart();
+  const { isVerified, guardAction } = useVerificationGuard();
 
- const isInCart = user
- ? cartItems?.some((item: any) => item.service_id === id)
- : guestItems.some((item: any) => item.service_id === id);
+  const isInCart = user
+    ? cartItems?.some((item: any) => item.service_id === id)
+    : guestItems.some((item: any) => item.service_id === id);
 
- const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
+  const canPurchase =
+    (role === "youth_association" || role === "donor") && isVerified;
 
- const handleAddToCart = () => {
- if (!user) {
- toast.error("يجب تسجيل الدخول أولاً");
- return;
- }
- addToCart.mutate(service!.id, {
- onSuccess: () => toast.success("تمت إضافة الخدمة إلى السلة"),
- onError: () => toast.error("حدث خطأ أثناء الإضافة"),
- });
- };
+  const handleAddToCart = () => {
+    if (!user) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      return;
+    }
+    addToCart.mutate(service!.id, {
+      onSuccess: () => toast.success("تمت إضافة الخدمة إلى السلة"),
+      onError: () => toast.error("حدث خطأ أثناء الإضافة"),
+    });
+  };
 
- if (isLoading) {
- return (
- <div className="container mx-auto py-8 px-4 space-y-6">
- <Skeleton className="h-10 w-2/3" />
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
- <Skeleton className="h-80 lg:col-span-2 rounded-xl" />
- <Skeleton className="h-60 rounded-xl" />
- </div>
- </div>
- );
- }
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4 space-y-6">
+        <Skeleton className="h-10 w-2/3" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-80 lg:col-span-2 rounded-xl" />
+          <Skeleton className="h-60 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
- if (!service) {
- return (
- <div className="container mx-auto py-16 text-center space-y-4">
- <p className="text-lg text-muted-foreground">هذه الخدمة غير موجودة أو تم حذفها</p>
- <Button variant="outline" onClick={() => window.history.back()}>العودة</Button>
- </div>
- );
- }
+  if (!service) {
+    return (
+      <div className="container mx-auto py-16 text-center space-y-4">
+        <p className="text-lg text-muted-foreground">
+          هذه الخدمة غير موجودة أو تم حذفها
+        </p>
+        <Button variant="outline" onClick={() => window.history.back()}>
+          العودة
+        </Button>
+      </div>
+    );
+  }
 
- const gallery = (service.gallery as string[] | null) ?? [];
- const faq = (service.faq as Array<{ question: string; answer: string }> | null) ?? [];
- const packages = (service.packages as Array<{ name: string; description: string; price: number; old_price?: number }> | null) ?? [];
- const longDesc = (service.long_description as string | null) ?? "";
- const provider = service.profiles as any;
+  const gallery = (service.gallery as string[] | null) ?? [];
+  const faq =
+    (service.faq as Array<{ question: string; answer: string }> | null) ?? [];
+  const packages =
+    (service.packages as Array<{
+      name: string;
+      description: string;
+      price: number;
+      old_price?: number;
+    }> | null) ?? [];
+  const longDesc = (service.long_description as string | null) ?? "";
+  const provider = service.profiles as any;
 
- // Compute average rating
- const avgRating = ratings.length > 0
- ? (ratings.reduce((sum, r) => sum + (r.quality_score + r.communication_score + r.timing_score) / 3, 0) / ratings.length).toFixed(1)
- : null;
+  // Compute average rating
+  const avgRating =
+    ratings.length > 0
+      ? (
+          ratings.reduce(
+            (sum, r) =>
+              sum +
+              (r.quality_score + r.communication_score + r.timing_score) / 3,
+            0,
+          ) / ratings.length
+        ).toFixed(1)
+      : null;
 
- return (
- <div className="container mx-auto py-8 px-4 space-y-8">
- {/* Breadcrumb */}
- <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
- <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
- <Home className="w-3.5 h-3.5" />
- الرئيسية
- </Link>
- <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
- <Link to="/marketplace" className="hover:text-foreground transition-colors">
- الخدمات
- </Link>
- <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
- <span className="text-foreground font-medium truncate max-w-[200px]">{service.title}</span>
- </nav>
+  return (
+    <div className="container mx-auto py-8 px-4 space-y-8">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link
+          to="/"
+          className="hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          <Home className="w-3.5 h-3.5" />
+          الرئيسية
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <Link
+          to="/marketplace"
+          className="hover:text-foreground transition-colors"
+        >
+          الخدمات
+        </Link>
+        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+        <span className="text-foreground font-medium truncate max-w-[200px]">
+          {service.title}
+        </span>
+      </nav>
 
- {/* Header */}
- <div className="space-y-2">
- <h1 className="text-2xl md:text-3xl font-bold">{service.title}</h1>
- {(service as any).service_number && (
- <span className="text-sm font-semibold font-mono text-primary">{(service as any).service_number}</span>
- )}
- <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
- {service.categories && <Badge variant="secondary">{(service.categories as any).name}</Badge>}
- {service.regions && <Badge variant="outline">{(service.regions as any).name}</Badge>}
- {(service as any).cities && <Badge variant="outline">{(service as any).cities.name}</Badge>}
- {avgRating && (
- <span className="flex items-center gap-1">
- <Star className="h-4 w-4 fill-yellow-400 text-warning" />
- {avgRating} ({ratings.length})
- </span>
- )}
- <span className="flex items-center gap-1">
- <Eye className="h-4 w-4" />
- {service.service_views ?? 0}
- </span>
- <span className="flex items-center gap-1">
- <ShoppingBag className="h-4 w-4" />
- {service.sales_count ?? 0} مبيعات
- </span>
- </div>
- </div>
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-2xl md:text-3xl font-bold">{service.title}</h1>
+        {(service as any).service_number && (
+          <span className="text-sm font-semibold font-mono text-primary">
+            {(service as any).service_number}
+          </span>
+        )}
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          {service.categories && (
+            <Badge variant="secondary">
+              {(service.categories as any).name}
+            </Badge>
+          )}
+          {service.regions && (
+            <Badge variant="outline">{(service.regions as any).name}</Badge>
+          )}
+          {(service as any).cities && (
+            <Badge variant="outline">{(service as any).cities.name}</Badge>
+          )}
+          {avgRating && (
+            <span className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-warning" />
+              {avgRating} ({ratings.length})
+            </span>
+          )}
+          <span className="flex items-center gap-1">
+            <Eye className="h-4 w-4" />
+            {service.service_views ?? 0}
+          </span>
+          <span className="flex items-center gap-1">
+            <ShoppingBag className="h-4 w-4" />
+            {service.sales_count ?? 0} مبيعات
+          </span>
+        </div>
+      </div>
 
- {/* Main layout */}
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
- {/* Gallery */}
- <div className="lg:col-span-2">
- <ServiceGallery mainImage={(service.categories as any)?.image_url || service.image_url} gallery={gallery} />
- </div>
+      {/* Main layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Gallery */}
+        <div className="lg:col-span-2">
+          <ServiceGallery
+            mainImage={
+              (service.categories as any)?.image_url || service.image_url
+            }
+            gallery={gallery}
+          />
+        </div>
 
- {/* Sidebar */}
- <div className="space-y-4">
- <ServicePackages
- packages={packages}
- basePrice={service.price}
- baseDescription={service.description}
- serviceType={service.service_type}
- onAddToCart={handleAddToCart}
- canPurchase={canPurchase}
- isAdding={addToCart.isPending}
- isInCart={!!isInCart}
- onGoToCart={() => navigate("/cart")}
- />
- {provider && (
- <ServiceProviderCard provider={provider} />
- )}
- {/* Inquiry button — visible to associations/donors, not to the provider themselves */}
- {user && provider && user.id !== provider.id && (role === "youth_association" || role === "donor") && (
- <ServiceInquirySheet
- serviceId={id!}
- providerId={provider.id}
- serviceTitle={service.title}
- />
- )}
- </div>
- </div>
+        {/* Sidebar */}
+        <div className="space-y-4">
+          <ServicePackages
+            packages={packages}
+            basePrice={service.price}
+            baseDescription={service.description}
+            serviceType={service.service_type}
+            onAddToCart={handleAddToCart}
+            canPurchase={canPurchase}
+            isAdding={addToCart.isPending}
+            isInCart={!!isInCart}
+            onGoToCart={() => navigate("/cart")}
+          />
+          {provider && <ServiceProviderCard provider={provider} />}
+          {/* Inquiry button — visible to associations/donors, not to the provider themselves */}
+          {user &&
+            provider &&
+            user.id !== provider.id &&
+            (role === "youth_association" || role === "donor") && (
+              <ServiceInquirySheet
+                serviceId={id!}
+                providerId={provider.id}
+                serviceTitle={service.title}
+              />
+            )}
+        </div>
+      </div>
 
- {/* Long description */}
- {(longDesc || service.description) && (
- <div className="space-y-3">
- <h2 className="text-lg font-bold">وصف الخدمة</h2>
- <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
- {longDesc || service.description}
- </div>
- </div>
- )}
+      {/* Long description */}
+      {(longDesc || service.description) && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold">وصف الخدمة</h2>
+          <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
+            {longDesc || service.description}
+          </div>
+        </div>
+      )}
 
- {/* FAQ */}
- <ServiceFAQ items={faq} />
+      {/* FAQ */}
+      <ServiceFAQ items={faq} />
 
- {/* Attachments */}
- <div className="space-y-3">
- <h2 className="text-lg font-bold flex items-center gap-2">
- <Paperclip className="h-5 w-5" />
- المرفقات
- </h2>
- <AttachmentList entityType="service" entityId={id} />
- </div>
+      {/* Attachments */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <Paperclip className="h-5 w-5" />
+          المرفقات
+        </h2>
+        <AttachmentList entityType="service" entityId={id} />
+      </div>
 
- {/* Ratings */}
- {ratings.length > 0 && (
- <div className="space-y-4">
- <h2 className="text-lg font-bold">التقييمات ({ratings.length})</h2>
- <div className="grid gap-3">
- {ratings.map((r: any) => {
- const avg = ((r.quality_score + r.communication_score + r.timing_score) / 3).toFixed(1);
- return (
- <div key={r.id} className="rounded-xl border bg-card p-4 space-y-2">
- <div className="flex items-center gap-2">
- <Avatar className="h-8 w-8">
- <AvatarImage src={r.profiles?.avatar_url ?? undefined} />
- <AvatarFallback className="text-xs bg-primary/10 text-primary">
- {r.profiles?.full_name?.[0] || "؟"}
- </AvatarFallback>
- </Avatar>
- <span className="font-medium text-sm">{r.profiles?.full_name}</span>
- <span className="flex items-center gap-1 text-sm text-warning">
- <Star className="h-3.5 w-3.5 fill-yellow-400 text-warning" />
- {avg}
- </span>
- </div>
- {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
- </div>
- );
- })}
- </div>
- </div>
- )}
- </div>
- );
+      {/* Ratings */}
+      {ratings.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold">التقييمات ({ratings.length})</h2>
+          <div className="grid gap-3">
+            {ratings.map((r: any) => {
+              const avg = (
+                (r.quality_score + r.communication_score + r.timing_score) /
+                3
+              ).toFixed(1);
+              return (
+                <div
+                  key={r.id}
+                  className="rounded-xl border bg-card p-4 space-y-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={r.profiles?.avatar_url ?? undefined} />
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        {r.profiles?.full_name?.[0] || "؟"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-sm">
+                      {r.profiles?.full_name}
+                    </span>
+                    <span className="flex items-center gap-1 text-sm text-warning">
+                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-warning" />
+                      {avg}
+                    </span>
+                  </div>
+                  {r.comment && (
+                    <p className="text-sm text-muted-foreground">{r.comment}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

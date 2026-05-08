@@ -13,7 +13,7 @@ export function CharCounter({ current, max, className }: CharCounterProps) {
       className={cn(
         "text-xs text-muted-foreground text-end",
         ratio >= 0.9 && "text-destructive",
-        className
+        className,
       )}
       dir="ltr"
     >

@@ -9,53 +9,65 @@ import { useNavigate } from "react-router-dom";
 import { useListHighlight } from "@/hooks/useListHighlight";
 
 export default function SupportTickets() {
- const { data: tickets, isLoading } = useSupportTickets();
- const navigate = useNavigate();
- const { saveAndNavigate } = useListHighlight("my-tickets");
+  const { data: tickets, isLoading } = useSupportTickets();
+  const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("my-tickets");
 
- return (
- <DashboardLayout>
- <div className="space-y-6">
- <div className="flex flex-wrap items-center justify-between gap-3">
- <div className="flex items-center gap-3">
- <div className="bg-primary/10 rounded-xl p-3">
- <MessageSquare className="h-7 w-7 text-primary" />
- </div>
- <div>
- <h1 className="text-2xl font-bold">تذاكر الدعم</h1>
- <p className="text-sm text-muted-foreground">تواصل مع فريق الدعم</p>
- </div>
- </div>
- <Button onClick={() => navigate("/tickets/new")}>
- <Plus className="me-2 h-4 w-4" />
- تذكرة جديدة
- </Button>
- </div>
- <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <MessageSquare className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">تذاكر الدعم</h1>
+              <p className="text-sm text-muted-foreground">
+                تواصل مع فريق الدعم
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => navigate("/tickets/new")}>
+            <Plus className="me-2 h-4 w-4" />
+            تذكرة جديدة
+          </Button>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
- {isLoading ? (
- <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
- ) : !tickets?.length ? (
- <EmptyState icon={MessageSquare} title="لا توجد تذاكر دعم" description="يمكنك إنشاء تذكرة جديدة للتواصل مع فريق الدعم" actionLabel="تذكرة جديدة" actionHref="/tickets/new" />
- ) : (
- <div className="space-y-3">
- {tickets.map((t) => (
- <div key={t.id} id={`row-${t.id}`}>
- <TicketCard
- id={t.id}
- subject={t.subject}
- description={t.description}
- status={t.status}
- priority={t.priority}
- created_at={t.created_at}
- ticket_number={(t as any).ticket_number}
- onClick={() => saveAndNavigate(t.id, `/tickets/${t.id}`)}
- />
- </div>
- ))}
- </div>
- )}
- </div>
- </DashboardLayout>
- );
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : !tickets?.length ? (
+          <EmptyState
+            icon={MessageSquare}
+            title="لا توجد تذاكر دعم"
+            description="يمكنك إنشاء تذكرة جديدة للتواصل مع فريق الدعم"
+            actionLabel="تذكرة جديدة"
+            actionHref="/tickets/new"
+          />
+        ) : (
+          <div className="space-y-3">
+            {tickets.map((t) => (
+              <div key={t.id} id={`row-${t.id}`}>
+                <TicketCard
+                  id={t.id}
+                  subject={t.subject}
+                  description={t.description}
+                  status={t.status}
+                  priority={t.priority}
+                  created_at={t.created_at}
+                  ticket_number={(t as any).ticket_number}
+                  onClick={() => saveAndNavigate(t.id, `/tickets/${t.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
 }

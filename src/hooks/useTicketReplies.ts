@@ -4,51 +4,67 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
 export function useTicketReplies(ticketId: string | null) {
- const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
- useEffect(() => {
- if (!ticketId) return;
- const channel = supabase
- .channel(`rt-ticket-replies-${ticketId}`)
- .on(
- "postgres_changes",
- { event: "*", schema: "public", table: "ticket_replies", filter: `ticket_id=eq.${ticketId}` },
- () => queryClient.invalidateQueries({ queryKey: ["ticket-replies", ticketId] })
- )
- .subscribe();
- return () => { supabase.removeChannel(channel); };
- }, [ticketId, queryClient]);
+  useEffect(() => {
+    if (!ticketId) return;
+    const channel = supabase
+      .channel(`rt-ticket-replies-${ticketId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ticket_replies",
+          filter: `ticket_id=eq.${ticketId}`,
+        },
+        () =>
+          queryClient.invalidateQueries({
+            queryKey: ["ticket-replies", ticketId],
+          }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticketId, queryClient]);
 
- return useQuery({
- queryKey: ["ticket-replies", ticketId],
- enabled: !!ticketId,
- queryFn: async () => {
- const { data, error } = await supabase
- .from("ticket_replies")
- .select("*, profiles:author_id(full_name, avatar_url)")
- .eq("ticket_id", ticketId!)
- .order("created_at", { ascending: true });
- if (error) throw error;
- return data;
- },
- });
+  return useQuery({
+    queryKey: ["ticket-replies", ticketId],
+    enabled: !!ticketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_replies")
+        .select("*, profiles:author_id(full_name, avatar_url)")
+        .eq("ticket_id", ticketId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
 }
 
 export function useCreateTicketReply() {
- const queryClient = useQueryClient();
- const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
- return useMutation({
- mutationFn: async ({ ticketId, message }: { ticketId: string; message: string }) => {
- const { error } = await supabase.from("ticket_replies").insert({
- ticket_id: ticketId,
- author_id: user!.id,
- message,
- });
- if (error) throw error;
- },
- onSuccess: (_, { ticketId }) => {
- queryClient.invalidateQueries({ queryKey: ["ticket-replies", ticketId] });
- },
- });
+  return useMutation({
+    mutationFn: async ({
+      ticketId,
+      message,
+    }: {
+      ticketId: string;
+      message: string;
+    }) => {
+      const { error } = await supabase.from("ticket_replies").insert({
+        ticket_id: ticketId,
+        author_id: user!.id,
+        message,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, { ticketId }) => {
+      queryClient.invalidateQueries({ queryKey: ["ticket-replies", ticketId] });
+    },
+  });
 }

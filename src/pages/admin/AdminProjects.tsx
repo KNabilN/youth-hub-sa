@@ -1,11 +1,30 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAdminProjects, useUpdateProjectStatus, useAdminUpdateProject, useToggleProjectNameVisibility, useAdminProjectsCount } from "@/hooks/useAdminProjects";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  useAdminProjects,
+  useUpdateProjectStatus,
+  useAdminUpdateProject,
+  useToggleProjectNameVisibility,
+  useAdminProjectsCount,
+} from "@/hooks/useAdminProjects";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -20,310 +39,527 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
 import { useListHighlight } from "@/hooks/useListHighlight";
-import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import {
+  AdminDirectEditDialog,
+  type DirectEditFieldConfig,
+} from "@/components/admin/AdminDirectEditDialog";
 import { useCategories } from "@/hooks/useCategories";
 import type { Database } from "@/integrations/supabase/types";
-import { ExportDialog, type ExportColumnDef } from "@/components/admin/ExportDialog";
+import {
+  ExportDialog,
+  type ExportColumnDef,
+} from "@/components/admin/ExportDialog";
 
 const projectExportColumns: ExportColumnDef[] = [
- { key: "request_number", label: "رقم الطلب" },
- { key: "title", label: "العنوان" },
- { key: "description", label: "الوصف" },
- { key: "association", label: "الجمعية" },
- { key: "provider", label: "مزود الخدمة" },
- { key: "category", label: "التصنيف" },
- { key: "region", label: "المنطقة" },
- { key: "city", label: "المدينة" },
- { key: "budget", label: "الميزانية" },
- { key: "estimated_hours", label: "الساعات المقدرة" },
- { key: "required_skills", label: "المهارات المطلوبة" },
- { key: "status", label: "الحالة" },
- { key: "is_featured", label: "مميز" },
- { key: "is_private", label: "خاص" },
- { key: "is_name_visible", label: "إظهار الاسم" },
- { key: "rejection_reason", label: "سبب الرفض" },
- { key: "created_at", label: "تاريخ الإنشاء" },
- { key: "updated_at", label: "تاريخ التحديث" },
+  { key: "request_number", label: "رقم الطلب" },
+  { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف" },
+  { key: "association", label: "الجمعية" },
+  { key: "provider", label: "مزود الخدمة" },
+  { key: "category", label: "التصنيف" },
+  { key: "region", label: "المنطقة" },
+  { key: "city", label: "المدينة" },
+  { key: "budget", label: "الميزانية" },
+  { key: "estimated_hours", label: "الساعات المقدرة" },
+  { key: "required_skills", label: "المهارات المطلوبة" },
+  { key: "status", label: "الحالة" },
+  { key: "is_featured", label: "مميز" },
+  { key: "is_private", label: "خاص" },
+  { key: "is_name_visible", label: "إظهار الاسم" },
+  { key: "rejection_reason", label: "سبب الرفض" },
+  { key: "created_at", label: "تاريخ الإنشاء" },
+  { key: "updated_at", label: "تاريخ التحديث" },
 ];
-const projectExportDefaults = ["request_number", "title", "association", "category", "status", "budget", "created_at"];
+const projectExportDefaults = [
+  "request_number",
+  "title",
+  "association",
+  "category",
+  "status",
+  "budget",
+  "created_at",
+];
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
 const statusLabels: Record<string, string> = {
- draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
- completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
- suspended: "معلق",
+  draft: "مسودة",
+  pending_approval: "بانتظار الموافقة",
+  open: "مفتوح",
+  in_progress: "قيد التنفيذ",
+  completed: "مكتمل",
+  disputed: "مُشتكى عليه",
+  cancelled: "ملغي",
+  suspended: "معلق",
 };
 
 const statusColors: Record<string, string> = {
- draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
- open: "bg-primary/10 text-primary", in_progress: "bg-warning/10 text-warning",
- completed: "bg-success/10 text-success", disputed: "bg-destructive/10 text-destructive",
- cancelled: "bg-muted text-muted-foreground",
- suspended: "bg-orange-500/10 text-orange-600",
+  draft: "bg-muted text-muted-foreground",
+  pending_approval: "bg-orange-500/10 text-orange-600",
+  open: "bg-primary/10 text-primary",
+  in_progress: "bg-warning/10 text-warning",
+  completed: "bg-success/10 text-success",
+  disputed: "bg-destructive/10 text-destructive",
+  cancelled: "bg-muted text-muted-foreground",
+  suspended: "bg-orange-500/10 text-orange-600",
 };
 
 const projectFields: DirectEditFieldConfig[] = [
- { key: "title", label: "العنوان" },
- { key: "description", label: "الوصف", type: "textarea" },
- { key: "budget", label: "الميزانية", type: "number" },
- { key: "category_id", label: "التصنيف", type: "select", selectSource: "categories" },
- { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
+  { key: "title", label: "العنوان" },
+  { key: "description", label: "الوصف", type: "textarea" },
+  { key: "budget", label: "الميزانية", type: "number" },
+  {
+    key: "category_id",
+    label: "التصنيف",
+    type: "select",
+    selectSource: "categories",
+  },
+  {
+    key: "region_id",
+    label: "المنطقة",
+    type: "select",
+    selectSource: "regions",
+  },
 ];
 
 export default function AdminProjects() {
- const pagination = usePagination("admin-projects");
- const [search, setSearch] = useState("");
- const [statusFilter, setStatusFilter] = useState("all");
- const [categoryFilter, setCategoryFilter] = useState("all");
- const { data: projects, isLoading } = useAdminProjects(pagination.from, pagination.to, search || undefined, statusFilter, categoryFilter);
- const { data: totalCount } = useAdminProjectsCount(search || undefined, statusFilter, categoryFilter);
- const { data: categories } = useCategories();
- const updateStatus = useUpdateProjectStatus();
- const updateProject = useAdminUpdateProject();
- const toggleVisibility = useToggleProjectNameVisibility();
- const [editProject, setEditProject] = useState<any>(null);
- const [exportOpen, setExportOpen] = useState(false);
- const [deleteTarget, setDeleteTarget] = useState<any>(null);
- const softDelete = useSoftDelete();
- const navigate = useNavigate();
- const { saveAndNavigate } = useListHighlight("admin-projects");
+  const pagination = usePagination("admin-projects");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const { data: projects, isLoading } = useAdminProjects(
+    pagination.from,
+    pagination.to,
+    search || undefined,
+    statusFilter,
+    categoryFilter,
+  );
+  const { data: totalCount } = useAdminProjectsCount(
+    search || undefined,
+    statusFilter,
+    categoryFilter,
+  );
+  const { data: categories } = useCategories();
+  const updateStatus = useUpdateProjectStatus();
+  const updateProject = useAdminUpdateProject();
+  const toggleVisibility = useToggleProjectNameVisibility();
+  const [editProject, setEditProject] = useState<any>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const softDelete = useSoftDelete();
+  const navigate = useNavigate();
+  const { saveAndNavigate } = useListHighlight("admin-projects");
 
- const handleStatusChange = (id: string, status: ProjectStatus) => {
- updateStatus.mutate({ id, status }, {
- onSuccess: () => toast.success("تم تحديث الحالة"),
- onError: () => toast.error("حدث خطأ"),
- });
- };
+  const handleStatusChange = (id: string, status: ProjectStatus) => {
+    updateStatus.mutate(
+      { id, status },
+      {
+        onSuccess: () => toast.success("تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
+      },
+    );
+  };
 
- return (
- <DashboardLayout>
- <div className="space-y-6">
- <div className="flex flex-wrap items-center justify-between gap-3">
- <div className="flex items-center gap-3">
- <div className="bg-primary/10 rounded-xl p-3">
- <FolderKanban className="h-7 w-7 text-primary" />
- </div>
- <div>
- <h1 className="text-2xl font-bold flex items-center gap-2">
- طلبات الجمعيات
- {(() => { const pending = (projects ?? []).filter((p: any) => p.status === "pending_approval").length; return pending > 0 ? <Badge className="bg-warning/15 text-warning border-warning/30">{pending} بانتظار الموافقة</Badge> : null; })()}
- </h1>
- <p className="text-sm text-muted-foreground">عرض وإدارة جميع طلبات المشاريع</p>
- </div>
- </div>
- </div>
- <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
- <div className="flex flex-wrap gap-3 items-end">
- <div className="space-y-1.5">
- <Label className="text-xs text-muted-foreground">البحث</Label>
- <Input placeholder="بحث بالعنوان أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination.resetPage(); }} className="w-56" />
- </div>
- <div className="space-y-1.5">
- <Label className="text-xs text-muted-foreground">الحالة</Label>
- <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); pagination.resetPage(); }}>
- <SelectTrigger className="w-40"><SelectValue placeholder="الحالة" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
- </SelectContent>
- </Select>
- </div>
- <div className="space-y-1.5">
- <Label className="text-xs text-muted-foreground">التصنيف</Label>
- <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); pagination.resetPage(); }}>
- <SelectTrigger className="w-40"><SelectValue placeholder="التصنيف" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- {(categories ?? []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
- </SelectContent>
- </Select>
- </div>
- <Button
- variant="outline"
- size="sm"
- className="h-10"
- onClick={() => { setSearch(""); setStatusFilter("all"); setCategoryFilter("all"); }}
- >
- إعادة تعيين
- </Button>
- <Button variant="outline" size="sm" className="h-10 gap-1" onClick={() => setExportOpen(true)}>
- <Download className="h-4 w-4" />تصدير Excel
- </Button>
- </div>
- {isLoading ? (
- <div className="border rounded-lg p-4 space-y-3">
- {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
- </div>
- ) : (
- <>
- <div className="border rounded-lg">
- <div className="overflow-x-auto">
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>رقم الطلب</TableHead>
- <TableHead>العنوان</TableHead>
- <TableHead>الجمعية</TableHead>
- <TableHead>إظهار الاسم</TableHead>
- <TableHead>التصنيف</TableHead>
- <TableHead>مميز</TableHead>
- <TableHead>الحالة</TableHead>
- <TableHead>التاريخ</TableHead>
- <TableHead>تغيير الحالة</TableHead>
- <TableHead>إجراءات</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {(projects ?? []).map((p: any) => {
- const displayName = p.profiles?.organization_name || p.profiles?.full_name || "—";
- return (
- <TableRow key={p.id} id={`row-${p.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => saveAndNavigate(p.id, `/admin/projects/${p.id}`, pagination.page)}>
- <TableCell className="font-mono text-sm font-semibold">
- {p.request_number}
- </TableCell>
- <TableCell className="font-medium max-w-[120px] truncate" title={p.title}>{p.title}</TableCell>
- <TableCell className="max-w-[100px] truncate" title={displayName}>{displayName}</TableCell>
- <TableCell onClick={(e) => e.stopPropagation()}>
- <Switch
- checked={(p as any).is_name_visible ?? true}
- onCheckedChange={(checked) => {
- toggleVisibility.mutate({ projectId: p.id, visible: checked }, {
- onSuccess: () => toast.success(checked ? "تم إظهار اسم الجمعية" : "تم إخفاء اسم الجمعية"),
- onError: () => toast.error("حدث خطأ"),
- });
- }}
- />
- </TableCell>
- <TableCell>{p.categories?.name ?? "—"}</TableCell>
- <TableCell onClick={(e) => e.stopPropagation()}>
- <Switch
- checked={(p as any).is_featured ?? false}
- onCheckedChange={(checked) => {
- updateProject.mutate(
- { id: p.id, is_featured: checked },
- {
- onSuccess: () => toast.success(checked ? "تم تمييز الطلب" : "تم إلغاء التمييز"),
- onError: () => toast.error("حدث خطأ"),
- }
- );
- }}
- />
- </TableCell>
- <TableCell><Badge className={statusColors[p.status]}>{statusLabels[p.status]}</Badge></TableCell>
- <TableCell className="text-sm text-muted-foreground">{format(new Date(p.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
- <TableCell onClick={(e) => e.stopPropagation()}>
- <Select value={p.status} onValueChange={(v) => handleStatusChange(p.id, v as ProjectStatus)}>
- <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
- <SelectContent>
- {Object.entries(statusLabels).map(([k, v]) => (
- <SelectItem key={k} value={k} disabled={k === p.status}>{v}</SelectItem>
- ))}
- </SelectContent>
- </Select>
- </TableCell>
- <TableCell className="flex gap-1" onClick={(e) => e.stopPropagation()}>
- <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${p.id}`)}>
- <Eye className="h-4 w-4 me-1" />عرض
- </Button>
- <Button size="sm" variant="outline" onClick={() => setEditProject(p)}>
- <FileEdit className="h-4 w-4 me-1" />تعديل
- </Button>
- <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(p)}>
- <Trash2 className="h-4 w-4" />
- </Button>
- </TableCell>
- </TableRow>
- );
- })}
- {(projects ?? []).length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
- </TableBody>
- </Table>
- </div>
- </div>
- <PaginationControls
- page={pagination.page}
- pageSize={pagination.pageSize}
- totalFetched={projects?.length ?? 0}
- totalItems={totalCount}
- onPrev={pagination.prevPage}
- onNext={pagination.nextPage}
- />
- </>
- )}
- </div>
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-xl p-3">
+              <FolderKanban className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                طلبات الجمعيات
+                {(() => {
+                  const pending = (projects ?? []).filter(
+                    (p: any) => p.status === "pending_approval",
+                  ).length;
+                  return pending > 0 ? (
+                    <Badge className="bg-warning/15 text-warning border-warning/30">
+                      {pending} بانتظار الموافقة
+                    </Badge>
+                  ) : null;
+                })()}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                عرض وإدارة جميع طلبات المشاريع
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">البحث</Label>
+            <Input
+              placeholder="بحث بالعنوان أو الرقم..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                pagination.resetPage();
+              }}
+              className="w-56"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">الحالة</Label>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v);
+                pagination.resetPage();
+              }}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="الحالة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {Object.entries(statusLabels).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">التصنيف</Label>
+            <Select
+              value={categoryFilter}
+              onValueChange={(v) => {
+                setCategoryFilter(v);
+                pagination.resetPage();
+              }}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="التصنيف" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {(categories ?? []).map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10"
+            onClick={() => {
+              setSearch("");
+              setStatusFilter("all");
+              setCategoryFilter("all");
+            }}
+          >
+            إعادة تعيين
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1"
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="h-4 w-4" />
+            تصدير Excel
+          </Button>
+        </div>
+        {isLoading ? (
+          <div className="border rounded-lg p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="border rounded-lg">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>رقم الطلب</TableHead>
+                      <TableHead>العنوان</TableHead>
+                      <TableHead>الجمعية</TableHead>
+                      <TableHead>إظهار الاسم</TableHead>
+                      <TableHead>التصنيف</TableHead>
+                      <TableHead>مميز</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>تغيير الحالة</TableHead>
+                      <TableHead>إجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(projects ?? []).map((p: any) => {
+                      const displayName =
+                        p.profiles?.organization_name ||
+                        p.profiles?.full_name ||
+                        "—";
+                      return (
+                        <TableRow
+                          key={p.id}
+                          id={`row-${p.id}`}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() =>
+                            saveAndNavigate(
+                              p.id,
+                              `/admin/projects/${p.id}`,
+                              pagination.page,
+                            )
+                          }
+                        >
+                          <TableCell className="font-mono text-sm font-semibold">
+                            {p.request_number}
+                          </TableCell>
+                          <TableCell
+                            className="font-medium max-w-[120px] truncate"
+                            title={p.title}
+                          >
+                            {p.title}
+                          </TableCell>
+                          <TableCell
+                            className="max-w-[100px] truncate"
+                            title={displayName}
+                          >
+                            {displayName}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Switch
+                              checked={(p as any).is_name_visible ?? true}
+                              onCheckedChange={(checked) => {
+                                toggleVisibility.mutate(
+                                  { projectId: p.id, visible: checked },
+                                  {
+                                    onSuccess: () =>
+                                      toast.success(
+                                        checked
+                                          ? "تم إظهار اسم الجمعية"
+                                          : "تم إخفاء اسم الجمعية",
+                                      ),
+                                    onError: () => toast.error("حدث خطأ"),
+                                  },
+                                );
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{p.categories?.name ?? "—"}</TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Switch
+                              checked={(p as any).is_featured ?? false}
+                              onCheckedChange={(checked) => {
+                                updateProject.mutate(
+                                  { id: p.id, is_featured: checked },
+                                  {
+                                    onSuccess: () =>
+                                      toast.success(
+                                        checked
+                                          ? "تم تمييز الطلب"
+                                          : "تم إلغاء التمييز",
+                                      ),
+                                    onError: () => toast.error("حدث خطأ"),
+                                  },
+                                );
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[p.status]}>
+                              {statusLabels[p.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(p.created_at), "yyyy/MM/dd", {
+                              locale: ar,
+                            })}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Select
+                              value={p.status}
+                              onValueChange={(v) =>
+                                handleStatusChange(p.id, v as ProjectStatus)
+                              }
+                            >
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(statusLabels).map(([k, v]) => (
+                                  <SelectItem
+                                    key={k}
+                                    value={k}
+                                    disabled={k === p.status}
+                                  >
+                                    {v}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell
+                            className="flex gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                navigate(`/admin/projects/${p.id}`)
+                              }
+                            >
+                              <Eye className="h-4 w-4 me-1" />
+                              عرض
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditProject(p)}
+                            >
+                              <FileEdit className="h-4 w-4 me-1" />
+                              تعديل
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteTarget(p)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {(projects ?? []).length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={10}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          لا توجد طلبات
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalFetched={projects?.length ?? 0}
+              totalItems={totalCount}
+              onPrev={pagination.prevPage}
+              onNext={pagination.nextPage}
+            />
+          </>
+        )}
+      </div>
 
- {editProject && (
- <AdminDirectEditDialog
- open={!!editProject}
- onOpenChange={(o) => !o && setEditProject(null)}
- currentValues={editProject}
- fields={projectFields}
- title="تعديل الطلب"
- isPending={updateProject.isPending}
- onSave={async (updates) => {
- await updateProject.mutateAsync({ id: editProject.id, ...updates });
- }}
- />
- )}
- <ExportDialog
- open={exportOpen}
- onOpenChange={setExportOpen}
- title="تصدير الطلبات"
- filename="projects.xlsx"
- columns={projectExportColumns}
- defaultColumns={projectExportDefaults}
- filters={[{
- key: "status",
- label: "فلتر حسب الحالة",
- options: Object.entries(statusLabels).map(([k, v]) => ({ value: k, label: v })),
- }]}
- onExport={async (cols, filters) => {
- const { data } = await supabase.from("projects").select("*, profiles!projects_association_id_fkey(full_name, organization_name), provider:profiles!projects_assigned_provider_id_fkey(full_name, organization_name), categories(name), regions(name), cities(name)");
- let rows = data ?? [];
- if (filters.status !== "all") rows = rows.filter((p: any) => p.status === filters.status);
- const colMap: Record<string, (p: any) => string> = {
- request_number: (p) => p.request_number || "",
- title: (p) => p.title || "",
- description: (p) => p.description || "",
- association: (p) => (p.profiles as any)?.organization_name || (p.profiles as any)?.full_name || "",
- provider: (p) => (p.provider as any)?.organization_name || (p.provider as any)?.full_name || "",
- category: (p) => (p.categories as any)?.name || "",
- region: (p) => (p.regions as any)?.name || "",
- city: (p) => (p.cities as any)?.name || "",
- budget: (p) => p.budget != null ? String(p.budget) : "",
- estimated_hours: (p) => p.estimated_hours != null ? String(p.estimated_hours) : "",
- required_skills: (p) => Array.isArray(p.required_skills) ? p.required_skills.join("، ") : "",
- status: (p) => statusLabels[p.status] || p.status,
- is_featured: (p) => p.is_featured ? "نعم" : "لا",
- is_private: (p) => p.is_private ? "نعم" : "لا",
- is_name_visible: (p) => p.is_name_visible ? "نعم" : "لا",
- rejection_reason: (p) => p.rejection_reason || "",
- created_at: (p) => p.created_at?.slice(0, 10) || "",
- updated_at: (p) => p.updated_at?.slice(0, 10) || "",
- };
- const activeCols = projectExportColumns.filter((c) => cols.includes(c.key));
- return {
- headers: activeCols.map((c) => c.label),
- rows: rows.map((p: any) => activeCols.map((c) => colMap[c.key]?.(p) ?? "")),
- };
- }}
- />
- <ConfirmDialog
- open={!!deleteTarget}
- onOpenChange={(o) => !o && setDeleteTarget(null)}
- title="نقل إلى سلة المحذوفات"
- description={`سيتم نقل الطلب "${deleteTarget?.title}" إلى سلة المحذوفات.`}
- confirmLabel="نقل للسلة"
- variant="destructive"
- loading={softDelete.isPending}
- onConfirm={() => {
- softDelete.mutate({ table: "projects", id: deleteTarget.id }, {
- onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
- onError: () => toast.error("حدث خطأ"),
- });
- }}
- />
- </DashboardLayout>
- );
+      {editProject && (
+        <AdminDirectEditDialog
+          open={!!editProject}
+          onOpenChange={(o) => !o && setEditProject(null)}
+          currentValues={editProject}
+          fields={projectFields}
+          title="تعديل الطلب"
+          isPending={updateProject.isPending}
+          onSave={async (updates) => {
+            await updateProject.mutateAsync({ id: editProject.id, ...updates });
+          }}
+        />
+      )}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        title="تصدير الطلبات"
+        filename="projects.xlsx"
+        columns={projectExportColumns}
+        defaultColumns={projectExportDefaults}
+        filters={[
+          {
+            key: "status",
+            label: "فلتر حسب الحالة",
+            options: Object.entries(statusLabels).map(([k, v]) => ({
+              value: k,
+              label: v,
+            })),
+          },
+        ]}
+        onExport={async (cols, filters) => {
+          const { data } = await supabase
+            .from("projects")
+            .select(
+              "*, profiles!projects_association_id_fkey(full_name, organization_name), provider:profiles!projects_assigned_provider_id_fkey(full_name, organization_name), categories(name), regions(name), cities(name)",
+            );
+          let rows = data ?? [];
+          if (filters.status !== "all")
+            rows = rows.filter((p: any) => p.status === filters.status);
+          const colMap: Record<string, (p: any) => string> = {
+            request_number: (p) => p.request_number || "",
+            title: (p) => p.title || "",
+            description: (p) => p.description || "",
+            association: (p) =>
+              (p.profiles as any)?.organization_name ||
+              (p.profiles as any)?.full_name ||
+              "",
+            provider: (p) =>
+              (p.provider as any)?.organization_name ||
+              (p.provider as any)?.full_name ||
+              "",
+            category: (p) => (p.categories as any)?.name || "",
+            region: (p) => (p.regions as any)?.name || "",
+            city: (p) => (p.cities as any)?.name || "",
+            budget: (p) => (p.budget != null ? String(p.budget) : ""),
+            estimated_hours: (p) =>
+              p.estimated_hours != null ? String(p.estimated_hours) : "",
+            required_skills: (p) =>
+              Array.isArray(p.required_skills)
+                ? p.required_skills.join("، ")
+                : "",
+            status: (p) => statusLabels[p.status] || p.status,
+            is_featured: (p) => (p.is_featured ? "نعم" : "لا"),
+            is_private: (p) => (p.is_private ? "نعم" : "لا"),
+            is_name_visible: (p) => (p.is_name_visible ? "نعم" : "لا"),
+            rejection_reason: (p) => p.rejection_reason || "",
+            created_at: (p) => p.created_at?.slice(0, 10) || "",
+            updated_at: (p) => p.updated_at?.slice(0, 10) || "",
+          };
+          const activeCols = projectExportColumns.filter((c) =>
+            cols.includes(c.key),
+          );
+          return {
+            headers: activeCols.map((c) => c.label),
+            rows: rows.map((p: any) =>
+              activeCols.map((c) => colMap[c.key]?.(p) ?? ""),
+            ),
+          };
+        }}
+      />
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="نقل إلى سلة المحذوفات"
+        description={`سيتم نقل الطلب "${deleteTarget?.title}" إلى سلة المحذوفات.`}
+        confirmLabel="نقل للسلة"
+        variant="destructive"
+        loading={softDelete.isPending}
+        onConfirm={() => {
+          softDelete.mutate(
+            { table: "projects", id: deleteTarget.id },
+            {
+              onSuccess: () => {
+                toast.success("تم النقل إلى سلة المحذوفات");
+                setDeleteTarget(null);
+              },
+              onError: () => toast.error("حدث خطأ"),
+            },
+          );
+        }}
+      />
+    </DashboardLayout>
+  );
 }

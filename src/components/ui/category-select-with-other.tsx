@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,11 +47,13 @@ export function CategorySelectWithOther({
     if (!customName.trim() || !user) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("pending_categories" as any).insert({
-        name: customName.trim(),
-        suggested_by: user.id,
-        entity_type: entityType,
-      } as any);
+      const { error } = await supabase
+        .from("pending_categories" as any)
+        .insert({
+          name: customName.trim(),
+          suggested_by: user.id,
+          entity_type: entityType,
+        } as any);
       if (error) throw error;
       toast.success("تم إرسال اقتراح التصنيف للمراجعة");
       setCustomName("");
@@ -65,16 +73,34 @@ export function CategorySelectWithOther({
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
             placeholder="اكتب اسم التصنيف المقترح..."
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSuggest(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSuggest();
+              }
+            }}
           />
-          <Button type="button" size="sm" onClick={handleSuggest} disabled={submitting || !customName.trim()} className="shrink-0">
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSuggest}
+            disabled={submitting || !customName.trim()}
+            className="shrink-0"
+          >
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
         <button
           type="button"
           className="text-xs text-muted-foreground hover:text-foreground underline"
-          onClick={() => { setShowCustom(false); setCustomName(""); }}
+          onClick={() => {
+            setShowCustom(false);
+            setCustomName("");
+          }}
         >
           العودة للقائمة
         </button>
@@ -84,10 +110,14 @@ export function CategorySelectWithOther({
 
   return (
     <Select onValueChange={handleValueChange} value={value}>
-      <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectTrigger>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
       <SelectContent>
         {categories?.map((c) => (
-          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+          <SelectItem key={c.id} value={c.id}>
+            {c.name}
+          </SelectItem>
         ))}
         <SelectItem value="__other__">أخرى (اقتراح تصنيف جديد)</SelectItem>
       </SelectContent>

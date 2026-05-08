@@ -2,22 +2,22 @@
 import { toast as sonnerToast } from "sonner";
 
 interface ToastOptions {
- title?: string;
- description?: string;
- variant?: "default" | "destructive";
- [key: string]: any;
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive";
+  [key: string]: any;
 }
 
 function toast(opts: ToastOptions) {
- if (opts.variant === "destructive") {
- sonnerToast.error(opts.title ?? "", { description: opts.description });
- } else {
- sonnerToast.success(opts.title ?? "", { description: opts.description });
- }
+  if (opts.variant === "destructive") {
+    sonnerToast.error(opts.title ?? "", { description: opts.description });
+  } else {
+    sonnerToast.success(opts.title ?? "", { description: opts.description });
+  }
 }
 
 function useToast() {
- return { toast, toasts: [] as any[], dismiss: (_id?: string) => {} };
+  return { toast, toasts: [] as any[], dismiss: (_id?: string) => {} };
 }
 
 export { useToast, toast };

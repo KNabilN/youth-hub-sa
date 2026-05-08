@@ -1,122 +1,173 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
-import { Tag, MapPin, Layers, Search, DollarSign, Building2 } from "lucide-react";
+import {
+  Tag,
+  MapPin,
+  Layers,
+  Search,
+  DollarSign,
+  Building2,
+} from "lucide-react";
 
 interface Props {
- category: string;
- region: string;
- city: string;
- serviceType: string;
- searchQuery: string;
- priceMin: string;
- priceMax: string;
- onCategoryChange: (v: string) => void;
- onRegionChange: (v: string) => void;
- onCityChange: (v: string) => void;
- onServiceTypeChange: (v: string) => void;
- onSearchChange: (v: string) => void;
- onPriceMinChange: (v: string) => void;
- onPriceMaxChange: (v: string) => void;
+  category: string;
+  region: string;
+  city: string;
+  serviceType: string;
+  searchQuery: string;
+  priceMin: string;
+  priceMax: string;
+  onCategoryChange: (v: string) => void;
+  onRegionChange: (v: string) => void;
+  onCityChange: (v: string) => void;
+  onServiceTypeChange: (v: string) => void;
+  onSearchChange: (v: string) => void;
+  onPriceMinChange: (v: string) => void;
+  onPriceMaxChange: (v: string) => void;
 }
 
 export function ServiceFilters({
- category, region, city, serviceType, searchQuery, priceMin, priceMax,
- onCategoryChange, onRegionChange, onCityChange, onServiceTypeChange, onSearchChange, onPriceMinChange, onPriceMaxChange,
+  category,
+  region,
+  city,
+  serviceType,
+  searchQuery,
+  priceMin,
+  priceMax,
+  onCategoryChange,
+  onRegionChange,
+  onCityChange,
+  onServiceTypeChange,
+  onSearchChange,
+  onPriceMinChange,
+  onPriceMaxChange,
 }: Props) {
- const { data: categories } = useCategories();
- const { data: regions } = useRegions();
- const { data: cities } = useCities(region !== "all" ? region : null);
+  const { data: categories } = useCategories();
+  const { data: regions } = useRegions();
+  const { data: cities } = useCities(region !== "all" ? region : null);
 
- return (
- <div className="space-y-3 w-full">
- {/* Search bar */}
- <div className="relative">
- <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
- <Input
- value={searchQuery}
- onChange={e => onSearchChange(e.target.value)}
- placeholder="ابحث عن خدمة بالاسم أو الوصف..."
- className="pe-9 h-10"
- />
- </div>
+  return (
+    <div className="space-y-3 w-full">
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="ابحث عن خدمة بالاسم أو الوصف..."
+          className="pe-9 h-10"
+        />
+      </div>
 
- <div className="flex flex-wrap items-center gap-3">
- {/* Category */}
- <div className="flex items-center gap-1.5">
- <Tag className="h-4 w-4 text-muted-foreground" />
- <Select value={category} onValueChange={onCategoryChange}>
- <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="التصنيف" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
- </SelectContent>
- </Select>
- </div>
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Category */}
+        <div className="flex items-center gap-1.5">
+          <Tag className="h-4 w-4 text-muted-foreground" />
+          <Select value={category} onValueChange={onCategoryChange}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="التصنيف" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              {categories?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
- {/* Region */}
- <div className="flex items-center gap-1.5">
- <MapPin className="h-4 w-4 text-muted-foreground" />
- <Select value={region} onValueChange={(v) => { onRegionChange(v); onCityChange("all"); }}>
- <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المنطقة" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- {regions?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
- </SelectContent>
- </Select>
- </div>
+        {/* Region */}
+        <div className="flex items-center gap-1.5">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <Select
+            value={region}
+            onValueChange={(v) => {
+              onRegionChange(v);
+              onCityChange("all");
+            }}
+          >
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="المنطقة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              {regions?.map((r) => (
+                <SelectItem key={r.id} value={r.id}>
+                  {r.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
- {/* City - only show when region is selected */}
- {region !== "all" && (
- <div className="flex items-center gap-1.5">
- <Building2 className="h-4 w-4 text-muted-foreground" />
- <Select value={city} onValueChange={onCityChange}>
- <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المدينة" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
- </SelectContent>
- </Select>
- </div>
- )}
+        {/* City - only show when region is selected */}
+        {region !== "all" && (
+          <div className="flex items-center gap-1.5">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Select value={city} onValueChange={onCityChange}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="المدينة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {cities?.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
- {/* Type */}
- <div className="flex items-center gap-1.5">
- <Layers className="h-4 w-4 text-muted-foreground" />
- <Select value={serviceType} onValueChange={onServiceTypeChange}>
- <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="النوع" /></SelectTrigger>
- <SelectContent>
- <SelectItem value="all">الكل</SelectItem>
- <SelectItem value="fixed_price">سعر ثابت</SelectItem>
- <SelectItem value="hourly">بالساعة</SelectItem>
- </SelectContent>
- </Select>
- </div>
+        {/* Type */}
+        <div className="flex items-center gap-1.5">
+          <Layers className="h-4 w-4 text-muted-foreground" />
+          <Select value={serviceType} onValueChange={onServiceTypeChange}>
+            <SelectTrigger className="w-[130px] h-9">
+              <SelectValue placeholder="النوع" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="fixed_price">سعر ثابت</SelectItem>
+              <SelectItem value="hourly">بالساعة</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
- {/* Price range */}
- <div className="flex items-center gap-1.5">
- <DollarSign className="h-4 w-4 text-muted-foreground" />
- <Input
- type="number"
- value={priceMin}
- onChange={e => onPriceMinChange(e.target.value)}
- placeholder="من"
- className="w-[80px] h-9"
- min={0}
- />
- <span className="text-xs text-muted-foreground">-</span>
- <Input
- type="number"
- value={priceMax}
- onChange={e => onPriceMaxChange(e.target.value)}
- placeholder="إلى"
- className="w-[80px] h-9"
- min={0}
- />
- </div>
- </div>
- </div>
- );
+        {/* Price range */}
+        <div className="flex items-center gap-1.5">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Input
+            type="number"
+            value={priceMin}
+            onChange={(e) => onPriceMinChange(e.target.value)}
+            placeholder="من"
+            className="w-[80px] h-9"
+            min={0}
+          />
+          <span className="text-xs text-muted-foreground">-</span>
+          <Input
+            type="number"
+            value={priceMax}
+            onChange={(e) => onPriceMaxChange(e.target.value)}
+            placeholder="إلى"
+            className="w-[80px] h-9"
+            min={0}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

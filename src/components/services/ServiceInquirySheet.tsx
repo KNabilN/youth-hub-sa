@@ -1,5 +1,11 @@
 import { useState, useRef } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion } from "lucide-react";
 import { useServiceInquiry, useCreateInquiry } from "@/hooks/useServiceInquiry";
@@ -8,75 +14,84 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 interface ServiceInquirySheetProps {
- serviceId: string;
- providerId: string;
- serviceTitle: string;
+  serviceId: string;
+  providerId: string;
+  serviceTitle: string;
 }
 
-export function ServiceInquirySheet({ serviceId, providerId, serviceTitle }: ServiceInquirySheetProps) {
- const [open, setOpen] = useState(false);
- // Always enabled — prefetch existing inquiry so it's ready before user clicks
- const { data: inquiry, isLoading, refetch } = useServiceInquiry(serviceId);
- const createInquiry = useCreateInquiry();
- const [createdInquiry, setCreatedInquiry] = useState<string | null>(null);
- const creatingRef = useRef(false);
+export function ServiceInquirySheet({
+  serviceId,
+  providerId,
+  serviceTitle,
+}: ServiceInquirySheetProps) {
+  const [open, setOpen] = useState(false);
+  // Always enabled — prefetch existing inquiry so it's ready before user clicks
+  const { data: inquiry, isLoading, refetch } = useServiceInquiry(serviceId);
+  const createInquiry = useCreateInquiry();
+  const [createdInquiry, setCreatedInquiry] = useState<string | null>(null);
+  const creatingRef = useRef(false);
 
- const inquiryId = inquiry?.id ?? createdInquiry;
+  const inquiryId = inquiry?.id ?? createdInquiry;
 
- const handleOpen = async (isOpen: boolean) => {
- setOpen(isOpen);
- if (!isOpen) return;
- if (createdInquiry || creatingRef.current) return;
+  const handleOpen = async (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) return;
+    if (createdInquiry || creatingRef.current) return;
 
- // Wait for query to settle if still loading
- let existing = inquiry;
- if (!existing) {
- const r = await refetch();
- existing = r.data ?? undefined;
- }
- if (existing) return;
+    // Wait for query to settle if still loading
+    let existing = inquiry;
+    if (!existing) {
+      const r = await refetch();
+      existing = r.data ?? undefined;
+    }
+    if (existing) return;
 
- creatingRef.current = true;
- try {
- const result = await createInquiry.mutateAsync({ serviceId, providerId });
- setCreatedInquiry(result.id);
- } catch (err: any) {
- // Unique violation — inquiry already exists, silently recover by refetching
- if (err?.code === "23505") {
- const r = await refetch();
- if (r.data) return;
- }
- toast.error("تعذر فتح الاستفسار");
- setOpen(false);
- } finally {
- creatingRef.current = false;
- }
- };
+    creatingRef.current = true;
+    try {
+      const result = await createInquiry.mutateAsync({ serviceId, providerId });
+      setCreatedInquiry(result.id);
+    } catch (err: any) {
+      // Unique violation — inquiry already exists, silently recover by refetching
+      if (err?.code === "23505") {
+        const r = await refetch();
+        if (r.data) return;
+      }
+      toast.error("تعذر فتح الاستفسار");
+      setOpen(false);
+    } finally {
+      creatingRef.current = false;
+    }
+  };
 
- return (
- <Sheet open={open} onOpenChange={handleOpen}>
- <SheetTrigger asChild>
- <Button variant="outline" className="w-full gap-2">
- <MessageCircleQuestion className="h-4 w-4" />
- استفسار عن الخدمة
- </Button>
- </SheetTrigger>
- <SheetContent side="left" className="w-full sm:max-w-md p-0 flex flex-col">
- <SheetHeader className="p-4 border-b">
- <SheetTitle className="text-start">استفسار عن: {serviceTitle}</SheetTitle>
- </SheetHeader>
- <div className="flex-1 min-h-0">
- {isLoading || createInquiry.isPending ? (
- <div className="p-4 space-y-4">
- <Skeleton className="h-12 w-3/4" />
- <Skeleton className="h-12 w-1/2 ms-auto" />
- <Skeleton className="h-12 w-2/3" />
- </div>
- ) : inquiryId ? (
- <ServiceInquiryChat inquiryId={inquiryId} />
- ) : null}
- </div>
- </SheetContent>
- </Sheet>
- );
+  return (
+    <Sheet open={open} onOpenChange={handleOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="w-full gap-2">
+          <MessageCircleQuestion className="h-4 w-4" />
+          استفسار عن الخدمة
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side="left"
+        className="w-full sm:max-w-md p-0 flex flex-col"
+      >
+        <SheetHeader className="p-4 border-b">
+          <SheetTitle className="text-start">
+            استفسار عن: {serviceTitle}
+          </SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 min-h-0">
+          {isLoading || createInquiry.isPending ? (
+            <div className="p-4 space-y-4">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-12 w-1/2 ms-auto" />
+              <Skeleton className="h-12 w-2/3" />
+            </div>
+          ) : inquiryId ? (
+            <ServiceInquiryChat inquiryId={inquiryId} />
+          ) : null}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
 }
