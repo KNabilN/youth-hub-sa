@@ -196,6 +196,23 @@ export default function AdminUserDetail() {
   const { data: allRegions } = useRegions();
   const { data: allCities } = useCities();
 
+  const { data: pendingEdit } = useQuery({
+    queryKey: ["admin-user-pending-edit", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("edit_requests")
+        .select("id")
+        .eq("target_user_id", id!)
+        .eq("target_table", "profiles")
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (isLoading) {
     return (
       <DashboardLayout>
