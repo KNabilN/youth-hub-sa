@@ -54,7 +54,7 @@ export default function ProjectCreate() {
       // No draft created (skipped attachments step somehow)
       createProject.mutate({ ...values, status: "pending_approval" } as any, {
         onSuccess: (data) => {
-          toast({ title: "تم إنشاء الطلب بنجاح" });
+          toast({ title: "تم إنشاء الطلب بنجاح", description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
           navigate(`/projects/${data.id}`);
         },
         onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"), variant: "destructive" }),
