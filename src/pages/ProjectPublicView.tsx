@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { ErrorState } from "@/components/ErrorState";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ export default function ProjectPublicView() {
   const { id } = useParams<{ id: string }>();
   const { user, role } = useAuth();
 
-  const { data: project, isLoading } = useQuery({
+  const { data: project, isLoading, isError, refetch } = useQuery({
     queryKey: ["project-public", id],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_project", {
@@ -45,6 +46,8 @@ export default function ProjectPublicView() {
     },
     enabled: !!id,
   });
+
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   if (isLoading) {
     return (

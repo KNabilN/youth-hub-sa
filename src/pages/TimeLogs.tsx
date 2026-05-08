@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useAssociationTimeLogs,
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 import { Clock, CheckCircle } from "lucide-react";
 
 export default function TimeLogs() {
@@ -128,7 +128,7 @@ export default function TimeLogs() {
                   approval: "approved",
                   providerId: log?.provider_id ?? "",
                 },
-                { onSuccess: () => toast({ title: "تم اعتماد السجل" }) },
+                { onSuccess: () => toast.success("تم اعتماد السجل") },
               );
             }}
             onReject={(id, reason) => {
@@ -140,7 +140,7 @@ export default function TimeLogs() {
                   providerId: log?.provider_id ?? "",
                   rejectionReason: reason,
                 },
-                { onSuccess: () => toast({ title: "تم رفض السجل" }) },
+                { onSuccess: () => toast.success("تم رفض السجل") },
               );
             }}
             isLoading={updateApproval.isPending}

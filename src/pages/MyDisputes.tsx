@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { toast } from "sonner";
 import { translateError } from "@/lib/auth-errors";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useMyDisputes } from "@/hooks/useMyDisputes";
@@ -39,7 +40,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import {
   disputeStatusLabels,
@@ -67,7 +67,6 @@ export default function MyDisputes() {
   const createDispute = useCreateDispute();
   const reopenDispute = useReopenDispute();
   const uploadAttachment = useUploadAttachment();
-  const { toast } = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
@@ -92,14 +91,14 @@ export default function MyDisputes() {
               entityId: disputeId,
             });
           }
-          toast({ title: "تم رفع الشكوى بنجاح" });
+          toast.success("تم رفع الشكوى بنجاح");
           setDialogOpen(false);
           setSelectedProject("");
           setDescription("");
           setFiles([]);
         },
         onError: () =>
-          toast({ title: "حدث خطأ أثناء رفع الشكوى", variant: "destructive" }),
+          toast.error("حدث خطأ أثناء رفع الشكوى"),
       },
     );
   };
@@ -116,15 +115,12 @@ export default function MyDisputes() {
       { disputeId: reopenDialogId, reason: reopenReason.trim() },
       {
         onSuccess: () => {
-          toast({ title: "تم إعادة فتح الشكوى" });
+          toast.success("تم إعادة فتح الشكوى");
           setReopenDialogId(null);
           setReopenReason("");
         },
         onError: (err: any) =>
-          toast({
-            title: translateError(err.message || "حدث خطأ"),
-            variant: "destructive",
-          }),
+          toast.error(translateError(err.message || "حدث خطأ")),
       },
     );
   };

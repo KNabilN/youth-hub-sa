@@ -1,4 +1,6 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { ErrorState } from "@/components/ErrorState";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Star, Send, X } from "lucide-react";
 import { StarRating } from "@/components/ratings/StarRating";
@@ -19,7 +20,7 @@ export default function Ratings() {
   const qc = useQueryClient();
   const isProvider = role === "service_provider";
 
-  const { data: contracts, isLoading } = useQuery({
+  const { data: contracts, isLoading, isError, refetch } = useQuery({
     queryKey: ["ratable-contracts", user?.id, role],
     enabled: !!user,
     queryFn: async () => {
@@ -78,9 +79,9 @@ export default function Ratings() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-ratings"] });
       qc.invalidateQueries({ queryKey: ["pending-ratings"] });
-      toast({ title: "تم إرسال التقييم بنجاح ✨" });
+      toast.success("تم إرسال التقييم بنجاح ✨");
     },
-    onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    onError: () => toast.error("حدث خطأ"),
   });
 
   const [activeContract, setActiveContract] = useState<string | null>(null);
@@ -96,7 +97,7 @@ export default function Ratings() {
       timing === 0 ||
       communication === 0
     ) {
-      toast({ title: "يرجى تقييم جميع المعايير", variant: "destructive" });
+      toast.error("يرجى تقييم جميع المعايير");
       return;
     }
     submitRating.mutate({
@@ -120,6 +121,8 @@ export default function Ratings() {
     setCommunication(0);
     setComment("");
   };
+
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   if (isLoading)
     return (

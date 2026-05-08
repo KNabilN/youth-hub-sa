@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useVerifiedDonors,
@@ -28,7 +29,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { HandCoins, Users, Search } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 
@@ -63,14 +63,14 @@ export default function Donors() {
       },
       {
         onSuccess: () => {
-          toast({ title: "تم إرسال طلب المنحة بنجاح" });
+          toast.success("تم إرسال طلب المنحة بنجاح");
           setSelectedDonor(null);
           setAmount("");
           setDescription("");
           setProjectId("");
           setGrantType("general");
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -97,7 +97,7 @@ export default function Donors() {
             placeholder="ابحث عن مانح..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pr-10"
+            className="pe-10"
           />
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useProjects,
@@ -18,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { Plus, FolderKanban, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { PaginationControls } from "@/components/PaginationControls";
 import { usePagination } from "@/hooks/usePagination";
@@ -56,8 +56,8 @@ export default function Projects() {
     updateStatus.mutate(
       { id, status },
       {
-        onSuccess: () => toast({ title: labels[status] || "تم تحديث الحالة" }),
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

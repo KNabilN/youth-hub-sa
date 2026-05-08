@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { ErrorState } from "@/components/ErrorState";
+import { toast } from "sonner";
 
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -32,7 +34,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeLogTable } from "@/components/time-logs/TimeLogTable";
@@ -86,7 +87,7 @@ export default function ProjectDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "bids";
-  const { data: project, isLoading } = useProject(id);
+  const { data: project, isLoading, isError, refetch } = useProject(id);
   const updateProject = useUpdateProject();
   const signContract = useSignContract();
   const updateTimeLog = useUpdateTimeLogApproval();
@@ -237,8 +238,8 @@ export default function ProjectDetails() {
     updateProject.mutate(
       { id, status: "pending_approval" as any },
       {
-        onSuccess: () => toast({ title: "تم إرسال الطلب للمراجعة والموافقة" }),
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onSuccess: () => toast.success("تم إرسال الطلب للمراجعة والموافقة"),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -250,12 +251,7 @@ export default function ProjectDetails() {
       // 0. Verify escrow exists and is held
       if (!escrow || escrow.status !== "held") {
         console.error("Escrow check failed:", { escrow: escrow?.status });
-        toast({
-          title: "لا يمكن إتمام الطلب",
-          description:
-            "لا يوجد ضمان مالي محتجز. يرجى التأكد من إنشاء الضمان المالي أولاً.",
-          variant: "destructive",
-        });
+        toast.error("لا يمكن إتمام الطلب", { description: "لا يوجد ضمان مالي محتجز. يرجى التأكد من إنشاء الضمان المالي أولاً." });
         setCompleting(false);
         return;
       }
@@ -269,11 +265,7 @@ export default function ProjectDetails() {
         .limit(1);
       if (!allDeliverables?.length) {
         console.error("No accepted deliverables found for project", id);
-        toast({
-          title: "لا يمكن إتمام الطلب",
-          description: "يجب قبول التسليمات أولاً قبل إتمام الطلب.",
-          variant: "destructive",
-        });
+        toast.error("لا يمكن إتمام الطلب", { description: "يجب قبول التسليمات أولاً قبل إتمام الطلب." });
         setCompleting(false);
         return;
       }
@@ -295,10 +287,7 @@ export default function ProjectDetails() {
 
       // DB triggers handle notifications (project status + escrow release)
 
-      toast({
-        title: "تم إتمام الطلب وتحرير المستحقات بنجاح ✅",
-        description: "سيتم إشعار مقدم الخدمة ويمكنه الآن طلب سحب المستحقات.",
-      });
+      toast.success("تم إتمام الطلب وتحرير المستحقات بنجاح ✅", { description: "سيتم إشعار مقدم الخدمة ويمكنه الآن طلب سحب المستحقات." });
       // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ["project", id] });
       queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
@@ -311,11 +300,7 @@ export default function ProjectDetails() {
       queryClient.invalidateQueries({ queryKey: ["provider-stats"] });
     } catch (err: any) {
       console.error("Project completion failed:", err);
-      toast({
-        title: "حدث خطأ أثناء إتمام الطلب",
-        description: err?.message || "يرجى المحاولة مرة أخرى",
-        variant: "destructive",
-      });
+      toast.error("حدث خطأ أثناء إتمام الطلب", { description: err?.message || "يرجى المحاولة مرة أخرى" });
     } finally {
       setCompleting(false);
     }
@@ -339,13 +324,13 @@ export default function ProjectDetails() {
 
       // DB triggers handle notifications (project status + escrow refund)
 
-      toast({ title: "تم إلغاء الطلب" });
+      toast.success("تم إلغاء الطلب");
       queryClient.invalidateQueries({ queryKey: ["project", id] });
       queryClient.invalidateQueries({ queryKey: ["project-escrow", id] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     } catch (err) {
       console.error("Project cancellation failed");
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast.error("حدث خطأ");
     } finally {
       setCancelling(false);
     }
@@ -355,6 +340,8 @@ export default function ProjectDetails() {
     role === "youth_association" && user?.id === project?.association_id;
   const isProvider =
     role === "service_provider" && user?.id === project?.assigned_provider_id;
+
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   if (isLoading)
     return (
@@ -554,15 +541,12 @@ export default function ProjectDetails() {
                             { project_id: id, description: disputeDesc },
                             {
                               onSuccess: () => {
-                                toast({ title: "تم رفع الشكوى" });
+                                toast.success("تم رفع الشكوى");
                                 setDisputeOpen(false);
                                 setDisputeDesc("");
                               },
                               onError: () =>
-                                toast({
-                                  title: "حدث خطأ",
-                                  variant: "destructive",
-                                }),
+                                toast.error("حدث خطأ"),
                             },
                           );
                         }}
@@ -890,7 +874,7 @@ export default function ProjectDetails() {
                               },
                               {
                                 onSuccess: () => {
-                                  toast({ title: "تم تسجيل الساعات بنجاح" });
+                                  toast.success("تم تسجيل الساعات بنجاح");
                                   queryClient.invalidateQueries({
                                     queryKey: ["project-time-logs", id],
                                   });
@@ -900,10 +884,7 @@ export default function ProjectDetails() {
                                   setTimerDefaults({});
                                 },
                                 onError: () =>
-                                  toast({
-                                    title: "حدث خطأ",
-                                    variant: "destructive",
-                                  }),
+                                  toast.error("حدث خطأ"),
                               },
                             );
                           }}
@@ -949,7 +930,7 @@ export default function ProjectDetails() {
                         },
                         {
                           onSuccess: () => {
-                            toast({ title: "تم اعتماد السجل" });
+                            toast.success("تم اعتماد السجل");
                             queryClient.invalidateQueries({
                               queryKey: ["project-time-logs", id],
                             });
@@ -974,7 +955,7 @@ export default function ProjectDetails() {
                         },
                         {
                           onSuccess: () => {
-                            toast({ title: "تم رفض السجل" });
+                            toast.success("تم رفض السجل");
                             queryClient.invalidateQueries({
                               queryKey: ["project-time-logs", id],
                             });

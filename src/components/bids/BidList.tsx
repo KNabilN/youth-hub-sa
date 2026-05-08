@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useBids, useRejectBid } from "@/hooks/useBids";
 import { BidCard } from "./BidCard";
 import { BidPaymentDialog } from "./BidPaymentDialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 
 interface BidListProps {
   projectId: string;
@@ -53,8 +53,8 @@ export function BidList({
 
   const handleReject = (bidId: string) => {
     rejectBid.mutate(bidId, {
-      onSuccess: () => toast({ title: "تم رفض العرض" }),
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onSuccess: () => toast.success("تم رفض العرض"),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 

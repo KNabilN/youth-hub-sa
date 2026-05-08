@@ -193,7 +193,7 @@ function ConsumedBreakdown() {
                           <div>
                             <span className="font-medium">{targetLabel}</span>
                             {targetRef && (
-                              <span className="text-muted-foreground mr-1 text-[10px]">
+                              <span className="text-muted-foreground me-1 text-[10px]">
                                 ({targetRef})
                               </span>
                             )}

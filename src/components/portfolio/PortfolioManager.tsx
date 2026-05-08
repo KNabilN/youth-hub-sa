@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usePortfolio,
@@ -10,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { ImagePlus, Trash2, Images } from "lucide-react";
 
 export function PortfolioManager() {
@@ -18,7 +18,6 @@ export function PortfolioManager() {
   const { data: items } = usePortfolio(user?.id);
   const addItem = useAddPortfolioItem();
   const deleteItem = useDeletePortfolioItem();
-  const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
@@ -30,10 +29,7 @@ export function PortfolioManager() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) {
-      toast({
-        title: "الحد الأقصى لحجم الصورة 5 ميجابايت",
-        variant: "destructive",
-      });
+      toast.error("الحد الأقصى لحجم الصورة 5 ميجابايت");
       return;
     }
     setFile(f);
@@ -42,24 +38,21 @@ export function PortfolioManager() {
 
   const handleAdd = () => {
     if (!title || !file) {
-      toast({
-        title: "يرجى إدخال العنوان واختيار صورة",
-        variant: "destructive",
-      });
+      toast.error("يرجى إدخال العنوان واختيار صورة");
       return;
     }
     addItem.mutate(
       { title, description, file },
       {
         onSuccess: () => {
-          toast({ title: "تمت إضافة العمل بنجاح" });
+          toast.success("تمت إضافة العمل بنجاح");
           setTitle("");
           setDescription("");
           setFile(null);
           setPreview(null);
           if (fileRef.current) fileRef.current.value = "";
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -68,8 +61,8 @@ export function PortfolioManager() {
     deleteItem.mutate(
       { id, image_url },
       {
-        onSuccess: () => toast({ title: "تم نقل العمل إلى سلة المحذوفات" }),
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onSuccess: () => toast.success("تم نقل العمل إلى سلة المحذوفات"),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

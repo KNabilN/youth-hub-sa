@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { ErrorState } from "@/components/ErrorState";
 
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { useAuth } from "@/hooks/useAuth";
@@ -134,7 +135,7 @@ function StatsGrid({
 }
 
 function AssociationDashboard() {
-  const { data: stats, isLoading } = useProjectStats();
+  const { data: stats, isLoading, isError, refetch } = useProjectStats();
   const { data: grantStats } = useAssociationGrantStats();
   const items: StatItem[] = [
     {
@@ -168,6 +169,7 @@ function AssociationDashboard() {
       color: "warning",
     },
   ];
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
   return <StatsGrid items={items} isLoading={isLoading} />;
 }
 

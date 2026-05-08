@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useContracts, useSignContract } from "@/hooks/useContracts";
 import { ContractCard } from "@/components/contracts/ContractCard";
@@ -13,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { ScrollText } from "lucide-react";
 
@@ -22,16 +22,12 @@ export default function Contracts() {
   const { role } = useAuth();
   const { data: contracts, isLoading } = useContracts(filter);
   const signContract = useSignContract();
-  const { toast } = useToast();
 
   const handleSign = (id: string) => {
     signContract.mutate(id, {
       onSuccess: () =>
-        toast({
-          title: "تم توقيع العقد بنجاح",
-          description: "سيتم بدء المشروع تلقائياً بعد توقيع جميع الأطراف",
-        }),
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        toast.success("تم توقيع العقد بنجاح", { description: "سيتم بدء المشروع تلقائياً بعد توقيع جميع الأطراف" }),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 

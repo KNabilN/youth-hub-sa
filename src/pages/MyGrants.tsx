@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useMyGrants,
@@ -43,7 +44,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { HandCoins, Plus, FileText, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { PaginationControls } from "@/components/PaginationControls";
@@ -126,16 +126,12 @@ export default function MyGrants() {
       },
       {
         onSuccess: () => {
-          toast({ title: "تم إنشاء طلب المنحة بنجاح" });
+          toast.success("تم إنشاء طلب المنحة بنجاح");
           setOpen(false);
           resetForm();
         },
         onError: (err: any) =>
-          toast({
-            title: "حدث خطأ",
-            description: err?.message || "تعذّر إنشاء طلب المنحة",
-            variant: "destructive",
-          }),
+          toast.error("حدث خطأ", { description: err?.message || "تعذّر إنشاء طلب المنحة" }),
       },
     );
   };
@@ -388,7 +384,7 @@ export default function MyGrants() {
                 placeholder="مثال: الشباب، الأيتام، ذوي الاحتياجات الخاصة..."
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>عدد المستفيدين المتوقع</Label>
                 <Input

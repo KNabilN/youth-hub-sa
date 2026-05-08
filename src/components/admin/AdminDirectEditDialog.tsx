@@ -395,7 +395,7 @@ export function AdminDirectEditDialog({
                       <Badge
                         key={skill}
                         variant="secondary"
-                        className="gap-1 pl-1"
+                        className="gap-1 ps-1"
                       >
                         {skill}
                         <button
@@ -437,7 +437,7 @@ export function AdminDirectEditDialog({
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-1.5">
                     {(values.qualifications ?? []).map((q: any, i: number) => (
-                      <Badge key={i} variant="secondary" className="gap-1 pl-1">
+                      <Badge key={i} variant="secondary" className="gap-1 ps-1">
                         {typeof q === "string"
                           ? q
                           : (q.title ?? q.name ?? JSON.stringify(q))}

@@ -1,6 +1,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { AssociationCard } from "@/components/donor/AssociationCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { useState, useMemo } from "react";
 
 export default function Associations() {
   const [search, setSearch] = useState("");
-  const { data: associations, isLoading } = useQuery({
+  const { data: associations, isLoading, isError, refetch } = useQuery({
     queryKey: ["associations"],
     queryFn: async () => {
       const { data: ids, error: rpcError } = await supabase.rpc(
@@ -51,11 +52,11 @@ export default function Associations() {
             placeholder="ابحث باسم الجمعية أو المنظمة..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pr-10"
+            className="pe-10"
           />
         </div>
 
-        {isLoading ? (
+        {isError ? (<ErrorState onRetry={() => refetch()} />) : isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-44 w-full" />

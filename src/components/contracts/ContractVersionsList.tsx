@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   useContractVersions,
   useCreateContractVersion,
@@ -16,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
 import { History, Plus } from "lucide-react";
 
 interface ContractVersionsListProps {
@@ -42,11 +42,11 @@ export function ContractVersionsList({
       { contractId, terms, changeNote: note },
       {
         onSuccess: () => {
-          toast({ title: "تم حفظ الإصدار الجديد" });
+          toast.success("تم حفظ الإصدار الجديد");
           setOpen(false);
           setNote("");
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

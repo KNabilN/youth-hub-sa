@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAvailableProject } from "@/hooks/useAvailableProjects";
@@ -7,7 +8,6 @@ import { BidForm, type BidFormValues } from "@/components/provider/BidForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { useBidGuard } from "@/hooks/useVerificationGuard";
 import {
   ArrowRight,
@@ -33,7 +33,6 @@ export default function ProjectBidView() {
   const { data: project, isLoading } = useAvailableProject(id);
   const submitBid = useSubmitBid();
   const uploadAttachment = useUploadAttachment();
-  const { toast } = useToast();
   const { canBid, blockReason } = useBidGuard();
   const [createdBidId, setCreatedBidId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -61,24 +60,18 @@ export default function ProjectBidView() {
                 });
               }
             } catch {
-              toast({
-                title: "تم تقديم العرض لكن فشل رفع بعض المرفقات",
-                variant: "destructive",
-              });
+              toast.error("تم تقديم العرض لكن فشل رفع بعض المرفقات");
             } finally {
               setUploading(false);
             }
           }
-          toast({ title: "تم تقديم العرض بنجاح" });
+          toast.success("تم تقديم العرض بنجاح");
           setCreatedBidId(data.id);
         },
         onError: (err: any) =>
-          toast({
-            title: err?.message?.includes("duplicate")
+          toast.error(err?.message?.includes("duplicate")
               ? "لقد قدمت عرضاً على هذا الطلب مسبقاً"
-              : "حدث خطأ",
-            variant: "destructive",
-          }),
+              : "حدث خطأ"),
       },
     );
   };

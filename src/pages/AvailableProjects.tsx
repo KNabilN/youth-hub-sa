@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { ProviderProjectCard } from "@/components/provider/ProviderProjectCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
@@ -69,7 +70,7 @@ export default function AvailableProjects() {
     },
   });
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, isError, refetch } = useQuery({
     queryKey: [
       "available-projects",
       user?.id,
@@ -293,7 +294,7 @@ export default function AvailableProjects() {
           </CardContent>
         </Card>
 
-        {isLoading ? (
+        {isError ? (<ErrorState onRetry={() => refetch()} />) : isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-52 w-full rounded-xl" />
