@@ -90,6 +90,7 @@ const AdminContracts = lazy(() => import("./pages/admin/AdminContracts"));
 const AdminContractDetail = lazy(() => import("./pages/admin/AdminContractDetail"));
 const AdminDiscountCodes = lazy(() => import("./pages/admin/AdminDiscountCodes"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+const AdminEditRequests = lazy(() => import("./pages/admin/AdminEditRequests"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ProjectPublicView = lazy(() => import("./pages/ProjectPublicView"));
 const queryClient = new QueryClient({
