@@ -26,14 +26,26 @@ const roleFields: Record<string, FieldDef[]> = {
   youth_association: [
     { key: "organization_name", label: "اسم المنظمة", source: "profile" },
     { key: "license_number", label: "رقم الترخيص", source: "profile" },
-    { key: "contact_officer_name", label: "اسم ضابط الاتصال", source: "profile" },
-    { key: "contact_officer_phone", label: "رقم ضابط الاتصال", source: "profile" },
+    {
+      key: "contact_officer_name",
+      label: "اسم ضابط الاتصال",
+      source: "profile",
+    },
+    {
+      key: "contact_officer_phone",
+      label: "رقم ضابط الاتصال",
+      source: "profile",
+    },
     ...bankFields,
   ],
   service_provider: [
     { key: "bio", label: "النبذة التعريفية", source: "profile" },
     ...bankFields,
-    { key: "portfolio_count", label: "نموذج عمل واحد على الأقل", source: "portfolio" },
+    {
+      key: "portfolio_count",
+      label: "نموذج عمل واحد على الأقل",
+      source: "portfolio",
+    },
   ],
   donor: [],
   super_admin: [],
@@ -60,13 +72,23 @@ export function useProfileCompleteness() {
   const { role } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: bankDetails, isLoading: bankLoading } = useBankDetails();
-  const { data: portfolioCount, isLoading: portfolioLoading } = usePortfolioCount();
+  const { data: portfolioCount, isLoading: portfolioLoading } =
+    usePortfolioCount();
 
-  const isLoading = profileLoading || bankLoading || (role === "service_provider" && portfolioLoading);
+  const isLoading =
+    profileLoading ||
+    bankLoading ||
+    (role === "service_provider" && portfolioLoading);
 
   return useMemo(() => {
     if (isLoading || !profile || !role) {
-      return { isComplete: true, missingFields: [] as string[], completionPercentage: 100, requiredFields: [] as FieldDef[], isLoading };
+      return {
+        isComplete: true,
+        missingFields: [] as string[],
+        completionPercentage: 100,
+        requiredFields: [] as FieldDef[],
+        isLoading,
+      };
     }
 
     const required = [...commonFields, ...(roleFields[role] ?? [])];
@@ -75,7 +97,7 @@ export function useProfileCompleteness() {
     for (const f of required) {
       let val: unknown;
       if (f.source === "bank") {
-        val = (bankDetails ?? {} as Record<string, unknown>)[f.key];
+        val = (bankDetails ?? ({} as Record<string, unknown>))[f.key];
       } else if (f.source === "portfolio") {
         val = (portfolioCount ?? 0) > 0 ? 1 : 0;
       } else {

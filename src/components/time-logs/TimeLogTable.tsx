@@ -1,11 +1,29 @@
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Check, X, AlertCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TimeLog {
   id: string;
@@ -21,9 +39,18 @@ interface TimeLog {
 }
 
 const approvalMap: Record<string, { label: string; className: string }> = {
-  pending: { label: "قيد المراجعة", className: "bg-warning/15 text-warning border-warning/30" },
-  approved: { label: "معتمد", className: "bg-success/15 text-success border-success/30" },
-  rejected: { label: "مرفوض", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  pending: {
+    label: "قيد المراجعة",
+    className: "bg-warning/15 text-warning border-warning/30",
+  },
+  approved: {
+    label: "معتمد",
+    className: "bg-success/15 text-success border-success/30",
+  },
+  rejected: {
+    label: "مرفوض",
+    className: "bg-destructive/15 text-destructive border-destructive/30",
+  },
 };
 
 interface Props {
@@ -37,7 +64,12 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
-  if (!logs.length) return <p className="text-sm text-muted-foreground text-center py-8">لا توجد سجلات ساعات</p>;
+  if (!logs.length)
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        لا توجد سجلات ساعات
+      </p>
+    );
 
   const handleRejectConfirm = () => {
     if (rejectId && onReject) {
@@ -64,13 +96,19 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map(log => {
+            {logs.map((log) => {
               const status = approvalMap[log.approval] ?? approvalMap.pending;
               return (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium">{(log.profiles as any)?.organization_name || log.profiles?.full_name || "-"}</TableCell>
+                  <TableCell className="font-medium">
+                    {(log.profiles as any)?.organization_name ||
+                      log.profiles?.full_name ||
+                      "-"}
+                  </TableCell>
                   <TableCell>{log.projects?.title || "-"}</TableCell>
-                  <TableCell>{new Date(log.log_date).toLocaleDateString("ar-SA")}</TableCell>
+                  <TableCell>
+                    {new Date(log.log_date).toLocaleDateString("ar-SA")}
+                  </TableCell>
                   <TableCell className="text-xs">
                     {log.start_time && log.end_time
                       ? `${log.start_time.slice(0, 5)} – ${log.end_time.slice(0, 5)}`
@@ -84,25 +122,48 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <p className="text-xs text-destructive mt-0.5 flex items-center gap-1 cursor-help">
-                              <AlertCircle className="h-3 w-3" /> {log.rejection_reason}
+                              <AlertCircle className="h-3 w-3" />{" "}
+                              {log.rejection_reason}
                             </p>
                           </TooltipTrigger>
-                          <TooltipContent><p>{log.rejection_reason}</p></TooltipContent>
+                          <TooltipContent>
+                            <p>{log.rejection_reason}</p>
+                          </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
                   </TableCell>
-                  <TableCell><Badge variant="outline" className={status.className}>{status.label}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={status.className}>
+                      {status.label}
+                    </Badge>
+                  </TableCell>
                   {(onApprove || onReject) && (
                     <TableCell>
                       {log.approval === "pending" && (
                         <div className="flex gap-1">
-                          {onApprove && <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onApprove(log.id)} disabled={isLoading}>
-                            <Check className="h-3.5 w-3.5 text-success" />
-                          </Button>}
-                          {onReject && <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setRejectId(log.id)} disabled={isLoading}>
-                            <X className="h-3.5 w-3.5 text-destructive" />
-                          </Button>}
+                          {onApprove && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={() => onApprove(log.id)}
+                              disabled={isLoading}
+                            >
+                              <Check className="h-3.5 w-3.5 text-success" />
+                            </Button>
+                          )}
+                          {onReject && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={() => setRejectId(log.id)}
+                              disabled={isLoading}
+                            >
+                              <X className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       )}
                     </TableCell>
@@ -114,13 +175,42 @@ export function TimeLogTable({ logs, onApprove, onReject, isLoading }: Props) {
         </Table>
       </div>
 
-      <Dialog open={!!rejectId} onOpenChange={(o) => { if (!o) { setRejectId(null); setReason(""); } }}>
+      <Dialog
+        open={!!rejectId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectId(null);
+            setReason("");
+          }
+        }}
+      >
         <DialogContent>
-          <DialogHeader><DialogTitle>سبب الرفض</DialogTitle></DialogHeader>
-          <Textarea placeholder="أدخل سبب رفض سجل الساعات..." value={reason} onChange={e => setReason(e.target.value)} rows={3} />
+          <DialogHeader>
+            <DialogTitle>سبب الرفض</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            placeholder="أدخل سبب رفض سجل الساعات..."
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+          />
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRejectId(null); setReason(""); }}>إلغاء</Button>
-            <Button variant="destructive" onClick={handleRejectConfirm} disabled={!reason.trim()}>تأكيد الرفض</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectId(null);
+                setReason("");
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={!reason.trim()}
+            >
+              تأكيد الرفض
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

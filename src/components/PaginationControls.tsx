@@ -10,9 +10,18 @@ interface PaginationControlsProps {
   onNext: () => void;
 }
 
-export function PaginationControls({ page, pageSize, totalFetched, totalItems, onPrev, onNext }: PaginationControlsProps) {
-  const totalPages = totalItems != null ? Math.ceil(totalItems / pageSize) : undefined;
-  const hasNext = totalPages != null ? page + 1 < totalPages : totalFetched === pageSize;
+export function PaginationControls({
+  page,
+  pageSize,
+  totalFetched,
+  totalItems,
+  onPrev,
+  onNext,
+}: PaginationControlsProps) {
+  const totalPages =
+    totalItems != null ? Math.ceil(totalItems / pageSize) : undefined;
+  const hasNext =
+    totalPages != null ? page + 1 < totalPages : totalFetched === pageSize;
   const hasPrev = page > 0;
 
   if (!hasPrev && !hasNext) return null;
@@ -24,7 +33,9 @@ export function PaginationControls({ page, pageSize, totalFetched, totalItems, o
         السابق
       </Button>
       <span className="text-sm text-muted-foreground">
-        {totalPages != null ? `صفحة ${page + 1} من ${totalPages}` : `صفحة ${page + 1}`}
+        {totalPages != null
+          ? `صفحة ${page + 1} من ${totalPages}`
+          : `صفحة ${page + 1}`}
       </span>
       <Button variant="outline" size="sm" disabled={!hasNext} onClick={onNext}>
         التالي

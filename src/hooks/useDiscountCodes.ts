@@ -49,9 +49,15 @@ export function useDiscountCodes() {
         (usages || []).forEach((u: any) => {
           counts[u.code_id] = (counts[u.code_id] || 0) + 1;
         });
-        return codes.map((c: any) => ({ ...c, usage_count: counts[c.id] || 0 })) as DiscountCode[];
+        return codes.map((c: any) => ({
+          ...c,
+          usage_count: counts[c.id] || 0,
+        })) as DiscountCode[];
       }
-      return codes.map((c: any) => ({ ...c, usage_count: 0 })) as DiscountCode[];
+      return codes.map((c: any) => ({
+        ...c,
+        usage_count: 0,
+      })) as DiscountCode[];
     },
   });
 }
@@ -63,7 +69,9 @@ export function useDiscountCodeUsages(codeId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("discount_code_usages" as any)
-        .select("*, profiles:user_id(full_name, organization_name), projects(title), micro_services:service_id(title)")
+        .select(
+          "*, profiles:user_id(full_name, organization_name), projects(title), micro_services:service_id(title)",
+        )
         .eq("code_id", codeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -75,16 +83,20 @@ export function useDiscountCodeUsages(codeId: string | null) {
 export function useCreateDiscountCode() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { code: string; amount: number; start_date: string; end_date: string; max_uses?: number | null }) => {
-      const { error } = await supabase
-        .from("discount_codes" as any)
-        .insert({
-          code: input.code.toUpperCase().trim(),
-          amount: input.amount,
-          start_date: input.start_date,
-          end_date: input.end_date,
-          max_uses: input.max_uses ?? null,
-        });
+    mutationFn: async (input: {
+      code: string;
+      amount: number;
+      start_date: string;
+      end_date: string;
+      max_uses?: number | null;
+    }) => {
+      const { error } = await supabase.from("discount_codes" as any).insert({
+        code: input.code.toUpperCase().trim(),
+        amount: input.amount,
+        start_date: input.start_date,
+        end_date: input.end_date,
+        max_uses: input.max_uses ?? null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -104,7 +116,10 @@ export function useCreateDiscountCode() {
 export function useUpdateDiscountCode() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<DiscountCode> & { id: string }) => {
+    mutationFn: async ({
+      id,
+      ...updates
+    }: Partial<DiscountCode> & { id: string }) => {
       const { error } = await supabase
         .from("discount_codes" as any)
         .update(updates)

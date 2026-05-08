@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { useMessages, useSendMessage, useMarkMessagesRead, type Message } from "@/hooks/useMessages";
+import {
+  useMessages,
+  useSendMessage,
+  useMarkMessagesRead,
+  type Message,
+} from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,13 +30,19 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
   const markRead = useMarkMessagesRead();
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Mark messages as read when viewing
   useEffect(() => {
-    if (projectId && messages?.some((m) => m.sender_id !== user?.id && !m.is_read)) {
+    if (
+      projectId &&
+      messages?.some((m) => m.sender_id !== user?.id && !m.is_read)
+    ) {
       markRead.mutate(projectId);
     }
   }, [projectId, messages, user?.id]);
@@ -59,7 +70,7 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
           setText("");
           setAttachment(null);
         },
-      }
+      },
     );
   };
 
@@ -74,10 +85,14 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
     setUploading(true);
     try {
       const path = `messages/${projectId}/${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage.from("attachments").upload(path, file);
+      const { error } = await supabase.storage
+        .from("attachments")
+        .upload(path, file);
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage.from("attachments").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("attachments")
+        .getPublicUrl(path);
       setAttachment({ url: urlData.publicUrl, name: file.name });
     } catch {
       toast.error("فشل رفع الملف");
@@ -87,7 +102,8 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
     }
   };
 
-  const isImage = (name: string) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name);
+  const isImage = (name: string) =>
+    /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name);
 
   return (
     <div className="flex flex-col h-full">
@@ -102,7 +118,10 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className={cn("flex gap-2", i % 2 === 0 && "flex-row-reverse")}>
+              <div
+                key={i}
+                className={cn("flex gap-2", i % 2 === 0 && "flex-row-reverse")}
+              >
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <Skeleton className="h-16 w-48 rounded-xl" />
               </div>
@@ -114,12 +133,19 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
               <Send className="h-6 w-6 text-muted-foreground/50" />
             </div>
             <p className="text-muted-foreground">لا توجد رسائل بعد</p>
-            <p className="text-xs text-muted-foreground mt-1">ابدأ المحادثة الآن</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              ابدأ المحادثة الآن
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} isOwn={msg.sender_id === user?.id} isImage={isImage} />
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                isOwn={msg.sender_id === user?.id}
+                isImage={isImage}
+              />
             ))}
           </div>
         )}
@@ -131,7 +157,12 @@ export function ChatThread({ projectId, projectTitle }: ChatThreadProps) {
           <div className="flex items-center gap-2 text-sm">
             <FileText className="h-4 w-4 text-primary" />
             <span className="truncate flex-1">{attachment.name}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setAttachment(null)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setAttachment(null)}
+            >
               <X className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -206,11 +237,17 @@ function MessageBubble({
       <Avatar className="h-8 w-8 shrink-0 mt-1">
         <AvatarImage src={message.sender?.avatar_url || undefined} />
         <AvatarFallback className="text-xs">
-          {(message.sender?.organization_name || message.sender?.full_name)?.[0] ?? "؟"}
+          {(message.sender?.organization_name ||
+            message.sender?.full_name)?.[0] ?? "؟"}
         </AvatarFallback>
       </Avatar>
       <div className={cn("max-w-[70%] space-y-1")}>
-        <p className={cn("text-[11px] font-medium", isOwn ? "text-end" : "text-start")}>
+        <p
+          className={cn(
+            "text-[11px] font-medium",
+            isOwn ? "text-end" : "text-start",
+          )}
+        >
           {message.sender?.organization_name || message.sender?.full_name}
         </p>
         <div
@@ -218,10 +255,12 @@ function MessageBubble({
             "rounded-2xl px-4 py-2.5 text-sm",
             isOwn
               ? "bg-primary text-primary-foreground rounded-ss-sm"
-              : "bg-muted rounded-se-sm"
+              : "bg-muted rounded-se-sm",
           )}
         >
-          {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+          {message.content && (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          )}
           {message.attachment_url && message.attachment_name && (
             <a
               href={message.attachment_url}
@@ -236,10 +275,12 @@ function MessageBubble({
                   className="rounded-lg max-h-48 max-w-full object-cover"
                 />
               ) : (
-                <div className={cn(
-                  "flex items-center gap-2 text-xs p-2 rounded-lg",
-                  isOwn ? "bg-primary-foreground/10" : "bg-background"
-                )}>
+                <div
+                  className={cn(
+                    "flex items-center gap-2 text-xs p-2 rounded-lg",
+                    isOwn ? "bg-primary-foreground/10" : "bg-background",
+                  )}
+                >
                   <FileText className="h-4 w-4 shrink-0" />
                   <span className="truncate">{message.attachment_name}</span>
                 </div>
@@ -247,8 +288,16 @@ function MessageBubble({
             </a>
           )}
         </div>
-        <p className={cn("text-[10px] text-muted-foreground", isOwn ? "text-end" : "text-start")}>
-          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true, locale: ar })}
+        <p
+          className={cn(
+            "text-[10px] text-muted-foreground",
+            isOwn ? "text-end" : "text-start",
+          )}
+        >
+          {formatDistanceToNow(new Date(message.created_at), {
+            addSuffix: true,
+            locale: ar,
+          })}
         </p>
       </div>
     </div>

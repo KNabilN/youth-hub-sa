@@ -2,21 +2,62 @@ import { useState, useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useListHighlight } from "@/hooks/useListHighlight";
-import { useAdminUsers, useToggleVerification, useToggleSuspension, useChangeUserRole, useAdminUpdateProfile, useAdminUsersCount } from "@/hooks/useAdminUsers";
-import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
+import {
+  useAdminUsers,
+  useToggleVerification,
+  useToggleSuspension,
+  useChangeUserRole,
+  useAdminUpdateProfile,
+  useAdminUsersCount,
+} from "@/hooks/useAdminUsers";
+import {
+  AdminDirectEditDialog,
+  type DirectEditFieldConfig,
+} from "@/components/admin/AdminDirectEditDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useSoftDelete } from "@/hooks/useTrash";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
-import { CheckCircle, XCircle, Ban, FileEdit, UserPlus, Download, RotateCcw, Trash2, Mail, Loader2, MessageSquare } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Ban,
+  FileEdit,
+  UserPlus,
+  Download,
+  RotateCcw,
+  Trash2,
+  Mail,
+  Loader2,
+  MessageSquare,
+} from "lucide-react";
 import { AdminUserChatSheet } from "@/components/admin/AdminUserChatSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminCreateUserDialog } from "@/components/admin/AdminCreateUserDialog";
@@ -61,7 +102,6 @@ const profileFields: DirectEditFieldConfig[] = [
   { key: "contact_officer_email", label: "بريد ضابط الاتصال" },
   { key: "contact_officer_title", label: "صفة ضابط الاتصال" },
   { key: "bio", label: "نبذة", type: "textarea" },
-  
 ];
 
 export function UserTable({ pagination }: UserTableProps) {
@@ -89,7 +129,7 @@ export function UserTable({ pagination }: UserTableProps) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [editUser, setEditUser] = useState<any>(null);
-  
+
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
@@ -98,9 +138,12 @@ export function UserTable({ pagination }: UserTableProps) {
   const handleResendConfirmation = async (userId: string) => {
     setResendingId(userId);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-resend-confirmation", {
-        body: { user_id: userId },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "admin-resend-confirmation",
+        {
+          body: { user_id: userId },
+        },
+      );
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success("تم إرسال رابط الدخول بنجاح");
@@ -112,17 +155,30 @@ export function UserTable({ pagination }: UserTableProps) {
   };
 
   const { data: regions } = useRegions();
-  const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
+  const { data: cities } = useCities(
+    regionFilter !== "all" ? regionFilter : null,
+  );
 
-  const filters = useMemo(() => ({
-    roleFilter,
-    regionId: regionFilter,
-    cityId: cityFilter,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-    verifiedFilter,
-    search: debouncedSearch || undefined,
-  }), [roleFilter, regionFilter, cityFilter, dateFrom, dateTo, verifiedFilter, debouncedSearch]);
+  const filters = useMemo(
+    () => ({
+      roleFilter,
+      regionId: regionFilter,
+      cityId: cityFilter,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      verifiedFilter,
+      search: debouncedSearch || undefined,
+    }),
+    [
+      roleFilter,
+      regionFilter,
+      cityFilter,
+      dateFrom,
+      dateTo,
+      verifiedFilter,
+      debouncedSearch,
+    ],
+  );
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
 
@@ -131,10 +187,14 @@ export function UserTable({ pagination }: UserTableProps) {
   const [suspensionReason, setSuspensionReason] = useState("");
 
   const handleToggle = (id: string, current: boolean) => {
-    toggleVerify.mutate({ id, is_verified: !current }, {
-      onSuccess: () => toast.success(current ? "تم إلغاء التوثيق" : "تم التوثيق"),
-      onError: () => toast.error("حدث خطأ"),
-    });
+    toggleVerify.mutate(
+      { id, is_verified: !current },
+      {
+        onSuccess: () =>
+          toast.success(current ? "تم إلغاء التوثيق" : "تم التوثيق"),
+        onError: () => toast.error("حدث خطأ"),
+      },
+    );
   };
 
   const handleSuspendConfirm = () => {
@@ -142,24 +202,33 @@ export function UserTable({ pagination }: UserTableProps) {
     const isSuspended = suspendTarget.is_suspended;
 
     if (!suspensionReason.trim()) {
-      toast.error(isSuspended ? "يرجى إدخال سبب إلغاء التعليق" : "يرجى إدخال سبب التعليق");
+      toast.error(
+        isSuspended ? "يرجى إدخال سبب إلغاء التعليق" : "يرجى إدخال سبب التعليق",
+      );
       return;
     }
 
     toggleSuspend.mutate(
-      { id: suspendTarget.id, is_suspended: !isSuspended, suspension_reason: isSuspended ? "" : suspensionReason },
+      {
+        id: suspendTarget.id,
+        is_suspended: !isSuspended,
+        suspension_reason: isSuspended ? "" : suspensionReason,
+      },
       {
         onSuccess: async () => {
-          await logAudit("profiles", suspendTarget.id, isSuspended ? "unsuspend" : "suspend",
+          await logAudit(
+            "profiles",
+            suspendTarget.id,
+            isSuspended ? "unsuspend" : "suspend",
             { is_suspended: isSuspended },
-            { is_suspended: !isSuspended, reason: suspensionReason.trim() }
+            { is_suspended: !isSuspended, reason: suspensionReason.trim() },
           );
           toast.success(isSuspended ? "تم إلغاء التعليق" : "تم تعليق الحساب");
           setSuspendTarget(null);
           setSuspensionReason("");
         },
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -172,12 +241,28 @@ export function UserTable({ pagination }: UserTableProps) {
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">البحث</Label>
-          <Input placeholder="بحث بالاسم أو الرقم..." value={search} onChange={(e) => { setSearch(e.target.value); pagination?.resetPage?.(); }} className="w-full sm:w-48" />
+          <Input
+            placeholder="بحث بالاسم أو الرقم..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              pagination?.resetPage?.();
+            }}
+            className="w-full sm:w-48"
+          />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">الدور</Label>
-          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); pagination?.resetPage?.(); }}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="الدور" /></SelectTrigger>
+          <Select
+            value={roleFilter}
+            onValueChange={(v) => {
+              setRoleFilter(v);
+              pagination?.resetPage?.();
+            }}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="الدور" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
               <SelectItem value="youth_association">جمعية شبابية</SelectItem>
@@ -189,8 +274,16 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">التوثيق</Label>
-          <Select value={verifiedFilter} onValueChange={(v) => { setVerifiedFilter(v); pagination?.resetPage?.(); }}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="التوثيق" /></SelectTrigger>
+          <Select
+            value={verifiedFilter}
+            onValueChange={(v) => {
+              setVerifiedFilter(v);
+              pagination?.resetPage?.();
+            }}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="التوثيق" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
               <SelectItem value="verified">موثق</SelectItem>
@@ -200,43 +293,82 @@ export function UserTable({ pagination }: UserTableProps) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">المنطقة</Label>
-          <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setCityFilter("all"); pagination?.resetPage?.(); }}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="المنطقة" /></SelectTrigger>
+          <Select
+            value={regionFilter}
+            onValueChange={(v) => {
+              setRegionFilter(v);
+              setCityFilter("all");
+              pagination?.resetPage?.();
+            }}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="المنطقة" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
               {regions?.map((r) => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                <SelectItem key={r.id} value={r.id}>
+                  {r.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">المدينة</Label>
-          <Select value={cityFilter} onValueChange={setCityFilter} disabled={regionFilter === "all"}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="المدينة" /></SelectTrigger>
+          <Select
+            value={cityFilter}
+            onValueChange={setCityFilter}
+            disabled={regionFilter === "all"}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="المدينة" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
               {cities?.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-40"
+          />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-40"
+          />
         </div>
         <Button
           variant="outline"
           size="sm"
           className="h-10 gap-1"
-          onClick={() => { setSearch(""); setRoleFilter("all"); setVerifiedFilter("all"); setRegionFilter("all"); setCityFilter("all"); setDateFrom(""); setDateTo(""); pagination?.resetPage?.(); }}
+          onClick={() => {
+            setSearch("");
+            setRoleFilter("all");
+            setVerifiedFilter("all");
+            setRegionFilter("all");
+            setCityFilter("all");
+            setDateFrom("");
+            setDateTo("");
+            pagination?.resetPage?.();
+          }}
         >
-          <RotateCcw className="h-3.5 w-3.5" />إعادة تعيين
+          <RotateCcw className="h-3.5 w-3.5" />
+          إعادة تعيين
         </Button>
         <div className="me-auto flex gap-2">
           <Button
@@ -245,10 +377,12 @@ export function UserTable({ pagination }: UserTableProps) {
             className="h-10 gap-1"
             onClick={() => setExportOpen(true)}
           >
-            <Download className="h-4 w-4" />تصدير CSV
+            <Download className="h-4 w-4" />
+            تصدير CSV
           </Button>
           <Button onClick={() => setCreateOpen(true)} className="gap-1">
-            <UserPlus className="h-4 w-4" />تسجيل مستخدم
+            <UserPlus className="h-4 w-4" />
+            تسجيل مستخدم
           </Button>
         </div>
       </div>
@@ -273,17 +407,34 @@ export function UserTable({ pagination }: UserTableProps) {
                   {u.user_number || "—"}
                 </TableCell>
                 <TableCell>
-                  <Button variant="link" className="p-0 h-auto font-medium block text-start" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`, pagination?.page ?? 0)}>
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto font-medium block text-start"
+                    onClick={() =>
+                      saveAndNavigate(
+                        u.id,
+                        `/admin/users/${u.id}`,
+                        pagination?.page ?? 0,
+                      )
+                    }
+                  >
                     {getDisplayName(u, u.user_roles?.[0]?.role)}
                   </Button>
                   {(() => {
                     const role = u.user_roles?.[0]?.role;
                     const primary = getDisplayName(u, role);
-                    const alt = role === "youth_association" ? u.full_name : u.organization_name;
+                    const alt =
+                      role === "youth_association"
+                        ? u.full_name
+                        : u.organization_name;
                     if (alt && alt !== primary) {
                       return (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[180px]" title={alt}>
-                          {role === "youth_association" ? "المسؤول" : "المنظمة"}: {alt}
+                        <p
+                          className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[180px]"
+                          title={alt}
+                        >
+                          {role === "youth_association" ? "المسؤول" : "المنظمة"}
+                          : {alt}
                         </p>
                       );
                     }
@@ -294,39 +445,63 @@ export function UserTable({ pagination }: UserTableProps) {
                   <Select
                     value={u.user_roles?.[0]?.role ?? ""}
                     onValueChange={(v) => {
-                      changeRole.mutate({ userId: u.id, role: v }, {
-                        onSuccess: () => toast.success("تم تغيير الدور"),
-                        onError: () => toast.error("حدث خطأ في تغيير الدور"),
-                      });
+                      changeRole.mutate(
+                        { userId: u.id, role: v },
+                        {
+                          onSuccess: () => toast.success("تم تغيير الدور"),
+                          onError: () => toast.error("حدث خطأ في تغيير الدور"),
+                        },
+                      );
                     }}
                   >
-                    <SelectTrigger className="w-36 h-8"><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                    <SelectTrigger className="w-36 h-8">
+                      <SelectValue placeholder="اختر الدور" />
+                    </SelectTrigger>
                     <SelectContent>
                       {Object.entries(roleLabels).map(([k, v]) => (
-                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                        <SelectItem key={k} value={k}>
+                          {v}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell>
                   {u.is_verified ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle className="h-3 w-3 ms-1" />موثق</Badge>
+                    <Badge className="bg-success/10 text-success border-success/30">
+                      <CheckCircle className="h-3 w-3 ms-1" />
+                      موثق
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-muted-foreground"><XCircle className="h-3 w-3 ms-1" />غير موثق</Badge>
+                    <Badge variant="outline" className="text-muted-foreground">
+                      <XCircle className="h-3 w-3 ms-1" />
+                      غير موثق
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell>
                   {u.is_suspended ? (
                     <div>
-                      <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 ms-1" />معلّق</Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        <Ban className="h-3 w-3 ms-1" />
+                        معلّق
+                      </Badge>
                       {u.suspension_reason && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate" title={u.suspension_reason}>
+                        <p
+                          className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate"
+                          title={u.suspension_reason}
+                        >
                           {u.suspension_reason}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <Badge variant="outline" className="text-emerald-600 border-emerald-200 text-xs">نشط</Badge>
+                    <Badge
+                      variant="outline"
+                      className="text-success border-success/30 text-xs"
+                    >
+                      نشط
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
@@ -342,8 +517,18 @@ export function UserTable({ pagination }: UserTableProps) {
                     >
                       <MessageSquare className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(u)}><FileEdit className="h-4 w-4" /></Button>
-                    <Button size="sm" variant={u.is_verified ? "outline" : "default"} onClick={() => handleToggle(u.id, u.is_verified)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEdit(u)}
+                    >
+                      <FileEdit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={u.is_verified ? "outline" : "default"}
+                      onClick={() => handleToggle(u.id, u.is_verified)}
+                    >
                       {u.is_verified ? "إلغاء التوثيق" : "توثيق"}
                     </Button>
                     <Button
@@ -354,7 +539,11 @@ export function UserTable({ pagination }: UserTableProps) {
                       onClick={() => handleResendConfirmation(u.id)}
                       title="إرسال رابط الدخول"
                     >
-                      {resendingId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                      {resendingId === u.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Mail className="h-4 w-4" />
+                      )}
                     </Button>
                     <Button
                       size="sm"
@@ -378,15 +567,24 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {isLoading && (users ?? []).length === 0 && (
-              [1,2,3,4,5].map((i) => (
+            {isLoading &&
+              (users ?? []).length === 0 &&
+              [1, 2, 3, 4, 5].map((i) => (
                 <TableRow key={`sk-${i}`}>
-                  <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell colSpan={7}>
+                    <Skeleton className="h-8 w-full" />
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
+              ))}
             {!isLoading && (users ?? []).length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  لا يوجد مستخدمين
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
@@ -404,11 +602,21 @@ export function UserTable({ pagination }: UserTableProps) {
       )}
 
       {/* Suspension Reason Dialog */}
-      <Dialog open={!!suspendTarget} onOpenChange={(o) => { if (!o) { setSuspendTarget(null); setSuspensionReason(""); } }}>
+      <Dialog
+        open={!!suspendTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSuspendTarget(null);
+            setSuspensionReason("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {suspendTarget?.is_suspended ? "إلغاء تعليق الحساب" : "تعليق الحساب"}
+              {suspendTarget?.is_suspended
+                ? "إلغاء تعليق الحساب"
+                : "تعليق الحساب"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
@@ -418,24 +626,46 @@ export function UserTable({ pagination }: UserTableProps) {
                 : `سيتم تعليق حساب "${getDisplayName(suspendTarget)}" ولن يتمكن من الوصول إلى النظام.`}
             </p>
             <div>
-              <Label>{suspendTarget?.is_suspended ? "سبب إلغاء التعليق *" : "سبب التعليق *"}</Label>
+              <Label>
+                {suspendTarget?.is_suspended
+                  ? "سبب إلغاء التعليق *"
+                  : "سبب التعليق *"}
+              </Label>
               <Textarea
                 value={suspensionReason}
                 onChange={(e) => setSuspensionReason(e.target.value)}
-                placeholder={suspendTarget?.is_suspended ? "اكتب سبب إلغاء التعليق..." : "اكتب سبب تعليق الحساب..."}
+                placeholder={
+                  suspendTarget?.is_suspended
+                    ? "اكتب سبب إلغاء التعليق..."
+                    : "اكتب سبب تعليق الحساب..."
+                }
                 rows={3}
               />
             </div>
-            {suspendTarget?.is_suspended && suspendTarget?.suspension_reason && (
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1">سبب التعليق السابق:</p>
-                <p className="text-sm">{suspendTarget.suspension_reason}</p>
-              </div>
-            )}
+            {suspendTarget?.is_suspended &&
+              suspendTarget?.suspension_reason && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    سبب التعليق السابق:
+                  </p>
+                  <p className="text-sm">{suspendTarget.suspension_reason}</p>
+                </div>
+              )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setSuspendTarget(null); setSuspensionReason(""); }}>إلغاء</Button>
-            <Button variant={suspendTarget?.is_suspended ? "default" : "destructive"} onClick={handleSuspendConfirm}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSuspendTarget(null);
+                setSuspensionReason("");
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant={suspendTarget?.is_suspended ? "default" : "destructive"}
+              onClick={handleSuspendConfirm}
+            >
               تأكيد
             </Button>
           </DialogFooter>
@@ -473,10 +703,16 @@ export function UserTable({ pagination }: UserTableProps) {
         variant="destructive"
         loading={softDelete.isPending}
         onConfirm={() => {
-          softDelete.mutate({ table: "profiles", id: deleteTarget.id }, {
-            onSuccess: () => { toast.success("تم النقل إلى سلة المحذوفات"); setDeleteTarget(null); },
-            onError: () => toast.error("حدث خطأ"),
-          });
+          softDelete.mutate(
+            { table: "profiles", id: deleteTarget.id },
+            {
+              onSuccess: () => {
+                toast.success("تم النقل إلى سلة المحذوفات");
+                setDeleteTarget(null);
+              },
+              onError: () => toast.error("حدث خطأ"),
+            },
+          );
         }}
       />
 

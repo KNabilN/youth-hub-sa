@@ -3,12 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
-import { useDeliverables, useSubmitDeliverable, useReviewDeliverable, Deliverable } from "@/hooks/useDeliverables";
+import {
+  useDeliverables,
+  useSubmitDeliverable,
+  useReviewDeliverable,
+  Deliverable,
+} from "@/hooks/useDeliverables";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PackageCheck, Send, CheckCircle, CheckCircle2, RotateCcw, AlertTriangle, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  PackageCheck,
+  Send,
+  CheckCircle,
+  CheckCircle2,
+  RotateCcw,
+  AlertTriangle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 interface DeliverablePanelProps {
   projectId: string;
@@ -16,13 +38,35 @@ interface DeliverablePanelProps {
   isAssociation: boolean;
 }
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: any }> = {
-  pending_review: { label: "بانتظار المراجعة", variant: "secondary", icon: PackageCheck },
+const statusConfig: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    icon: any;
+  }
+> = {
+  pending_review: {
+    label: "بانتظار المراجعة",
+    variant: "secondary",
+    icon: PackageCheck,
+  },
   accepted: { label: "مقبول", variant: "default", icon: CheckCircle },
-  revision_requested: { label: "مطلوب تعديلات", variant: "destructive", icon: RotateCcw },
+  revision_requested: {
+    label: "مطلوب تعديلات",
+    variant: "destructive",
+    icon: RotateCcw,
+  },
 };
 
-function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssociation, canReview }: {
+function DeliverableVersionCard({
+  deliverable,
+  index,
+  total,
+  isProvider,
+  isAssociation,
+  canReview,
+}: {
   deliverable: Deliverable;
   index: number;
   total: number;
@@ -39,15 +83,17 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
   if (!status) return null;
 
   return (
-    <Card className={
-      index === 0
-        ? deliverable.status === "accepted"
-          ? "border-green-500/30 bg-green-500/5"
-          : deliverable.status === "revision_requested"
-            ? "border-destructive/30 bg-destructive/5"
-            : "border-primary/30 bg-primary/5"
-        : "border-muted"
-    }>
+    <Card
+      className={
+        index === 0
+          ? deliverable.status === "accepted"
+            ? "border-success/30/30 bg-success/5"
+            : deliverable.status === "revision_requested"
+              ? "border-destructive/30 bg-destructive/5"
+              : "border-primary/30 bg-primary/5"
+          : "border-muted"
+      }
+    >
       <CardContent className="pt-4 pb-4">
         <button
           type="button"
@@ -57,7 +103,9 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
           <status.icon className="h-5 w-5 shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-sm">تسليم #{versionNumber}</span>
+              <span className="font-medium text-sm">
+                تسليم #{versionNumber}
+              </span>
               <Badge variant={status.variant}>{status.label}</Badge>
               <span className="text-xs text-muted-foreground">
                 {new Date(deliverable.created_at).toLocaleDateString("ar-SA")}
@@ -66,30 +114,40 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
             {deliverable.status === "pending_review" && (
               <p className="text-[11px] text-success flex items-center gap-1 mt-1">
                 <CheckCircle2 className="h-3 w-3" />
-                تم الإرسال للجمعية في {new Date(deliverable.created_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" })}
+                تم الإرسال للجمعية في{" "}
+                {new Date(deliverable.created_at).toLocaleString("ar-SA", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
               </p>
             )}
           </div>
-          {expanded ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 shrink-0" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          )}
         </button>
 
         {expanded && (
           <div className="mt-3 space-y-3">
             {deliverable.reviewed_at && (
               <p className="text-xs text-muted-foreground">
-                تمت المراجعة: {new Date(deliverable.reviewed_at).toLocaleDateString("ar-SA")}
+                تمت المراجعة:{" "}
+                {new Date(deliverable.reviewed_at).toLocaleDateString("ar-SA")}
               </p>
             )}
 
-            {deliverable.status === "revision_requested" && deliverable.revision_note && (
-              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-                <div className="flex items-center gap-1 text-sm font-medium text-destructive mb-1">
-                  <AlertTriangle className="h-4 w-4" />
-                  ملاحظات التعديل
+            {deliverable.status === "revision_requested" &&
+              deliverable.revision_note && (
+                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                  <div className="flex items-center gap-1 text-sm font-medium text-destructive mb-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    ملاحظات التعديل
+                  </div>
+                  <p className="text-sm">{deliverable.revision_note}</p>
                 </div>
-                <p className="text-sm">{deliverable.revision_note}</p>
-              </div>
-            )}
+              )}
 
             {deliverable.notes && (
               <p className="text-sm text-muted-foreground">
@@ -99,54 +157,66 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
 
             {/* Files for this version */}
             <div className="space-y-2">
-              {isProvider && deliverable.status !== "accepted" && index === 0 && (
-                <FileUploader entityType="deliverable" entityId={deliverable.id} />
-              )}
-              <AttachmentList entityType="deliverable" entityId={deliverable.id} />
+              {isProvider &&
+                deliverable.status !== "accepted" &&
+                index === 0 && (
+                  <FileUploader
+                    entityType="deliverable"
+                    entityId={deliverable.id}
+                  />
+                )}
+              <AttachmentList
+                entityType="deliverable"
+                entityId={deliverable.id}
+              />
             </div>
 
             {/* Review actions — only for latest pending_review */}
-            {canReview && index === 0 && deliverable.status === "pending_review" && (
-              <div className="space-y-3 pt-2 border-t">
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() =>
-                      reviewDeliverable.mutate({
-                        deliverableId: deliverable.id,
-                        projectId: deliverable.project_id,
-                        action: "accepted",
-                      })
-                    }
-                    disabled={reviewDeliverable.isPending}
-                  >
-                    <CheckCircle className="h-4 w-4 me-1" />
-                    قبول التسليمات
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (!revisionNote.trim()) return;
-                      reviewDeliverable.mutate({
-                        deliverableId: deliverable.id,
-                        projectId: deliverable.project_id,
-                        action: "revision_requested",
-                        revisionNote,
-                      });
-                    }}
-                    disabled={reviewDeliverable.isPending || !revisionNote.trim()}
-                  >
-                    <RotateCcw className="h-4 w-4 me-1" />
-                    طلب تعديلات
-                  </Button>
+            {canReview &&
+              index === 0 &&
+              deliverable.status === "pending_review" && (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        reviewDeliverable.mutate({
+                          deliverableId: deliverable.id,
+                          projectId: deliverable.project_id,
+                          action: "accepted",
+                        })
+                      }
+                      disabled={reviewDeliverable.isPending}
+                    >
+                      <CheckCircle className="h-4 w-4 me-1" />
+                      قبول التسليمات
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (!revisionNote.trim()) return;
+                        reviewDeliverable.mutate({
+                          deliverableId: deliverable.id,
+                          projectId: deliverable.project_id,
+                          action: "revision_requested",
+                          revisionNote,
+                        });
+                      }}
+                      disabled={
+                        reviewDeliverable.isPending || !revisionNote.trim()
+                      }
+                    >
+                      <RotateCcw className="h-4 w-4 me-1" />
+                      طلب تعديلات
+                    </Button>
+                  </div>
+                  <Textarea
+                    placeholder="وصف التعديلات المطلوبة..."
+                    value={revisionNote}
+                    onChange={(e) => setRevisionNote(e.target.value)}
+                    rows={3}
+                  />
                 </div>
-                <Textarea
-                  placeholder="وصف التعديلات المطلوبة..."
-                  value={revisionNote}
-                  onChange={(e) => setRevisionNote(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            )}
+              )}
           </div>
         )}
       </CardContent>
@@ -154,23 +224,33 @@ function DeliverableVersionCard({ deliverable, index, total, isProvider, isAssoc
   );
 }
 
-export function DeliverablePanel({ projectId, isProvider, isAssociation }: DeliverablePanelProps) {
+export function DeliverablePanel({
+  projectId,
+  isProvider,
+  isAssociation,
+}: DeliverablePanelProps) {
   const { data: deliverables, isLoading } = useDeliverables(projectId);
   const submitDeliverable = useSubmitDeliverable();
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmInfo, setConfirmInfo] = useState<{ versionNumber: number; submittedAt: string } | null>(null);
+  const [confirmInfo, setConfirmInfo] = useState<{
+    versionNumber: number;
+    submittedAt: string;
+  } | null>(null);
 
   if (isLoading) return <Skeleton className="h-48" />;
 
   const allDeliverables = deliverables ?? [];
   const canReview = isAssociation;
   const latest = allDeliverables[0];
-  const showRevisionBanner = isProvider && latest?.status === "revision_requested";
+  const showRevisionBanner =
+    isProvider && latest?.status === "revision_requested";
   const showReceiptBanner = isProvider && latest?.status === "pending_review";
 
   const scrollToHistory = () => {
-    document.getElementById("deliverables-history")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById("deliverables-history")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -184,7 +264,9 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
                 مطلوب منك تعديلات على التسليم #{allDeliverables.length}
               </p>
               {latest?.revision_note && (
-                <p className="text-sm mt-1 text-foreground/80">{latest.revision_note}</p>
+                <p className="text-sm mt-1 text-foreground/80">
+                  {latest.revision_note}
+                </p>
               )}
               <p className="text-xs text-muted-foreground mt-2">
                 قدّم نسخة جديدة من النموذج بالأسفل بعد إجراء التعديلات المطلوبة.
@@ -203,7 +285,12 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
                 تسليمك #{allDeliverables.length} وصل للجمعية ✓
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                تم الإرسال بتاريخ {new Date(latest.created_at).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })} — بانتظار المراجعة. سيتم إشعارك فور الرد.
+                تم الإرسال بتاريخ{" "}
+                {new Date(latest.created_at).toLocaleString("ar-SA", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}{" "}
+                — بانتظار المراجعة. سيتم إشعارك فور الرد.
               </p>
             </div>
           </CardContent>
@@ -216,12 +303,15 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <PackageCheck className="h-5 w-5" />
-              {allDeliverables.length > 0 ? "تقديم تسليم جديد" : "تقديم التسليمات"}
+              {allDeliverables.length > 0
+                ? "تقديم تسليم جديد"
+                : "تقديم التسليمات"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع الملفات وسيتم إشعار الجمعية مباشرة.
+              أضف ملاحظاتك ثم اضغط "تقديم للمراجعة". بعد التقديم ستتمكن من رفع
+              الملفات وسيتم إشعار الجمعية مباشرة.
             </p>
             <Textarea
               placeholder="ملاحظات حول التسليمات..."
@@ -241,14 +331,16 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
                       });
                       setConfirmOpen(true);
                     },
-                  }
+                  },
                 );
                 setNotes("");
               }}
               disabled={submitDeliverable.isPending}
             >
               <Send className="h-4 w-4 me-1" />
-              {submitDeliverable.isPending ? "جارٍ التقديم..." : "تقديم للمراجعة"}
+              {submitDeliverable.isPending
+                ? "جارٍ التقديم..."
+                : "تقديم للمراجعة"}
             </Button>
           </CardContent>
         </Card>
@@ -295,15 +387,28 @@ export function DeliverablePanel({ projectId, isProvider, isAssociation }: Deliv
             <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center animate-scale-in">
               <CheckCircle2 className="h-9 w-9 text-success" />
             </div>
-            <DialogTitle className="text-center text-xl mt-3">تم إرسال التسليم بنجاح ✓</DialogTitle>
+            <DialogTitle className="text-center text-xl mt-3">
+              تم إرسال التسليم بنجاح ✓
+            </DialogTitle>
             <DialogDescription className="text-center text-sm leading-relaxed">
-              وصل تسليمك للجمعية وهي الآن بانتظار مراجعته. سيتم إشعارك فور الرد على التسليم سواء بالقبول أو طلب تعديلات.
+              وصل تسليمك للجمعية وهي الآن بانتظار مراجعته. سيتم إشعارك فور الرد
+              على التسليم سواء بالقبول أو طلب تعديلات.
             </DialogDescription>
           </DialogHeader>
           {confirmInfo && (
             <div className="rounded-lg border bg-muted/40 p-3 text-center text-xs text-muted-foreground space-y-1">
-              <p>رقم التسليم: <strong className="text-foreground">#{confirmInfo.versionNumber}</strong></p>
-              <p>{new Date(confirmInfo.submittedAt).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short" })}</p>
+              <p>
+                رقم التسليم:{" "}
+                <strong className="text-foreground">
+                  #{confirmInfo.versionNumber}
+                </strong>
+              </p>
+              <p>
+                {new Date(confirmInfo.submittedAt).toLocaleString("ar-SA", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
             </div>
           )}
           <DialogFooter className="sm:justify-between gap-2">

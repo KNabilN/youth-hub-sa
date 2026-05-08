@@ -21,7 +21,9 @@ export default function ResetPassword() {
 
   useEffect(() => {
     // 1. Listen for auth events (PASSWORD_RECOVERY or SIGNED_IN via recovery link)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setReady(true);
       }
@@ -43,9 +45,15 @@ export default function ResetPassword() {
 
     // If after 8 seconds still not ready, show error
     const timeout = setTimeout(() => {
-      setError((prev) => { if (!ready) return true; return prev; });
+      setError((prev) => {
+        if (!ready) return true;
+        return prev;
+      });
     }, 8000);
-    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,7 +83,10 @@ export default function ResetPassword() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
+      <div
+        className="min-h-screen flex items-center justify-center bg-background p-6"
+        dir="rtl"
+      >
         <div className="w-full max-w-md space-y-6 text-center">
           {error ? (
             <Card className="border shadow-xl">
@@ -85,7 +96,8 @@ export default function ResetPassword() {
                 </div>
                 <h2 className="text-xl font-bold">رابط منتهي أو غير صالح</h2>
                 <p className="text-sm text-muted-foreground">
-                  يبدو أن رابط إعادة التعيين قد انتهت صلاحيته أو تم استخدامه مسبقاً.
+                  يبدو أن رابط إعادة التعيين قد انتهت صلاحيته أو تم استخدامه
+                  مسبقاً.
                 </p>
                 <Button asChild className="w-full h-11">
                   <Link to="/forgot-password">أعد طلب رابط الاستعادة</Link>
@@ -101,7 +113,10 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background p-6"
+      dir="rtl"
+    >
       <div className="w-full max-w-md space-y-6">
         <div className="space-y-1 text-center">
           <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-3">
@@ -135,7 +150,11 @@ export default function ResetPassword() {
                     className="h-11 w-11 shrink-0"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
                 <PasswordStrength password={password} />
@@ -162,7 +181,11 @@ export default function ResetPassword() {
                     className="h-11 w-11 shrink-0"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>

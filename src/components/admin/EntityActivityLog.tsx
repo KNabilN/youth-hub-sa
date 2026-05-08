@@ -17,14 +17,14 @@ const actionLabels: Record<string, string> = {
 };
 
 const actionColors: Record<string, string> = {
-  INSERT: "bg-emerald-500/10 text-emerald-600",
+  INSERT: "bg-success/10 text-success",
   UPDATE: "bg-primary/10 text-primary",
   DELETE: "bg-destructive/10 text-destructive",
   suspend: "bg-orange-500/10 text-orange-600",
-  unsuspend: "bg-emerald-500/10 text-emerald-600",
-  approve: "bg-emerald-500/10 text-emerald-600",
+  unsuspend: "bg-success/10 text-success",
+  approve: "bg-success/10 text-success",
   reject: "bg-destructive/10 text-destructive",
-  reactivate: "bg-emerald-500/10 text-emerald-600",
+  reactivate: "bg-success/10 text-success",
 };
 
 // Field name translations
@@ -41,7 +41,7 @@ const fieldLabels: Record<string, string> = {
   phone: "الهاتف",
   bio: "النبذة",
   skills: "المهارات",
-  
+
   is_verified: "التوثيق",
   is_suspended: "التعليق",
   is_featured: "مميز",
@@ -120,26 +120,77 @@ const valueLabels: Record<string, Record<string, string>> = {
 
 // Keys to always skip in change display
 const skipKeys = new Set([
-  "id", "created_at", "updated_at", "deleted_at", "user_id", "provider_id",
-  "association_id", "assigned_provider_id", "project_id", "contract_id",
-  "escrow_id", "bid_id", "dispute_id", "donor_id", "payer_id", "payee_id",
-  "beneficiary_id", "actor_id", "changed_by", "reviewed_by", "rater_id",
-  "raised_by", "author_id", "sender_id", "target_id", "target_user_id",
-  "requested_by", "suggested_by", "contribution_id", "grant_request_id",
-  "service_id", "category_id", "region_id", "city_id", "entity_id",
-  "user_number", "request_number", "service_number", "dispute_number",
-  "escrow_number", "ticket_number", "transfer_number", "invoice_number",
+  "id",
+  "created_at",
+  "updated_at",
+  "deleted_at",
+  "user_id",
+  "provider_id",
+  "association_id",
+  "assigned_provider_id",
+  "project_id",
+  "contract_id",
+  "escrow_id",
+  "bid_id",
+  "dispute_id",
+  "donor_id",
+  "payer_id",
+  "payee_id",
+  "beneficiary_id",
+  "actor_id",
+  "changed_by",
+  "reviewed_by",
+  "rater_id",
+  "raised_by",
+  "author_id",
+  "sender_id",
+  "target_id",
+  "target_user_id",
+  "requested_by",
+  "suggested_by",
+  "contribution_id",
+  "grant_request_id",
+  "service_id",
+  "category_id",
+  "region_id",
+  "city_id",
+  "entity_id",
+  "user_number",
+  "request_number",
+  "service_number",
+  "dispute_number",
+  "escrow_number",
+  "ticket_number",
+  "transfer_number",
+  "invoice_number",
   "withdrawal_number",
-  "notification_preferences", "qualifications", "gallery", "packages", "faq",
-  "pdpl_consent_at", "pdpl_consent_version",
-  "avatar_url", "cover_image_url", "company_logo_url", "image_url",
-  "file_path", "file_name", "mime_type", "file_size",
-  "receipt_url", "attachment_url", "attachment_name",
-  "profile_views", "service_views", "sales_count",
+  "notification_preferences",
+  "qualifications",
+  "gallery",
+  "packages",
+  "faq",
+  "pdpl_consent_at",
+  "pdpl_consent_version",
+  "avatar_url",
+  "cover_image_url",
+  "company_logo_url",
+  "image_url",
+  "file_path",
+  "file_name",
+  "mime_type",
+  "file_size",
+  "receipt_url",
+  "attachment_url",
+  "attachment_name",
+  "profile_views",
+  "service_views",
+  "sales_count",
 ]);
 
 function isUUID(val: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    val,
+  );
 }
 
 function formatValue(key: string, val: any): string {
@@ -156,10 +207,17 @@ function formatValue(key: string, val: any): string {
   return strVal;
 }
 
-function ChangeSummary({ oldValues, newValues }: { oldValues: any; newValues: any }) {
+function ChangeSummary({
+  oldValues,
+  newValues,
+}: {
+  oldValues: any;
+  newValues: any;
+}) {
   if (!oldValues && !newValues) return null;
 
-  const changes: { key: string; label: string; from: string; to: string }[] = [];
+  const changes: { key: string; label: string; from: string; to: string }[] =
+    [];
 
   if (oldValues && newValues) {
     for (const key of Object.keys(newValues)) {
@@ -169,7 +227,12 @@ function ChangeSummary({ oldValues, newValues }: { oldValues: any; newValues: an
       if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
         // Skip JSON objects/arrays
         if (typeof newVal === "object" && newVal !== null) continue;
-        if (typeof oldVal === "object" && oldVal !== null && !Array.isArray(oldVal)) continue;
+        if (
+          typeof oldVal === "object" &&
+          oldVal !== null &&
+          !Array.isArray(oldVal)
+        )
+          continue;
         changes.push({
           key,
           label: fieldLabels[key] || key,
@@ -190,7 +253,9 @@ function ChangeSummary({ oldValues, newValues }: { oldValues: any; newValues: an
         </p>
       ))}
       {changes.length > 5 && (
-        <p className="text-[11px] text-muted-foreground">+{changes.length - 5} تغييرات أخرى</p>
+        <p className="text-[11px] text-muted-foreground">
+          +{changes.length - 5} تغييرات أخرى
+        </p>
       )}
     </div>
   );
@@ -202,7 +267,11 @@ interface EntityActivityLogProps {
   maxHeight?: string;
 }
 
-export function EntityActivityLog({ tableName, recordId, maxHeight = "400px" }: EntityActivityLogProps) {
+export function EntityActivityLog({
+  tableName,
+  recordId,
+  maxHeight = "400px",
+}: EntityActivityLogProps) {
   const { data, isLoading } = useEntityAuditLog(tableName, recordId);
 
   if (isLoading) {
@@ -216,7 +285,9 @@ export function EntityActivityLog({ tableName, recordId, maxHeight = "400px" }: 
   }
 
   if (!data?.length) {
-    return <p className="text-center text-muted-foreground py-8">لا يوجد سجل نشاط</p>;
+    return (
+      <p className="text-center text-muted-foreground py-8">لا يوجد سجل نشاط</p>
+    );
   }
 
   return (
@@ -226,7 +297,12 @@ export function EntityActivityLog({ tableName, recordId, maxHeight = "400px" }: 
           <div key={entry.id} className="border rounded-lg p-3 space-y-1">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Badge className={actionColors[entry.action] || "bg-muted text-muted-foreground"}>
+                <Badge
+                  className={
+                    actionColors[entry.action] ||
+                    "bg-muted text-muted-foreground"
+                  }
+                >
                   {actionLabels[entry.action] || entry.action}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
@@ -234,10 +310,15 @@ export function EntityActivityLog({ tableName, recordId, maxHeight = "400px" }: 
                 </span>
               </div>
               <span className="text-xs text-muted-foreground shrink-0">
-                {format(new Date(entry.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+                {format(new Date(entry.created_at), "yyyy/MM/dd HH:mm", {
+                  locale: ar,
+                })}
               </span>
             </div>
-            <ChangeSummary oldValues={entry.old_values} newValues={entry.new_values} />
+            <ChangeSummary
+              oldValues={entry.old_values}
+              newValues={entry.new_values}
+            />
           </div>
         ))}
       </div>

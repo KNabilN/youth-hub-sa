@@ -2,19 +2,19 @@ import logoImg from "@/assets/logo.png";
 
 /* ── Brand palette (shared across all PDF exports) ── */
 export const BRAND = {
-  primary: "#0f766e",        // teal-700
-  primaryLight: "#ccfbf1",   // teal-50
-  primaryMid: "#99f6e4",     // teal-200
-  primaryDark: "#0d5c56",    // darker teal
-  accent: "#b59535",         // royal gold
-  accentLight: "#f5e6b8",    // light gold
-  text: "#1e293b",           // slate-800
-  textMuted: "#64748b",      // slate-500
-  border: "#e2e8f0",         // slate-200
-  headerBg: "#f0fdfa",       // teal-50
-  rowAlt: "#f8fafc",         // slate-50
+  primary: "#0f766e", // teal-700
+  primaryLight: "#ccfbf1", // teal-50
+  primaryMid: "#99f6e4", // teal-200
+  primaryDark: "#0d5c56", // darker teal
+  accent: "#b59535", // royal gold
+  accentLight: "#f5e6b8", // light gold
+  text: "#1e293b", // slate-800
+  textMuted: "#64748b", // slate-500
+  border: "#e2e8f0", // slate-200
+  headerBg: "#f0fdfa", // teal-50
+  rowAlt: "#f8fafc", // slate-50
   white: "#ffffff",
-  confidential: "#991b1b",   // red-800
+  confidential: "#991b1b", // red-800
 };
 
 /* ── Logo to Base64 data URL ── */

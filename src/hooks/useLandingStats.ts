@@ -23,7 +23,9 @@ export function useLandingStats() {
       // Try featured first
       const { data: featured, error: e1 } = await supabase
         .from("micro_services")
-        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name, organization_name)")
+        .select(
+          "id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name, organization_name)",
+        )
         .eq("approval", "approved")
         .eq("is_featured", true)
         .is("deleted_at", null)
@@ -36,7 +38,9 @@ export function useLandingStats() {
       // Fallback to display_order
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name, organization_name)")
+        .select(
+          "id, title, description, price, service_type, image_url, approval, is_featured, sales_count, category:categories(name, image_url), region:regions(name), provider:profiles!micro_services_provider_id_fkey(full_name, organization_name)",
+        )
         .eq("approval", "approved")
         .is("deleted_at", null)
         .order("display_order", { ascending: true })
@@ -54,7 +58,9 @@ export function useLandingStats() {
       // Try featured first
       const { data: featured, error: e1 } = await supabase
         .from("projects")
-        .select("id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)")
+        .select(
+          "id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)",
+        )
         .eq("status", "open")
         .eq("is_private", false)
         .eq("is_featured", true)
@@ -67,7 +73,9 @@ export function useLandingStats() {
       // Fallback
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)")
+        .select(
+          "id, title, status, created_at, description, budget, required_skills, category:categories(name), association:profiles!projects_association_id_fkey(full_name, organization_name)",
+        )
         .eq("status", "open")
         .eq("is_private", false)
         .is("deleted_at", null)

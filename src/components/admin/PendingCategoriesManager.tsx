@@ -1,9 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Check, X, Lightbulb, FolderOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,11 +26,11 @@ export function PendingCategoriesManager() {
   const { data: pending, isLoading } = useQuery({
     queryKey: ["pending-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("pending_categories" as any)
         .select("*, profiles:suggested_by(full_name)")
         .eq("status", "pending")
-        .order("created_at", { ascending: false }) as any;
+        .order("created_at", { ascending: false })) as any;
       if (error) throw error;
       return data as any[];
     },
@@ -32,10 +45,13 @@ export function PendingCategoriesManager() {
       });
       if (catErr) throw catErr;
       // Update pending status
-      const { error: updErr } = await supabase
+      const { error: updErr } = (await supabase
         .from("pending_categories" as any)
-        .update({ status: "approved", reviewed_at: new Date().toISOString() } as any)
-        .eq("id", item.id) as any;
+        .update({
+          status: "approved",
+          reviewed_at: new Date().toISOString(),
+        } as any)
+        .eq("id", item.id)) as any;
       if (updErr) throw updErr;
     },
     onSuccess: () => {
@@ -49,10 +65,13 @@ export function PendingCategoriesManager() {
 
   const rejectMut = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = (await supabase
         .from("pending_categories" as any)
-        .update({ status: "rejected", reviewed_at: new Date().toISOString() } as any)
-        .eq("id", id) as any;
+        .update({
+          status: "rejected",
+          reviewed_at: new Date().toISOString(),
+        } as any)
+        .eq("id", id)) as any;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -69,16 +88,20 @@ export function PendingCategoriesManager() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
+            <Lightbulb className="h-5 w-5 text-warning" />
             <CardTitle className="text-lg">تصنيفات مقترحة</CardTitle>
           </div>
           {count > 0 && <Badge variant="destructive">{count}</Badge>}
         </div>
-        <CardDescription>تصنيفات مقترحة من المستخدمين بانتظار المراجعة</CardDescription>
+        <CardDescription>
+          تصنيفات مقترحة من المستخدمين بانتظار المراجعة
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
         ) : count === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <FolderOpen className="h-10 w-10 mb-2" />
@@ -115,7 +138,7 @@ export function PendingCategoriesManager() {
                         disabled={approveMut.isPending}
                         title="موافقة"
                       >
-                        <Check className="h-4 w-4 text-emerald-600" />
+                        <Check className="h-4 w-4 text-success" />
                       </Button>
                       <Button
                         size="icon"

@@ -1,11 +1,20 @@
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
 
 export default function FAQ() {
   const { data } = useSiteContent("faq");
-  const faq = data || { title: "الأسئلة الشائعة", subtitle: "", categories: [] };
+  const faq = data || {
+    title: "الأسئلة الشائعة",
+    subtitle: "",
+    categories: [],
+  };
 
   return (
     <>
@@ -15,7 +24,9 @@ export default function FAQ() {
             <HelpCircle className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-4xl font-bold">{faq.title}</h1>
-          {faq.subtitle && <p className="text-muted-foreground">{faq.subtitle}</p>}
+          {faq.subtitle && (
+            <p className="text-muted-foreground">{faq.subtitle}</p>
+          )}
         </div>
       </section>
 
@@ -25,7 +36,11 @@ export default function FAQ() {
             <Tabs defaultValue="0" dir="rtl">
               <TabsList className="w-full overflow-x-auto flex-nowrap h-auto gap-1 mb-8 justify-start">
                 {faq.categories.map((cat: any, i: number) => (
-                  <TabsTrigger key={i} value={String(i)} className="flex-1 min-w-[120px]">
+                  <TabsTrigger
+                    key={i}
+                    value={String(i)}
+                    className="flex-1 min-w-[120px]"
+                  >
                     {cat.title}
                   </TabsTrigger>
                 ))}
@@ -35,7 +50,11 @@ export default function FAQ() {
                 <TabsContent key={i} value={String(i)}>
                   <Accordion type="single" collapsible className="space-y-2">
                     {cat.items?.map((item: any, j: number) => (
-                      <AccordionItem key={j} value={`${i}-${j}`} className="border border-border rounded-xl px-4 data-[state=open]:bg-muted/30">
+                      <AccordionItem
+                        key={j}
+                        value={`${i}-${j}`}
+                        className="border border-border rounded-xl px-4 data-[state=open]:bg-muted/30"
+                      >
                         <AccordionTrigger className="text-sm font-medium text-right hover:no-underline">
                           {item.q}
                         </AccordionTrigger>
@@ -49,7 +68,9 @@ export default function FAQ() {
               ))}
             </Tabs>
           ) : (
-            <p className="text-center text-muted-foreground">لا توجد أسئلة بعد.</p>
+            <p className="text-center text-muted-foreground">
+              لا توجد أسئلة بعد.
+            </p>
           )}
         </div>
       </section>

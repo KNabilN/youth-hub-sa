@@ -2,7 +2,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Check, X, User, Paperclip, ExternalLink, MessageCircle } from "lucide-react";
+import {
+  Check,
+  X,
+  User,
+  Paperclip,
+  ExternalLink,
+  MessageCircle,
+} from "lucide-react";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
 import { BidCommentThread } from "@/components/bids/BidCommentThread";
 import { Link } from "react-router-dom";
@@ -26,13 +33,28 @@ interface BidCardProps {
 }
 
 const statusMap: Record<string, { label: string; className: string }> = {
-  pending: { label: "قيد المراجعة", className: "bg-warning/15 text-warning border-warning/30" },
-  accepted: { label: "مقبول", className: "bg-success/15 text-success border-success/30" },
-  rejected: { label: "مرفوض", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  pending: {
+    label: "قيد المراجعة",
+    className: "bg-warning/15 text-warning border-warning/30",
+  },
+  accepted: {
+    label: "مقبول",
+    className: "bg-success/15 text-success border-success/30",
+  },
+  rejected: {
+    label: "مرفوض",
+    className: "bg-destructive/15 text-destructive border-destructive/30",
+  },
   withdrawn: { label: "مسحوب", className: "bg-muted text-muted-foreground" },
 };
 
-export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true }: BidCardProps) {
+export function BidCard({
+  bid,
+  onAccept,
+  onReject,
+  isLoading,
+  showActions = true,
+}: BidCardProps) {
   const status = statusMap[bid.status] ?? statusMap.pending;
 
   return (
@@ -46,7 +68,9 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
           >
             <Avatar className="h-8 w-8">
               <AvatarImage src={bid.profiles?.avatar_url ?? undefined} />
-              <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+              <AvatarFallback>
+                <User className="h-4 w-4" />
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-1">
@@ -55,10 +79,14 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
                 </p>
                 <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-xs text-muted-foreground">{new Date(bid.created_at).toLocaleDateString("ar-SA")}</p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(bid.created_at).toLocaleDateString("ar-SA")}
+              </p>
             </div>
           </Link>
-          <Badge variant="outline" className={status.className}>{status.label}</Badge>
+          <Badge variant="outline" className={status.className}>
+            {status.label}
+          </Badge>
         </div>
 
         {/* Cover letter */}
@@ -93,11 +121,21 @@ export function BidCard({ bid, onAccept, onReject, isLoading, showActions = true
         {/* Actions */}
         {showActions && bid.status === "pending" && (
           <div className="flex gap-2 pt-1">
-            <Button size="sm" className="flex-1" onClick={() => onAccept?.(bid)} disabled={isLoading}>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => onAccept?.(bid)}
+              disabled={isLoading}
+            >
               <Check className="h-3.5 w-3.5 me-1" />
               قبول
             </Button>
-            <Button size="sm" variant="outline" onClick={() => onReject?.(bid.id)} disabled={isLoading}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onReject?.(bid.id)}
+              disabled={isLoading}
+            >
               <X className="h-3.5 w-3.5 me-1" />
               رفض
             </Button>

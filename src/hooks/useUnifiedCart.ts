@@ -1,5 +1,12 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useCartItems, useAddToCart, useRemoveFromCart, useClearCart, useUpdateCartQuantity, useSyncGuestCart } from "@/hooks/useCart";
+import {
+  useCartItems,
+  useAddToCart,
+  useRemoveFromCart,
+  useClearCart,
+  useUpdateCartQuantity,
+  useSyncGuestCart,
+} from "@/hooks/useCart";
 import { useGuestCart } from "@/hooks/useGuestCart";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +34,9 @@ function useGuestCartServices(serviceIds: string[]) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("id, title, price, description, image_url, service_type, provider_id, profiles:provider_id(full_name)")
+        .select(
+          "id, title, price, description, image_url, service_type, provider_id, profiles:provider_id(full_name)",
+        )
         .in("id", serviceIds);
       if (error) throw error;
       return data as any[];
@@ -51,7 +60,7 @@ export function useUnifiedCart() {
   const guest = useGuestCart();
   const guestServiceIds = guest.items.map((i) => i.service_id);
   const { data: guestServices, isLoading: guestLoading } = useGuestCartServices(
-    isLoggedIn ? [] : guestServiceIds
+    isLoggedIn ? [] : guestServiceIds,
   );
 
   // Sync guest → DB on login
@@ -60,15 +69,23 @@ export function useUnifiedCart() {
   useEffect(() => {
     if (isLoggedIn && guest.items.length > 0 && !syncedRef.current) {
       syncedRef.current = true;
-      syncGuestMut.mutate(guest.items.map((i) => i.service_id), {
-        onSuccess: () => guest.clearCart(),
-      });
+      syncGuestMut.mutate(
+        guest.items.map((i) => i.service_id),
+        {
+          onSuccess: () => guest.clearCart(),
+        },
+      );
     }
   }, [isLoggedIn, guest.items.length]);
 
   // Notify user once if some cart items were removed due to unavailable services
   useEffect(() => {
-    if (isLoggedIn && !dbLoading && dbItems && !unavailableNotifiedRef.current) {
+    if (
+      isLoggedIn &&
+      !dbLoading &&
+      dbItems &&
+      !unavailableNotifiedRef.current
+    ) {
       // dbItems is already filtered; we can't know the original count here,
       // but we handle it gracefully — no crash occurs anymore.
       unavailableNotifiedRef.current = true;

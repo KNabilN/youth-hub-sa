@@ -11,11 +11,15 @@ export function useAdminDisputes() {
   useEffect(() => {
     const channel = supabase
       .channel("rt-admin-disputes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "disputes" }, () =>
-        qc.invalidateQueries({ queryKey: ["admin-disputes"] })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "disputes" },
+        () => qc.invalidateQueries({ queryKey: ["admin-disputes"] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [qc]);
 
   return useQuery({
@@ -23,7 +27,9 @@ export function useAdminDisputes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("disputes")
-        .select("*, projects(title), profiles!disputes_raised_by_fkey(full_name, organization_name)")
+        .select(
+          "*, projects(title), profiles!disputes_raised_by_fkey(full_name, organization_name)",
+        )
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -35,10 +41,22 @@ export function useAdminDisputes() {
 export function useUpdateDispute() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, resolution_notes }: { id: string; status: DisputeStatus; resolution_notes?: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      resolution_notes,
+    }: {
+      id: string;
+      status: DisputeStatus;
+      resolution_notes?: string;
+    }) => {
       const update: Record<string, any> = { status };
-      if (resolution_notes !== undefined) update.resolution_notes = resolution_notes;
-      const { error } = await supabase.from("disputes").update(update).eq("id", id);
+      if (resolution_notes !== undefined)
+        update.resolution_notes = resolution_notes;
+      const { error } = await supabase
+        .from("disputes")
+        .update(update)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-disputes"] }),

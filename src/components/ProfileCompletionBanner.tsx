@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { AlertTriangle, X, UserCheck } from "lucide-react";
 
 export function ProfileCompletionBanner() {
-  const { isComplete, missingFields, completionPercentage, isLoading } = useProfileCompleteness();
+  const { isComplete, missingFields, completionPercentage, isLoading } =
+    useProfileCompleteness();
   const [dismissed, setDismissed] = useState(false);
   const navigate = useNavigate();
 
@@ -33,7 +34,10 @@ export function ProfileCompletionBanner() {
               يرجى إكمال بيانات ملفك الشخصي لتفعيل جميع ميزات المنصة
             </p>
             <div className="flex items-center gap-3">
-              <Progress value={completionPercentage} className="h-2 flex-1 max-w-xs" />
+              <Progress
+                value={completionPercentage}
+                className="h-2 flex-1 max-w-xs"
+              />
               <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 {completionPercentage}%
               </span>

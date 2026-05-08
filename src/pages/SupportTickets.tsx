@@ -23,7 +23,9 @@ export default function SupportTickets() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">تذاكر الدعم</h1>
-              <p className="text-sm text-muted-foreground">تواصل مع فريق الدعم</p>
+              <p className="text-sm text-muted-foreground">
+                تواصل مع فريق الدعم
+              </p>
             </div>
           </div>
           <Button onClick={() => navigate("/tickets/new")}>
@@ -34,9 +36,19 @@ export default function SupportTickets() {
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
         ) : !tickets?.length ? (
-          <EmptyState icon={MessageSquare} title="لا توجد تذاكر دعم" description="يمكنك إنشاء تذكرة جديدة للتواصل مع فريق الدعم" actionLabel="تذكرة جديدة" actionHref="/tickets/new" />
+          <EmptyState
+            icon={MessageSquare}
+            title="لا توجد تذاكر دعم"
+            description="يمكنك إنشاء تذكرة جديدة للتواصل مع فريق الدعم"
+            actionLabel="تذكرة جديدة"
+            actionHref="/tickets/new"
+          />
         ) : (
           <div className="space-y-3">
             {tickets.map((t) => (

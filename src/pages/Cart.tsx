@@ -7,7 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Trash2, CreditCard, ArrowLeft, Package, Clock, LogIn } from "lucide-react";
+import {
+  ShoppingCart,
+  Trash2,
+  CreditCard,
+  ArrowLeft,
+  Package,
+  Clock,
+  LogIn,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthModal from "@/components/AuthModal";
@@ -16,9 +24,15 @@ import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDi
 
 export default function Cart() {
   const {
-    items, isLoading, total, isLoggedIn,
-    removeItem, clearAll, updateQuantity,
-    isRemoving, isClearing,
+    items,
+    isLoading,
+    total,
+    isLoggedIn,
+    removeItem,
+    clearAll,
+    updateQuantity,
+    isRemoving,
+    isClearing,
   } = useUnifiedCart();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
@@ -63,7 +77,12 @@ export default function Cart() {
           </div>
         </div>
         {items.length > 0 && (
-          <Button variant="outline" size="sm" onClick={handleClearCart} disabled={isClearing}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearCart}
+            disabled={isClearing}
+          >
             <Trash2 className="h-4 w-4 me-1" />
             تفريغ السلة
           </Button>
@@ -127,7 +146,9 @@ export default function Cart() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-semibold truncate">{item.title}</h3>
+                          <h3 className="font-semibold truncate">
+                            {item.title}
+                          </h3>
                           <p className="text-sm text-muted-foreground">
                             {item.provider_name}
                           </p>
@@ -144,7 +165,9 @@ export default function Cart() {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <Badge variant="outline">
-                          {item.service_type === "fixed_price" ? "سعر ثابت" : "بالساعة"}
+                          {item.service_type === "fixed_price"
+                            ? "سعر ثابت"
+                            : "بالساعة"}
                         </Badge>
                         {item.service_type === "hourly" ? (
                           <div className="flex items-center gap-2">
@@ -156,12 +179,20 @@ export default function Cart() {
                                 max={999}
                                 value={item.quantity}
                                 onChange={(e) => {
-                                  const val = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
+                                  const val = Math.max(
+                                    1,
+                                    Math.min(
+                                      999,
+                                      parseInt(e.target.value) || 1,
+                                    ),
+                                  );
                                   updateQuantity(item.id, val);
                                 }}
                                 className="h-7 w-16 text-center text-sm border-0 bg-transparent p-0"
                               />
-                              <span className="text-xs text-muted-foreground">ساعة</span>
+                              <span className="text-xs text-muted-foreground">
+                                ساعة
+                              </span>
                             </div>
                             <span className="font-bold text-primary text-sm">
                               {lineTotal(item).toLocaleString()} ر.س
@@ -193,7 +224,10 @@ export default function Cart() {
                       <span className="text-muted-foreground truncate max-w-[60%]">
                         {item.title}
                         {item.service_type === "hourly" && (
-                          <span className="text-xs"> ({item.quantity} ساعة)</span>
+                          <span className="text-xs">
+                            {" "}
+                            ({item.quantity} ساعة)
+                          </span>
                         )}
                       </span>
                       <span>{lineTotal(item).toLocaleString()} ر.س</span>
@@ -242,9 +276,5 @@ export default function Cart() {
     return <DashboardLayout>{content}</DashboardLayout>;
   }
 
-  return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
-      {content}
-    </div>
-  );
+  return <div className="container mx-auto max-w-4xl py-8 px-4">{content}</div>;
 }

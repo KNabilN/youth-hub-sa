@@ -12,7 +12,10 @@ interface ConversationListProps {
   onSelect: (projectId: string) => void;
 }
 
-export function ConversationList({ selectedProjectId, onSelect }: ConversationListProps) {
+export function ConversationList({
+  selectedProjectId,
+  onSelect,
+}: ConversationListProps) {
   const { data: conversations, isLoading } = useConversations();
 
   if (isLoading) {
@@ -37,8 +40,12 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
         <div className="w-14 h-14 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
           <MessageSquare className="h-6 w-6 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">لا توجد محادثات</p>
-        <p className="text-xs text-muted-foreground mt-1">ستظهر المحادثات هنا عند بدء العمل على طلب</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          لا توجد محادثات
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          ستظهر المحادثات هنا عند بدء العمل على طلب
+        </p>
       </div>
     );
   }
@@ -53,13 +60,15 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
             "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
             selectedProjectId === conv.project_id
               ? "bg-primary/10 border border-primary/20"
-              : "hover:bg-muted/50"
+              : "hover:bg-muted/50",
           )}
         >
           <div className="relative shrink-0">
             <Avatar className="h-11 w-11">
               <AvatarImage src={conv.other_party_avatar || undefined} />
-              <AvatarFallback className="text-sm">{conv.other_party_name[0]}</AvatarFallback>
+              <AvatarFallback className="text-sm">
+                {conv.other_party_name[0]}
+              </AvatarFallback>
             </Avatar>
             {conv.unread_count > 0 && (
               <div className="absolute -top-1 [inset-inline-end:-0.25rem] h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
@@ -69,19 +78,30 @@ export function ConversationList({ selectedProjectId, onSelect }: ConversationLi
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold truncate">{conv.other_party_name}</p>
+              <p className="text-sm font-semibold truncate">
+                {conv.other_party_name}
+              </p>
               {conv.last_message_at && conv.last_message && (
                 <span className="text-[10px] text-muted-foreground shrink-0">
-                  {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: false, locale: ar })}
+                  {formatDistanceToNow(new Date(conv.last_message_at), {
+                    addSuffix: false,
+                    locale: ar,
+                  })}
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate mt-0.5">{conv.project_title}</p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {conv.project_title}
+            </p>
             {conv.last_message && (
-              <p className={cn(
-                "text-xs truncate mt-0.5",
-                conv.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"
-              )}>
+              <p
+                className={cn(
+                  "text-xs truncate mt-0.5",
+                  conv.unread_count > 0
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground",
+                )}
+              >
                 {conv.last_message}
               </p>
             )}

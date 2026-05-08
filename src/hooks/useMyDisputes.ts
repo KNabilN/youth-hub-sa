@@ -11,10 +11,15 @@ export function useMyDisputes() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-disputes-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "disputes" },
-        () => qc.invalidateQueries({ queryKey: ["my-disputes"] }))
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "disputes" },
+        () => qc.invalidateQueries({ queryKey: ["my-disputes"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -23,7 +28,9 @@ export function useMyDisputes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("disputes")
-        .select("*, projects(title, assigned_provider_id, association_id), profiles:raised_by(full_name)")
+        .select(
+          "*, projects(title, assigned_provider_id, association_id), profiles:raised_by(full_name)",
+        )
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;

@@ -21,7 +21,7 @@ export async function generateReportPDF(
   dateRange: { from: Date; to: Date },
   sections: ReportSection[],
   summaryStats?: { label: string; value: string }[],
-  chartImages?: ChartImage[]
+  chartImages?: ChartImage[],
 ) {
   const dateStr = `${format(dateRange.from, "yyyy/MM/dd")} - ${format(dateRange.to, "yyyy/MM/dd")}`;
   const generatedAt = format(new Date(), "yyyy/MM/dd HH:mm");
@@ -55,7 +55,7 @@ export async function generateReportPDF(
 }
 
 export async function captureChartAsImage(
-  container: HTMLElement
+  container: HTMLElement,
 ): Promise<string> {
   const canvas = document.createElement("canvas");
   const rect = container.getBoundingClientRect();
@@ -69,7 +69,9 @@ export async function captureChartAsImage(
   if (svgs.length > 0) {
     for (const svg of Array.from(svgs)) {
       const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const svgBlob = new Blob([svgData], {
+        type: "image/svg+xml;charset=utf-8",
+      });
       const svgUrl = URL.createObjectURL(svgBlob);
 
       const img = new window.Image();

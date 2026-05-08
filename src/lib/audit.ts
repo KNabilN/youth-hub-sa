@@ -6,9 +6,11 @@ export async function logAudit(
   recordId: string,
   action: string,
   oldValues?: Record<string, unknown>,
-  newValues?: Record<string, unknown>
+  newValues?: Record<string, unknown>,
 ) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { error } = await supabase.from("audit_log").insert({
     table_name: tableName,
     record_id: recordId,

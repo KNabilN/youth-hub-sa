@@ -12,11 +12,21 @@ export function useTicketReplies(ticketId: string | null) {
       .channel(`rt-ticket-replies-${ticketId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "ticket_replies", filter: `ticket_id=eq.${ticketId}` },
-        () => queryClient.invalidateQueries({ queryKey: ["ticket-replies", ticketId] })
+        {
+          event: "*",
+          schema: "public",
+          table: "ticket_replies",
+          filter: `ticket_id=eq.${ticketId}`,
+        },
+        () =>
+          queryClient.invalidateQueries({
+            queryKey: ["ticket-replies", ticketId],
+          }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [ticketId, queryClient]);
 
   return useQuery({
@@ -39,7 +49,13 @@ export function useCreateTicketReply() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ ticketId, message }: { ticketId: string; message: string }) => {
+    mutationFn: async ({
+      ticketId,
+      message,
+    }: {
+      ticketId: string;
+      message: string;
+    }) => {
       const { error } = await supabase.from("ticket_replies").insert({
         ticket_id: ticketId,
         author_id: user!.id,

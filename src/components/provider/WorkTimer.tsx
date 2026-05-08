@@ -15,11 +15,13 @@ export function WorkTimer({ onStop }: WorkTimerProps) {
 
   useEffect(() => {
     if (running) {
-      intervalRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
+      intervalRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [running]);
 
   const fmt = (s: number) => {
@@ -44,7 +46,11 @@ export function WorkTimer({ onStop }: WorkTimerProps) {
     setRunning(false);
     const end = new Date();
     const hours = Math.round((elapsed / 3600) * 100) / 100;
-    onStop(startedAt ? timeFmt(startedAt) : "", timeFmt(end), hours > 0 ? hours : 0.01);
+    onStop(
+      startedAt ? timeFmt(startedAt) : "",
+      timeFmt(end),
+      hours > 0 ? hours : 0.01,
+    );
     setElapsed(0);
     setStartedAt(null);
   }, [elapsed, startedAt, onStop]);
@@ -52,16 +58,26 @@ export function WorkTimer({ onStop }: WorkTimerProps) {
   const isActive = running || elapsed > 0;
 
   return (
-    <Card className={`border-2 transition-colors ${running ? "border-primary animate-pulse" : isActive ? "border-primary/50" : "border-dashed border-muted-foreground/30"}`}>
+    <Card
+      className={`border-2 transition-colors ${running ? "border-primary animate-pulse" : isActive ? "border-primary/50" : "border-dashed border-muted-foreground/30"}`}
+    >
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex items-center gap-3">
-          <Timer className={`h-5 w-5 ${running ? "text-primary" : "text-muted-foreground"}`} />
+          <Timer
+            className={`h-5 w-5 ${running ? "text-primary" : "text-muted-foreground"}`}
+          />
           <div>
             <p className="text-xs text-muted-foreground">المؤقت</p>
-            <p className={`text-2xl font-mono font-bold tabular-nums ${running ? "text-primary" : "text-foreground"}`}>{fmt(elapsed)}</p>
+            <p
+              className={`text-2xl font-mono font-bold tabular-nums ${running ? "text-primary" : "text-foreground"}`}
+            >
+              {fmt(elapsed)}
+            </p>
           </div>
           {startedAt && (
-            <p className="text-xs text-muted-foreground me-2">بدأ: {timeFmt(startedAt)}</p>
+            <p className="text-xs text-muted-foreground me-2">
+              بدأ: {timeFmt(startedAt)}
+            </p>
           )}
         </div>
         <div className="flex gap-2">
@@ -71,17 +87,32 @@ export function WorkTimer({ onStop }: WorkTimerProps) {
             </Button>
           )}
           {running && (
-            <Button size="sm" variant="outline" onClick={handlePause} className="gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handlePause}
+              className="gap-1.5"
+            >
               <Pause className="h-3.5 w-3.5" /> إيقاف مؤقت
             </Button>
           )}
           {!running && isActive && (
-            <Button size="sm" variant="outline" onClick={handleResume} className="gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResume}
+              className="gap-1.5"
+            >
               <Play className="h-3.5 w-3.5" /> استئناف
             </Button>
           )}
           {isActive && (
-            <Button size="sm" variant="destructive" onClick={handleStop} className="gap-1.5">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleStop}
+              className="gap-1.5"
+            >
               <Square className="h-3.5 w-3.5" /> إنهاء
             </Button>
           )}

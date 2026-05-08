@@ -38,7 +38,14 @@ export function useGuestCart() {
       const exists = prev.find((i) => i.service_id === serviceId);
       const next = exists
         ? prev
-        : [...prev, { service_id: serviceId, quantity: 1, added_at: new Date().toISOString() }];
+        : [
+            ...prev,
+            {
+              service_id: serviceId,
+              quantity: 1,
+              added_at: new Date().toISOString(),
+            },
+          ];
       writeCart(next);
       return next;
     });
@@ -54,7 +61,9 @@ export function useGuestCart() {
 
   const updateQuantity = useCallback((serviceId: string, quantity: number) => {
     setItems((prev) => {
-      const next = prev.map((i) => (i.service_id === serviceId ? { ...i, quantity } : i));
+      const next = prev.map((i) =>
+        i.service_id === serviceId ? { ...i, quantity } : i,
+      );
       writeCart(next);
       return next;
     });

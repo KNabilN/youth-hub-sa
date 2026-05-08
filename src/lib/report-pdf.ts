@@ -8,7 +8,7 @@ import { format } from "date-fns";
  */
 export async function generateReportFromDOM(
   element: HTMLElement,
-  title: string
+  title: string,
 ) {
   // Hide elements marked with data-pdf-hide during capture
   const hiddenEls = element.querySelectorAll("[data-pdf-hide]");

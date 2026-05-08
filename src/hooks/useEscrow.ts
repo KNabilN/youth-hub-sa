@@ -67,7 +67,8 @@ export function useReleaseEscrow() {
         .select("id")
         .single();
       if (error) throw error;
-      if (!updated) throw new Error("Escrow status changed concurrently — release aborted");
+      if (!updated)
+        throw new Error("Escrow status changed concurrently — release aborted");
 
       // Get active commission rate
       const { data: config } = await supabase
@@ -82,7 +83,11 @@ export function useReleaseEscrow() {
       const commissionAmount = Number(escrow.amount) * Number(rate);
       const netAmount = Number(escrow.amount);
 
-      return { ...escrow, net_amount: netAmount, commission_amount: commissionAmount };
+      return {
+        ...escrow,
+        net_amount: netAmount,
+        commission_amount: commissionAmount,
+      };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["escrow"] });

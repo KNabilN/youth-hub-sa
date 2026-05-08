@@ -28,8 +28,9 @@ export function ServiceCard({ service }: { service: Service }) {
   const { data: cartItems } = useCartItems();
   const { isVerified } = useVerificationGuard();
 
-  const canPurchase = (role === "youth_association" || role === "donor") && isVerified;
-  const isInCart = cartItems?.some(item => item.service_id === service.id);
+  const canPurchase =
+    (role === "youth_association" || role === "donor") && isVerified;
+  const isInCart = cartItems?.some((item) => item.service_id === service.id);
 
   const handleAddToCart = () => {
     if (!user) return;
@@ -43,42 +44,75 @@ export function ServiceCard({ service }: { service: Service }) {
     <>
       <Card className="card-hover group overflow-hidden">
         {(() => {
-          const displayImage = (service.categories as any)?.image_url || service.image_url;
+          const displayImage =
+            (service.categories as any)?.image_url || service.image_url;
           return displayImage ? (
             <div className="w-full h-40 overflow-hidden">
-              <img src={displayImage} alt={service.title} className="w-full h-full object-cover" />
+              <img
+                src={displayImage}
+                alt={service.title}
+                className="w-full h-full object-cover"
+              />
             </div>
           ) : null;
         })()}
         <CardHeader className="pb-3">
           <div className="space-y-1.5">
-            <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">{service.title}</CardTitle>
+            <CardTitle className="text-base line-clamp-2 min-h-[2.75rem]">
+              {service.title}
+            </CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="w-fit">{typeLabel[service.service_type] || service.service_type}</Badge>
+              <Badge variant="outline" className="w-fit">
+                {typeLabel[service.service_type] || service.service_type}
+              </Badge>
               {(service as any).service_number && (
-                <Link to={`/services/${service.id}`} className="text-xs font-semibold font-mono hover:underline hover:text-primary transition-colors">{(service as any).service_number}</Link>
+                <Link
+                  to={`/services/${service.id}`}
+                  className="text-xs font-semibold font-mono hover:underline hover:text-primary transition-colors"
+                >
+                  {(service as any).service_number}
+                </Link>
               )}
             </div>
           </div>
-          <Link to={`/profile/${service.provider_id}`} className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity">
+          <Link
+            to={`/profile/${service.provider_id}`}
+            className="flex items-center gap-2 mt-1 hover:opacity-80 transition-opacity"
+          >
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
                 {service.profiles?.full_name?.[0] || "؟"}
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs text-muted-foreground hover:underline">{service.profiles?.full_name}</span>
+            <span className="text-xs text-muted-foreground hover:underline">
+              {service.profiles?.full_name}
+            </span>
           </Link>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {service.description}
+          </p>
           <div className="flex items-center justify-between text-sm">
             <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
               {service.price.toLocaleString()} ر.س
             </div>
             <div className="flex gap-1.5">
-              {service.categories?.name && <Badge variant="secondary" className="text-xs">{service.categories.name}</Badge>}
-              {service.regions?.name && <Badge variant="secondary" className="text-xs">{service.regions.name}</Badge>}
-              {service.cities?.name && <Badge variant="outline" className="text-xs">{service.cities.name}</Badge>}
+              {service.categories?.name && (
+                <Badge variant="secondary" className="text-xs">
+                  {service.categories.name}
+                </Badge>
+              )}
+              {service.regions?.name && (
+                <Badge variant="secondary" className="text-xs">
+                  {service.regions.name}
+                </Badge>
+              )}
+              {service.cities?.name && (
+                <Badge variant="outline" className="text-xs">
+                  {service.cities.name}
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -96,7 +130,12 @@ export function ServiceCard({ service }: { service: Service }) {
                 </Link>
               </Button>
             ) : (
-              <Button size="sm" className="flex-1" onClick={handleAddToCart} disabled={!canPurchase || addToCart.isPending}>
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={handleAddToCart}
+                disabled={!canPurchase || addToCart.isPending}
+              >
                 <ShoppingCart className="h-4 w-4 me-1" />
                 {addToCart.isPending ? "إضافة..." : "أضف للسلة"}
               </Button>
@@ -104,7 +143,6 @@ export function ServiceCard({ service }: { service: Service }) {
           </div>
         </CardContent>
       </Card>
-
     </>
   );
 }

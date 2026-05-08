@@ -1,6 +1,10 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { usePortfolio, useAddPortfolioItem, useDeletePortfolioItem } from "@/hooks/usePortfolio";
+import {
+  usePortfolio,
+  useAddPortfolioItem,
+  useDeletePortfolioItem,
+} from "@/hooks/usePortfolio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +30,10 @@ export function PortfolioManager() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) {
-      toast({ title: "الحد الأقصى لحجم الصورة 5 ميجابايت", variant: "destructive" });
+      toast({
+        title: "الحد الأقصى لحجم الصورة 5 ميجابايت",
+        variant: "destructive",
+      });
       return;
     }
     setFile(f);
@@ -35,7 +42,10 @@ export function PortfolioManager() {
 
   const handleAdd = () => {
     if (!title || !file) {
-      toast({ title: "يرجى إدخال العنوان واختيار صورة", variant: "destructive" });
+      toast({
+        title: "يرجى إدخال العنوان واختيار صورة",
+        variant: "destructive",
+      });
       return;
     }
     addItem.mutate(
@@ -50,7 +60,7 @@ export function PortfolioManager() {
           if (fileRef.current) fileRef.current.value = "";
         },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-      }
+      },
     );
   };
 
@@ -60,7 +70,7 @@ export function PortfolioManager() {
       {
         onSuccess: () => toast({ title: "تم نقل العمل إلى سلة المحذوفات" }),
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-      }
+      },
     );
   };
 
@@ -76,24 +86,60 @@ export function PortfolioManager() {
         <div className="border border-dashed border-border rounded-lg p-4 space-y-3">
           <div className="space-y-2">
             <Label>عنوان العمل</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: تصميم هوية بصرية" className="h-10" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="مثال: تصميم هوية بصرية"
+              className="h-10"
+            />
           </div>
           <div className="space-y-2">
             <Label>وصف مختصر (اختياري)</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="resize-none" />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="resize-none"
+            />
           </div>
           <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+            >
               <ImagePlus className="h-4 w-4 me-1" /> اختر صورة
             </Button>
-            <span className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 800×450 بكسل • الحد الأقصى: 5 MB</span>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-            {file && <span className="text-xs text-muted-foreground truncate max-w-[200px]">{file.name}</span>}
+            <span className="text-xs text-muted-foreground">
+              الأبعاد المُوصى بها: 800×450 بكسل • الحد الأقصى: 5 MB
+            </span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            {file && (
+              <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                {file.name}
+              </span>
+            )}
           </div>
           {preview && (
-            <img src={preview} alt="معاينة" className="h-32 rounded-md object-cover" />
+            <img
+              src={preview}
+              alt="معاينة"
+              className="h-32 rounded-md object-cover"
+            />
           )}
-          <Button onClick={handleAdd} disabled={addItem.isPending} size="sm" className="w-full">
+          <Button
+            onClick={handleAdd}
+            disabled={addItem.isPending}
+            size="sm"
+            className="w-full"
+          >
             {addItem.isPending ? "جارٍ الرفع..." : "إضافة للمعرض"}
           </Button>
         </div>
@@ -102,8 +148,15 @@ export function PortfolioManager() {
         {items && items.length > 0 && (
           <div className="grid gap-3 sm:grid-cols-2">
             {items.map((item) => (
-              <div key={item.id} className="relative group rounded-lg overflow-hidden border border-border">
-                <img src={item.image_url} alt={item.title} className="w-full aspect-video object-cover" />
+              <div
+                key={item.id}
+                className="relative group rounded-lg overflow-hidden border border-border"
+              >
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="w-full aspect-video object-cover"
+                />
                 <div className="p-2">
                   <p className="text-sm font-medium truncate">{item.title}</p>
                 </div>

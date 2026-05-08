@@ -2,9 +2,19 @@ import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
 import { CalendarIcon, Filter, RotateCcw, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
@@ -19,7 +29,12 @@ export interface ReportFilterValues {
 
 interface SavedFilter {
   name: string;
-  filters: { dateFrom: string; dateTo: string; regionId: string | null; cityId: string | null };
+  filters: {
+    dateFrom: string;
+    dateTo: string;
+    regionId: string | null;
+    cityId: string | null;
+  };
 }
 
 interface ReportFiltersProps {
@@ -39,7 +54,9 @@ const presets = [
 function loadSavedFilters(): SavedFilter[] {
   try {
     return JSON.parse(localStorage.getItem(SAVED_FILTERS_KEY) || "[]");
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function persistSavedFilters(items: SavedFilter[]) {
@@ -58,11 +75,16 @@ export function getDefaultFilters(): ReportFilterValues {
 export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
   const { data: regions } = useRegions();
   const { data: cities } = useCities(filters.regionId);
-  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(loadSavedFilters);
+  const [savedFilters, setSavedFilters] =
+    useState<SavedFilter[]>(loadSavedFilters);
 
   // Auto-clear city when region changes
   useEffect(() => {
-    if (filters.cityId && cities && !cities.find((c) => c.id === filters.cityId)) {
+    if (
+      filters.cityId &&
+      cities &&
+      !cities.find((c) => c.id === filters.cityId)
+    ) {
       onChange({ ...filters, cityId: null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +102,10 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
         cityId: filters.cityId,
       },
     };
-    const updated = [...savedFilters.filter((f) => f.name !== entry.name), entry];
+    const updated = [
+      ...savedFilters.filter((f) => f.name !== entry.name),
+      entry,
+    ];
     setSavedFilters(updated);
     persistSavedFilters(updated);
     toast.success("تم حفظ الفلتر");
@@ -123,7 +148,14 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       {/* Date From */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className={cn("text-xs gap-1", !filters.dateFrom && "text-muted-foreground")}>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "text-xs gap-1",
+              !filters.dateFrom && "text-muted-foreground",
+            )}
+          >
             <CalendarIcon className="h-3.5 w-3.5" />
             {filters.dateFrom ? format(filters.dateFrom, "yyyy/MM/dd") : "من"}
           </Button>
@@ -143,7 +175,14 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       {/* Date To */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className={cn("text-xs gap-1", !filters.dateTo && "text-muted-foreground")}>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "text-xs gap-1",
+              !filters.dateTo && "text-muted-foreground",
+            )}
+          >
             <CalendarIcon className="h-3.5 w-3.5" />
             {filters.dateTo ? format(filters.dateTo, "yyyy/MM/dd") : "إلى"}
           </Button>
@@ -169,7 +208,9 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
         <SelectContent>
           <SelectItem value="all">كل المناطق</SelectItem>
           {(regions ?? []).map((r) => (
-            <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+            <SelectItem key={r.id} value={r.id}>
+              {r.name}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -177,16 +218,25 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       {/* City */}
       <Select
         value={filters.cityId ?? "all"}
-        onValueChange={(v) => onChange({ ...filters, cityId: v === "all" ? null : v })}
+        onValueChange={(v) =>
+          onChange({ ...filters, cityId: v === "all" ? null : v })
+        }
         disabled={!filters.regionId}
       >
-        <SelectTrigger className={cn("w-[140px] h-8 text-xs", !filters.regionId && "opacity-50")}>
+        <SelectTrigger
+          className={cn(
+            "w-[140px] h-8 text-xs",
+            !filters.regionId && "opacity-50",
+          )}
+        >
           <SelectValue placeholder="المدينة" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">كل المدن</SelectItem>
           {(cities ?? []).map((c) => (
-            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            <SelectItem key={c.id} value={c.id}>
+              {c.name}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -194,19 +244,37 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
       {/* Quick presets */}
       <div className="flex gap-1">
         {presets.map((p) => (
-          <Button key={p.value} variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => applyPreset(p.value)}>
+          <Button
+            key={p.value}
+            variant="ghost"
+            size="sm"
+            className="text-xs h-7 px-2"
+            onClick={() => applyPreset(p.value)}
+          >
             {p.label}
           </Button>
         ))}
       </div>
 
-      <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => onChange(getDefaultFilters())}>
-        <RotateCcw className="h-3 w-3 me-1" />إعادة تعيين
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs h-7 px-2"
+        onClick={() => onChange(getDefaultFilters())}
+      >
+        <RotateCcw className="h-3 w-3 me-1" />
+        إعادة تعيين
       </Button>
 
       {/* Save / Load filters */}
-      <Button variant="outline" size="sm" className="text-xs h-7 px-2 gap-1" onClick={saveCurrentFilter}>
-        <Star className="h-3 w-3" />حفظ الفلتر
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-xs h-7 px-2 gap-1"
+        onClick={saveCurrentFilter}
+      >
+        <Star className="h-3 w-3" />
+        حفظ الفلتر
       </Button>
 
       {savedFilters.length > 0 && (
@@ -216,12 +284,20 @@ export function ReportFilters({ filters, onChange }: ReportFiltersProps) {
           </SelectTrigger>
           <SelectContent>
             {savedFilters.map((sf) => (
-              <div key={sf.name} className="flex items-center justify-between pe-2">
-                <SelectItem value={sf.name} className="flex-1">{sf.name}</SelectItem>
+              <div
+                key={sf.name}
+                className="flex items-center justify-between pe-2"
+              >
+                <SelectItem value={sf.name} className="flex-1">
+                  {sf.name}
+                </SelectItem>
                 <button
                   type="button"
                   className="p-0.5 hover:text-destructive"
-                  onClick={(e) => { e.stopPropagation(); deleteSavedFilter(sf.name); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteSavedFilter(sf.name);
+                  }}
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>

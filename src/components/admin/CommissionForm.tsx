@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
-import { useCommissionConfig, useUpdateCommission } from "@/hooks/useAdminFinance";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useCommissionConfig,
+  useUpdateCommission,
+} from "@/hooks/useAdminFinance";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,10 +37,13 @@ export function CommissionForm() {
       toast.error("أدخل نسبة صحيحة بين 0 و 100");
       return;
     }
-    update.mutate({ id: config.id, rate: rateNum, description: desc }, {
-      onSuccess: () => toast.success("تم تحديث نسبة العمولة"),
-      onError: () => toast.error("حدث خطأ"),
-    });
+    update.mutate(
+      { id: config.id, rate: rateNum, description: desc },
+      {
+        onSuccess: () => toast.success("تم تحديث نسبة العمولة"),
+        onError: () => toast.error("حدث خطأ"),
+      },
+    );
   };
 
   if (isLoading) return null;
@@ -50,19 +62,32 @@ export function CommissionForm() {
             </Badge>
           )}
         </div>
-        <CardDescription>تحديد نسبة العمولة المقتطعة من كل معاملة مالية على المنصة</CardDescription>
+        <CardDescription>
+          تحديد نسبة العمولة المقتطعة من كل معاملة مالية على المنصة
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>النسبة (%)</Label>
-          <Input type="number" value={rate} onChange={(e) => setRate(e.target.value)} min={0} max={100} step={0.1} />
+          <Input
+            type="number"
+            value={rate}
+            onChange={(e) => setRate(e.target.value)}
+            min={0}
+            max={100}
+            step={0.1}
+          />
         </div>
         <div className="space-y-2">
           <Label>الوصف</Label>
           <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
         </div>
         <Button onClick={handleSave} disabled={update.isPending}>
-          {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {update.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
           حفظ
         </Button>
       </CardContent>

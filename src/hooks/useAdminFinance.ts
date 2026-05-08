@@ -10,7 +10,9 @@ export function useEscrowTransactions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escrow_transactions")
-        .select("*, projects(title), payer:profiles!escrow_transactions_payer_id_fkey(full_name, organization_name), payee:profiles!escrow_transactions_payee_id_fkey(full_name, organization_name)")
+        .select(
+          "*, projects(title), payer:profiles!escrow_transactions_payer_id_fkey(full_name, organization_name), payee:profiles!escrow_transactions_payee_id_fkey(full_name, organization_name)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -21,7 +23,17 @@ export function useEscrowTransactions() {
 export function useUpdateEscrowStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, receipt_url, expectedStatus }: { id: string; status: EscrowStatus; receipt_url?: string; expectedStatus?: EscrowStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+      receipt_url,
+      expectedStatus,
+    }: {
+      id: string;
+      status: EscrowStatus;
+      receipt_url?: string;
+      expectedStatus?: EscrowStatus;
+    }) => {
       const update: Record<string, any> = { status };
       if (receipt_url) update.receipt_url = receipt_url;
       let query = supabase
@@ -33,7 +45,8 @@ export function useUpdateEscrowStatus() {
       }
       const { data, error } = await query.select("id");
       if (error) throw error;
-      if (!data?.length) throw new Error("تم تعديل حالة الضمان مسبقاً من مكان آخر");
+      if (!data?.length)
+        throw new Error("تم تعديل حالة الضمان مسبقاً من مكان آخر");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-escrow"] });
@@ -48,7 +61,9 @@ export function useInvoices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("*, profiles!invoices_issued_to_fkey(full_name, organization_name)")
+        .select(
+          "*, profiles!invoices_issued_to_fkey(full_name, organization_name)",
+        )
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -65,7 +80,7 @@ export function useCommissionConfig() {
         .from("commission_config")
         .select("*")
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
       if (error && error.code !== "PGRST116") throw error;
       return data;
     },
@@ -75,10 +90,21 @@ export function useCommissionConfig() {
 export function useUpdateCommission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, rate, description }: { id: string; rate: number; description?: string }) => {
+    mutationFn: async ({
+      id,
+      rate,
+      description,
+    }: {
+      id: string;
+      rate: number;
+      description?: string;
+    }) => {
       const update: Record<string, any> = { rate };
       if (description !== undefined) update.description = description;
-      const { error } = await supabase.from("commission_config").update(update).eq("id", id);
+      const { error } = await supabase
+        .from("commission_config")
+        .update(update)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-commission"] }),

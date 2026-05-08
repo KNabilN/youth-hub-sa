@@ -5,7 +5,7 @@ export async function sendNotification(
   message: string,
   type: string = "info",
   entityId?: string,
-  entityType?: string
+  entityType?: string,
 ) {
   const { error } = await supabase.rpc("send_notification_secure" as any, {
     _recipient_id: userId,
@@ -22,7 +22,7 @@ export async function sendNotifications(
   message: string,
   type: string = "info",
   entityId?: string,
-  entityType?: string
+  entityType?: string,
 ) {
   const promises = userIds.map((uid) =>
     supabase.rpc("send_notification_secure" as any, {
@@ -31,9 +31,10 @@ export async function sendNotifications(
       _type: type,
       _entity_id: entityId || null,
       _entity_type: entityType || null,
-    })
+    }),
   );
   const results = await Promise.all(promises);
   const errors = results.filter((r) => r.error);
-  if (errors.length) console.error("Failed to send some notifications:", errors);
+  if (errors.length)
+    console.error("Failed to send some notifications:", errors);
 }

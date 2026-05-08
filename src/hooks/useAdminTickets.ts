@@ -11,11 +11,15 @@ export function useAdminTickets() {
   useEffect(() => {
     const channel = supabase
       .channel("rt-admin-tickets")
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, () =>
-        qc.invalidateQueries({ queryKey: ["admin-tickets"] })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_tickets" },
+        () => qc.invalidateQueries({ queryKey: ["admin-tickets"] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [qc]);
 
   return useQuery({
@@ -35,7 +39,13 @@ export function useAdminTickets() {
 export function useUpdateTicketStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: TicketStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: TicketStatus;
+    }) => {
       const { error } = await supabase
         .from("support_tickets")
         .update({ status })

@@ -17,7 +17,10 @@ export interface PricingWithDiscount extends PricingBreakdown {
   discount: number;
 }
 
-export function calculatePricing(baseAmount: number, commissionRate: number): PricingBreakdown {
+export function calculatePricing(
+  baseAmount: number,
+  commissionRate: number,
+): PricingBreakdown {
   const commission = Math.round(baseAmount * commissionRate * 100) / 100;
   const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
   const total = Math.round((baseAmount + commission + vat) * 100) / 100;
@@ -33,12 +36,13 @@ export function calculatePricing(baseAmount: number, commissionRate: number): Pr
 export function calculatePricingWithDiscount(
   baseAmount: number,
   commissionRate: number,
-  discountAmount: number
+  discountAmount: number,
 ): PricingWithDiscount {
   // Commission & VAT calculated on ORIGINAL base amount
   const commission = Math.round(baseAmount * commissionRate * 100) / 100;
   const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
-  const totalBeforeDiscount = Math.round((baseAmount + commission + vat) * 100) / 100;
+  const totalBeforeDiscount =
+    Math.round((baseAmount + commission + vat) * 100) / 100;
   const discount = Math.min(discountAmount, totalBeforeDiscount);
   const total = Math.round((totalBeforeDiscount - discount) * 100) / 100;
   return {

@@ -6,7 +6,10 @@ export function usePublicProfile(id: string | undefined) {
   // Increment views on mount
   useEffect(() => {
     if (id) {
-      supabase.rpc("increment_profile_views", { p_id: id } as any).then(() => {}, () => {});
+      supabase.rpc("increment_profile_views", { p_id: id } as any).then(
+        () => {},
+        () => {},
+      );
     }
   }, [id]);
 
@@ -14,8 +17,9 @@ export function usePublicProfile(id: string | undefined) {
     queryKey: ["public-profile", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_public_profile", { p_id: id! } as any);
+      const { data, error } = await supabase.rpc("get_public_profile", {
+        p_id: id!,
+      } as any);
       if (error) throw error;
       return data as {
         id: string;
@@ -37,8 +41,9 @@ export function usePublicProfile(id: string | undefined) {
     queryKey: ["public-profile-role", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_user_role", { _user_id: id! } as any);
+      const { data, error } = await supabase.rpc("get_user_role", {
+        _user_id: id!,
+      } as any);
       if (error) return null;
       return data ?? null;
     },
@@ -114,7 +119,9 @@ export function usePublicProfile(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, budget, created_at, categories(name), regions(name)")
+        .select(
+          "id, title, description, status, budget, created_at, categories(name), regions(name)",
+        )
         .eq("association_id", id!)
         .neq("status", "draft")
         .eq("is_private", false)
@@ -132,7 +139,9 @@ export function useToggleProfileSave(profileId: string | undefined) {
     queryKey: ["profile-save-status", profileId],
     enabled: !!profileId,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
       const { data } = await supabase
         .from("profile_saves")
@@ -145,7 +154,9 @@ export function useToggleProfileSave(profileId: string | undefined) {
   });
 
   const toggle = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user || !profileId) return;
 
     if (isSaved) {

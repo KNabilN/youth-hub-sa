@@ -382,11 +382,18 @@ const donorGuide: GuideSection[] = [
   },
 ];
 
-const guideByRole: Record<string, { label: string; sections: GuideSection[] }> = {
-  youth_association: { label: "دليل استخدام الجمعيات الشبابية", sections: associationGuide },
-  service_provider: { label: "دليل استخدام مقدمي الخدمة", sections: providerGuide },
-  donor: { label: "دليل استخدام المانحين", sections: donorGuide },
-};
+const guideByRole: Record<string, { label: string; sections: GuideSection[] }> =
+  {
+    youth_association: {
+      label: "دليل استخدام الجمعيات الشبابية",
+      sections: associationGuide,
+    },
+    service_provider: {
+      label: "دليل استخدام مقدمي الخدمة",
+      sections: providerGuide,
+    },
+    donor: { label: "دليل استخدام المانحين", sections: donorGuide },
+  };
 
 export default function UserGuide() {
   const { role } = useAuth();

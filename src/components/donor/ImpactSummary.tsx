@@ -8,11 +8,31 @@ interface ImpactSummaryProps {
   isLoading?: boolean;
 }
 
-export function ImpactSummary({ totalDonations, projectsFunded, associationsSupported, isLoading }: ImpactSummaryProps) {
+export function ImpactSummary({
+  totalDonations,
+  projectsFunded,
+  associationsSupported,
+  isLoading,
+}: ImpactSummaryProps) {
   const items = [
-    { title: "إجمالي المنح", value: `${totalDonations.toLocaleString()} ر.س`, icon: HandCoins, color: "text-primary" },
-    { title: "الطلبات الممولة", value: projectsFunded, icon: FolderKanban, color: "text-info" },
-    { title: "الجمعيات المدعومة", value: associationsSupported, icon: Users, color: "text-success" },
+    {
+      title: "إجمالي المنح",
+      value: `${totalDonations.toLocaleString()} ر.س`,
+      icon: HandCoins,
+      color: "text-primary",
+    },
+    {
+      title: "الطلبات الممولة",
+      value: projectsFunded,
+      icon: FolderKanban,
+      color: "text-info",
+    },
+    {
+      title: "الجمعيات المدعومة",
+      value: associationsSupported,
+      icon: Users,
+      color: "text-success",
+    },
   ];
 
   return (
@@ -20,11 +40,15 @@ export function ImpactSummary({ totalDonations, projectsFunded, associationsSupp
       {items.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {stat.title}
+            </CardTitle>
             <stat.icon className={`h-5 w-5 ${stat.color}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? "..." : stat.value}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : stat.value}
+            </div>
           </CardContent>
         </Card>
       ))}

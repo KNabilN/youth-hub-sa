@@ -23,7 +23,15 @@ export function useAddPortfolioItem() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ title, description, file }: { title: string; description: string; file: File }) => {
+    mutationFn: async ({
+      title,
+      description,
+      file,
+    }: {
+      title: string;
+      description: string;
+      file: File;
+    }) => {
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/${Date.now()}.${ext}`;
@@ -31,7 +39,9 @@ export function useAddPortfolioItem() {
         .from("portfolio")
         .upload(path, file, { upsert: false });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("portfolio")
+        .getPublicUrl(path);
       const { error } = await supabase.from("portfolio_items").insert({
         provider_id: userId,
         title,
@@ -47,7 +57,13 @@ export function useAddPortfolioItem() {
 export function useDeletePortfolioItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, image_url }: { id: string; image_url: string }) => {
+    mutationFn: async ({
+      id,
+      image_url,
+    }: {
+      id: string;
+      image_url: string;
+    }) => {
       // Soft delete - don't remove from storage yet
       const { error } = await supabase
         .from("portfolio_items")

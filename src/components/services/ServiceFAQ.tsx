@@ -19,8 +19,12 @@ export function ServiceFAQ({ items }: { items: FAQItem[] }) {
       <Accordion type="single" collapsible className="w-full">
         {items.map((item, i) => (
           <AccordionItem key={i} value={`faq-${i}`}>
-            <AccordionTrigger className="text-sm text-right">{item.question}</AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">{item.answer}</AccordionContent>
+            <AccordionTrigger className="text-sm text-right">
+              {item.question}
+            </AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              {item.answer}
+            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

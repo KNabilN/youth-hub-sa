@@ -14,16 +14,35 @@ export type TrashTableName =
   | "bids"
   | "ratings";
 
-const tableConfig: Record<TrashTableName, { label: string; ownerCol: string; titleCol: string }> = {
-  micro_services: { label: "خدمات", ownerCol: "provider_id", titleCol: "title" },
+const tableConfig: Record<
+  TrashTableName,
+  { label: string; ownerCol: string; titleCol: string }
+> = {
+  micro_services: {
+    label: "خدمات",
+    ownerCol: "provider_id",
+    titleCol: "title",
+  },
   projects: { label: "طلبات", ownerCol: "association_id", titleCol: "title" },
   support_tickets: { label: "تذاكر", ownerCol: "user_id", titleCol: "subject" },
-  portfolio_items: { label: "أعمال المعرض", ownerCol: "provider_id", titleCol: "title" },
+  portfolio_items: {
+    label: "أعمال المعرض",
+    ownerCol: "provider_id",
+    titleCol: "title",
+  },
   disputes: { label: "شكاوى", ownerCol: "raised_by", titleCol: "description" },
   profiles: { label: "مستخدمين", ownerCol: "id", titleCol: "full_name" },
-  invoices: { label: "فواتير", ownerCol: "issued_to", titleCol: "invoice_number" },
+  invoices: {
+    label: "فواتير",
+    ownerCol: "issued_to",
+    titleCol: "invoice_number",
+  },
   contracts: { label: "عقود", ownerCol: "association_id", titleCol: "terms" },
-  bids: { label: "عروض أسعار", ownerCol: "provider_id", titleCol: "cover_letter" },
+  bids: {
+    label: "عروض أسعار",
+    ownerCol: "provider_id",
+    titleCol: "cover_letter",
+  },
   ratings: { label: "تقييمات", ownerCol: "rater_id", titleCol: "comment" },
 };
 
@@ -48,7 +67,10 @@ export function useTrashItems() {
       const results: TrashItem[] = [];
       const now = new Date();
 
-      for (const [table, cfg] of Object.entries(tableConfig) as [TrashTableName, typeof tableConfig[TrashTableName]][]) {
+      for (const [table, cfg] of Object.entries(tableConfig) as [
+        TrashTableName,
+        (typeof tableConfig)[TrashTableName],
+      ][]) {
         let query = (supabase.from(table).select("*") as any)
           .not("deleted_at", "is", null)
           .order("deleted_at", { ascending: false });
@@ -63,7 +85,8 @@ export function useTrashItems() {
         if (data) {
           for (const row of data as any[]) {
             const deletedAt = new Date(row.deleted_at);
-            const daysElapsed = (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60 * 24);
+            const daysElapsed =
+              (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60 * 24);
             results.push({
               id: row.id,
               title: row[cfg.titleCol] || "بدون عنوان",
@@ -76,7 +99,10 @@ export function useTrashItems() {
         }
       }
 
-      results.sort((a, b) => new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime());
+      results.sort(
+        (a, b) =>
+          new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime(),
+      );
       return results;
     },
   });
@@ -90,7 +116,13 @@ export function useTrashCount() {
 export function useRestoreItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ table, id }: { table: TrashTableName; id: string }) => {
+    mutationFn: async ({
+      table,
+      id,
+    }: {
+      table: TrashTableName;
+      id: string;
+    }) => {
       const { error } = await supabase
         .from(table)
         .update({ deleted_at: null } as any)
@@ -117,7 +149,13 @@ export function useRestoreItem() {
 export function usePermanentDelete() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ table, id }: { table: TrashTableName; id: string }) => {
+    mutationFn: async ({
+      table,
+      id,
+    }: {
+      table: TrashTableName;
+      id: string;
+    }) => {
       const { error } = await supabase.rpc("cascade_permanent_delete", {
         p_table: table,
         p_id: id,
@@ -133,7 +171,13 @@ export function usePermanentDelete() {
 export function useSoftDelete() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ table, id }: { table: TrashTableName; id: string }) => {
+    mutationFn: async ({
+      table,
+      id,
+    }: {
+      table: TrashTableName;
+      id: string;
+    }) => {
       const { error } = await supabase
         .from(table)
         .update({ deleted_at: new Date().toISOString() } as any)
@@ -154,16 +198,22 @@ export function useSoftDelete() {
         qc.invalidateQueries({ queryKey: ["support-tickets"] });
         qc.invalidateQueries({ queryKey: ["admin-tickets"] });
       }
-      if (vars.table === "portfolio_items") qc.invalidateQueries({ queryKey: ["portfolio"] });
+      if (vars.table === "portfolio_items")
+        qc.invalidateQueries({ queryKey: ["portfolio"] });
       if (vars.table === "disputes") {
         qc.invalidateQueries({ queryKey: ["my-disputes"] });
         qc.invalidateQueries({ queryKey: ["admin-disputes"] });
       }
-      if (vars.table === "profiles") qc.invalidateQueries({ queryKey: ["admin-users"] });
-      if (vars.table === "invoices") qc.invalidateQueries({ queryKey: ["admin-invoices"] });
-      if (vars.table === "contracts") qc.invalidateQueries({ queryKey: ["admin-escrow"] });
-      if (vars.table === "bids") qc.invalidateQueries({ queryKey: ["admin-projects"] });
-      if (vars.table === "ratings") qc.invalidateQueries({ queryKey: ["admin-users"] });
+      if (vars.table === "profiles")
+        qc.invalidateQueries({ queryKey: ["admin-users"] });
+      if (vars.table === "invoices")
+        qc.invalidateQueries({ queryKey: ["admin-invoices"] });
+      if (vars.table === "contracts")
+        qc.invalidateQueries({ queryKey: ["admin-escrow"] });
+      if (vars.table === "bids")
+        qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      if (vars.table === "ratings")
+        qc.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
 }
@@ -176,9 +226,15 @@ export function useEmptyTrash() {
   return useMutation({
     mutationFn: async () => {
       const userId = user!.id;
-      for (const [table, cfg] of Object.entries(tableConfig) as [TrashTableName, typeof tableConfig[TrashTableName]][]) {
-        let query = (supabase.from(table).delete() as any)
-          .not("deleted_at", "is", null);
+      for (const [table, cfg] of Object.entries(tableConfig) as [
+        TrashTableName,
+        (typeof tableConfig)[TrashTableName],
+      ][]) {
+        let query = (supabase.from(table).delete() as any).not(
+          "deleted_at",
+          "is",
+          null,
+        );
 
         if (!isAdmin) {
           query = query.eq(cfg.ownerCol, userId);

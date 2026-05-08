@@ -11,11 +11,18 @@ export function useAdminTicketById(id: string | null) {
       .channel(`rt-admin-ticket-${id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${id}` },
-        () => queryClient.invalidateQueries({ queryKey: ["admin-ticket", id] })
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "support_tickets",
+          filter: `id=eq.${id}`,
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["admin-ticket", id] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id, queryClient]);
 
   return useQuery({
@@ -27,7 +34,7 @@ export function useAdminTicketById(id: string | null) {
         .select("*, profiles:user_id(full_name, avatar_url, organization_name)")
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

@@ -37,7 +37,10 @@ export function AssociationActionItems() {
         .from("time_logs")
         .select("id", { count: "exact", head: true })
         .eq("approval", "pending")
-        .in("project_id", projectIds.map(p => p.id));
+        .in(
+          "project_id",
+          projectIds.map((p) => p.id),
+        );
       if (error) throw error;
       return count ?? 0;
     },
@@ -57,7 +60,10 @@ export function AssociationActionItems() {
         .from("project_deliverables")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending_review")
-        .in("project_id", projectIds.map(p => p.id));
+        .in(
+          "project_id",
+          projectIds.map((p) => p.id),
+        );
       if (error) throw error;
       return count ?? 0;
     },
@@ -77,7 +83,11 @@ export function AssociationActionItems() {
     },
   });
 
-  const hasItems = (unsignedContracts ?? 0) > 0 || (pendingTimeLogs ?? 0) > 0 || (pendingDeliverables ?? 0) > 0 || (pendingGrants ?? 0) > 0;
+  const hasItems =
+    (unsignedContracts ?? 0) > 0 ||
+    (pendingTimeLogs ?? 0) > 0 ||
+    (pendingDeliverables ?? 0) > 0 ||
+    (pendingGrants ?? 0) > 0;
   if (!hasItems) return null;
 
   return (
@@ -87,7 +97,12 @@ export function AssociationActionItems() {
           <FileSignature className="h-4 w-4 text-primary" />
           <AlertDescription className="flex items-center justify-between">
             <span>لديك {unsignedContracts} عقود بحاجة إلى توقيعك</span>
-            <Link to="/contracts" className="text-sm font-medium text-primary underline">عرض العقود</Link>
+            <Link
+              to="/contracts"
+              className="text-sm font-medium text-primary underline"
+            >
+              عرض العقود
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -96,7 +111,12 @@ export function AssociationActionItems() {
           <Clock className="h-4 w-4 text-warning" />
           <AlertDescription className="flex items-center justify-between">
             <span>{pendingTimeLogs} سجل ساعات بانتظار موافقتك</span>
-            <Link to="/time-logs" className="text-sm font-medium text-primary underline">مراجعة الساعات</Link>
+            <Link
+              to="/time-logs"
+              className="text-sm font-medium text-primary underline"
+            >
+              مراجعة الساعات
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -105,7 +125,12 @@ export function AssociationActionItems() {
           <PackageCheck className="h-4 w-4 text-info" />
           <AlertDescription className="flex items-center justify-between">
             <span>{pendingDeliverables} تسليمات بانتظار المراجعة</span>
-            <Link to="/projects" className="text-sm font-medium text-primary underline">عرض الطلبات</Link>
+            <Link
+              to="/projects"
+              className="text-sm font-medium text-primary underline"
+            >
+              عرض الطلبات
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -114,7 +139,12 @@ export function AssociationActionItems() {
           <HandCoins className="h-4 w-4 text-accent-foreground" />
           <AlertDescription className="flex items-center justify-between">
             <span>{pendingGrants} طلبات منح معلقة</span>
-            <Link to="/my-grants" className="text-sm font-medium text-primary underline">عرض طلبات المنح</Link>
+            <Link
+              to="/my-grants"
+              className="text-sm font-medium text-primary underline"
+            >
+              عرض طلبات المنح
+            </Link>
           </AlertDescription>
         </Alert>
       )}

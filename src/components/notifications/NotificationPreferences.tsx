@@ -2,7 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { BellRing } from "lucide-react";
-import { getPreferencesForRole, getAllKeysForRole } from "@/lib/notification-preferences";
+import {
+  getPreferencesForRole,
+  getAllKeysForRole,
+} from "@/lib/notification-preferences";
 import type { AppRole } from "@/lib/notification-preferences";
 
 interface NotificationPreferencesProps {
@@ -63,9 +66,14 @@ export function NotificationPreferences({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium">إشعارات البريد الإلكتروني</p>
-            <p className="text-xs text-muted-foreground">استلام إشعارات عبر البريد عند وجود تحديثات جديدة</p>
+            <p className="text-xs text-muted-foreground">
+              استلام إشعارات عبر البريد عند وجود تحديثات جديدة
+            </p>
           </div>
-          <Switch checked={emailNotifications} onCheckedChange={onEmailNotificationsChange} />
+          <Switch
+            checked={emailNotifications}
+            onCheckedChange={onEmailNotificationsChange}
+          />
         </div>
 
         {/* Granular preferences - shown only when master is on */}
@@ -73,20 +81,38 @@ export function NotificationPreferences({
           <div className="space-y-4 pt-2 animate-in fade-in-0 slide-in-from-top-2 duration-300">
             {/* Enable/Disable all */}
             <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" size="sm" onClick={enableAll}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={enableAll}
+              >
                 تفعيل الكل
               </Button>
-              <Button type="button" variant="outline" size="sm" onClick={disableAll}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={disableAll}
+              >
                 إيقاف الكل
               </Button>
             </div>
 
             {groups.map((group) => (
-              <div key={group.groupLabel} className="bg-muted/30 rounded-xl border p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-primary">{group.groupLabel}</h4>
+              <div
+                key={group.groupLabel}
+                className="bg-muted/30 rounded-xl border p-4 space-y-3"
+              >
+                <h4 className="text-sm font-semibold text-primary">
+                  {group.groupLabel}
+                </h4>
                 <div className="space-y-2">
                   {group.types.map((type) => (
-                    <div key={type.key} className="flex items-center justify-between py-1.5">
+                    <div
+                      key={type.key}
+                      className="flex items-center justify-between py-1.5"
+                    >
                       <span className="text-sm">{type.label}</span>
                       <Switch
                         checked={isEnabled(type.key, type.defaultEnabled)}

@@ -8,9 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
@@ -36,7 +49,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function fmt(v: any) {
-  if (v === null || v === undefined || v === "") return <span className="text-muted-foreground">—</span>;
+  if (v === null || v === undefined || v === "")
+    return <span className="text-muted-foreground">—</span>;
   return String(v);
 }
 
@@ -85,7 +99,9 @@ export default function AdminEditRequests() {
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("apply_edit_request", { p_request_id: id });
+      const { error } = await supabase.rpc("apply_edit_request", {
+        p_request_id: id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -100,7 +116,10 @@ export default function AdminEditRequests() {
 
   const reject = useMutation({
     mutationFn: async ({ id, note }: { id: string; note: string }) => {
-      const { error } = await supabase.rpc("reject_edit_request", { p_request_id: id, p_note: note });
+      const { error } = await supabase.rpc("reject_edit_request", {
+        p_request_id: id,
+        p_note: note,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -135,62 +154,94 @@ export default function AdminEditRequests() {
           <TabsContent value={tab} className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{STATUS_LABELS[tab]}</CardTitle>
+                <CardTitle className="text-base">
+                  {STATUS_LABELS[tab]}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <Skeleton className="h-40 w-full" />
                 ) : (rows || []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">لا توجد طلبات</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    لا توجد طلبات
+                  </p>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>الجهة</TableHead>
-                        <TableHead>الحقول المعدّلة</TableHead>
-                        <TableHead>التاريخ</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>إجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(rows || []).map((r: any) => {
-                        const p = profiles?.[r.target_user_id];
-                        const name = p?.organization_name || p?.full_name || r.target_user_id.slice(0, 8);
-                        const keys = Object.keys(r.requested_changes || {});
-                        return (
-                          <TableRow key={r.id}>
-                            <TableCell>
-                              <Link to={`/admin/users/${r.target_user_id}`} className="font-medium hover:underline">
-                                {name}
-                              </Link>
-                              {p?.user_number && <div className="text-xs text-muted-foreground">{p.user_number}</div>}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {keys.map((k) => (
-                                  <Badge key={k} variant="secondary">{FIELD_LABELS[k] || k}</Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {format(new Date(r.created_at), "PPp", { locale: ar })}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={r.status === "pending" ? "outline" : r.status === "approved" ? "default" : "destructive"}>
-                                {STATUS_LABELS[r.status] || r.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button size="sm" variant="outline" onClick={() => setSelected(r)}>
-                                <Eye className="h-4 w-4 ml-1" /> عرض
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>الجهة</TableHead>
+                          <TableHead>الحقول المعدّلة</TableHead>
+                          <TableHead>التاريخ</TableHead>
+                          <TableHead>الحالة</TableHead>
+                          <TableHead>إجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(rows || []).map((r: any) => {
+                          const p = profiles?.[r.target_user_id];
+                          const name =
+                            p?.organization_name ||
+                            p?.full_name ||
+                            r.target_user_id.slice(0, 8);
+                          const keys = Object.keys(r.requested_changes || {});
+                          return (
+                            <TableRow key={r.id}>
+                              <TableCell>
+                                <Link
+                                  to={`/admin/users/${r.target_user_id}`}
+                                  className="font-medium hover:underline"
+                                >
+                                  {name}
+                                </Link>
+                                {p?.user_number && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {p.user_number}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-1">
+                                  {keys.map((k) => (
+                                    <Badge key={k} variant="secondary">
+                                      {FIELD_LABELS[k] || k}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {format(new Date(r.created_at), "PPp", {
+                                  locale: ar,
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    r.status === "pending"
+                                      ? "outline"
+                                      : r.status === "approved"
+                                        ? "default"
+                                        : "destructive"
+                                  }
+                                >
+                                  {STATUS_LABELS[r.status] || r.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setSelected(r)}
+                                >
+                                  <Eye className="h-4 w-4 ml-1" /> عرض
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -207,38 +258,57 @@ export default function AdminEditRequests() {
           {selected && (
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                الجهة: {profiles?.[selected.target_user_id]?.organization_name || profiles?.[selected.target_user_id]?.full_name || "—"}
+                الجهة:{" "}
+                {profiles?.[selected.target_user_id]?.organization_name ||
+                  profiles?.[selected.target_user_id]?.full_name ||
+                  "—"}
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-1/4">الحقل</TableHead>
-                    <TableHead>القيمة الحالية</TableHead>
-                    <TableHead>القيمة المقترحة</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fieldKeys.map((k) => (
-                    <TableRow key={k}>
-                      <TableCell className="font-medium">{FIELD_LABELS[k] || k}</TableCell>
-                      <TableCell className="text-muted-foreground">{fmt(olds[k])}</TableCell>
-                      <TableCell className="text-foreground bg-success/5">{fmt(changes[k])}</TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-1/4">الحقل</TableHead>
+                      <TableHead>القيمة الحالية</TableHead>
+                      <TableHead>القيمة المقترحة</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {fieldKeys.map((k) => (
+                      <TableRow key={k}>
+                        <TableCell className="font-medium">
+                          {FIELD_LABELS[k] || k}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {fmt(olds[k])}
+                        </TableCell>
+                        <TableCell className="text-foreground bg-success/5">
+                          {fmt(changes[k])}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
               {selected.admin_note && (
-                <p className="text-sm text-muted-foreground">ملاحظة سابقة: {selected.admin_note}</p>
+                <p className="text-sm text-muted-foreground">
+                  ملاحظة سابقة: {selected.admin_note}
+                </p>
               )}
             </div>
           )}
           <DialogFooter>
             {selected?.status === "pending" && (
               <>
-                <Button variant="destructive" onClick={() => setRejectOpen(true)}>
+                <Button
+                  variant="destructive"
+                  onClick={() => setRejectOpen(true)}
+                >
                   <X className="h-4 w-4 ml-1" /> رفض
                 </Button>
-                <Button onClick={() => approve.mutate(selected.id)} disabled={approve.isPending}>
+                <Button
+                  onClick={() => approve.mutate(selected.id)}
+                  disabled={approve.isPending}
+                >
                   <Check className="h-4 w-4 ml-1" /> اعتماد
                 </Button>
               </>
@@ -253,13 +323,22 @@ export default function AdminEditRequests() {
           <DialogHeader>
             <DialogTitle>سبب الرفض</DialogTitle>
           </DialogHeader>
-          <Textarea value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="اكتب سبب الرفض ليصل المستخدم" />
+          <Textarea
+            value={rejectNote}
+            onChange={(e) => setRejectNote(e.target.value)}
+            placeholder="اكتب سبب الرفض ليصل المستخدم"
+          />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setRejectOpen(false)}>
+              إلغاء
+            </Button>
             <Button
               variant="destructive"
               disabled={reject.isPending || !rejectNote.trim()}
-              onClick={() => selected && reject.mutate({ id: selected.id, note: rejectNote.trim() })}
+              onClick={() =>
+                selected &&
+                reject.mutate({ id: selected.id, note: rejectNote.trim() })
+              }
             >
               تأكيد الرفض
             </Button>

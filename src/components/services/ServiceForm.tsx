@@ -5,8 +5,21 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
@@ -87,7 +100,11 @@ export function ServiceForm({
 
   useEffect(() => {
     const currentCity = form.getValues("city_id");
-    if (currentCity && cities && !cities.find((c: any) => c.id === currentCity)) {
+    if (
+      currentCity &&
+      cities &&
+      !cities.find((c: any) => c.id === currentCity)
+    ) {
       form.setValue("city_id", null);
     }
   }, [selectedRegionId, cities]);
@@ -97,7 +114,9 @@ export function ServiceForm({
   const remainingWords = Math.max(0, 50 - wordCount);
   const wordsOk = wordCount >= 50;
 
-  const buildPayload = (values: ServiceFormValues): ServiceFormSubmitValues => ({
+  const buildPayload = (
+    values: ServiceFormValues,
+  ): ServiceFormSubmitValues => ({
     ...values,
     image_url: null,
     gallery: [],
@@ -121,7 +140,11 @@ export function ServiceForm({
             <FormItem>
               <FormLabel required>عنوان الخدمة</FormLabel>
               <FormControl>
-                <Input placeholder="أدخل عنوان الخدمة" maxLength={80} {...field} />
+                <Input
+                  placeholder="أدخل عنوان الخدمة"
+                  maxLength={80}
+                  {...field}
+                />
               </FormControl>
               <CharCounter current={field.value?.length ?? 0} max={80} />
               <FormMessage />
@@ -147,7 +170,9 @@ export function ServiceForm({
               <p
                 className={cn(
                   "text-xs",
-                  wordsOk ? "text-green-600 dark:text-green-500" : "text-destructive"
+                  wordsOk
+                    ? "text-success dark:text-success"
+                    : "text-destructive",
                 )}
               >
                 {wordCount} كلمة من 50
@@ -250,7 +275,10 @@ export function ServiceForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>المدينة</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? undefined}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="اختر المدينة" />

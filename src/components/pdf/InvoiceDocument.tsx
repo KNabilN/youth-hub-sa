@@ -9,9 +9,16 @@ import {
 } from "@react-pdf/renderer";
 import { BRAND } from "@/lib/pdf-utils";
 import { reshapeAr, fmtCurrency } from "@/lib/pdf-fonts";
-import type { InvoiceData, InvoiceTemplateConfig, InvoiceType } from "@/lib/zatca-invoice";
+import type {
+  InvoiceData,
+  InvoiceTemplateConfig,
+  InvoiceType,
+} from "@/lib/zatca-invoice";
 
-const INVOICE_TYPE_LABELS: Record<InvoiceType, { ar: string; en: string; color: string }> = {
+const INVOICE_TYPE_LABELS: Record<
+  InvoiceType,
+  { ar: string; en: string; color: string }
+> = {
   project: { ar: "طلب / مشروع", en: "Project", color: "#0f766e" },
   service: { ar: "خدمة", en: "Service", color: "#2563eb" },
   grant: { ar: "منحة / تبرع", en: "Grant", color: "#b59535" },
@@ -252,7 +259,8 @@ export const InvoiceDocument: React.FC<Props> = ({
   refNumber,
 }) => {
   const t = template;
-  const typeInfo = INVOICE_TYPE_LABELS[invoice.invoiceType] ?? INVOICE_TYPE_LABELS.other;
+  const typeInfo =
+    INVOICE_TYPE_LABELS[invoice.invoiceType] ?? INVOICE_TYPE_LABELS.other;
 
   const baseAmount = invoice.amount;
   const commission = invoice.commissionAmount;
@@ -270,8 +278,8 @@ export const InvoiceDocument: React.FC<Props> = ({
     invoice.invoiceType === "service"
       ? "الخدمة"
       : invoice.invoiceType === "grant"
-      ? "المنحة"
-      : "الطلب/المشروع";
+        ? "المنحة"
+        : "الطلب/المشروع";
 
   return (
     <Document>
@@ -288,10 +296,10 @@ export const InvoiceDocument: React.FC<Props> = ({
 
           {/* Header */}
           <View style={s.headerRow}>
-            <View style={{ alignItems: "center", flexDirection: "row", gap: 8 }}>
-              {logoBase64 ? (
-                <Image src={logoBase64} style={s.logo} />
-              ) : null}
+            <View
+              style={{ alignItems: "center", flexDirection: "row", gap: 8 }}
+            >
+              {logoBase64 ? <Image src={logoBase64} style={s.logo} /> : null}
               <View>
                 <Text style={s.companyName}>{t.company_name_en}</Text>
                 <Text style={s.companyNameAr}>{reshapeAr(t.company_name)}</Text>
@@ -308,11 +316,10 @@ export const InvoiceDocument: React.FC<Props> = ({
 
           {/* Seller info */}
           <View style={s.sellerBox}>
-            <Text style={s.sellerTitle}>
-              {reshapeAr("البائع")} / Seller
-            </Text>
+            <Text style={s.sellerTitle}>{reshapeAr("البائع")} / Seller</Text>
             <Text style={s.sellerLine}>
-              {reshapeAr("الاسم:")} {t.company_name_en} / {reshapeAr(t.company_name)}
+              {reshapeAr("الاسم:")} {t.company_name_en} /{" "}
+              {reshapeAr(t.company_name)}
             </Text>
             <Text style={s.sellerLine}>
               {reshapeAr("السجل التجاري:")} {t.cr_number}
@@ -336,7 +343,9 @@ export const InvoiceDocument: React.FC<Props> = ({
             </View>
             <View style={s.detailRow}>
               <Text style={s.detailLabel}>{reshapeAr("صادرة إلى:")}</Text>
-              <Text style={s.detailValue}>{reshapeAr(invoice.recipientName)}</Text>
+              <Text style={s.detailValue}>
+                {reshapeAr(invoice.recipientName)}
+              </Text>
             </View>
             <View style={s.detailRow}>
               <Text style={s.detailLabel}>{reshapeAr("نوع الفاتورة:")}</Text>
@@ -364,9 +373,15 @@ export const InvoiceDocument: React.FC<Props> = ({
 
           {/* Items table */}
           <View style={s.tableHeader}>
-            <Text style={[s.tableHeaderCell, { flex: 3 }]}>{reshapeAr("الوصف")}</Text>
-            <Text style={[s.tableHeaderCell, { flex: 2 }]}>{reshapeAr("المبلغ الأساسي")} (ر.س)</Text>
-            <Text style={[s.tableHeaderCell, { flex: 2 }]}>{reshapeAr("رسوم المنصة")} (ر.س)</Text>
+            <Text style={[s.tableHeaderCell, { flex: 3 }]}>
+              {reshapeAr("الوصف")}
+            </Text>
+            <Text style={[s.tableHeaderCell, { flex: 2 }]}>
+              {reshapeAr("المبلغ الأساسي")} (ر.س)
+            </Text>
+            <Text style={[s.tableHeaderCell, { flex: 2 }]}>
+              {reshapeAr("رسوم المنصة")} (ر.س)
+            </Text>
             <Text style={[s.tableHeaderCell, { flex: 2, borderRightWidth: 0 }]}>
               {reshapeAr("ضريبة")} 15% (ر.س)
             </Text>
@@ -375,9 +390,15 @@ export const InvoiceDocument: React.FC<Props> = ({
             <Text style={[s.tableCell, { flex: 3, textAlign: "right" }]}>
               {reshapeAr(invoice.linkedEntityName || invoice.projectTitle)}
             </Text>
-            <Text style={[s.tableCell, { flex: 2 }]}>{fmtCurrency(baseAmount)}</Text>
-            <Text style={[s.tableCell, { flex: 2 }]}>{fmtCurrency(commission)}</Text>
-            <Text style={[s.tableCell, { flex: 2, borderRightWidth: 0 }]}>{fmtCurrency(vat)}</Text>
+            <Text style={[s.tableCell, { flex: 2 }]}>
+              {fmtCurrency(baseAmount)}
+            </Text>
+            <Text style={[s.tableCell, { flex: 2 }]}>
+              {fmtCurrency(commission)}
+            </Text>
+            <Text style={[s.tableCell, { flex: 2, borderRightWidth: 0 }]}>
+              {fmtCurrency(vat)}
+            </Text>
           </View>
 
           <View style={s.divider} />
@@ -393,7 +414,9 @@ export const InvoiceDocument: React.FC<Props> = ({
               <Text style={s.totalValue}>{fmtCurrency(commission)} SAR</Text>
             </View>
             <View style={s.totalRow}>
-              <Text style={s.totalLabel}>{reshapeAr("ضريبة القيمة المضافة")} (15%):</Text>
+              <Text style={s.totalLabel}>
+                {reshapeAr("ضريبة القيمة المضافة")} (15%):
+              </Text>
               <Text style={s.totalValue}>{fmtCurrency(vat)} SAR</Text>
             </View>
             <View style={s.grandTotalRow}>
@@ -408,11 +431,18 @@ export const InvoiceDocument: React.FC<Props> = ({
           <View style={s.footerRow}>
             <View>
               <Text style={s.footerText}>{t.footer_text}</Text>
-              <Text style={s.footerAutoLabel}>{reshapeAr("فاتورة إلكترونية آلية")}</Text>
+              <Text style={s.footerAutoLabel}>
+                {reshapeAr("فاتورة إلكترونية آلية")}
+              </Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            >
               {logoBase64 ? (
-                <Image src={logoBase64} style={{ width: 14, height: 14, opacity: 0.6 }} />
+                <Image
+                  src={logoBase64}
+                  style={{ width: 14, height: 14, opacity: 0.6 }}
+                />
               ) : null}
               <Text style={s.footerBrand}>{t.company_name_en}</Text>
             </View>

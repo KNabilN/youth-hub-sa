@@ -20,25 +20,26 @@ export function useAdminFinancePending() {
     queryFn: async () => {
       const lastSeen = getInvoicesLastSeen();
 
-      const [escrowRes, withdrawalRes, transferRes, invoiceRes] = await Promise.all([
-        supabase
-          .from("escrow_transactions")
-          .select("id", { count: "exact", head: true })
-          .in("status", ["pending_payment", "under_review"]),
-        supabase
-          .from("withdrawal_requests")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "pending"),
-        supabase
-          .from("bank_transfers")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "pending"),
-        supabase
-          .from("invoices")
-          .select("id", { count: "exact", head: true })
-          .is("deleted_at", null)
-          .gt("created_at", lastSeen),
-      ]);
+      const [escrowRes, withdrawalRes, transferRes, invoiceRes] =
+        await Promise.all([
+          supabase
+            .from("escrow_transactions")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["pending_payment", "under_review"]),
+          supabase
+            .from("withdrawal_requests")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "pending"),
+          supabase
+            .from("bank_transfers")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "pending"),
+          supabase
+            .from("invoices")
+            .select("id", { count: "exact", head: true })
+            .is("deleted_at", null)
+            .gt("created_at", lastSeen),
+        ]);
 
       const escrow = escrowRes.count ?? 0;
       const withdrawals = withdrawalRes.count ?? 0;

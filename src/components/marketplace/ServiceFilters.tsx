@@ -1,9 +1,22 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
-import { Tag, MapPin, Layers, Search, DollarSign, Building2 } from "lucide-react";
+import {
+  Tag,
+  MapPin,
+  Layers,
+  Search,
+  DollarSign,
+  Building2,
+} from "lucide-react";
 
 interface Props {
   category: string;
@@ -23,8 +36,20 @@ interface Props {
 }
 
 export function ServiceFilters({
-  category, region, city, serviceType, searchQuery, priceMin, priceMax,
-  onCategoryChange, onRegionChange, onCityChange, onServiceTypeChange, onSearchChange, onPriceMinChange, onPriceMaxChange,
+  category,
+  region,
+  city,
+  serviceType,
+  searchQuery,
+  priceMin,
+  priceMax,
+  onCategoryChange,
+  onRegionChange,
+  onCityChange,
+  onServiceTypeChange,
+  onSearchChange,
+  onPriceMinChange,
+  onPriceMaxChange,
 }: Props) {
   const { data: categories } = useCategories();
   const { data: regions } = useRegions();
@@ -37,7 +62,7 @@ export function ServiceFilters({
         <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchQuery}
-          onChange={e => onSearchChange(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           placeholder="ابحث عن خدمة بالاسم أو الوصف..."
           className="pe-9 h-10"
         />
@@ -48,10 +73,16 @@ export function ServiceFilters({
         <div className="flex items-center gap-1.5">
           <Tag className="h-4 w-4 text-muted-foreground" />
           <Select value={category} onValueChange={onCategoryChange}>
-            <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="التصنيف" /></SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="التصنيف" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
-              {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              {categories?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -59,11 +90,23 @@ export function ServiceFilters({
         {/* Region */}
         <div className="flex items-center gap-1.5">
           <MapPin className="h-4 w-4 text-muted-foreground" />
-          <Select value={region} onValueChange={(v) => { onRegionChange(v); onCityChange("all"); }}>
-            <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المنطقة" /></SelectTrigger>
+          <Select
+            value={region}
+            onValueChange={(v) => {
+              onRegionChange(v);
+              onCityChange("all");
+            }}
+          >
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="المنطقة" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
-              {regions?.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+              {regions?.map((r) => (
+                <SelectItem key={r.id} value={r.id}>
+                  {r.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -73,10 +116,16 @@ export function ServiceFilters({
           <div className="flex items-center gap-1.5">
             <Building2 className="h-4 w-4 text-muted-foreground" />
             <Select value={city} onValueChange={onCityChange}>
-              <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="المدينة" /></SelectTrigger>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="المدينة" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
-                {cities?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {cities?.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -86,7 +135,9 @@ export function ServiceFilters({
         <div className="flex items-center gap-1.5">
           <Layers className="h-4 w-4 text-muted-foreground" />
           <Select value={serviceType} onValueChange={onServiceTypeChange}>
-            <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="النوع" /></SelectTrigger>
+            <SelectTrigger className="w-[130px] h-9">
+              <SelectValue placeholder="النوع" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الكل</SelectItem>
               <SelectItem value="fixed_price">سعر ثابت</SelectItem>
@@ -101,7 +152,7 @@ export function ServiceFilters({
           <Input
             type="number"
             value={priceMin}
-            onChange={e => onPriceMinChange(e.target.value)}
+            onChange={(e) => onPriceMinChange(e.target.value)}
             placeholder="من"
             className="w-[80px] h-9"
             min={0}
@@ -110,7 +161,7 @@ export function ServiceFilters({
           <Input
             type="number"
             value={priceMax}
-            onChange={e => onPriceMaxChange(e.target.value)}
+            onChange={(e) => onPriceMaxChange(e.target.value)}
             placeholder="إلى"
             className="w-[80px] h-9"
             min={0}

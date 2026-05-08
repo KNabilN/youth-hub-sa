@@ -11,7 +11,13 @@ interface AssociationCardProps {
   avatar_url?: string | null;
 }
 
-export function AssociationCard({ full_name, organization_name, bio, is_verified, avatar_url }: AssociationCardProps) {
+export function AssociationCard({
+  full_name,
+  organization_name,
+  bio,
+  is_verified,
+  avatar_url,
+}: AssociationCardProps) {
   const displayName = organization_name || full_name;
   const initials = displayName?.[0] ?? "؟";
 
@@ -24,7 +30,11 @@ export function AssociationCard({ full_name, organization_name, bio, is_verified
         <div className="flex items-start gap-3">
           <Avatar className="h-12 w-12 ring-2 ring-primary/10 shrink-0">
             {avatar_url ? (
-              <img src={avatar_url} alt={displayName} className="w-full h-full object-cover rounded-full" />
+              <img
+                src={avatar_url}
+                alt={displayName}
+                className="w-full h-full object-cover rounded-full"
+              />
             ) : (
               <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
                 {initials}
@@ -39,7 +49,9 @@ export function AssociationCard({ full_name, organization_name, bio, is_verified
               )}
             </div>
             {organization_name && (
-              <p className="text-xs text-muted-foreground truncate">{full_name}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {full_name}
+              </p>
             )}
           </div>
         </div>
@@ -50,12 +62,16 @@ export function AssociationCard({ full_name, organization_name, bio, is_verified
 
         <div className="flex items-center justify-between pt-1">
           {is_verified && (
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-xs">
+            <Badge
+              variant="outline"
+              className="bg-primary/5 text-primary border-primary/20 text-xs"
+            >
               موثقة
             </Badge>
           )}
           <span className="text-xs text-muted-foreground flex items-center gap-1 mr-auto group-hover:text-primary transition-colors">
-            عرض الملف <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
+            عرض الملف{" "}
+            <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
           </span>
         </div>
       </CardContent>

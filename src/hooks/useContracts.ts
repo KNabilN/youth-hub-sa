@@ -11,13 +11,18 @@ export function useContracts(filter = "all") {
     if (!user) return;
     const channel = supabase
       .channel(`rt-contracts-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "contracts" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contracts" },
         () => {
           qc.invalidateQueries({ queryKey: ["contracts"] });
           qc.invalidateQueries({ queryKey: ["contract"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -26,7 +31,9 @@ export function useContracts(filter = "all") {
     queryFn: async () => {
       let query = supabase
         .from("contracts")
-        .select("*, projects(title, status), profiles:provider_id(full_name, organization_name)")
+        .select(
+          "*, projects(title, status), profiles:provider_id(full_name, organization_name)",
+        )
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
@@ -37,11 +44,17 @@ export function useContracts(filter = "all") {
       }
 
       if (filter === "unsigned") {
-        query = query.is("association_signed_at", null).is("provider_signed_at", null);
+        query = query
+          .is("association_signed_at", null)
+          .is("provider_signed_at", null);
       } else if (filter === "partial") {
-        query = query.or("association_signed_at.not.is.null,provider_signed_at.not.is.null");
+        query = query.or(
+          "association_signed_at.not.is.null,provider_signed_at.not.is.null",
+        );
       } else if (filter === "signed") {
-        query = query.not("association_signed_at", "is", null).not("provider_signed_at", "is", null);
+        query = query
+          .not("association_signed_at", "is", null)
+          .not("provider_signed_at", "is", null);
       }
 
       const { data, error } = await query;
@@ -51,7 +64,7 @@ export function useContracts(filter = "all") {
         return (data ?? []).filter(
           (c: any) =>
             (c.association_signed_at && !c.provider_signed_at) ||
-            (!c.association_signed_at && c.provider_signed_at)
+            (!c.association_signed_at && c.provider_signed_at),
         );
       }
       return data ?? [];
@@ -62,7 +75,13 @@ export function useContracts(filter = "all") {
 export function useUpdateContractTerms() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ contractId, scope }: { contractId: string; scope: string }) => {
+    mutationFn: async ({
+      contractId,
+      scope,
+    }: {
+      contractId: string;
+      scope: string;
+    }) => {
       // Build structured terms with scope
       const terms = `نطاق العمل:\n${scope}`;
       const { error } = await supabase
@@ -83,7 +102,10 @@ export function useSignContract() {
   const { role } = useAuth();
   return useMutation({
     mutationFn: async (contractId: string) => {
-      const field = role === "youth_association" ? "association_signed_at" : "provider_signed_at";
+      const field =
+        role === "youth_association"
+          ? "association_signed_at"
+          : "provider_signed_at";
       const { error } = await supabase
         .from("contracts")
         .update({ [field]: new Date().toISOString() } as any)
@@ -94,7 +116,7 @@ export function useSignContract() {
         .from("contracts")
         .select("*")
         .eq("id", contractId)
-        .single();
+        .maybeSingle();
 
       if (!contract) return;
 
@@ -105,7 +127,11 @@ export function useSignContract() {
           .eq("project_id", contract.project_id)
           .maybeSingle();
 
-        if (existingEscrow && (existingEscrow.status === "held" || existingEscrow.status === "pending_payment")) {
+        if (
+          existingEscrow &&
+          (existingEscrow.status === "held" ||
+            existingEscrow.status === "pending_payment")
+        ) {
           await supabase
             .from("projects")
             .update({ status: "in_progress" as any })
@@ -127,7 +153,9 @@ export function useSignContract() {
               status: "held",
             });
           } else {
-            throw new Error("لم يتم العثور على عرض سعر مقبول لإنشاء الضمان المالي. يرجى التأكد من قبول عرض سعر قبل توقيع العقد.");
+            throw new Error(
+              "لم يتم العثور على عرض سعر مقبول لإنشاء الضمان المالي. يرجى التأكد من قبول عرض سعر قبل توقيع العقد.",
+            );
           }
         }
       }
@@ -151,7 +179,7 @@ export function useProviderContract(bidId: string | undefined) {
         .from("bids")
         .select("project_id, provider_id")
         .eq("id", bidId!)
-        .single();
+        .maybeSingle();
       if (!bid) return null;
 
       const { data } = await supabase

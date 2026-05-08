@@ -1,5 +1,10 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useNotifications, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useDeleteNotification,
+} from "@/hooks/useNotifications";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,11 +27,18 @@ export default function Notifications() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">الإشعارات</h1>
-              <p className="text-sm text-muted-foreground">تابع جميع التحديثات والتنبيهات</p>
+              <p className="text-sm text-muted-foreground">
+                تابع جميع التحديثات والتنبيهات
+              </p>
             </div>
           </div>
           {(notifications?.length ?? 0) > 0 && (
-            <Button variant="outline" size="sm" onClick={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllAsRead.mutate()}
+              disabled={markAllAsRead.isPending}
+            >
               <CheckCheck className="h-4 w-4 me-2" />
               تحديد الكل كمقروء
             </Button>
@@ -41,7 +53,11 @@ export default function Notifications() {
             ))}
           </div>
         ) : !notifications?.length ? (
-          <EmptyState icon={Bell} title="لا توجد إشعارات" description="ستظهر إشعاراتك هنا عند حدوث تحديثات" />
+          <EmptyState
+            icon={Bell}
+            title="لا توجد إشعارات"
+            description="ستظهر إشعاراتك هنا عند حدوث تحديثات"
+          />
         ) : (
           <div className="space-y-2">
             {notifications.map((n) => (

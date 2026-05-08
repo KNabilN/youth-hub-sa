@@ -393,7 +393,9 @@ export const ReportDocument: React.FC<Props> = ({
 
         <Text style={s.coverRefLabel}>{reshapeAr("الرقم المرجعي")}</Text>
         <Text style={s.coverRefValue}>{refNumber}</Text>
-        <Text style={s.coverDate}>{reshapeAr(`تاريخ الإصدار: ${generatedAt}`)}</Text>
+        <Text style={s.coverDate}>
+          {reshapeAr(`تاريخ الإصدار: ${generatedAt}`)}
+        </Text>
 
         <View style={s.coverGoldBarBottom} />
       </Page>
@@ -409,10 +411,14 @@ export const ReportDocument: React.FC<Props> = ({
                 {reshapeAr("وثيقة رسمية")} — {reshapeAr("سري")}
               </Text>
               <Text style={s.headerTitle}>{reshapeAr(title)}</Text>
-              <Text style={s.headerMeta}>{reshapeAr(`الفترة: ${dateStr}`)}</Text>
+              <Text style={s.headerMeta}>
+                {reshapeAr(`الفترة: ${dateStr}`)}
+              </Text>
               <Text style={[s.headerMeta, { fontSize: 8 }]}>{refNumber}</Text>
             </View>
-            {logoBase64 ? <Image src={logoBase64} style={s.headerLogo} /> : null}
+            {logoBase64 ? (
+              <Image src={logoBase64} style={s.headerLogo} />
+            ) : null}
           </View>
         </View>
 
@@ -431,19 +437,21 @@ export const ReportDocument: React.FC<Props> = ({
         {/* Charts - 2 per row */}
         {chartImages &&
           chartImages.length > 0 &&
-          Array.from({ length: Math.ceil(chartImages.length / 2) }).map((_, rowIdx) => {
-            const pair = chartImages.slice(rowIdx * 2, rowIdx * 2 + 2);
-            return (
-              <View key={rowIdx} style={s.chartsRow} wrap={false}>
-                {pair.map((chart, ci) => (
-                  <View key={ci} style={s.chartCard}>
-                    <Text style={s.chartTitle}>{reshapeAr(chart.title)}</Text>
-                    <Image src={chart.imageDataUrl} style={s.chartImage} />
-                  </View>
-                ))}
-              </View>
-            );
-          })}
+          Array.from({ length: Math.ceil(chartImages.length / 2) }).map(
+            (_, rowIdx) => {
+              const pair = chartImages.slice(rowIdx * 2, rowIdx * 2 + 2);
+              return (
+                <View key={rowIdx} style={s.chartsRow} wrap={false}>
+                  {pair.map((chart, ci) => (
+                    <View key={ci} style={s.chartCard}>
+                      <Text style={s.chartTitle}>{reshapeAr(chart.title)}</Text>
+                      <Image src={chart.imageDataUrl} style={s.chartImage} />
+                    </View>
+                  ))}
+                </View>
+              );
+            },
+          )}
 
         {/* Data Tables */}
         {sections.map((section, si) => (
@@ -492,10 +500,16 @@ export const ReportDocument: React.FC<Props> = ({
                 {reshapeAr(`تاريخ الإصدار: ${generatedAt}`)}
               </Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              {logoBase64 ? <Image src={logoBase64} style={s.footerSmallLogo} /> : null}
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            >
+              {logoBase64 ? (
+                <Image src={logoBase64} style={s.footerSmallLogo} />
+              ) : null}
               <View>
-                <Text style={s.footerBrandLabel}>{reshapeAr("تقرير صادر من")}</Text>
+                <Text style={s.footerBrandLabel}>
+                  {reshapeAr("تقرير صادر من")}
+                </Text>
                 <Text style={s.footerBrand}>YouthHubSA</Text>
               </View>
             </View>
@@ -506,7 +520,9 @@ export const ReportDocument: React.FC<Props> = ({
         {/* Page number */}
         <Text
           style={s.pageNumber}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          render={({ pageNumber, totalPages }) =>
+            `${pageNumber} / ${totalPages}`
+          }
           fixed
         />
       </Page>

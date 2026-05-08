@@ -25,7 +25,7 @@ export function useHypotheses() {
         .select("*")
         .order("hypothesis_number");
       if (error) throw error;
-      return (data as any[]) as Hypothesis[];
+      return data as any[] as Hypothesis[];
     },
   });
 }
@@ -44,7 +44,9 @@ export function useUpdateHypothesis() {
       actual_value?: string;
       admin_notes?: string;
     }) => {
-      const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+      const updates: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
       if (status !== undefined) updates.status = status;
       if (actual_value !== undefined) updates.actual_value = actual_value;
       if (admin_notes !== undefined) updates.admin_notes = admin_notes;
@@ -58,4 +60,3 @@ export function useUpdateHypothesis() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["hypotheses"] }),
   });
 }
-

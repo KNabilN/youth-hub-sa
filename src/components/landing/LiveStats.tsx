@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Users, Store, FolderKanban, CheckCircle, Star, FileText, Award } from "lucide-react";
+import {
+  Users,
+  Store,
+  FolderKanban,
+  CheckCircle,
+  Star,
+  FileText,
+  Award,
+} from "lucide-react";
 
 interface StatItem {
   key: string;
@@ -10,16 +18,24 @@ interface StatItem {
 }
 
 interface LiveStatsProps {
-  stats: {
-    providers: number;
-    associations: number;
-    completed_projects: number;
-    approved_services: number;
-  } | undefined;
+  stats:
+    | {
+        providers: number;
+        associations: number;
+        completed_projects: number;
+        approved_services: number;
+      }
+    | undefined;
   loading: boolean;
 }
 
-function AnimatedCounter({ target, duration = 1500 }: { target: number; duration?: number }) {
+function AnimatedCounter({
+  target,
+  duration = 1500,
+}: {
+  target: number;
+  duration?: number;
+}) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -40,18 +56,26 @@ function AnimatedCounter({ target, duration = 1500 }: { target: number; duration
           requestAnimationFrame(step);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [target, duration]);
 
-  return <div ref={ref} className="text-3xl md:text-4xl font-bold gradient-text">{count}+</div>;
+  return (
+    <div ref={ref} className="text-3xl md:text-4xl font-bold gradient-text">
+      {count}+
+    </div>
+  );
 }
 
 const fixedStats: StatItem[] = [];
 
-const liveStatItems: { key: keyof LiveStatsProps["stats"] & string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const liveStatItems: {
+  key: keyof LiveStatsProps["stats"] & string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { key: "providers", label: "مقدم خدمة", icon: Users },
   { key: "associations", label: "جمعية مسجلة", icon: FolderKanban },
   { key: "completed_projects", label: "طلب مكتمل", icon: CheckCircle },

@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useDisputeResponses, useCreateDisputeResponse } from "@/hooks/useDisputeResponses";
+import {
+  useDisputeResponses,
+  useCreateDisputeResponse,
+} from "@/hooks/useDisputeResponses";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,21 +15,29 @@ import { toast } from "sonner";
 import { DisputeTimeline } from "@/components/disputes/DisputeTimeline";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface DisputeResponseThreadProps {
   disputeId: string;
   disputeStatus: string;
 }
 
-export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeResponseThreadProps) {
+export function DisputeResponseThread({
+  disputeId,
+  disputeStatus,
+}: DisputeResponseThreadProps) {
   const { data: responses, isLoading } = useDisputeResponses(disputeId);
   const createResponse = useCreateDisputeResponse();
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [showUploader, setShowUploader] = useState(false);
 
-  const canRespond = disputeStatus === "open" || disputeStatus === "under_review";
+  const canRespond =
+    disputeStatus === "open" || disputeStatus === "under_review";
 
   const handleSubmit = () => {
     if (!message.trim()) return;
@@ -38,7 +49,7 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
           toast.success("تم إرسال الرد");
         },
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -56,9 +67,13 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
 
         {/* Responses */}
         {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-4">جارٍ التحميل...</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            جارٍ التحميل...
+          </p>
         ) : responses?.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">لا توجد ردود بعد</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            لا توجد ردود بعد
+          </p>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {responses?.map((r: any) => (
@@ -68,7 +83,9 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarFallback className="text-xs">
-                    {r.profiles?.organization_name?.charAt(0) || r.profiles?.full_name?.charAt(0) || "؟"}
+                    {r.profiles?.organization_name?.charAt(0) ||
+                      r.profiles?.full_name?.charAt(0) ||
+                      "؟"}
                   </AvatarFallback>
                 </Avatar>
                 <div
@@ -79,11 +96,15 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
                   }`}
                 >
                   <p className="font-medium text-xs mb-1 opacity-80">
-                    {r.profiles?.organization_name || r.profiles?.full_name || "مستخدم"}
+                    {r.profiles?.organization_name ||
+                      r.profiles?.full_name ||
+                      "مستخدم"}
                   </p>
                   <p>{r.message}</p>
                   <p className="text-[10px] opacity-60 mt-1">
-                    {format(new Date(r.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+                    {format(new Date(r.created_at), "yyyy/MM/dd HH:mm", {
+                      locale: ar,
+                    })}
                   </p>
                 </div>
               </div>
@@ -101,7 +122,9 @@ export function DisputeResponseThread({ disputeId, disputeStatus }: DisputeRespo
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-3">
             <AttachmentList entityType="dispute" entityId={disputeId} />
-            {canRespond && <FileUploader entityType="dispute" entityId={disputeId} />}
+            {canRespond && (
+              <FileUploader entityType="dispute" entityId={disputeId} />
+            )}
           </CollapsibleContent>
         </Collapsible>
 

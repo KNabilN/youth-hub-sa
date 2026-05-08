@@ -22,14 +22,22 @@ export function useCreateDisputeResponse() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ disputeId, message }: { disputeId: string; message: string }) => {
+    mutationFn: async ({
+      disputeId,
+      message,
+    }: {
+      disputeId: string;
+      message: string;
+    }) => {
       const { error } = await supabase
         .from("dispute_responses" as any)
         .insert({ dispute_id: disputeId, author_id: user!.id, message } as any);
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ["dispute-responses", variables.disputeId] });
+      qc.invalidateQueries({
+        queryKey: ["dispute-responses", variables.disputeId],
+      });
     },
   });
 }

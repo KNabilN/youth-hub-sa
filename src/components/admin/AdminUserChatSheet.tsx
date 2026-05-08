@@ -1,5 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Shield } from "lucide-react";
@@ -25,7 +30,10 @@ export function AdminUserChatSheet({ open, onOpenChange, user }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-full sm:max-w-[480px] p-0 flex flex-col">
+      <SheetContent
+        side="left"
+        className="w-full sm:max-w-[480px] p-0 flex flex-col"
+      >
         <SheetHeader className="p-4 border-b bg-card space-y-3">
           <SheetTitle className="flex items-center gap-2 text-base">
             <Shield className="h-4 w-4 text-primary" />
@@ -39,7 +47,9 @@ export function AdminUserChatSheet({ open, onOpenChange, user }: Props) {
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{displayName}</p>
               {user.user_number && (
-                <p className="text-xs text-muted-foreground font-mono">{user.user_number}</p>
+                <p className="text-xs text-muted-foreground font-mono">
+                  {user.user_number}
+                </p>
               )}
             </div>
             <Button

@@ -81,7 +81,6 @@ export function useAdminUserTimeLogs(userId: string | null) {
   });
 }
 
-
 export function useAdminUserDonations(userId: string | null) {
   return useQuery({
     queryKey: ["admin-user-donations", userId],
@@ -89,7 +88,9 @@ export function useAdminUserDonations(userId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("*, projects(title), micro_services(title), profiles:association_id(full_name, organization_name)")
+        .select(
+          "*, projects(title), micro_services(title), profiles:association_id(full_name, organization_name)",
+        )
         .eq("donor_id", userId!)
         .order("created_at", { ascending: false });
       if (error) throw error;

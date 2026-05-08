@@ -5,12 +5,32 @@ import { useSignContract } from "@/hooks/useContracts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, FileText, FolderKanban, Filter, DollarSign, CalendarDays, ChevronDown, ExternalLink, MessageSquare } from "lucide-react";
+import {
+  Check,
+  FileText,
+  FolderKanban,
+  Filter,
+  DollarSign,
+  CalendarDays,
+  ChevronDown,
+  ExternalLink,
+  MessageSquare,
+} from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
@@ -19,11 +39,34 @@ import { PaginationControls } from "@/components/PaginationControls";
 import { useAuth } from "@/hooks/useAuth";
 import { useListHighlight } from "@/hooks/useListHighlight";
 
-const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; border: string }> = {
-  pending: { label: "قيد المراجعة", variant: "secondary", border: "border-e-4 border-yellow-500" },
-  accepted: { label: "مقبول", variant: "default", border: "border-e-4 border-emerald-500" },
-  rejected: { label: "مرفوض", variant: "destructive", border: "border-e-4 border-red-500" },
-  withdrawn: { label: "تم السحب", variant: "outline", border: "border-e-4 border-muted-foreground/40" },
+const statusLabels: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    border: string;
+  }
+> = {
+  pending: {
+    label: "قيد المراجعة",
+    variant: "secondary",
+    border: "border-e-4 border-warning/30",
+  },
+  accepted: {
+    label: "مقبول",
+    variant: "default",
+    border: "border-e-4 border-success/30",
+  },
+  rejected: {
+    label: "مرفوض",
+    variant: "destructive",
+    border: "border-e-4 border-destructive/30",
+  },
+  withdrawn: {
+    label: "تم السحب",
+    variant: "outline",
+    border: "border-e-4 border-muted-foreground/40",
+  },
 };
 
 export default function MyBids() {
@@ -100,7 +143,9 @@ export default function MyBids() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">عروضي</h1>
-            <p className="text-sm text-muted-foreground">تابع حالة عروضك المقدمة على الطلبات</p>
+            <p className="text-sm text-muted-foreground">
+              تابع حالة عروضك المقدمة على الطلبات
+            </p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -109,8 +154,16 @@ export default function MyBids() {
         <Card className="bg-muted/30 border-dashed">
           <CardContent className="flex items-center gap-3 p-4">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={filter} onValueChange={(v) => { setFilter(v); pagination.resetPage(); }}>
-              <SelectTrigger className="w-48 bg-background"><SelectValue /></SelectTrigger>
+            <Select
+              value={filter}
+              onValueChange={(v) => {
+                setFilter(v);
+                pagination.resetPage();
+              }}
+            >
+              <SelectTrigger className="w-48 bg-background">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع الحالات</SelectItem>
                 <SelectItem value="pending">قيد المراجعة</SelectItem>
@@ -119,30 +172,59 @@ export default function MyBids() {
                 <SelectItem value="withdrawn">تم السحب</SelectItem>
               </SelectContent>
             </Select>
-            {allBids && <span className="text-xs text-muted-foreground ms-auto">{allBids.length} عرض</span>}
+            {allBids && (
+              <span className="text-xs text-muted-foreground ms-auto">
+                {allBids.length} عرض
+              </span>
+            )}
           </CardContent>
         </Card>
 
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
           </div>
         ) : !allBids?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد عروض" description="تصفح الطلبات المتاحة وقدم عرضك الأول" actionLabel="تصفح الطلبات" actionHref="/available-projects" />
+          <EmptyState
+            icon={FolderKanban}
+            title="لا توجد عروض"
+            description="تصفح الطلبات المتاحة وقدم عرضك الأول"
+            actionLabel="تصفح الطلبات"
+            actionHref="/available-projects"
+          />
         ) : (
           <div className="space-y-3">
             {bids?.map((bid: any) => {
               const st = statusLabels[bid.status] ?? statusLabels.pending;
-              const contract = bid.status === "accepted" ? getContract(bid.project_id) : null;
+              const contract =
+                bid.status === "accepted" ? getContract(bid.project_id) : null;
               const needsSign = contract && !contract.provider_signed_at;
               const bidComments = commentCounts?.[bid.id] ?? 0;
               return (
-                <Card key={bid.id} id={`row-${bid.id}`} className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}>
+                <Card
+                  key={bid.id}
+                  id={`row-${bid.id}`}
+                  className={`card-hover ${st.border} ${needsSign ? "ring-1 ring-primary/30 bg-primary/[0.02]" : ""}`}
+                >
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <CardTitle className="text-base">{bid.projects?.title ?? "—"}</CardTitle>
-                        <button onClick={() => saveAndNavigate(bid.id, `/available-projects/${bid.project_id}`, pagination.page)} className="text-muted-foreground hover:text-primary transition-colors" title="عرض المشروع">
+                        <CardTitle className="text-base">
+                          {bid.projects?.title ?? "—"}
+                        </CardTitle>
+                        <button
+                          onClick={() =>
+                            saveAndNavigate(
+                              bid.id,
+                              `/available-projects/${bid.project_id}`,
+                              pagination.page,
+                            )
+                          }
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                          title="عرض المشروع"
+                        >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -153,7 +235,8 @@ export default function MyBids() {
                     <div className="flex items-center gap-2">
                       {bidComments > 0 && (
                         <Badge variant="outline" className="gap-1 text-xs">
-                          <MessageSquare className="h-3 w-3" />{bidComments}
+                          <MessageSquare className="h-3 w-3" />
+                          {bidComments}
                         </Badge>
                       )}
                       <Badge variant={st.variant}>{st.label}</Badge>
@@ -163,26 +246,40 @@ export default function MyBids() {
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <div className="flex gap-3">
                         <span className="inline-flex items-center gap-1 text-sm bg-muted px-2.5 py-1 rounded-md">
-                          <DollarSign className="h-3.5 w-3.5 text-primary" />{bid.price} ر.س
+                          <DollarSign className="h-3.5 w-3.5 text-primary" />
+                          {bid.price} ر.س
                         </span>
                         <span className="inline-flex items-center gap-1 text-sm bg-muted px-2.5 py-1 rounded-md">
-                          <CalendarDays className="h-3.5 w-3.5 text-primary" />{bid.timeline_days} يوم
+                          <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                          {bid.timeline_days} يوم
                         </span>
                       </div>
                       <div className="flex gap-2">
                         {bid.status === "pending" && (
-                          <Button variant="outline" size="sm" onClick={() => handleWithdraw(bid.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleWithdraw(bid.id)}
+                          >
                             سحب العرض
                           </Button>
                         )}
                         {needsSign && (
-                          <Button size="sm" onClick={() => handleSign(contract.id)} disabled={signContract.isPending} className="bg-gradient-to-l from-primary to-primary/90 shadow-md">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSign(contract.id)}
+                            disabled={signContract.isPending}
+                            className="bg-gradient-to-l from-primary to-primary/90 shadow-md"
+                          >
                             <Check className="h-4 w-4 me-1" />
                             توقيع العقد
                           </Button>
                         )}
                         {contract?.provider_signed_at && (
-                          <Badge variant="outline" className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                          <Badge
+                            variant="outline"
+                            className="flex items-center gap-1 bg-success/10 text-success border-success/30/30"
+                          >
                             <FileText className="h-3 w-3" />
                             تم التوقيع
                           </Badge>

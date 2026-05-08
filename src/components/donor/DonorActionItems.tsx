@@ -27,7 +27,9 @@ export function DonorActionItems() {
     queryKey: ["donor-new-impact-reports", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const weekAgo = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
       const { count, error } = await supabase
         .from("impact_reports")
         .select("id", { count: "exact", head: true })
@@ -39,8 +41,20 @@ export function DonorActionItems() {
   });
 
   const items = [
-    { icon: Inbox, label: "طلبات واردة بانتظار الرد", count: pendingRequests ?? 0, to: "/my-grant-requests", color: "text-primary" },
-    { icon: BarChart3, label: "تقارير أثر جديدة", count: newReports ?? 0, to: "/impact-reports", color: "text-success" },
+    {
+      icon: Inbox,
+      label: "طلبات واردة بانتظار الرد",
+      count: pendingRequests ?? 0,
+      to: "/my-grant-requests",
+      color: "text-primary",
+    },
+    {
+      icon: BarChart3,
+      label: "تقارير أثر جديدة",
+      count: newReports ?? 0,
+      to: "/impact-reports",
+      color: "text-success",
+    },
   ];
 
   const active = items.filter((i) => i.count > 0);
@@ -53,11 +67,19 @@ export function DonorActionItems() {
       <AlertDescription>
         <div className="flex flex-wrap gap-2 mt-2">
           {active.map((item) => (
-            <Button key={item.label} variant="outline" size="sm" asChild className="gap-1.5 h-8">
+            <Button
+              key={item.label}
+              variant="outline"
+              size="sm"
+              asChild
+              className="gap-1.5 h-8"
+            >
               <Link to={item.to}>
                 <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
                 <span>{item.label}</span>
-                <span className="bg-destructive/10 text-destructive rounded-full px-1.5 text-xs font-bold">{item.count}</span>
+                <span className="bg-destructive/10 text-destructive rounded-full px-1.5 text-xs font-bold">
+                  {item.count}
+                </span>
               </Link>
             </Button>
           ))}

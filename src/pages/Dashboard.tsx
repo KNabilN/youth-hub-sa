@@ -16,8 +16,20 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  FolderKanban, Users, Receipt, BarChart3, HandCoins, ClipboardList, Gavel, Layers, Star, CalendarDays, Wallet,
-  Clock, FileSignature, AlertCircle,
+  FolderKanban,
+  Users,
+  Receipt,
+  BarChart3,
+  HandCoins,
+  ClipboardList,
+  Gavel,
+  Layers,
+  Star,
+  CalendarDays,
+  Wallet,
+  Clock,
+  FileSignature,
+  AlertCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { JourneyBoard } from "@/components/dashboard/JourneyBoard";
@@ -42,27 +54,55 @@ interface StatItem {
 }
 
 function StatCard({ stat, index }: { stat: StatItem; index: number }) {
-  const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-    primary: { bg: "bg-primary/10", text: "text-primary", border: "border-s-primary" },
-    warning: { bg: "bg-warning/10", text: "text-warning", border: "border-s-warning" },
-    info: { bg: "bg-info/10", text: "text-info", border: "border-s-info" },
-    success: { bg: "bg-success/10", text: "text-success", border: "border-s-success" },
-    accent: { bg: "bg-accent/10", text: "text-accent-foreground", border: "border-s-accent" },
-    destructive: { bg: "bg-destructive/10", text: "text-destructive", border: "border-s-destructive" },
-  };
+  const colorMap: Record<string, { bg: string; text: string; border: string }> =
+    {
+      primary: {
+        bg: "bg-primary/10",
+        text: "text-primary",
+        border: "border-s-primary",
+      },
+      warning: {
+        bg: "bg-warning/10",
+        text: "text-warning",
+        border: "border-s-warning",
+      },
+      info: { bg: "bg-info/10", text: "text-info", border: "border-s-info" },
+      success: {
+        bg: "bg-success/10",
+        text: "text-success",
+        border: "border-s-success",
+      },
+      accent: {
+        bg: "bg-accent/10",
+        text: "text-accent-foreground",
+        border: "border-s-accent",
+      },
+      destructive: {
+        bg: "bg-destructive/10",
+        text: "text-destructive",
+        border: "border-s-destructive",
+      },
+    };
   const c = colorMap[stat.color] || colorMap.primary;
 
   return (
-    <Card className={cn(
-      "card-hover border-s-4 animate-fade-in",
-      c.border,
-      `stagger-${index + 1}`
-    )} style={{ animationFillMode: 'both' }}>
+    <Card
+      className={cn(
+        "card-hover border-s-4 animate-fade-in",
+        c.border,
+        `stagger-${index + 1}`,
+      )}
+      style={{ animationFillMode: "both" }}
+    >
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-center sm:items-start justify-between gap-2">
           <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
-            <p className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight">{stat.value}</p>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+              {stat.title}
+            </p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight">
+              {stat.value}
+            </p>
           </div>
           <div className={cn("p-2 sm:p-3 rounded-xl shrink-0", c.bg)}>
             <stat.icon className={cn("h-5 w-5 sm:h-6 sm:w-6", c.text)} />
@@ -73,11 +113,21 @@ function StatCard({ stat, index }: { stat: StatItem; index: number }) {
   );
 }
 
-function StatsGrid({ items, isLoading }: { items: StatItem[]; isLoading: boolean }) {
+function StatsGrid({
+  items,
+  isLoading,
+}: {
+  items: StatItem[];
+  isLoading: boolean;
+}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
       {items.map((stat, i) => (
-        <StatCard key={stat.title} stat={{ ...stat, value: isLoading ? "..." : stat.value }} index={i} />
+        <StatCard
+          key={stat.title}
+          stat={{ ...stat, value: isLoading ? "..." : stat.value }}
+          index={i}
+        />
       ))}
     </div>
   );
@@ -87,11 +137,36 @@ function AssociationDashboard() {
   const { data: stats, isLoading } = useProjectStats();
   const { data: grantStats } = useAssociationGrantStats();
   const items: StatItem[] = [
-    { title: "إجمالي الطلبات", value: stats?.totalRequests ?? 0, icon: Layers, color: "accent" },
-    { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
-    { title: "إجمالي المنح", value: `${(grantStats?.totalGrants ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "info" },
-    { title: "رصيد المنح المتبقي", value: `${(grantStats?.availableBalance ?? 0).toLocaleString()} ر.س`, icon: Wallet, color: "success" },
-    { title: "العقود الجارية", value: stats?.activeContracts ?? 0, icon: Receipt, color: "warning" },
+    {
+      title: "إجمالي الطلبات",
+      value: stats?.totalRequests ?? 0,
+      icon: Layers,
+      color: "accent",
+    },
+    {
+      title: "المشاريع النشطة",
+      value: stats?.activeProjects ?? 0,
+      icon: FolderKanban,
+      color: "primary",
+    },
+    {
+      title: "إجمالي المنح",
+      value: `${(grantStats?.totalGrants ?? 0).toLocaleString()} ر.س`,
+      icon: HandCoins,
+      color: "info",
+    },
+    {
+      title: "رصيد المنح المتبقي",
+      value: `${(grantStats?.availableBalance ?? 0).toLocaleString()} ر.س`,
+      icon: Wallet,
+      color: "success",
+    },
+    {
+      title: "العقود الجارية",
+      value: stats?.activeContracts ?? 0,
+      icon: Receipt,
+      color: "warning",
+    },
   ];
   return <StatsGrid items={items} isLoading={isLoading} />;
 }
@@ -99,11 +174,36 @@ function AssociationDashboard() {
 function ProviderDashboard() {
   const { data: stats, isLoading } = useProviderStats();
   const items: StatItem[] = [
-    { title: "المشاريع النشطة", value: stats?.activeProjects ?? 0, icon: FolderKanban, color: "primary" },
-    { title: "خدماتي", value: stats?.servicesCount ?? 0, icon: Layers, color: "info" },
-    { title: "العروض المقدمة", value: stats?.activeBids ?? 0, icon: ClipboardList, color: "warning" },
-    { title: "إجمالي الأرباح", value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`, icon: Receipt, color: "success" },
-    { title: "ساعات هذا الشهر", value: stats?.hoursThisMonth ?? 0, icon: Clock, color: "accent" },
+    {
+      title: "المشاريع النشطة",
+      value: stats?.activeProjects ?? 0,
+      icon: FolderKanban,
+      color: "primary",
+    },
+    {
+      title: "خدماتي",
+      value: stats?.servicesCount ?? 0,
+      icon: Layers,
+      color: "info",
+    },
+    {
+      title: "العروض المقدمة",
+      value: stats?.activeBids ?? 0,
+      icon: ClipboardList,
+      color: "warning",
+    },
+    {
+      title: "إجمالي الأرباح",
+      value: `${(stats?.totalEarnings ?? 0).toLocaleString()} ر.س`,
+      icon: Receipt,
+      color: "success",
+    },
+    {
+      title: "ساعات هذا الشهر",
+      value: stats?.hoursThisMonth ?? 0,
+      icon: Clock,
+      color: "accent",
+    },
   ];
   return <StatsGrid items={items} isLoading={isLoading} />;
 }
@@ -142,9 +242,15 @@ function ProviderActionItems() {
   });
 
   const { data: deliverableAlerts } = useProviderDeliverableAlerts();
-  const revisionAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "revision_requested");
-  const awaitingAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "awaiting_submission");
-  const pendingReviewAlerts = (deliverableAlerts ?? []).filter((a) => a.state === "pending_review");
+  const revisionAlerts = (deliverableAlerts ?? []).filter(
+    (a) => a.state === "revision_requested",
+  );
+  const awaitingAlerts = (deliverableAlerts ?? []).filter(
+    (a) => a.state === "awaiting_submission",
+  );
+  const pendingReviewAlerts = (deliverableAlerts ?? []).filter(
+    (a) => a.state === "pending_review",
+  );
 
   if (
     !unsignedContracts?.length &&
@@ -152,19 +258,27 @@ function ProviderActionItems() {
     !revisionAlerts.length &&
     !awaitingAlerts.length &&
     !pendingReviewAlerts.length
-  ) return null;
+  )
+    return null;
 
   return (
     <div className="space-y-2">
       {/* Highest priority: revisions requested */}
       {revisionAlerts.map((a) => (
-        <Alert key={`rev-${a.project_id}`} className="border-destructive bg-destructive/5 animate-fade-in">
+        <Alert
+          key={`rev-${a.project_id}`}
+          className="border-destructive bg-destructive/5 animate-fade-in"
+        >
           <RotateCcw className="h-4 w-4 text-destructive" />
           <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
             <span className="text-sm">
-              مطلوب تعديلات على تسليمك في مشروع: <strong>{a.project_title}</strong>
+              مطلوب تعديلات على تسليمك في مشروع:{" "}
+              <strong>{a.project_title}</strong>
             </span>
-            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+            <Link
+              to={`/projects/${a.project_id}?tab=deliverables`}
+              className="text-sm font-medium text-primary underline shrink-0"
+            >
               فتح صفحة التسليمات
             </Link>
           </AlertDescription>
@@ -173,13 +287,19 @@ function ProviderActionItems() {
 
       {/* Awaiting submission */}
       {awaitingAlerts.map((a) => (
-        <Alert key={`new-${a.project_id}`} className="border-warning bg-warning/5 animate-fade-in">
+        <Alert
+          key={`new-${a.project_id}`}
+          className="border-warning bg-warning/5 animate-fade-in"
+        >
           <PackageCheck className="h-4 w-4 text-warning" />
           <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
             <span className="text-sm">
               مشروع بانتظار تسليمك: <strong>{a.project_title}</strong>
             </span>
-            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+            <Link
+              to={`/projects/${a.project_id}?tab=deliverables`}
+              className="text-sm font-medium text-primary underline shrink-0"
+            >
               تقديم التسليمات
             </Link>
           </AlertDescription>
@@ -188,13 +308,19 @@ function ProviderActionItems() {
 
       {/* Informational: pending review */}
       {pendingReviewAlerts.map((a) => (
-        <Alert key={`pend-${a.project_id}`} className="border-info bg-info/5 animate-fade-in">
+        <Alert
+          key={`pend-${a.project_id}`}
+          className="border-info bg-info/5 animate-fade-in"
+        >
           <Clock className="h-4 w-4 text-info" />
           <AlertDescription className="flex items-center justify-between gap-2 flex-wrap">
             <span className="text-sm">
               تسليمك بانتظار مراجعة الجمعية: <strong>{a.project_title}</strong>
             </span>
-            <Link to={`/projects/${a.project_id}?tab=deliverables`} className="text-sm font-medium text-primary underline shrink-0">
+            <Link
+              to={`/projects/${a.project_id}?tab=deliverables`}
+              className="text-sm font-medium text-primary underline shrink-0"
+            >
               عرض التفاصيل
             </Link>
           </AlertDescription>
@@ -206,7 +332,12 @@ function ProviderActionItems() {
           <FileSignature className="h-4 w-4 text-primary" />
           <AlertDescription className="flex items-center justify-between">
             <span>لديك {unsignedContracts!.length} عقود بحاجة إلى توقيعك</span>
-            <Link to="/my-bids" className="text-sm font-medium text-primary underline">عرض العروض</Link>
+            <Link
+              to="/my-bids"
+              className="text-sm font-medium text-primary underline"
+            >
+              عرض العروض
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -215,7 +346,12 @@ function ProviderActionItems() {
           <AlertCircle className="h-4 w-4 text-warning" />
           <AlertDescription className="flex items-center justify-between">
             <span>{pendingWithdrawals} طلب سحب قيد المراجعة</span>
-            <Link to="/earnings" className="text-sm font-medium text-primary underline">المعاملات</Link>
+            <Link
+              to="/earnings"
+              className="text-sm font-medium text-primary underline"
+            >
+              المعاملات
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -227,10 +363,30 @@ function DonorDashboard() {
   const { data: stats, isLoading } = useDonorStats();
   const { data: reportsCount } = useImpactReportsCount();
   const items: StatItem[] = [
-    { title: "الجمعيات المدعومة", value: stats?.associationsSupported ?? 0, icon: Users, color: "primary" },
-    { title: "إجمالي المنح", value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`, icon: HandCoins, color: "accent" },
-    { title: "الرصيد المتاح", value: `${(stats?.availableBalance ?? 0).toLocaleString()} ر.س`, icon: Wallet, color: "info" },
-    { title: "تقارير الأثر", value: reportsCount ?? 0, icon: BarChart3, color: "success" },
+    {
+      title: "الجمعيات المدعومة",
+      value: stats?.associationsSupported ?? 0,
+      icon: Users,
+      color: "primary",
+    },
+    {
+      title: "إجمالي المنح",
+      value: `${(stats?.totalDonations ?? 0).toLocaleString()} ر.س`,
+      icon: HandCoins,
+      color: "accent",
+    },
+    {
+      title: "الرصيد المتاح",
+      value: `${(stats?.availableBalance ?? 0).toLocaleString()} ر.س`,
+      icon: Wallet,
+      color: "info",
+    },
+    {
+      title: "تقارير الأثر",
+      value: reportsCount ?? 0,
+      icon: BarChart3,
+      color: "success",
+    },
   ];
   return (
     <div className="space-y-4">
@@ -242,7 +398,8 @@ function DonorDashboard() {
               <HandCoins className="h-5 w-5 sm:h-6 sm:w-6 text-accent-foreground" />
             </div>
             <p className="text-xs sm:text-sm font-medium leading-relaxed">
-              الله يجزاك خير! دعمك وصل وأثره بيّن، شكراً لك من القلب على عطائك الكريم 🤍
+              الله يجزاك خير! دعمك وصل وأثره بيّن، شكراً لك من القلب على عطائك
+              الكريم 🤍
             </p>
           </CardContent>
         </Card>
@@ -281,7 +438,9 @@ export default function Dashboard() {
       <div className="space-y-4 sm:space-y-6">
         {/* Welcome section */}
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">{profile?.full_name ? `مرحباً، ${profile.full_name}` : title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">
+            {profile?.full_name ? `مرحباً، ${profile.full_name}` : title}
+          </h1>
           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-1">
             <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>{today}</span>
@@ -298,14 +457,18 @@ export default function Dashboard() {
             <Star className="h-4 w-4 text-warning" />
             <AlertDescription className="flex items-center justify-between">
               <span>لديك {pendingRatings.length} عقود بحاجة إلى تقييم</span>
-              <Link to="/ratings" className="text-sm font-medium text-primary underline">تقييم الآن</Link>
+              <Link
+                to="/ratings"
+                className="text-sm font-medium text-primary underline"
+              >
+                تقييم الآن
+              </Link>
             </AlertDescription>
           </Alert>
         )}
         {role ? <DashboardStats role={role} /> : null}
         {role && role !== "super_admin" && <PlatformOverview />}
         {role && role !== "super_admin" && <JourneyBoard role={role} />}
-        
       </div>
     </DashboardLayout>
   );

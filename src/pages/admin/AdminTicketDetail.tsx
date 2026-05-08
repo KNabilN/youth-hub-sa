@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowRight,
   Ticket,
@@ -41,27 +47,39 @@ const priorityLabels: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   open: "bg-primary/10 text-primary",
-  in_progress: "bg-yellow-500/10 text-yellow-600",
-  resolved: "bg-emerald-500/10 text-emerald-600",
+  in_progress: "bg-warning/10 text-warning",
+  resolved: "bg-success/10 text-success",
   closed: "bg-muted text-muted-foreground",
 };
 
 const priorityColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
-  medium: "bg-yellow-500/10 text-yellow-600",
+  medium: "bg-warning/10 text-warning",
   high: "bg-orange-500/10 text-orange-600",
   urgent: "bg-destructive/10 text-destructive",
 };
 
-function InfoField({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: any }) {
+function InfoField({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: any;
+}) {
   return (
     <div className="flex items-start gap-3 p-4 rounded-xl border bg-card text-start">
       <div className="mt-0.5 p-2.5 rounded-lg bg-primary/10 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
-        <p className="text-sm font-bold text-foreground leading-relaxed">{value || "—"}</p>
+        <p className="text-xs text-muted-foreground font-medium mb-1">
+          {label}
+        </p>
+        <p className="text-sm font-bold text-foreground leading-relaxed">
+          {value || "—"}
+        </p>
       </div>
     </div>
   );
@@ -102,8 +120,14 @@ export default function AdminTicketDetail() {
     return (
       <DashboardLayout>
         <div className="text-center py-20">
-          <p className="text-muted-foreground text-lg">لم يتم العثور على التذكرة</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/admin/tickets")}>
+          <p className="text-muted-foreground text-lg">
+            لم يتم العثور على التذكرة
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => navigate("/admin/tickets")}
+          >
             <ArrowRight className="h-4 w-4 ms-2" />
             العودة
           </Button>
@@ -118,7 +142,10 @@ export default function AdminTicketDetail() {
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b mb-6">
         <div className="flex items-center justify-between px-4 py-3 max-w-6xl mx-auto">
           <div className="flex gap-2 items-center">
-            <Select value={ticket.status} onValueChange={(v) => handleStatusChange(v as TicketStatus)}>
+            <Select
+              value={ticket.status}
+              onValueChange={(v) => handleStatusChange(v as TicketStatus)}
+            >
               <SelectTrigger className="w-44 h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -131,7 +158,11 @@ export default function AdminTicketDetail() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
             العودة للتذاكر
             <ArrowRight className="h-4 w-4" />
           </Button>
@@ -145,16 +176,24 @@ export default function AdminTicketDetail() {
             <div className="p-4 rounded-xl bg-primary/10">
               <Ticket className="h-8 w-8 text-primary" />
             </div>
-             <div>
-               {(ticket as any).ticket_number && (
-                 <span className="text-sm font-mono text-muted-foreground mb-1 block">{(ticket as any).ticket_number}</span>
-               )}
-               <h1 className="text-2xl font-bold text-foreground mb-3">{ticket.subject}</h1>
+            <div>
+              {(ticket as any).ticket_number && (
+                <span className="text-sm font-mono text-muted-foreground mb-1 block">
+                  {(ticket as any).ticket_number}
+                </span>
+              )}
+              <h1 className="text-2xl font-bold text-foreground mb-3">
+                {ticket.subject}
+              </h1>
               <div className="flex flex-wrap justify-center gap-2">
-                <Badge className={`${statusColors[ticket.status]} text-sm px-3 py-1`}>
+                <Badge
+                  className={`${statusColors[ticket.status]} text-sm px-3 py-1`}
+                >
                   {statusLabels[ticket.status]}
                 </Badge>
-                <Badge className={`${priorityColors[ticket.priority]} text-sm px-3 py-1`}>
+                <Badge
+                  className={`${priorityColors[ticket.priority]} text-sm px-3 py-1`}
+                >
                   {priorityLabels[ticket.priority]}
                 </Badge>
               </div>
@@ -164,7 +203,9 @@ export default function AdminTicketDetail() {
               </p>
               <p className="text-sm text-muted-foreground mt-1 flex items-center justify-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
-                {format(new Date(ticket.created_at), "yyyy/MM/dd", { locale: ar })}
+                {format(new Date(ticket.created_at), "yyyy/MM/dd", {
+                  locale: ar,
+                })}
               </p>
             </div>
           </div>
@@ -172,18 +213,34 @@ export default function AdminTicketDetail() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <InfoField icon={User} label="المستخدم" value={(ticket as any).profiles?.full_name} />
-          <InfoField icon={AlertTriangle} label="الأولوية" value={priorityLabels[ticket.priority]} />
-          <InfoField icon={Activity} label="الحالة" value={statusLabels[ticket.status]} />
+          <InfoField
+            icon={User}
+            label="المستخدم"
+            value={(ticket as any).profiles?.full_name}
+          />
+          <InfoField
+            icon={AlertTriangle}
+            label="الأولوية"
+            value={priorityLabels[ticket.priority]}
+          />
+          <InfoField
+            icon={Activity}
+            label="الحالة"
+            value={statusLabels[ticket.status]}
+          />
           <InfoField
             icon={Calendar}
             label="تاريخ الإنشاء"
-            value={format(new Date(ticket.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+            value={format(new Date(ticket.created_at), "yyyy/MM/dd HH:mm", {
+              locale: ar,
+            })}
           />
           <InfoField
             icon={Clock}
             label="آخر تحديث"
-            value={format(new Date(ticket.updated_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+            value={format(new Date(ticket.updated_at), "yyyy/MM/dd HH:mm", {
+              locale: ar,
+            })}
           />
         </div>
 

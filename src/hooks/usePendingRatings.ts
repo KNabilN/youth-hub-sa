@@ -28,8 +28,8 @@ export function usePendingRatings() {
         .eq("rater_id", user!.id);
       if (rErr) throw rErr;
 
-      const ratedIds = new Set(ratings?.map(r => r.contract_id));
-      return contracts.filter(c => !ratedIds.has(c.id));
+      const ratedIds = new Set(ratings?.map((r) => r.contract_id));
+      return contracts.filter((c) => !ratedIds.has(c.id));
     },
   });
 }

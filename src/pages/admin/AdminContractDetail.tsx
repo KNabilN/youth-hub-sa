@@ -1,7 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useContractDocument } from "@/hooks/useContractDocument";
-import { ContractDocument, PrintContractButton } from "@/components/contracts/ContractDocument";
+import {
+  ContractDocument,
+  PrintContractButton,
+} from "@/components/contracts/ContractDocument";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Eye, MessageSquare, ScrollText } from "lucide-react";
@@ -43,7 +46,11 @@ export default function AdminContractDetail() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/contracts")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/admin/contracts")}
+            >
               <ArrowRight className="h-5 w-5" />
             </Button>
             <div className="bg-primary/10 rounded-xl p-3">
@@ -51,15 +58,27 @@ export default function AdminContractDetail() {
             </div>
             <div>
               <h1 className="text-xl font-bold">عرض العقد الكامل</h1>
-              <p className="text-xs text-muted-foreground">رؤية إدارية شاملة لكل بنود العقد ومدخلاته</p>
+              <p className="text-xs text-muted-foreground">
+                رؤية إدارية شاملة لكل بنود العقد ومدخلاته
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
             <PrintContractButton />
-            <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${projectId}`)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/admin/projects/${projectId}`)}
+            >
               <Eye className="h-4 w-4 me-1" /> عرض المشروع
             </Button>
-            <Button size="sm" variant="outline" onClick={() => navigate(`/admin/projects/${projectId}?tab=messages`)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                navigate(`/admin/projects/${projectId}?tab=messages`)
+              }
+            >
               <MessageSquare className="h-4 w-4 me-1" /> المحادثات
             </Button>
           </div>
@@ -70,12 +89,24 @@ export default function AdminContractDetail() {
         {versions && versions.length > 0 && (
           <Card className="print:hidden">
             <CardContent className="p-4 space-y-2">
-              <h3 className="font-semibold text-sm">سجل النسخ السابقة ({versions.length})</h3>
+              <h3 className="font-semibold text-sm">
+                سجل النسخ السابقة ({versions.length})
+              </h3>
               <div className="space-y-2">
                 {versions.map((v: any) => (
-                  <div key={v.id} className="text-xs p-2 rounded border bg-muted/30">
-                    <p className="font-mono">النسخة #{v.version_number} — {new Date(v.created_at).toLocaleString("ar-SA")}</p>
-                    {v.change_note && <p className="text-muted-foreground mt-1">{v.change_note}</p>}
+                  <div
+                    key={v.id}
+                    className="text-xs p-2 rounded border bg-muted/30"
+                  >
+                    <p className="font-mono">
+                      النسخة #{v.version_number} —{" "}
+                      {new Date(v.created_at).toLocaleString("ar-SA")}
+                    </p>
+                    {v.change_note && (
+                      <p className="text-muted-foreground mt-1">
+                        {v.change_note}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

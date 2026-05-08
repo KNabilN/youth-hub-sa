@@ -33,8 +33,15 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="h-8 w-8 text-destructive" />
             </div>
             <h1 className="text-xl font-bold">حدث خطأ غير متوقع</h1>
-            <p className="text-muted-foreground text-sm">عذراً، حدث خطأ أثناء تحميل الصفحة. يرجى المحاولة مرة أخرى.</p>
-            <Button onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}>
+            <p className="text-muted-foreground text-sm">
+              عذراً، حدث خطأ أثناء تحميل الصفحة. يرجى المحاولة مرة أخرى.
+            </p>
+            <Button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+            >
               إعادة المحاولة
             </Button>
           </div>

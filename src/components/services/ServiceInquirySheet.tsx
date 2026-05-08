@@ -1,5 +1,11 @@
 import { useState, useRef } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion } from "lucide-react";
 import { useServiceInquiry, useCreateInquiry } from "@/hooks/useServiceInquiry";
@@ -13,7 +19,11 @@ interface ServiceInquirySheetProps {
   serviceTitle: string;
 }
 
-export function ServiceInquirySheet({ serviceId, providerId, serviceTitle }: ServiceInquirySheetProps) {
+export function ServiceInquirySheet({
+  serviceId,
+  providerId,
+  serviceTitle,
+}: ServiceInquirySheetProps) {
   const [open, setOpen] = useState(false);
   // Always enabled — prefetch existing inquiry so it's ready before user clicks
   const { data: inquiry, isLoading, refetch } = useServiceInquiry(serviceId);
@@ -61,9 +71,14 @@ export function ServiceInquirySheet({ serviceId, providerId, serviceTitle }: Ser
           استفسار عن الخدمة
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-full sm:max-w-md p-0 flex flex-col">
+      <SheetContent
+        side="left"
+        className="w-full sm:max-w-md p-0 flex flex-col"
+      >
         <SheetHeader className="p-4 border-b">
-          <SheetTitle className="text-start">استفسار عن: {serviceTitle}</SheetTitle>
+          <SheetTitle className="text-start">
+            استفسار عن: {serviceTitle}
+          </SheetTitle>
         </SheetHeader>
         <div className="flex-1 min-h-0">
           {isLoading || createInquiry.isPending ? (

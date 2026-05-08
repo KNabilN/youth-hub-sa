@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminUsersFilters {
@@ -21,7 +26,18 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
   const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users", from, to, roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
+    queryKey: [
+      "admin-users",
+      from,
+      to,
+      roleFilter,
+      regionId,
+      cityId,
+      dateFrom,
+      dateTo,
+      verifiedFilter,
+      search,
+    ],
     queryFn: async () => {
       // First get role data, optionally filtered
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
@@ -63,10 +79,17 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
       }
 
       // Build profiles query
-      let profilesQuery = supabase.from("profiles").select("*").is("deleted_at", null).order("is_verified", { ascending: true }).order("created_at", { ascending: false });
+      let profilesQuery = supabase
+        .from("profiles")
+        .select("*")
+        .is("deleted_at", null)
+        .order("is_verified", { ascending: true })
+        .order("created_at", { ascending: false });
 
       if (search) {
-        profilesQuery = profilesQuery.or(`full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`);
+        profilesQuery = profilesQuery.or(
+          `full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`,
+        );
       }
 
       if (roleFilter && roleFilter !== "all") {
@@ -115,7 +138,16 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
   const search = filters?.search;
 
   return useQuery({
-    queryKey: ["admin-users-count", roleFilter, regionId, cityId, dateFrom, dateTo, verifiedFilter, search],
+    queryKey: [
+      "admin-users-count",
+      roleFilter,
+      regionId,
+      cityId,
+      dateFrom,
+      dateTo,
+      verifiedFilter,
+      search,
+    ],
     queryFn: async () => {
       let rolesQuery = supabase.from("user_roles").select("user_id, role");
       if (roleFilter && roleFilter !== "all") {
@@ -128,22 +160,31 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       if ((regionId && regionId !== "all") || (cityId && cityId !== "all")) {
         const userIdSet = new Set<string>();
         let svcQuery = supabase.from("micro_services").select("provider_id");
-        if (cityId && cityId !== "all") svcQuery = svcQuery.eq("city_id", cityId);
-        else if (regionId && regionId !== "all") svcQuery = svcQuery.eq("region_id", regionId);
+        if (cityId && cityId !== "all")
+          svcQuery = svcQuery.eq("city_id", cityId);
+        else if (regionId && regionId !== "all")
+          svcQuery = svcQuery.eq("region_id", regionId);
         const { data: svcData } = await svcQuery;
         svcData?.forEach((s) => userIdSet.add(s.provider_id));
         let projQuery = supabase.from("projects").select("association_id");
-        if (cityId && cityId !== "all") projQuery = projQuery.eq("city_id", cityId);
-        else if (regionId && regionId !== "all") projQuery = projQuery.eq("region_id", regionId);
+        if (cityId && cityId !== "all")
+          projQuery = projQuery.eq("city_id", cityId);
+        else if (regionId && regionId !== "all")
+          projQuery = projQuery.eq("region_id", regionId);
         const { data: projData } = await projQuery;
         projData?.forEach((p) => userIdSet.add(p.association_id));
         locationUserIds = Array.from(userIdSet);
         if (locationUserIds.length === 0) return 0;
       }
 
-      let countQuery = supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      let countQuery = supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .is("deleted_at", null);
       if (search) {
-        countQuery = countQuery.or(`full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`);
+        countQuery = countQuery.or(
+          `full_name.ilike.%${search}%,organization_name.ilike.%${search}%,user_number.ilike.%${search}%`,
+        );
       }
       if (roleFilter && roleFilter !== "all") {
         const userIds = roles?.map((r) => r.user_id) ?? [];
@@ -152,9 +193,12 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       }
       if (locationUserIds) countQuery = countQuery.in("id", locationUserIds);
       if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
-      if (dateTo) countQuery = countQuery.lte("created_at", dateTo + "T23:59:59");
-      if (verifiedFilter === "verified") countQuery = countQuery.eq("is_verified", true);
-      else if (verifiedFilter === "unverified") countQuery = countQuery.eq("is_verified", false);
+      if (dateTo)
+        countQuery = countQuery.lte("created_at", dateTo + "T23:59:59");
+      if (verifiedFilter === "verified")
+        countQuery = countQuery.eq("is_verified", true);
+      else if (verifiedFilter === "unverified")
+        countQuery = countQuery.eq("is_verified", false);
 
       const { count, error } = await countQuery;
       if (error) throw error;
@@ -167,8 +211,17 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
 export function useToggleVerification() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, is_verified }: { id: string; is_verified: boolean }) => {
-      const { error } = await supabase.from("profiles").update({ is_verified }).eq("id", id);
+    mutationFn: async ({
+      id,
+      is_verified,
+    }: {
+      id: string;
+      is_verified: boolean;
+    }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_verified })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -182,14 +235,25 @@ export function useToggleVerification() {
 export function useToggleSuspension() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, is_suspended, suspension_reason }: { id: string; is_suspended: boolean; suspension_reason?: string }) => {
+    mutationFn: async ({
+      id,
+      is_suspended,
+      suspension_reason,
+    }: {
+      id: string;
+      is_suspended: boolean;
+      suspension_reason?: string;
+    }) => {
       const update: any = { is_suspended };
       if (is_suspended && suspension_reason) {
         update.suspension_reason = suspension_reason;
       } else if (!is_suspended) {
         update.suspension_reason = "";
       }
-      const { error } = await supabase.from("profiles").update(update).eq("id", id);
+      const { error } = await supabase
+        .from("profiles")
+        .update(update)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -205,7 +269,9 @@ export function useChangeUserRole() {
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       await supabase.from("user_roles").delete().eq("user_id", userId);
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: role as any });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
@@ -215,8 +281,17 @@ export function useChangeUserRole() {
 export function useAdminUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: { id: string; [key: string]: any }) => {
-      const { error } = await supabase.from("profiles").update(values).eq("id", id);
+    mutationFn: async ({
+      id,
+      ...values
+    }: {
+      id: string;
+      [key: string]: any;
+    }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update(values)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

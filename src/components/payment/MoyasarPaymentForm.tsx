@@ -80,11 +80,16 @@ export function MoyasarPaymentForm({
           metadata: enrichedMetadata,
           language: "ar",
           on_completed: async (payment: any) => {
-            console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
+            console.log(
+              "[MoyasarForm] Payment completed:",
+              payment?.id,
+              payment?.status,
+            );
             onCompleted?.({ id: payment?.id, status: payment?.status });
           },
           on_failure: async (error: any) => {
-            const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
+            const msg =
+              typeof error === "string" ? error : error?.message || "فشل الدفع";
             console.error("[MoyasarForm] Payment failed:", msg);
             onFailed?.(msg);
           },
@@ -131,11 +136,16 @@ export function MoyasarPaymentForm({
           metadata: enrichedMetadata,
           language: "ar",
           on_completed: async (payment: any) => {
-            console.log("[MoyasarForm] Payment completed:", payment?.id, payment?.status);
+            console.log(
+              "[MoyasarForm] Payment completed:",
+              payment?.id,
+              payment?.status,
+            );
             onCompleted?.({ id: payment?.id, status: payment?.status });
           },
           on_failure: async (error: any) => {
-            const msg = typeof error === "string" ? error : error?.message || "فشل الدفع";
+            const msg =
+              typeof error === "string" ? error : error?.message || "فشل الدفع";
             console.error("[MoyasarForm] Payment failed:", msg);
             onFailed?.(msg);
           },
@@ -154,8 +164,10 @@ export function MoyasarPaymentForm({
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-            <ShieldCheck className="h-8 w-8 text-green-600" />
-            <p className="text-sm text-muted-foreground">المبلغ مغطى بالكامل — لا حاجة للدفع الإلكتروني.</p>
+            <ShieldCheck className="h-8 w-8 text-success" />
+            <p className="text-sm text-muted-foreground">
+              المبلغ مغطى بالكامل — لا حاجة للدفع الإلكتروني.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -187,7 +199,9 @@ export function MoyasarPaymentForm({
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/80">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <span className="ms-2 text-sm text-muted-foreground">جاري تحميل نموذج الدفع...</span>
+            <span className="ms-2 text-sm text-muted-foreground">
+              جاري تحميل نموذج الدفع...
+            </span>
           </div>
         )}
         {/* Always visible — SDK needs a rendered element to inject into */}

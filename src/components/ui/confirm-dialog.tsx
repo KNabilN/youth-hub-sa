@@ -42,7 +42,9 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>
+            {cancelLabel}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -51,7 +53,7 @@ export function ConfirmDialog({
             disabled={loading}
             className={cn(
               variant === "destructive" &&
-                "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
             )}
           >
             {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}

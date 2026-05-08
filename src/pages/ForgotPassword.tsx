@@ -19,7 +19,10 @@ export default function ForgotPassword() {
     setLoading(true);
 
     // Check if email exists before sending reset link
-    const { data: exists, error: checkError } = await supabase.rpc('check_email_exists', { p_email: email });
+    const { data: exists, error: checkError } = await supabase.rpc(
+      "check_email_exists",
+      { p_email: email },
+    );
     if (checkError) {
       toast.error(translateError(checkError.message));
       setLoading(false);
@@ -44,7 +47,10 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background p-6"
+      dir="rtl"
+    >
       <div className="w-full max-w-md space-y-6">
         <div className="space-y-1 text-center">
           <h1 className="text-2xl font-bold">استعادة كلمة المرور</h1>
@@ -61,7 +67,8 @@ export default function ForgotPassword() {
                   <Mail className="w-7 h-7 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  تم إرسال رابط إعادة تعيين كلمة المرور إلى <strong>{email}</strong>. يرجى التحقق من بريدك الإلكتروني.
+                  تم إرسال رابط إعادة تعيين كلمة المرور إلى{" "}
+                  <strong>{email}</strong>. يرجى التحقق من بريدك الإلكتروني.
                 </p>
               </div>
             ) : (
@@ -79,14 +86,21 @@ export default function ForgotPassword() {
                     className="text-start h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full h-11"
+                  disabled={loading}
+                >
                   {loading ? "جارٍ الإرسال..." : "إرسال رابط الاستعادة"}
                 </Button>
               </form>
             )}
 
             <div className="mt-6 text-center">
-              <Link to="/auth" className="text-sm text-primary font-semibold hover:underline inline-flex items-center gap-1">
+              <Link
+                to="/auth"
+                className="text-sm text-primary font-semibold hover:underline inline-flex items-center gap-1"
+              >
                 <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
                 العودة لتسجيل الدخول
               </Link>

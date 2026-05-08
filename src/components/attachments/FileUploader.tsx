@@ -2,8 +2,18 @@ import { useCallback, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUploadAttachment, EntityType, AttachmentCategory } from "@/hooks/useAttachments";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useUploadAttachment,
+  EntityType,
+  AttachmentCategory,
+} from "@/hooks/useAttachments";
 import { cn } from "@/lib/utils";
 
 interface FileUploaderProps {
@@ -13,7 +23,11 @@ interface FileUploaderProps {
   showCategory?: boolean;
 }
 
-export function FileUploader({ entityType, entityId, showCategory = false }: FileUploaderProps) {
+export function FileUploader({
+  entityType,
+  entityId,
+  showCategory = false,
+}: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [category, setCategory] = useState<AttachmentCategory | "none">("none");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,12 +36,15 @@ export function FileUploader({ entityType, entityId, showCategory = false }: Fil
   const handleFiles = useCallback(
     (files: FileList | null) => {
       if (!files) return;
-      const cat = showCategory && category !== "none" ? (category as AttachmentCategory) : undefined;
+      const cat =
+        showCategory && category !== "none"
+          ? (category as AttachmentCategory)
+          : undefined;
       Array.from(files).forEach((file) => {
         upload.mutate({ file, entityType, entityId, category: cat });
       });
     },
-    [upload, entityType, entityId, category, showCategory]
+    [upload, entityType, entityId, category, showCategory],
   );
 
   const onDrop = useCallback(
@@ -36,15 +53,20 @@ export function FileUploader({ entityType, entityId, showCategory = false }: Fil
       setIsDragging(false);
       handleFiles(e.dataTransfer.files);
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   return (
     <div className="space-y-3">
       {showCategory && (
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">تصنيف الملف (اختياري)</Label>
-          <Select value={category} onValueChange={(v) => setCategory(v as AttachmentCategory | "none")}>
+          <Label className="text-xs text-muted-foreground">
+            تصنيف الملف (اختياري)
+          </Label>
+          <Select
+            value={category}
+            onValueChange={(v) => setCategory(v as AttachmentCategory | "none")}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="بدون تصنيف" />
             </SelectTrigger>
@@ -58,7 +80,10 @@ export function FileUploader({ entityType, entityId, showCategory = false }: Fil
         </div>
       )}
       <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
@@ -66,7 +91,7 @@ export function FileUploader({ entityType, entityId, showCategory = false }: Fil
           "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
           isDragging
             ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50 hover:bg-muted/50"
+            : "border-border hover:border-primary/50 hover:bg-muted/50",
         )}
       >
         <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-3" />

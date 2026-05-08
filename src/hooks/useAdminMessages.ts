@@ -76,7 +76,9 @@ export function useAdminConversations() {
       }
 
       return Array.from(map.values()).sort(
-        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        (a, b) =>
+          new Date(b.last_message_at).getTime() -
+          new Date(a.last_message_at).getTime(),
       );
     },
   });
@@ -90,7 +92,7 @@ export function useAdminConversations() {
         { event: "*", schema: "public", table: "admin_direct_messages" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["admin-conversations"] });
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -145,13 +147,24 @@ export function useAdminMessageThread(userId: string | undefined) {
       .channel(`admin-thread-${userId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "admin_direct_messages", filter: `user_id=eq.${userId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "admin_direct_messages",
+          filter: `user_id=eq.${userId}`,
+        },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["admin-message-thread", userId] });
+          queryClient.invalidateQueries({
+            queryKey: ["admin-message-thread", userId],
+          });
           queryClient.invalidateQueries({ queryKey: ["admin-conversations"] });
-          queryClient.invalidateQueries({ queryKey: ["user-admin-conversation"] });
-          queryClient.invalidateQueries({ queryKey: ["admin-messages-unread-total"] });
-        }
+          queryClient.invalidateQueries({
+            queryKey: ["user-admin-conversation"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["admin-messages-unread-total"],
+          });
+        },
       )
       .subscribe();
     return () => {
@@ -184,7 +197,9 @@ export function useSendAdminMessage() {
       if (error) throw error;
     },
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-message-thread", vars.userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-message-thread", vars.userId],
+      });
       queryClient.invalidateQueries({ queryKey: ["admin-conversations"] });
       queryClient.invalidateQueries({ queryKey: ["user-admin-conversation"] });
     },
@@ -207,10 +222,14 @@ export function useMarkAdminMessagesRead() {
       if (error) throw error;
     },
     onSuccess: (_, userId) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-message-thread", userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-message-thread", userId],
+      });
       queryClient.invalidateQueries({ queryKey: ["admin-conversations"] });
       queryClient.invalidateQueries({ queryKey: ["user-admin-conversation"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-messages-unread-total"] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-messages-unread-total"],
+      });
       queryClient.invalidateQueries({ queryKey: ["user-admin-unread"] });
     },
   });
@@ -257,11 +276,20 @@ export function useUserAdminConversation() {
       .channel(`user-admin-conv-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "admin_direct_messages", filter: `user_id=eq.${user.id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "admin_direct_messages",
+          filter: `user_id=eq.${user.id}`,
+        },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["user-admin-conversation", user.id] });
-          queryClient.invalidateQueries({ queryKey: ["user-admin-unread", user.id] });
-        }
+          queryClient.invalidateQueries({
+            queryKey: ["user-admin-conversation", user.id],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["user-admin-unread", user.id],
+          });
+        },
       )
       .subscribe();
     return () => {

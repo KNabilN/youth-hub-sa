@@ -11,14 +11,19 @@ export function useReceivedGrants() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-received-grants-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "donor_contributions" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "donor_contributions" },
         () => {
           qc.invalidateQueries({ queryKey: ["association-received-grants"] });
           qc.invalidateQueries({ queryKey: ["association-grant-balance"] });
           qc.invalidateQueries({ queryKey: ["association-grant-stats"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -27,7 +32,9 @@ export function useReceivedGrants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("*, profiles:donor_id(full_name, organization_name, avatar_url), projects(title), micro_services:service_id(title)")
+        .select(
+          "*, profiles:donor_id(full_name, organization_name, avatar_url), projects(title), micro_services:service_id(title)",
+        )
         .eq("association_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -50,11 +57,21 @@ export function useAssociationGrantBalance() {
 
       const rows = data ?? [];
       const total = rows.reduce((s, r) => s + Number(r.amount), 0);
-      const available = rows.filter(r => r.donation_status === "available").reduce((s, r) => s + Number(r.amount), 0);
-      const consumed = rows.filter(r => r.donation_status === "consumed").reduce((s, r) => s + Number(r.amount), 0);
+      const available = rows
+        .filter((r) => r.donation_status === "available")
+        .reduce((s, r) => s + Number(r.amount), 0);
+      const consumed = rows
+        .filter((r) => r.donation_status === "consumed")
+        .reduce((s, r) => s + Number(r.amount), 0);
       const reserved = total - available - consumed;
 
-      return { total, available, consumed, reserved, donorCount: new Set(rows.map(() => "")).size };
+      return {
+        total,
+        available,
+        consumed,
+        reserved,
+        donorCount: new Set(rows.map(() => "")).size,
+      };
     },
   });
 }
@@ -73,10 +90,16 @@ export function useAssociationGrantStats() {
 
       const rows = data ?? [];
       const totalGrants = rows.reduce((s, r) => s + Number(r.amount), 0);
-      const available = rows.filter(r => r.donation_status === "available").reduce((s, r) => s + Number(r.amount), 0);
-      const donorIds = new Set(rows.map(r => r.donor_id));
+      const available = rows
+        .filter((r) => r.donation_status === "available")
+        .reduce((s, r) => s + Number(r.amount), 0);
+      const donorIds = new Set(rows.map((r) => r.donor_id));
 
-      return { totalGrants, availableBalance: available, donorCount: donorIds.size };
+      return {
+        totalGrants,
+        availableBalance: available,
+        donorCount: donorIds.size,
+      };
     },
   });
 }
@@ -93,8 +116,18 @@ export function useProjectGrantBalance(projectId?: string, serviceId?: string) {
     queryFn: async () => {
       // 1. Fetch grants specific to this project/service
       const specificFilter = projectId
-        ? supabase.from("donor_contributions").select("amount").eq("association_id", user!.id).eq("donation_status", "available").eq("project_id", projectId)
-        : supabase.from("donor_contributions").select("amount").eq("association_id", user!.id).eq("donation_status", "available").eq("service_id", serviceId!);
+        ? supabase
+            .from("donor_contributions")
+            .select("amount")
+            .eq("association_id", user!.id)
+            .eq("donation_status", "available")
+            .eq("project_id", projectId)
+        : supabase
+            .from("donor_contributions")
+            .select("amount")
+            .eq("association_id", user!.id)
+            .eq("donation_status", "available")
+            .eq("service_id", serviceId!);
 
       const { data: specificData, error: e1 } = await specificFilter;
       if (e1) throw e1;
@@ -109,8 +142,14 @@ export function useProjectGrantBalance(projectId?: string, serviceId?: string) {
         .is("service_id", null);
       if (e2) throw e2;
 
-      const projectSpecific = (specificData ?? []).reduce((s, r) => s + Number(r.amount), 0);
-      const general = (generalData ?? []).reduce((s, r) => s + Number(r.amount), 0);
+      const projectSpecific = (specificData ?? []).reduce(
+        (s, r) => s + Number(r.amount),
+        0,
+      );
+      const general = (generalData ?? []).reduce(
+        (s, r) => s + Number(r.amount),
+        0,
+      );
 
       return { projectSpecific, general, total: projectSpecific + general };
     },

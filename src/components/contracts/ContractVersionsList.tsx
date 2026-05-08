@@ -1,12 +1,21 @@
 import { useState } from "react";
-import { useContractVersions, useCreateContractVersion } from "@/hooks/useContractVersions";
+import {
+  useContractVersions,
+  useCreateContractVersion,
+} from "@/hooks/useContractVersions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { History, Plus } from "lucide-react";
 
@@ -16,7 +25,11 @@ interface ContractVersionsListProps {
   canEdit: boolean;
 }
 
-export function ContractVersionsList({ contractId, currentTerms, canEdit }: ContractVersionsListProps) {
+export function ContractVersionsList({
+  contractId,
+  currentTerms,
+  canEdit,
+}: ContractVersionsListProps) {
   const { data: versions, isLoading } = useContractVersions(contractId);
   const createVersion = useCreateContractVersion();
   const [open, setOpen] = useState(false);
@@ -34,7 +47,7 @@ export function ContractVersionsList({ contractId, currentTerms, canEdit }: Cont
           setNote("");
         },
         onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-      }
+      },
     );
   };
 
@@ -72,7 +85,10 @@ export function ContractVersionsList({ contractId, currentTerms, canEdit }: Cont
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="سبب التعديل (اختياري)"
                 />
-                <Button onClick={handleSubmit} disabled={createVersion.isPending || !terms.trim()}>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={createVersion.isPending || !terms.trim()}
+                >
                   حفظ الإصدار
                 </Button>
               </div>
@@ -84,25 +100,37 @@ export function ContractVersionsList({ contractId, currentTerms, canEdit }: Cont
         {versions && versions.length > 0 ? (
           <div className="space-y-3">
             {versions.map((v: any) => (
-              <div key={v.id} className="border rounded-lg p-3 text-sm space-y-1">
+              <div
+                key={v.id}
+                className="border rounded-lg p-3 text-sm space-y-1"
+              >
                 <div className="flex items-center justify-between">
                   <Badge variant="outline">الإصدار {v.version_number}</Badge>
                   <span className="text-xs text-muted-foreground">
                     {new Date(v.created_at).toLocaleDateString("ar-SA")}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-xs line-clamp-2">{v.terms}</p>
+                <p className="text-muted-foreground text-xs line-clamp-2">
+                  {v.terms}
+                </p>
                 {v.change_note && (
-                  <p className="text-xs"><strong>السبب:</strong> {v.change_note}</p>
+                  <p className="text-xs">
+                    <strong>السبب:</strong> {v.change_note}
+                  </p>
                 )}
                 {(v.profiles?.organization_name || v.profiles?.full_name) && (
-                  <p className="text-xs text-muted-foreground">بواسطة: {v.profiles.organization_name || v.profiles.full_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    بواسطة:{" "}
+                    {v.profiles.organization_name || v.profiles.full_name}
+                  </p>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground text-center py-3">لا توجد إصدارات سابقة</p>
+          <p className="text-xs text-muted-foreground text-center py-3">
+            لا توجد إصدارات سابقة
+          </p>
         )}
       </CardContent>
     </Card>

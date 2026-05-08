@@ -28,14 +28,25 @@ export function useNotifications(from = 0, to = 19) {
       .channel("notifications-realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
-          queryClient.invalidateQueries({ queryKey: ["unread-count", user.id] });
-        }
+          queryClient.invalidateQueries({
+            queryKey: ["notifications", user.id],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["unread-count", user.id],
+          });
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, queryClient]);
 
   return query;

@@ -13,10 +13,15 @@ export function useBidComments(bidId: string | undefined) {
       .channel(`bid-comments-${bidId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "bid_comments", filter: `bid_id=eq.${bidId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "bid_comments",
+          filter: `bid_id=eq.${bidId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["bid-comments", bidId] });
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -30,7 +35,9 @@ export function useBidComments(bidId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bid_comments")
-        .select("*, profiles:author_id(full_name, avatar_url, organization_name)")
+        .select(
+          "*, profiles:author_id(full_name, avatar_url, organization_name)",
+        )
         .eq("bid_id", bidId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -43,7 +50,13 @@ export function useAddBidComment() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ bidId, content }: { bidId: string; content: string }) => {
+    mutationFn: async ({
+      bidId,
+      content,
+    }: {
+      bidId: string;
+      content: string;
+    }) => {
       const { error } = await supabase
         .from("bid_comments")
         .insert({ bid_id: bidId, author_id: user!.id, content });

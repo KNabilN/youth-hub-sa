@@ -1,13 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
-import { ProjectForm, type ProjectFormValues } from "@/components/projects/ProjectForm";
+import {
+  ProjectForm,
+  type ProjectFormValues,
+} from "@/components/projects/ProjectForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { sanitizeFormValues, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS } from "@/lib/sanitize";
+import {
+  sanitizeFormValues,
+  PROJECT_UUID_FIELDS,
+  PROJECT_NUMERIC_FIELDS,
+} from "@/lib/sanitize";
 import { getFriendlyDatabaseError } from "@/lib/db-errors";
 
 export default function ProjectEdit() {
@@ -16,16 +23,41 @@ export default function ProjectEdit() {
   const updateProject = useUpdateProject();
   const navigate = useNavigate();
 
-  if (isLoading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
-  if (!project) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">الطلب غير موجود</p></DashboardLayout>;
-  if (project.assigned_provider_id) return <DashboardLayout><p className="text-center py-16 text-muted-foreground">لا يمكن تعديل طلب تم تعيين مزود خدمة له</p></DashboardLayout>;
+  if (isLoading)
+    return (
+      <DashboardLayout>
+        <Skeleton className="h-96" />
+      </DashboardLayout>
+    );
+  if (!project)
+    return (
+      <DashboardLayout>
+        <p className="text-center py-16 text-muted-foreground">
+          الطلب غير موجود
+        </p>
+      </DashboardLayout>
+    );
+  if (project.assigned_provider_id)
+    return (
+      <DashboardLayout>
+        <p className="text-center py-16 text-muted-foreground">
+          لا يمكن تعديل طلب تم تعيين مزود خدمة له
+        </p>
+      </DashboardLayout>
+    );
 
   const isDraft = project.status === "draft";
   const willResetStatus = !isDraft;
 
-  const handleCreateDraft = async (values: ProjectFormValues): Promise<string> => {
+  const handleCreateDraft = async (
+    values: ProjectFormValues,
+  ): Promise<string> => {
     // Project already exists, just update it as draft
-    const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
+    const clean = sanitizeFormValues(
+      values as Record<string, unknown>,
+      PROJECT_UUID_FIELDS,
+      PROJECT_NUMERIC_FIELDS,
+    );
     const { error } = await supabase
       .from("projects")
       .update({ ...clean, status: "draft" as any })
@@ -35,13 +67,21 @@ export default function ProjectEdit() {
   };
 
   const handleSaveDraft = (values: ProjectFormValues) => {
-    const clean = sanitizeFormValues(values as Record<string, unknown>, PROJECT_UUID_FIELDS, PROJECT_NUMERIC_FIELDS);
+    const clean = sanitizeFormValues(
+      values as Record<string, unknown>,
+      PROJECT_UUID_FIELDS,
+      PROJECT_NUMERIC_FIELDS,
+    );
     supabase
       .from("projects")
       .update({ ...clean, status: "draft" as any })
       .eq("id", project.id)
       .then(({ error }) => {
-        if (error) toast({ title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"), variant: "destructive" });
+        if (error)
+          toast({
+            title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"),
+            variant: "destructive",
+          });
         else {
           toast({ title: "تم حفظ المسودة" });
           navigate(`/projects/${project.id}`);
@@ -56,10 +96,21 @@ export default function ProjectEdit() {
     }
     updateProject.mutate(payload, {
       onSuccess: () => {
-        toast({ title: willResetStatus ? "تم تحديث الطلب وإعادته للمراجعة" : "تم تحديث الطلب", description: willResetStatus ? "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" : undefined });
+        toast({
+          title: willResetStatus
+            ? "تم تحديث الطلب وإعادته للمراجعة"
+            : "تم تحديث الطلب",
+          description: willResetStatus
+            ? "سيتم مراجعته من قبل فريق المنصة قبل اعتماده"
+            : undefined,
+        });
         navigate(`/projects/${project.id}`);
       },
-      onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ"), variant: "destructive" }),
+      onError: (error) =>
+        toast({
+          title: getFriendlyDatabaseError(error, "حدث خطأ"),
+          variant: "destructive",
+        }),
     });
   };
 
@@ -71,7 +122,8 @@ export default function ProjectEdit() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              أي تعديل على الطلب سيعيده لحالة "بانتظار الموافقة" وسيحتاج مراجعة الإدارة مرة أخرى.
+              أي تعديل على الطلب سيعيده لحالة "بانتظار الموافقة" وسيحتاج مراجعة
+              الإدارة مرة أخرى.
             </AlertDescription>
           </Alert>
         )}

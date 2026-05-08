@@ -12,7 +12,9 @@ export function useDiscountCode() {
   const [discount, setDiscount] = useState<ValidatedDiscount | null>(null);
   const [validating, setValidating] = useState(false);
 
-  const validateCode = async (code: string): Promise<ValidatedDiscount | null> => {
+  const validateCode = async (
+    code: string,
+  ): Promise<ValidatedDiscount | null> => {
     if (!code.trim()) {
       toast.error("يرجى إدخال كود الخصم");
       return null;
@@ -38,7 +40,9 @@ export function useDiscountCode() {
       }
 
       // Check if current user already used this code
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { count: userUsageCount } = await supabase
           .from("discount_code_usages")
@@ -71,7 +75,9 @@ export function useDiscountCode() {
         amount: (data as any).amount,
       };
       setDiscount(validated);
-      toast.success(`تم تطبيق كود الخصم — خصم ${validated.amount.toLocaleString()} ر.س`);
+      toast.success(
+        `تم تطبيق كود الخصم — خصم ${validated.amount.toLocaleString()} ر.س`,
+      );
       return validated;
     } catch {
       toast.error("حدث خطأ أثناء التحقق من الكود");

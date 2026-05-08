@@ -6,7 +6,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { FolderKanban, ArrowLeft } from "lucide-react";
 import { useListHighlight } from "@/hooks/useListHighlight";
@@ -26,7 +32,9 @@ export default function MyProjects() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">طلباتي</h1>
-            <p className="text-sm text-muted-foreground">الطلبات المسندة إليك وحالتها الحالية</p>
+            <p className="text-sm text-muted-foreground">
+              الطلبات المسندة إليك وحالتها الحالية
+            </p>
           </div>
         </div>
 
@@ -36,9 +44,13 @@ export default function MyProjects() {
         {/* Filter Card */}
         <Card className="border-dashed">
           <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
-            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              تصفية حسب الحالة
+            </span>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع الطلبات</SelectItem>
                 <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
@@ -50,13 +62,25 @@ export default function MyProjects() {
         </Card>
 
         {isLoading ? (
-          <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full" />)}</div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-28 w-full" />
+            ))}
+          </div>
         ) : !projects?.length ? (
-          <EmptyState icon={FolderKanban} title="لا توجد طلبات" description="ستظهر الطلبات هنا عند قبول عروضك" />
+          <EmptyState
+            icon={FolderKanban}
+            title="لا توجد طلبات"
+            description="ستظهر الطلبات هنا عند قبول عروضك"
+          />
         ) : (
           <div className="grid gap-4">
             {projects.map((project: any) => (
-              <Card key={project.id} id={`row-${project.id}`} className="card-hover">
+              <Card
+                key={project.id}
+                id={`row-${project.id}`}
+                className="card-hover"
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="text-lg">{project.title}</CardTitle>
@@ -64,14 +88,32 @@ export default function MyProjects() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{project.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                    {project.description}
+                  </p>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex gap-2 flex-wrap">
-                      {project.budget && <Badge variant="secondary">{project.budget.toLocaleString()} ر.س</Badge>}
-                      {project.categories?.name && <Badge variant="outline">{project.categories.name}</Badge>}
-                      {project.regions?.name && <Badge variant="outline">{project.regions.name}</Badge>}
+                      {project.budget && (
+                        <Badge variant="secondary">
+                          {project.budget.toLocaleString()} ر.س
+                        </Badge>
+                      )}
+                      {project.categories?.name && (
+                        <Badge variant="outline">
+                          {project.categories.name}
+                        </Badge>
+                      )}
+                      {project.regions?.name && (
+                        <Badge variant="outline">{project.regions.name}</Badge>
+                      )}
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => saveAndNavigate(project.id, `/projects/${project.id}`)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        saveAndNavigate(project.id, `/projects/${project.id}`)
+                      }
+                    >
                       عرض التفاصيل
                       <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
                     </Button>

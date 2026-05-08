@@ -3,7 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { sanitizeFormValues, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS } from "@/lib/sanitize";
+import {
+  sanitizeFormValues,
+  SERVICE_UUID_FIELDS,
+  SERVICE_NUMERIC_FIELDS,
+} from "@/lib/sanitize";
 
 export function useMyServices(approvalFilter?: string, sortBy?: string) {
   const { user } = useAuth();
@@ -14,10 +18,20 @@ export function useMyServices(approvalFilter?: string, sortBy?: string) {
     if (!user) return;
     const channel = supabase
       .channel(`rt-my-services-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "micro_services", filter: `provider_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["my-services"] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "micro_services",
+          filter: `provider_id=eq.${user.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["my-services"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -35,9 +49,15 @@ export function useMyServices(approvalFilter?: string, sortBy?: string) {
       }
 
       if (sortBy === "sales") {
-        query = query.order("sales_count", { ascending: false, nullsFirst: false });
+        query = query.order("sales_count", {
+          ascending: false,
+          nullsFirst: false,
+        });
       } else if (sortBy === "views") {
-        query = query.order("service_views", { ascending: false, nullsFirst: false });
+        query = query.order("service_views", {
+          ascending: false,
+          nullsFirst: false,
+        });
       } else {
         query = query.order("created_at", { ascending: false });
       }
@@ -53,8 +73,14 @@ export function useCreateService() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (values: Omit<TablesInsert<"micro_services">, "provider_id">) => {
-      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
+    mutationFn: async (
+      values: Omit<TablesInsert<"micro_services">, "provider_id">,
+    ) => {
+      const clean = sanitizeFormValues(
+        values as Record<string, unknown>,
+        SERVICE_UUID_FIELDS,
+        SERVICE_NUMERIC_FIELDS,
+      );
       const { data, error } = await supabase
         .from("micro_services")
         .insert({ ...clean, provider_id: user!.id } as any)
@@ -70,8 +96,15 @@ export function useCreateService() {
 export function useUpdateService() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...values }: TablesUpdate<"micro_services"> & { id: string }) => {
-      const clean = sanitizeFormValues(values as Record<string, unknown>, SERVICE_UUID_FIELDS, SERVICE_NUMERIC_FIELDS);
+    mutationFn: async ({
+      id,
+      ...values
+    }: TablesUpdate<"micro_services"> & { id: string }) => {
+      const clean = sanitizeFormValues(
+        values as Record<string, unknown>,
+        SERVICE_UUID_FIELDS,
+        SERVICE_NUMERIC_FIELDS,
+      );
       const { data, error } = await supabase
         .from("micro_services")
         .update({ ...clean, approval: "pending" as const } as any)
@@ -102,8 +135,17 @@ export function useDeleteService() {
 export function useUpdateServiceStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval }: { id: string; approval: "draft" | "pending" | "suspended" | "archived" }) => {
-      const { error } = await supabase.from("micro_services").update({ approval }).eq("id", id);
+    mutationFn: async ({
+      id,
+      approval,
+    }: {
+      id: string;
+      approval: "draft" | "pending" | "suspended" | "archived";
+    }) => {
+      const { error } = await supabase
+        .from("micro_services")
+        .update({ approval })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-services"] }),

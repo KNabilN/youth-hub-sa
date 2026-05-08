@@ -12,7 +12,11 @@ export interface Message {
   attachment_name: string | null;
   is_read: boolean;
   created_at: string;
-  sender?: { full_name: string; avatar_url: string | null; organization_name?: string | null };
+  sender?: {
+    full_name: string;
+    avatar_url: string | null;
+    organization_name?: string | null;
+  };
 }
 
 export function useMessages(projectId: string | undefined) {
@@ -25,7 +29,9 @@ export function useMessages(projectId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url, organization_name)")
+        .select(
+          "*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url, organization_name)",
+        )
         .eq("project_id", projectId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -39,14 +45,21 @@ export function useMessages(projectId: string | undefined) {
       .channel(`messages-${projectId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `project_id=eq.${projectId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `project_id=eq.${projectId}`,
+        },
         () => {
           queryClient.invalidateQueries({ queryKey: ["messages", projectId] });
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
-        }
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, projectId, queryClient]);
 
   return query;
@@ -57,9 +70,15 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      projectId, content, attachmentUrl, attachmentName,
+      projectId,
+      content,
+      attachmentUrl,
+      attachmentName,
     }: {
-      projectId: string; content: string; attachmentUrl?: string; attachmentName?: string;
+      projectId: string;
+      content: string;
+      attachmentUrl?: string;
+      attachmentName?: string;
     }) => {
       const { error } = await supabase.from("messages").insert({
         project_id: projectId,
@@ -116,10 +135,15 @@ export function useConversations() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-conversations-${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
-        () => qc.invalidateQueries({ queryKey: ["conversations"] }))
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => qc.invalidateQueries({ queryKey: ["conversations"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -137,7 +161,13 @@ export function useConversations() {
 
       const projectIds = projects.map((p) => p.id);
 
-      type MsgRow = { project_id: string; content: string; created_at: string; sender_id: string; is_read: boolean };
+      type MsgRow = {
+        project_id: string;
+        content: string;
+        created_at: string;
+        sender_id: string;
+        is_read: boolean;
+      };
       const { data: messages, error: mErr } = await supabase
         .from("messages")
         .select("project_id, content, created_at, sender_id, is_read")
@@ -145,9 +175,13 @@ export function useConversations() {
         .order("created_at", { ascending: false });
       if (mErr) throw mErr;
 
-      const otherPartyIds = projects.map((p) =>
-        p.association_id === user!.id ? p.assigned_provider_id : p.association_id
-      ).filter(Boolean) as string[];
+      const otherPartyIds = projects
+        .map((p) =>
+          p.association_id === user!.id
+            ? p.assigned_provider_id
+            : p.association_id,
+        )
+        .filter(Boolean) as string[];
 
       const { data: profiles } = await supabase
         .from("profiles")
@@ -158,20 +192,27 @@ export function useConversations() {
 
       const conversations: Conversation[] = [];
       for (const project of projects) {
-        const projectMessages = (messages ?? []).filter((m) => m.project_id === project.id);
+        const projectMessages = (messages ?? []).filter(
+          (m) => m.project_id === project.id,
+        );
         const lastMsg = projectMessages[0];
         const unreadCount = projectMessages.filter(
-          (m) => m.sender_id !== user!.id && !m.is_read
+          (m) => m.sender_id !== user!.id && !m.is_read,
         ).length;
 
         const otherPartyId =
-          project.association_id === user!.id ? project.assigned_provider_id : project.association_id;
+          project.association_id === user!.id
+            ? project.assigned_provider_id
+            : project.association_id;
         const otherProfile = profileMap.get(otherPartyId!);
 
         conversations.push({
           project_id: project.id,
           project_title: project.title,
-          other_party_name: otherProfile?.organization_name || otherProfile?.full_name || "مستخدم",
+          other_party_name:
+            otherProfile?.organization_name ||
+            otherProfile?.full_name ||
+            "مستخدم",
           other_party_avatar: otherProfile?.avatar_url ?? null,
           last_message: lastMsg?.content ?? "",
           last_message_at: lastMsg?.created_at ?? project.id,
@@ -180,7 +221,9 @@ export function useConversations() {
       }
 
       return conversations.sort(
-        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        (a, b) =>
+          new Date(b.last_message_at).getTime() -
+          new Date(a.last_message_at).getTime(),
       );
     },
   });

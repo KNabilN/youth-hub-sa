@@ -6,7 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getDisplayName(
-  profile: { organization_name?: string | null; full_name?: string | null } | null | undefined,
+  profile:
+    | { organization_name?: string | null; full_name?: string | null }
+    | null
+    | undefined,
   role?: string | null,
 ): string {
   if (!profile) return "—";

@@ -29,7 +29,14 @@ const ALLOWED_TYPES = [
   "image/svg+xml",
 ];
 
-export type EntityType = "project" | "contract" | "ticket" | "dispute" | "bid" | "service" | "deliverable";
+export type EntityType =
+  | "project"
+  | "contract"
+  | "ticket"
+  | "dispute"
+  | "bid"
+  | "service"
+  | "deliverable";
 
 export type AttachmentCategory = "brand_identity" | "content" | "operational";
 
@@ -46,7 +53,10 @@ export interface Attachment {
   created_at: string;
 }
 
-export function useAttachments(entityType: EntityType, entityId: string | undefined) {
+export function useAttachments(
+  entityType: EntityType,
+  entityId: string | undefined,
+) {
   return useQuery({
     queryKey: ["attachments", entityType, entityId],
     enabled: !!entityId,
@@ -80,9 +90,18 @@ export function useUploadAttachment() {
       category?: AttachmentCategory;
     }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
-      const maxSize = entityType === "deliverable" ? DELIVERABLE_MAX_FILE_SIZE : MAX_FILE_SIZE;
-      if (file.size > maxSize) throw new Error(entityType === "deliverable" ? "حجم الملف يتجاوز 50 ميجابايت" : "حجم الملف يتجاوز 10 ميجابايت");
-      if (entityType !== "deliverable" && !ALLOWED_TYPES.includes(file.type)) throw new Error("نوع الملف غير مسموح");
+      const maxSize =
+        entityType === "deliverable"
+          ? DELIVERABLE_MAX_FILE_SIZE
+          : MAX_FILE_SIZE;
+      if (file.size > maxSize)
+        throw new Error(
+          entityType === "deliverable"
+            ? "حجم الملف يتجاوز 50 ميجابايت"
+            : "حجم الملف يتجاوز 10 ميجابايت",
+        );
+      if (entityType !== "deliverable" && !ALLOWED_TYPES.includes(file.type))
+        throw new Error("نوع الملف غير مسموح");
 
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");

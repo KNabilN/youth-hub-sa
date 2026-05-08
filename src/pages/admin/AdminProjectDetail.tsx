@@ -1,22 +1,52 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useUpdateProjectStatus, useAdminUpdateProject } from "@/hooks/useAdminProjects";
+import {
+  useUpdateProjectStatus,
+  useAdminUpdateProject,
+} from "@/hooks/useAdminProjects";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, FileEdit, Tag, MapPin, Calendar, DollarSign, Clock, Users, Eye, Lock, AlertTriangle } from "lucide-react";
+import {
+  ArrowRight,
+  FileEdit,
+  Tag,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Clock,
+  Users,
+  Eye,
+  Lock,
+  AlertTriangle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDirectEditDialog, type DirectEditFieldConfig } from "@/components/admin/AdminDirectEditDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AdminDirectEditDialog,
+  type DirectEditFieldConfig,
+} from "@/components/admin/AdminDirectEditDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { BidList } from "@/components/bids/BidList";
@@ -31,24 +61,37 @@ import type { Database } from "@/integrations/supabase/types";
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
 const statusLabels: Record<string, string> = {
-  draft: "مسودة", pending_approval: "بانتظار الموافقة", open: "مفتوح", in_progress: "قيد التنفيذ",
-  completed: "مكتمل", disputed: "مُشتكى عليه", cancelled: "ملغي",
-  suspended: "معلق", archived: "مؤرشف", rejected: "مرفوض",
+  draft: "مسودة",
+  pending_approval: "بانتظار الموافقة",
+  open: "مفتوح",
+  in_progress: "قيد التنفيذ",
+  completed: "مكتمل",
+  disputed: "مُشتكى عليه",
+  cancelled: "ملغي",
+  suspended: "معلق",
+  archived: "مؤرشف",
+  rejected: "مرفوض",
 };
 
 /** Admin can only: pending_approval→open/rejected, and any active status→cancelled */
 function getAdminAllowedStatuses(current: string): string[] {
   if (current === "pending_approval") return ["open", "rejected"];
-  if (["open", "in_progress", "disputed", "suspended"].includes(current)) return ["cancelled"];
+  if (["open", "in_progress", "disputed", "suspended"].includes(current))
+    return ["cancelled"];
   return [];
 }
 
 const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground", pending_approval: "bg-orange-500/10 text-orange-600",
-  open: "bg-primary/10 text-primary", in_progress: "bg-yellow-500/10 text-yellow-600",
-  completed: "bg-emerald-500/10 text-emerald-600", disputed: "bg-destructive/10 text-destructive",
-  cancelled: "bg-muted text-muted-foreground", rejected: "bg-destructive/10 text-destructive",
-  suspended: "bg-orange-500/10 text-orange-600", archived: "bg-muted text-muted-foreground",
+  draft: "bg-muted text-muted-foreground",
+  pending_approval: "bg-orange-500/10 text-orange-600",
+  open: "bg-primary/10 text-primary",
+  in_progress: "bg-warning/10 text-warning",
+  completed: "bg-success/10 text-success",
+  disputed: "bg-destructive/10 text-destructive",
+  cancelled: "bg-muted text-muted-foreground",
+  rejected: "bg-destructive/10 text-destructive",
+  suspended: "bg-orange-500/10 text-orange-600",
+  archived: "bg-muted text-muted-foreground",
 };
 
 const projectFields: DirectEditFieldConfig[] = [
@@ -56,8 +99,18 @@ const projectFields: DirectEditFieldConfig[] = [
   { key: "description", label: "الوصف", type: "textarea" },
   { key: "budget", label: "الميزانية", type: "number" },
   { key: "estimated_hours", label: "الساعات المقدرة", type: "number" },
-  { key: "category_id", label: "التصنيف", type: "select", selectSource: "categories" },
-  { key: "region_id", label: "المنطقة", type: "select", selectSource: "regions" },
+  {
+    key: "category_id",
+    label: "التصنيف",
+    type: "select",
+    selectSource: "categories",
+  },
+  {
+    key: "region_id",
+    label: "المنطقة",
+    type: "select",
+    selectSource: "regions",
+  },
 ];
 
 export default function AdminProjectDetail() {
@@ -78,26 +131,39 @@ export default function AdminProjectDetail() {
       .channel(`project-detail-${id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "projects", filter: `id=eq.${id}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "projects",
+          filter: `id=eq.${id}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["admin-project-detail", id] });
           qc.invalidateQueries({ queryKey: ["admin-projects"] });
-        }
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id, qc]);
   const { data: hoursSummary } = useProjectTimeLogs(id);
 
-  const { data: project, isLoading, error } = useQuery({
+  const {
+    data: project,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin-project-detail", id],
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, categories(name), regions(name), profiles!projects_association_id_fkey(id, full_name, avatar_url, organization_name), assigned_provider:profiles!projects_assigned_provider_id_fkey(id, full_name, avatar_url)")
+        .select(
+          "*, categories(name), regions(name), profiles!projects_association_id_fkey(id, full_name, avatar_url, organization_name), assigned_provider:profiles!projects_assigned_provider_id_fkey(id, full_name, avatar_url)",
+        )
         .eq("id", id!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -167,7 +233,7 @@ export default function AdminProjectDetail() {
       {
         onSuccess: () => toast.success("تم تحديث الحالة"),
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -177,14 +243,18 @@ export default function AdminProjectDetail() {
       return;
     }
     updateStatus.mutate(
-      { id, status: "rejected" as ProjectStatus, rejection_reason: rejectionReason.trim() },
+      {
+        id,
+        status: "rejected" as ProjectStatus,
+        rejection_reason: rejectionReason.trim(),
+      },
       {
         onSuccess: () => {
           toast.success("تم رفض الطلب");
           setRejectDialogOpen(false);
         },
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -206,7 +276,8 @@ export default function AdminProjectDetail() {
         <div className="text-center py-16 space-y-4">
           <p className="text-muted-foreground">لم يتم العثور على الطلب</p>
           <Button variant="outline" onClick={() => navigate("/admin/projects")}>
-            <ArrowRight className="h-4 w-4 me-1" />العودة للقائمة
+            <ArrowRight className="h-4 w-4 me-1" />
+            العودة للقائمة
           </Button>
         </div>
       </DashboardLayout>
@@ -222,23 +293,32 @@ export default function AdminProjectDetail() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowRight className="h-4 w-4 me-1" />العودة لطلبات الجمعيات
+            <ArrowRight className="h-4 w-4 me-1" />
+            العودة لطلبات الجمعيات
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-            <FileEdit className="h-4 w-4 me-1" />تعديل
+            <FileEdit className="h-4 w-4 me-1" />
+            تعديل
           </Button>
         </div>
 
         {/* Title & Status */}
         <div className="space-y-2">
-           {(project as any).request_number && (
-             <span className="text-sm font-mono text-muted-foreground">{(project as any).request_number}</span>
-           )}
-           <div className="flex items-center gap-3 flex-wrap">
-             <h1 className="text-2xl font-bold">{project.title}</h1>
-             <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+          {(project as any).request_number && (
+            <span className="text-sm font-mono text-muted-foreground">
+              {(project as any).request_number}
+            </span>
+          )}
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold">{project.title}</h1>
+            <Badge className={statusColors[project.status]}>
+              {statusLabels[project.status]}
+            </Badge>
             {project.is_private && (
-              <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />خاص</Badge>
+              <Badge variant="outline" className="gap-1">
+                <Lock className="h-3 w-3" />
+                خاص
+              </Badge>
             )}
           </div>
           <p className="text-muted-foreground">{project.description}</p>
@@ -250,10 +330,14 @@ export default function AdminProjectDetail() {
             {/* Skills */}
             {project.required_skills && project.required_skills.length > 0 && (
               <div className="space-y-2">
-                <h2 className="text-sm font-semibold text-muted-foreground">المهارات المطلوبة</h2>
+                <h2 className="text-sm font-semibold text-muted-foreground">
+                  المهارات المطلوبة
+                </h2>
                 <div className="flex flex-wrap gap-2">
                   {project.required_skills.map((skill) => (
-                    <Badge key={skill} variant="outline">{skill}</Badge>
+                    <Badge key={skill} variant="outline">
+                      {skill}
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -264,18 +348,43 @@ export default function AdminProjectDetail() {
               <Card className="border-primary/20">
                 <CardContent className="pt-4 pb-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium flex items-center gap-1"><Clock className="h-4 w-4" /> تقدم الساعات</span>
-                    <span className="text-muted-foreground">{hoursSummary.approvedHours} / {project.estimated_hours} ساعة</span>
+                    <span className="font-medium flex items-center gap-1">
+                      <Clock className="h-4 w-4" /> تقدم الساعات
+                    </span>
+                    <span className="text-muted-foreground">
+                      {hoursSummary.approvedHours} / {project.estimated_hours}{" "}
+                      ساعة
+                    </span>
                   </div>
-                  <Progress value={Math.min((hoursSummary.approvedHours / Number(project.estimated_hours)) * 100, 100)} className="h-2" />
-                  {hoursSummary.approvedHours >= Number(project.estimated_hours) && (
-                    <div className="flex items-center gap-1 text-xs text-destructive"><AlertTriangle className="h-3 w-3" /> تم تجاوز الساعات المقدرة!</div>
+                  <Progress
+                    value={Math.min(
+                      (hoursSummary.approvedHours /
+                        Number(project.estimated_hours)) *
+                        100,
+                      100,
+                    )}
+                    className="h-2"
+                  />
+                  {hoursSummary.approvedHours >=
+                    Number(project.estimated_hours) && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertTriangle className="h-3 w-3" /> تم تجاوز الساعات
+                      المقدرة!
+                    </div>
                   )}
-                  {hoursSummary.approvedHours >= Number(project.estimated_hours) * 0.8 && hoursSummary.approvedHours < Number(project.estimated_hours) && (
-                    <div className="flex items-center gap-1 text-xs text-warning"><AlertTriangle className="h-3 w-3" /> تم استهلاك أكثر من 80% من الساعات المقدرة</div>
-                  )}
+                  {hoursSummary.approvedHours >=
+                    Number(project.estimated_hours) * 0.8 &&
+                    hoursSummary.approvedHours <
+                      Number(project.estimated_hours) && (
+                      <div className="flex items-center gap-1 text-xs text-warning">
+                        <AlertTriangle className="h-3 w-3" /> تم استهلاك أكثر من
+                        80% من الساعات المقدرة
+                      </div>
+                    )}
                   {hoursSummary.pendingHours > 0 && (
-                    <p className="text-xs text-muted-foreground">{hoursSummary.pendingHours} ساعة قيد المراجعة</p>
+                    <p className="text-xs text-muted-foreground">
+                      {hoursSummary.pendingHours} ساعة قيد المراجعة
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -284,7 +393,9 @@ export default function AdminProjectDetail() {
             {/* Tabs: Bids, Contract, Time Logs, Activity */}
             <Tabs defaultValue="bids" dir="rtl">
               <TabsList>
-                <TabsTrigger value="bids">العروض ({bidsCount ?? 0})</TabsTrigger>
+                <TabsTrigger value="bids">
+                  العروض ({bidsCount ?? 0})
+                </TabsTrigger>
                 <TabsTrigger value="contract">العقد</TabsTrigger>
                 <TabsTrigger value="timelogs">سجل الساعات</TabsTrigger>
                 <TabsTrigger value="activity">سجل النشاط</TabsTrigger>
@@ -298,27 +409,64 @@ export default function AdminProjectDetail() {
                     <CardContent className="pt-6 space-y-3 text-sm">
                       <p>{contract.terms}</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <span className="text-muted-foreground">توقيع الجمعية:</span>
-                        <span>{contract.association_signed_at ? new Date(contract.association_signed_at).toLocaleDateString("ar-SA") : "لم يوقّع بعد"}</span>
-                        <span className="text-muted-foreground">توقيع مقدم الخدمة:</span>
-                        <span>{contract.provider_signed_at ? new Date(contract.provider_signed_at).toLocaleDateString("ar-SA") : "لم يوقّع بعد"}</span>
+                        <span className="text-muted-foreground">
+                          توقيع الجمعية:
+                        </span>
+                        <span>
+                          {contract.association_signed_at
+                            ? new Date(
+                                contract.association_signed_at,
+                              ).toLocaleDateString("ar-SA")
+                            : "لم يوقّع بعد"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          توقيع مقدم الخدمة:
+                        </span>
+                        <span>
+                          {contract.provider_signed_at
+                            ? new Date(
+                                contract.provider_signed_at,
+                              ).toLocaleDateString("ar-SA")
+                            : "لم يوقّع بعد"}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">لا يوجد عقد بعد</p>
+                  <p className="text-center text-muted-foreground py-8">
+                    لا يوجد عقد بعد
+                  </p>
                 )}
               </TabsContent>
               <TabsContent value="timelogs" className="mt-4">
                 <TimeLogTable
                   logs={(projectTimeLogs as any) ?? []}
                   onApprove={(logId) => {
-                    const log = ((projectTimeLogs as any) ?? []).find((l: any) => l.id === logId);
-                    updateTimeLog.mutate({ id: logId, approval: "approved", providerId: log?.provider_id ?? "" }, { onSuccess: () => toast.success("تم اعتماد السجل") });
+                    const log = ((projectTimeLogs as any) ?? []).find(
+                      (l: any) => l.id === logId,
+                    );
+                    updateTimeLog.mutate(
+                      {
+                        id: logId,
+                        approval: "approved",
+                        providerId: log?.provider_id ?? "",
+                      },
+                      { onSuccess: () => toast.success("تم اعتماد السجل") },
+                    );
                   }}
                   onReject={(logId, reason) => {
-                    const log = ((projectTimeLogs as any) ?? []).find((l: any) => l.id === logId);
-                    updateTimeLog.mutate({ id: logId, approval: "rejected", providerId: log?.provider_id ?? "", rejectionReason: reason }, { onSuccess: () => toast.success("تم رفض السجل") });
+                    const log = ((projectTimeLogs as any) ?? []).find(
+                      (l: any) => l.id === logId,
+                    );
+                    updateTimeLog.mutate(
+                      {
+                        id: logId,
+                        approval: "rejected",
+                        providerId: log?.provider_id ?? "",
+                        rejectionReason: reason,
+                      },
+                      { onSuccess: () => toast.success("تم رفض السجل") },
+                    );
                   }}
                   isLoading={updateTimeLog.isPending}
                 />
@@ -333,35 +481,75 @@ export default function AdminProjectDetail() {
           <div className="space-y-4">
             {/* Status Change */}
             <Card>
-              <CardHeader><CardTitle className="text-sm">تغيير الحالة</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-sm">تغيير الحالة</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3">
-                <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
-                {project.status === "rejected" && (project as any).rejection_reason && (
-                  <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20">
-                    <span className="font-semibold">سبب الرفض:</span> {(project as any).rejection_reason}
-                  </div>
-                )}
+                <Badge className={statusColors[project.status]}>
+                  {statusLabels[project.status]}
+                </Badge>
+                {project.status === "rejected" &&
+                  (project as any).rejection_reason && (
+                    <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2 border border-destructive/20">
+                      <span className="font-semibold">سبب الرفض:</span>{" "}
+                      {(project as any).rejection_reason}
+                    </div>
+                  )}
                 {(() => {
                   const opts = getAdminAllowedStatuses(project.status);
-                  if (opts.length === 0) return <p className="text-xs text-muted-foreground">لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم المشروع</p>;
+                  if (opts.length === 0)
+                    return (
+                      <p className="text-xs text-muted-foreground">
+                        لا يمكن تغيير الحالة يدوياً — تتغير تلقائياً مع تقدم
+                        المشروع
+                      </p>
+                    );
                   if (project.status === "pending_approval") {
                     return (
                       <div className="flex gap-2">
-                        <Button size="sm" className="flex-1" onClick={() => handleStatusChange("open" as ProjectStatus)} disabled={updateStatus.isPending}>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() =>
+                            handleStatusChange("open" as ProjectStatus)
+                          }
+                          disabled={updateStatus.isPending}
+                        >
                           موافقة
                         </Button>
-                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleStatusChange("rejected" as ProjectStatus)} disabled={updateStatus.isPending}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1"
+                          onClick={() =>
+                            handleStatusChange("rejected" as ProjectStatus)
+                          }
+                          disabled={updateStatus.isPending}
+                        >
                           رفض
                         </Button>
                       </div>
                     );
                   }
                   return (
-                    <Select value={project.status} onValueChange={(v) => handleStatusChange(v as ProjectStatus)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select
+                      value={project.status}
+                      onValueChange={(v) =>
+                        handleStatusChange(v as ProjectStatus)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={project.status}>{statusLabels[project.status]}</SelectItem>
-                        {opts.map((k) => <SelectItem key={k} value={k}>{statusLabels[k]}</SelectItem>)}
+                        <SelectItem value={project.status}>
+                          {statusLabels[project.status]}
+                        </SelectItem>
+                        {opts.map((k) => (
+                          <SelectItem key={k} value={k}>
+                            {statusLabels[k]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   );
@@ -372,17 +560,25 @@ export default function AdminProjectDetail() {
             {/* Association */}
             {association && (
               <Card>
-                <CardHeader><CardTitle className="text-sm">الجمعية</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-sm">الجمعية</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={association.avatar_url} />
-                      <AvatarFallback>{association.full_name?.[0]}</AvatarFallback>
+                      <AvatarFallback>
+                        {association.full_name?.[0]}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{association.full_name}</p>
+                      <p className="font-medium text-sm">
+                        {association.full_name}
+                      </p>
                       {association.organization_name && (
-                        <p className="text-xs text-muted-foreground">{association.organization_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {association.organization_name}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -393,14 +589,20 @@ export default function AdminProjectDetail() {
             {/* Assigned Provider */}
             {assignedProvider && (
               <Card>
-                <CardHeader><CardTitle className="text-sm">مقدم الخدمة المعين</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-sm">مقدم الخدمة المعين</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={assignedProvider.avatar_url} />
-                      <AvatarFallback>{assignedProvider.full_name?.[0]}</AvatarFallback>
+                      <AvatarFallback>
+                        {assignedProvider.full_name?.[0]}
+                      </AvatarFallback>
                     </Avatar>
-                    <p className="font-medium text-sm">{assignedProvider.full_name}</p>
+                    <p className="font-medium text-sm">
+                      {assignedProvider.full_name}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -412,7 +614,9 @@ export default function AdminProjectDetail() {
                 {project.budget && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
-                    <span>الميزانية: {project.budget?.toLocaleString()} ر.س</span>
+                    <span>
+                      الميزانية: {project.budget?.toLocaleString()} ر.س
+                    </span>
                   </div>
                 )}
                 {project.estimated_hours && (
@@ -440,12 +644,26 @@ export default function AdminProjectDetail() {
                 {escrow && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
-                    <span>الضمان: {escrow.amount?.toLocaleString()} ر.س ({escrow.status === "held" ? "محتجز" : escrow.status === "released" ? "محرر" : escrow.status === "refunded" ? "مسترد" : escrow.status})</span>
+                    <span>
+                      الضمان: {escrow.amount?.toLocaleString()} ر.س (
+                      {escrow.status === "held"
+                        ? "محتجز"
+                        : escrow.status === "released"
+                          ? "محرر"
+                          : escrow.status === "refunded"
+                            ? "مسترد"
+                            : escrow.status}
+                      )
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{format(new Date(project.created_at), "yyyy/MM/dd", { locale: ar })}</span>
+                  <span>
+                    {format(new Date(project.created_at), "yyyy/MM/dd", {
+                      locale: ar,
+                    })}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -474,15 +692,33 @@ export default function AdminProjectDetail() {
             <DialogTitle>رفض الطلب</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">سيتم رفض طلب "{project.title}" وإرسال سبب الرفض للجمعية.</p>
+            <p className="text-sm text-muted-foreground">
+              سيتم رفض طلب "{project.title}" وإرسال سبب الرفض للجمعية.
+            </p>
             <div>
               <Label>سبب الرفض *</Label>
-              <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="اكتب سبب الرفض..." rows={3} />
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="اكتب سبب الرفض..."
+                rows={3}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>إلغاء</Button>
-            <Button variant="destructive" onClick={handleRejectConfirm} disabled={updateStatus.isPending}>تأكيد الرفض</Button>
+            <Button
+              variant="outline"
+              onClick={() => setRejectDialogOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={updateStatus.isPending}
+            >
+              تأكيد الرفض
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

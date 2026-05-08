@@ -3,10 +3,19 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useUnreadCount,
+  useMarkAsRead,
+  useMarkAllAsRead,
+} from "@/hooks/useNotifications";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Menu, Bell, CheckCheck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +23,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { getDisplayName } from "@/lib/utils";
 
-const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isAdmin: boolean }) {
+const HeaderNotifications = memo(function HeaderNotifications({
+  isAdmin,
+}: {
+  isAdmin: boolean;
+}) {
   const navigate = useNavigate();
   const { data: notifications } = useNotifications(0, 9);
   const { data: unreadCount } = useUnreadCount();
@@ -39,7 +52,12 @@ const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isA
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="الإشعارات">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label="الإشعارات"
+        >
           <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <NotificationBadge />
         </Button>
@@ -61,7 +79,9 @@ const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isA
         </div>
         <ScrollArea className="max-h-80">
           {!notifications?.length ? (
-            <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              لا توجد إشعارات
+            </p>
           ) : (
             <div className="divide-y">
               {notifications.map((n) => (
@@ -72,11 +92,18 @@ const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isA
                     if (!n.is_read) markAsRead.mutate(n.id);
                   }}
                 >
-                  <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
+                  <p
+                    className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}
+                  >
                     {n.message}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(n.created_at).toLocaleDateString("ar-SA", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </button>
               ))}
@@ -92,7 +119,10 @@ const HeaderUserInfo = memo(function HeaderUserInfo() {
   const navigate = useNavigate();
   const { user, role } = useAuth();
   const { data: profile } = useProfile();
-  const displayName = getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : (user?.email ?? "");
+  const displayName =
+    getDisplayName(profile, role) !== "—"
+      ? getDisplayName(profile, role)
+      : (user?.email ?? "");
 
   return (
     <button
@@ -107,7 +137,10 @@ const HeaderUserInfo = memo(function HeaderUserInfo() {
         )}
       </div>
       <Avatar className="h-9 w-9 border-2 border-border">
-        <AvatarImage src={profile?.avatar_url || undefined} alt={displayName || "صورة المستخدم"} />
+        <AvatarImage
+          src={profile?.avatar_url || undefined}
+          alt={displayName || "صورة المستخدم"}
+        />
         <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
           {(displayName?.[0] || user?.email?.[0] || "؟").toUpperCase()}
         </AvatarFallback>
@@ -130,7 +163,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="text-2xl">🚫</span>
           </div>
           <h2 className="text-xl font-bold text-foreground">تم تعليق حسابك</h2>
-          <p className="text-muted-foreground">تم تعليق حسابك من قبل إدارة المنصة. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.</p>
+          <p className="text-muted-foreground">
+            تم تعليق حسابك من قبل إدارة المنصة. يرجى التواصل مع الدعم الفني
+            لمزيد من المعلومات.
+          </p>
         </div>
       </div>
     );
@@ -144,28 +180,31 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </a>
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-border flex items-center px-4 md:px-6 gap-3 bg-card/80 backdrop-blur-sm sticky top-0 z-30" role="banner">
+          <header
+            className="h-16 border-b border-border flex items-center px-4 md:px-6 gap-3 bg-card/80 backdrop-blur-sm sticky top-0 z-30"
+            role="banner"
+          >
             <SidebarTrigger>
               <Menu className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">فتح القائمة الجانبية</span>
             </SidebarTrigger>
-            
+
             <div className="flex-1" />
 
             <HeaderNotifications isAdmin={isAdmin} />
             <HeaderUserInfo />
           </header>
           {!isAdmin && profile && !profile.is_verified && (
-            <div className="bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800 px-4 md:px-6 py-3">
+            <div className="bg-info/10 border-b border-info/30 dark:border-info/30 px-4 md:px-6 py-3">
               <div className="flex items-center gap-3 max-w-4xl mx-auto">
-                <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-9 h-9 rounded-full bg-info/10 dark:bg-info/50 flex items-center justify-center shrink-0">
+                  <Clock className="h-5 w-5 text-info dark:text-info" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <p className="text-sm font-medium text-info ">
                     حسابك بانتظار التوثيق من قبل إدارة المنصة
                   </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                  <p className="text-xs text-info dark:text-info mt-0.5">
                     سيتم إشعارك فور اعتماد حسابك
                   </p>
                 </div>
@@ -173,7 +212,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           )}
           <ProfileCompletionBanner />
-          <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
+          <main
+            id="main-content"
+            className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in"
+            role="main"
+            tabIndex={-1}
+          >
             {children}
           </main>
         </div>

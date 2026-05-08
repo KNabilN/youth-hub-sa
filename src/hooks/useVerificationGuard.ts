@@ -25,18 +25,25 @@ export function useVerificationGuard() {
 export function usePublishGuard() {
   const { role } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { isComplete, missingFields, isLoading: completenessLoading } = useProfileCompleteness();
+  const {
+    isComplete,
+    missingFields,
+    isLoading: completenessLoading,
+  } = useProfileCompleteness();
   const isVerified = profile?.is_verified ?? false;
   const isLoading = profileLoading || completenessLoading;
   const canPublish = isVerified && isComplete;
 
-  const blockReason: "verification" | "profile" | "portfolio" | null = !isVerified
-    ? "verification"
-    : !isComplete
-      ? (role === "service_provider" && missingFields.includes("نموذج عمل واحد على الأقل") && missingFields.length === 1
+  const blockReason: "verification" | "profile" | "portfolio" | null =
+    !isVerified
+      ? "verification"
+      : !isComplete
+        ? role === "service_provider" &&
+          missingFields.includes("نموذج عمل واحد على الأقل") &&
+          missingFields.length === 1
           ? "portfolio"
-          : "profile")
-      : null;
+          : "profile"
+        : null;
 
   const guardPublish = useCallback(
     (callback: () => void) => {
@@ -50,7 +57,9 @@ export function usePublishGuard() {
           missingFields.includes("نموذج عمل واحد على الأقل") &&
           missingFields.length === 1;
         if (isPortfolioOnly) {
-          toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل نشر الخدمات");
+          toast.error(
+            "يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل نشر الخدمات",
+          );
         } else {
           toast.error("يجب إكمال الملف الشخصي أولاً قبل النشر");
         }
@@ -61,12 +70,21 @@ export function usePublishGuard() {
     [isVerified, isComplete, missingFields, role],
   );
 
-  return { canPublish, guardPublish, isVerified, isComplete, missingFields, blockReason, isLoading };
+  return {
+    canPublish,
+    guardPublish,
+    isVerified,
+    isComplete,
+    missingFields,
+    blockReason,
+    isLoading,
+  };
 }
 
 export function useBidGuard() {
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { missingFields, isLoading: completenessLoading } = useProfileCompleteness();
+  const { missingFields, isLoading: completenessLoading } =
+    useProfileCompleteness();
   const isVerified = profile?.is_verified ?? false;
   const hasPortfolio = !missingFields.includes("نموذج عمل واحد على الأقل");
   const isLoading = profileLoading || completenessLoading;
@@ -85,7 +103,9 @@ export function useBidGuard() {
         return;
       }
       if (!hasPortfolio) {
-        toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض");
+        toast.error(
+          "يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض",
+        );
         return;
       }
       callback();

@@ -9,23 +9,36 @@ import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 export default function PaymentCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
+  const [status, setStatus] = useState<"verifying" | "success" | "failed">(
+    "verifying",
+  );
   const [errorMsg, setErrorMsg] = useState("");
 
   // Try sessionStorage first, then URL params as fallback (survives cross-origin 3DS redirects)
   const getPaymentContext = () => {
     const sessionCtx = sessionStorage.getItem("moyasar_payment_context");
     if (sessionCtx) {
-      try { return JSON.parse(sessionCtx); } catch {}
+      try {
+        return JSON.parse(sessionCtx);
+      } catch {}
     }
     const ctxParam = searchParams.get("ctx");
     if (ctxParam) {
-      try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(ctxParam))))); } catch {}
+      try {
+        return JSON.parse(
+          decodeURIComponent(escape(atob(decodeURIComponent(ctxParam)))),
+        );
+      } catch {}
     }
     return {};
   };
   const paymentContext = getPaymentContext();
-  const retryPath = paymentContext?.type === "donation" ? "/donations" : paymentContext?.type === "project_payment" ? `/projects/${paymentContext.project_id}` : "/checkout";
+  const retryPath =
+    paymentContext?.type === "donation"
+      ? "/donations"
+      : paymentContext?.type === "project_payment"
+        ? `/projects/${paymentContext.project_id}`
+        : "/checkout";
 
   useEffect(() => {
     const paymentId = searchParams.get("id");
@@ -61,13 +74,18 @@ export default function PaymentCallback() {
 
         if (!session) {
           setStatus("failed");
-          setErrorMsg("انتهت صلاحية الجلسة. يرجى تسجيل الدخول والمحاولة مرة أخرى.");
+          setErrorMsg(
+            "انتهت صلاحية الجلسة. يرجى تسجيل الدخول والمحاولة مرة أخرى.",
+          );
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke("moyasar-verify-payment", {
-          body: { payment_id: paymentId, context },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          "moyasar-verify-payment",
+          {
+            body: { payment_id: paymentId, context },
+          },
+        );
 
         if (error) throw error;
 
@@ -76,14 +94,19 @@ export default function PaymentCallback() {
 
           // Record discount code usage if applied
           if (context.discount_code_id && context.discount_amount > 0) {
-            const { data: { user } } = await supabase.auth.getUser();
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
             if (user) {
               // Use upsert-like approach: ignore if already recorded (unique constraint)
-              await supabase.from("discount_code_usages" as any).upsert({
-                code_id: context.discount_code_id,
-                user_id: user.id,
-                discount_amount: context.discount_amount,
-              }, { onConflict: "code_id,user_id", ignoreDuplicates: true });
+              await supabase.from("discount_code_usages" as any).upsert(
+                {
+                  code_id: context.discount_code_id,
+                  user_id: user.id,
+                  discount_amount: context.discount_amount,
+                },
+                { onConflict: "code_id,user_id", ignoreDuplicates: true },
+              );
             }
           }
 
@@ -96,10 +119,17 @@ export default function PaymentCallback() {
             const total = data.amount || context.total || 0;
             const count = context.items?.length || 1;
             const serviceTitles = context.items?.map((i: any) => i.title) || [];
-            const providerIds = context.items?.map((i: any) => i.provider_id) || [];
+            const providerIds =
+              context.items?.map((i: any) => i.provider_id) || [];
             navigate("/payment-success", {
               replace: true,
-              state: { total, count, method: "electronic", serviceTitles, providerIds },
+              state: {
+                total,
+                count,
+                method: "electronic",
+                serviceTitles,
+                providerIds,
+              },
             });
           }
         } else {
@@ -146,7 +176,10 @@ export default function PaymentCallback() {
                   <Button onClick={() => navigate(retryPath)}>
                     إعادة المحاولة
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/dashboard")}
+                  >
                     <ArrowLeft className="h-4 w-4 me-1" />
                     العودة للوحة التحكم
                   </Button>

@@ -12,13 +12,23 @@ export function useWithdrawals() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-withdrawals-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawal_requests", filter: `provider_id=eq.${user.id}` },
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "withdrawal_requests",
+          filter: `provider_id=eq.${user.id}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["withdrawals"] });
           qc.invalidateQueries({ queryKey: ["earnings"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -27,7 +37,9 @@ export function useWithdrawals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)")
+        .select(
+          "*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)",
+        )
         .eq("provider_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -40,7 +52,13 @@ export function useCreateWithdrawal() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ amount, escrow_id }: { amount: number; escrow_id: string }) => {
+    mutationFn: async ({
+      amount,
+      escrow_id,
+    }: {
+      amount: number;
+      escrow_id: string;
+    }) => {
       const { data: existing } = await supabase
         .from("withdrawal_requests")
         .select("id")
@@ -55,7 +73,8 @@ export function useCreateWithdrawal() {
         .select()
         .single();
       if (error) {
-        if (error.code === "23505") throw new Error("يوجد طلب سحب مسبق لهذه المعاملة");
+        if (error.code === "23505")
+          throw new Error("يوجد طلب سحب مسبق لهذه المعاملة");
         throw error;
       }
       return data;
@@ -73,7 +92,9 @@ export function useAllWithdrawals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
-        .select("*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)")
+        .select(
+          "*, profiles:provider_id(full_name, organization_name), bank_details:provider_id(bank_name, bank_iban, bank_account_holder)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -82,11 +103,13 @@ export function useAllWithdrawals() {
           if (!w.escrow_id) return w;
           const { data: escrow } = await supabase
             .from("escrow_transactions")
-            .select("id, amount, status, escrow_number, project_id, service_id, projects:project_id(title, request_number), micro_services:service_id(title, service_number)")
+            .select(
+              "id, amount, status, escrow_number, project_id, service_id, projects:project_id(title, request_number), micro_services:service_id(title, service_number)",
+            )
             .eq("id", w.escrow_id)
             .single();
           return { ...w, escrow: escrow ?? null };
-        })
+        }),
       );
       return enriched;
     },
@@ -96,8 +119,21 @@ export function useAllWithdrawals() {
 export function useUpdateWithdrawalStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, receipt_url, rejection_reason }: { id: string; status: string; receipt_url?: string; rejection_reason?: string }) => {
-      const updateData: Record<string, any> = { status, processed_at: new Date().toISOString() };
+    mutationFn: async ({
+      id,
+      status,
+      receipt_url,
+      rejection_reason,
+    }: {
+      id: string;
+      status: string;
+      receipt_url?: string;
+      rejection_reason?: string;
+    }) => {
+      const updateData: Record<string, any> = {
+        status,
+        processed_at: new Date().toISOString(),
+      };
       if (receipt_url) updateData.receipt_url = receipt_url;
       if (rejection_reason) updateData.rejection_reason = rejection_reason;
       const { data: updated, error } = await supabase

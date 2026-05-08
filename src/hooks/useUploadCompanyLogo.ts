@@ -7,7 +7,8 @@ export function useUploadCompanyLogo() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (file: File) => {
-      if (file.size > 2 * 1024 * 1024) throw new Error("الحد الأقصى لحجم الصورة 2 ميجابايت");
+      if (file.size > 2 * 1024 * 1024)
+        throw new Error("الحد الأقصى لحجم الصورة 2 ميجابايت");
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/company-logo.${ext}`;
@@ -15,7 +16,9 @@ export function useUploadCompanyLogo() {
         .from("avatars")
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(path);
       const company_logo_url = `${urlData.publicUrl}?t=${Date.now()}`;
       const { error } = await supabase
         .from("profiles")

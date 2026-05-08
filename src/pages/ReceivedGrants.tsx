@@ -1,10 +1,26 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useReceivedGrants, useAssociationGrantBalance } from "@/hooks/useAssociationGrants";
+import {
+  useReceivedGrants,
+  useAssociationGrantBalance,
+} from "@/hooks/useAssociationGrants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HandCoins, Wallet, Lock, CheckCircle2 } from "lucide-react";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -13,7 +29,13 @@ import { usePagination } from "@/hooks/usePagination";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
-const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusLabels: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   available: { label: "متاح", variant: "default" },
   consumed: { label: "مستهلك", variant: "secondary" },
   reserved: { label: "محجوز", variant: "outline" },
@@ -21,12 +43,22 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 
 function getDonationType(g: any): { label: string; className: string } {
   if (g.project_id && g.projects?.title) {
-    return { label: "مخصص لطلب", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" };
+    return {
+      label: "مخصص لطلب",
+      className: "bg-info/10 text-info dark:bg-info/30 ",
+    };
   }
   if (g.service_id && g.micro_services?.title) {
-    return { label: "مخصص لخدمة", className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" };
+    return {
+      label: "مخصص لخدمة",
+      className:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+    };
   }
-  return { label: "دعم عام", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" };
+  return {
+    label: "دعم عام",
+    className: "bg-success/10 text-success dark:bg-success/30 ",
+  };
 }
 
 function getLinkedEntityName(g: any): string | null {
@@ -50,7 +82,12 @@ export default function ReceivedGrants() {
   const paginated = filtered.slice(page * pageSize, (page + 1) * pageSize);
   const totalPages = Math.ceil(filtered.length / pageSize);
 
-  if (isLoading) return <DashboardLayout><ContentSkeleton /></DashboardLayout>;
+  if (isLoading)
+    return (
+      <DashboardLayout>
+        <ContentSkeleton />
+      </DashboardLayout>
+    );
 
   return (
     <DashboardLayout>
@@ -61,7 +98,9 @@ export default function ReceivedGrants() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">المنح المستلمة</h1>
-            <p className="text-sm text-muted-foreground">جميع المنح والتبرعات الواردة لجمعيتكم</p>
+            <p className="text-sm text-muted-foreground">
+              جميع المنح والتبرعات الواردة لجمعيتكم
+            </p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -73,9 +112,13 @@ export default function ReceivedGrants() {
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">الرصيد المتاح</p>
-                  <p className="text-2xl font-bold">{(balance?.available ?? 0).toLocaleString()} ر.س</p>
+                  <p className="text-2xl font-bold">
+                    {(balance?.available ?? 0).toLocaleString()} ر.س
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-success/10"><Wallet className="h-5 w-5 text-success" /></div>
+                <div className="p-3 rounded-xl bg-success/10">
+                  <Wallet className="h-5 w-5 text-success" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -84,9 +127,13 @@ export default function ReceivedGrants() {
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">محجوز</p>
-                  <p className="text-2xl font-bold">{(balance?.reserved ?? 0).toLocaleString()} ر.س</p>
+                  <p className="text-2xl font-bold">
+                    {(balance?.reserved ?? 0).toLocaleString()} ر.س
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-warning/10"><Lock className="h-5 w-5 text-warning" /></div>
+                <div className="p-3 rounded-xl bg-warning/10">
+                  <Lock className="h-5 w-5 text-warning" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -95,9 +142,13 @@ export default function ReceivedGrants() {
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">مستهلك</p>
-                  <p className="text-2xl font-bold">{(balance?.consumed ?? 0).toLocaleString()} ر.س</p>
+                  <p className="text-2xl font-bold">
+                    {(balance?.consumed ?? 0).toLocaleString()} ر.س
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-muted"><CheckCircle2 className="h-5 w-5 text-muted-foreground" /></div>
+                <div className="p-3 rounded-xl bg-muted">
+                  <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -106,9 +157,19 @@ export default function ReceivedGrants() {
         {/* Filter */}
         <Card className="border-dashed bg-muted/30">
           <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
-            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
-            <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); resetPage(); }}>
-              <SelectTrigger className="w-[160px] bg-background"><SelectValue /></SelectTrigger>
+            <span className="text-sm font-medium text-muted-foreground">
+              تصفية حسب الحالة
+            </span>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v);
+                resetPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px] bg-background">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع الحالات</SelectItem>
                 <SelectItem value="available">متاح</SelectItem>
@@ -121,11 +182,21 @@ export default function ReceivedGrants() {
 
         {/* Grants Table */}
         {!filtered.length ? (
-          <EmptyState icon={HandCoins} title="لا توجد منح" description={statusFilter !== "all" ? "لا توجد منح بهذه الحالة" : "لم تتلقَ أي منح حتى الآن"} />
+          <EmptyState
+            icon={HandCoins}
+            title="لا توجد منح"
+            description={
+              statusFilter !== "all"
+                ? "لا توجد منح بهذه الحالة"
+                : "لم تتلقَ أي منح حتى الآن"
+            }
+          />
         ) : (
           <>
             <Card>
-              <CardHeader><CardTitle>سجل المنح الواردة</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>سجل المنح الواردة</CardTitle>
+              </CardHeader>
               <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -140,26 +211,38 @@ export default function ReceivedGrants() {
                   </TableHeader>
                   <TableBody>
                     {paginated.map((g: any) => {
-                      const s = statusLabels[g.donation_status] || statusLabels.available;
+                      const s =
+                        statusLabels[g.donation_status] ||
+                        statusLabels.available;
                       const dtype = getDonationType(g);
                       const linkedName = getLinkedEntityName(g);
                       return (
                         <TableRow key={g.id}>
                           <TableCell className="font-medium">
-                            {g.profiles?.organization_name || g.profiles?.full_name || "مانح"}
+                            {g.profiles?.organization_name ||
+                              g.profiles?.full_name ||
+                              "مانح"}
                           </TableCell>
                           <TableCell>
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${dtype.className}`}>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${dtype.className}`}
+                            >
                               {dtype.label}
                             </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">
                             {linkedName || "—"}
                           </TableCell>
-                          <TableCell>{Number(g.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell><Badge variant={s.variant}>{s.label}</Badge></TableCell>
+                          <TableCell>
+                            {Number(g.amount).toLocaleString()} ر.س
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={s.variant}>{s.label}</Badge>
+                          </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(g.created_at), "d MMM yyyy", { locale: ar })}
+                            {format(new Date(g.created_at), "d MMM yyyy", {
+                              locale: ar,
+                            })}
                           </TableCell>
                         </TableRow>
                       );
@@ -169,7 +252,14 @@ export default function ReceivedGrants() {
               </CardContent>
             </Card>
             {totalPages > 1 && (
-              <PaginationControls page={page} pageSize={pageSize} totalFetched={paginated.length} totalItems={filtered.length} onNext={nextPage} onPrev={prevPage} />
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalFetched={paginated.length}
+                totalItems={filtered.length}
+                onNext={nextPage}
+                onPrev={prevPage}
+              />
             )}
           </>
         )}

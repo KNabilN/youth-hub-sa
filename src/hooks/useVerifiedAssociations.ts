@@ -5,7 +5,9 @@ export function useVerifiedAssociations() {
   return useQuery({
     queryKey: ["verified-associations"],
     queryFn: async () => {
-      const { data: ids, error: rpcErr } = await supabase.rpc("get_verified_association_ids");
+      const { data: ids, error: rpcErr } = await supabase.rpc(
+        "get_verified_association_ids",
+      );
       if (rpcErr) throw rpcErr;
       if (!ids?.length) return [];
 

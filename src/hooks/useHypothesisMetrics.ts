@@ -140,16 +140,40 @@ export function useHypothesisMetrics() {
         { data: profiles },
         { count: ticketCount },
       ] = await Promise.all([
-        supabase.from("projects").select("id, created_at, status, association_id, assigned_provider_id"),
-        supabase.from("bids").select("id, created_at, project_id, provider_id, status"),
-        supabase.from("ratings").select("quality_score, communication_score, timing_score, contract_id, created_at"),
+        supabase
+          .from("projects")
+          .select(
+            "id, created_at, status, association_id, assigned_provider_id",
+          ),
+        supabase
+          .from("bids")
+          .select("id, created_at, project_id, provider_id, status"),
+        supabase
+          .from("ratings")
+          .select(
+            "quality_score, communication_score, timing_score, contract_id, created_at",
+          ),
         supabase.from("disputes").select("id, project_id, created_at, status"),
-        supabase.from("dispute_status_log" as any).select("dispute_id, old_status, new_status, created_at"),
-        supabase.from("escrow_transactions").select("id, project_id, service_id, grant_request_id, status, amount, created_at"),
+        supabase
+          .from("dispute_status_log" as any)
+          .select("dispute_id, old_status, new_status, created_at"),
+        supabase
+          .from("escrow_transactions")
+          .select(
+            "id, project_id, service_id, grant_request_id, status, amount, created_at",
+          ),
         supabase.from("user_roles").select("user_id, role"),
-        supabase.from("micro_services").select("id, provider_id, packages, service_type, price"),
-        supabase.from("profiles").select("id, full_name, bio, phone, skills, region_id, city_id, avatar_url, organization_name, license_number, created_at"),
-        supabase.from("support_tickets").select("id", { count: "exact", head: true }),
+        supabase
+          .from("micro_services")
+          .select("id, provider_id, packages, service_type, price"),
+        supabase
+          .from("profiles")
+          .select(
+            "id, full_name, bio, phone, skills, region_id, city_id, avatar_url, organization_name, license_number, created_at",
+          ),
+        supabase
+          .from("support_tickets")
+          .select("id", { count: "exact", head: true }),
       ]);
 
       const allProjects = projects ?? [];
@@ -162,8 +186,16 @@ export function useHypothesisMetrics() {
       const allServices = services ?? [];
       const allProfiles = profiles ?? [];
 
-      const providerIds = new Set(allRoles.filter((r) => r.role === "service_provider").map((r) => r.user_id));
-      const associationIds = new Set(allRoles.filter((r) => r.role === "youth_association").map((r) => r.user_id));
+      const providerIds = new Set(
+        allRoles
+          .filter((r) => r.role === "service_provider")
+          .map((r) => r.user_id),
+      );
+      const associationIds = new Set(
+        allRoles
+          .filter((r) => r.role === "youth_association")
+          .map((r) => r.user_id),
+      );
 
       const now = Date.now();
       const thirtyDaysAgo = new Date(now - 30 * 86400000).toISOString();
@@ -171,54 +203,105 @@ export function useHypothesisMetrics() {
 
       // ========== H1: Active Providers ==========
       const activeBidders30 = new Set(
-        allBids.filter((b) => b.created_at >= thirtyDaysAgo).map((b) => b.provider_id)
+        allBids
+          .filter((b) => b.created_at >= thirtyDaysAgo)
+          .map((b) => b.provider_id),
       );
-      const activeCount = [...activeBidders30].filter((id) => providerIds.has(id)).length;
+      const activeCount = [...activeBidders30].filter((id) =>
+        providerIds.has(id),
+      ).length;
       const activeBidders90 = new Set(
-        allBids.filter((b) => b.created_at >= ninetyDaysAgo).map((b) => b.provider_id)
+        allBids
+          .filter((b) => b.created_at >= ninetyDaysAgo)
+          .map((b) => b.provider_id),
       );
-      const retainedCount = [...activeBidders90].filter((id) => providerIds.has(id)).length;
+      const retainedCount = [...activeBidders90].filter((id) =>
+        providerIds.has(id),
+      ).length;
       const totalProviders = providerIds.size;
 
       const h1 = {
-        activeProviderPct: totalProviders > 0 ? Math.round((activeCount / totalProviders) * 100) : null,
-        retentionPct90: totalProviders > 0 ? Math.round((retainedCount / totalProviders) * 100) : null,
+        activeProviderPct:
+          totalProviders > 0
+            ? Math.round((activeCount / totalProviders) * 100)
+            : null,
+        retentionPct90:
+          totalProviders > 0
+            ? Math.round((retainedCount / totalProviders) * 100)
+            : null,
         totalProviders,
         activeCount,
         retainedCount,
       };
 
       // ========== H2: Time to First Bid ==========
-      const projectBidTimes: Map<string, { firstBidHours: number; projectStatus: string }> = new Map();
+      const projectBidTimes: Map<
+        string,
+        { firstBidHours: number; projectStatus: string }
+      > = new Map();
       const bidsByProject = new Map<string, typeof allBids>();
       allBids.forEach((b) => {
-        if (!bidsByProject.has(b.project_id)) bidsByProject.set(b.project_id, []);
+        if (!bidsByProject.has(b.project_id))
+          bidsByProject.set(b.project_id, []);
         bidsByProject.get(b.project_id)!.push(b);
       });
 
       allProjects.forEach((p) => {
         const pBids = bidsByProject.get(p.id);
         if (!pBids || pBids.length === 0) return;
-        const firstBid = pBids.reduce((min, b) => (b.created_at < min.created_at ? b : min), pBids[0]);
+        const firstBid = pBids.reduce(
+          (min, b) => (b.created_at < min.created_at ? b : min),
+          pBids[0],
+        );
         const hours = diffHours(p.created_at, firstBid.created_at);
-        projectBidTimes.set(p.id, { firstBidHours: hours, projectStatus: p.status });
+        projectBidTimes.set(p.id, {
+          firstBidHours: hours,
+          projectStatus: p.status,
+        });
       });
 
       const bidTimeEntries = [...projectBidTimes.values()];
-      const avgHoursToFirstBid = bidTimeEntries.length > 0
-        ? Math.round(bidTimeEntries.reduce((s, e) => s + e.firstBidHours, 0) / bidTimeEntries.length)
-        : null;
-      const within48h = bidTimeEntries.filter((e) => e.firstBidHours <= 48).length;
-      const pctWithin48h = bidTimeEntries.length > 0 ? Math.round((within48h / bidTimeEntries.length) * 100) : null;
+      const avgHoursToFirstBid =
+        bidTimeEntries.length > 0
+          ? Math.round(
+              bidTimeEntries.reduce((s, e) => s + e.firstBidHours, 0) /
+                bidTimeEntries.length,
+            )
+          : null;
+      const within48h = bidTimeEntries.filter(
+        (e) => e.firstBidHours <= 48,
+      ).length;
+      const pctWithin48h =
+        bidTimeEntries.length > 0
+          ? Math.round((within48h / bidTimeEntries.length) * 100)
+          : null;
 
       const fastBids = bidTimeEntries.filter((e) => e.firstBidHours <= 48);
       const slowBids = bidTimeEntries.filter((e) => e.firstBidHours > 48);
-      const closureWithFast = fastBids.length > 0
-        ? Math.round((fastBids.filter((e) => e.projectStatus === "completed" || e.projectStatus === "in_progress").length / fastBids.length) * 100)
-        : null;
-      const closureWithSlow = slowBids.length > 0
-        ? Math.round((slowBids.filter((e) => e.projectStatus === "completed" || e.projectStatus === "in_progress").length / slowBids.length) * 100)
-        : null;
+      const closureWithFast =
+        fastBids.length > 0
+          ? Math.round(
+              (fastBids.filter(
+                (e) =>
+                  e.projectStatus === "completed" ||
+                  e.projectStatus === "in_progress",
+              ).length /
+                fastBids.length) *
+                100,
+            )
+          : null;
+      const closureWithSlow =
+        slowBids.length > 0
+          ? Math.round(
+              (slowBids.filter(
+                (e) =>
+                  e.projectStatus === "completed" ||
+                  e.projectStatus === "in_progress",
+              ).length /
+                slowBids.length) *
+                100,
+            )
+          : null;
 
       const h2 = {
         avgHoursToFirstBid,
@@ -229,17 +312,34 @@ export function useHypothesisMetrics() {
       };
 
       // ========== H3: Monthly Trend ==========
-      const monthsMap = new Map<string, { providers: Set<string>; bidTimes: number[]; completed: number; total: number }>();
+      const monthsMap = new Map<
+        string,
+        {
+          providers: Set<string>;
+          bidTimes: number[];
+          completed: number;
+          total: number;
+        }
+      >();
       allProjects.forEach((p) => {
         const m = monthKey(p.created_at);
-        if (!monthsMap.has(m)) monthsMap.set(m, { providers: new Set(), bidTimes: [], completed: 0, total: 0 });
+        if (!monthsMap.has(m))
+          monthsMap.set(m, {
+            providers: new Set(),
+            bidTimes: [],
+            completed: 0,
+            total: 0,
+          });
         const entry = monthsMap.get(m)!;
         entry.total++;
         if (p.status === "completed") entry.completed++;
         const pBids = bidsByProject.get(p.id);
         if (pBids) {
           pBids.forEach((b) => entry.providers.add(b.provider_id));
-          const firstBid = pBids.reduce((min, b) => (b.created_at < min.created_at ? b : min), pBids[0]);
+          const firstBid = pBids.reduce(
+            (min, b) => (b.created_at < min.created_at ? b : min),
+            pBids[0],
+          );
           entry.bidTimes.push(diffHours(p.created_at, firstBid.created_at));
         }
       });
@@ -250,39 +350,58 @@ export function useHypothesisMetrics() {
         .map(([month, data]) => ({
           month,
           activeProviders: data.providers.size,
-          avgFirstBidHours: data.bidTimes.length > 0
-            ? Math.round(data.bidTimes.reduce((s, v) => s + v, 0) / data.bidTimes.length)
-            : null,
-          closureRate: data.total > 0 ? Math.round((data.completed / data.total) * 100) : null,
+          avgFirstBidHours:
+            data.bidTimes.length > 0
+              ? Math.round(
+                  data.bidTimes.reduce((s, v) => s + v, 0) /
+                    data.bidTimes.length,
+                )
+              : null,
+          closureRate:
+            data.total > 0
+              ? Math.round((data.completed / data.total) * 100)
+              : null,
         }));
 
       const h3 = { monthlyTrend };
 
       // ========== H5: Packages ==========
       const providersWithPackages = new Set(
-        allServices.filter((s) => {
-          const pkgs = s.packages as any;
-          return pkgs && Array.isArray(pkgs) && pkgs.length > 0;
-        }).map((s) => s.provider_id)
+        allServices
+          .filter((s) => {
+            const pkgs = s.packages as any;
+            return pkgs && Array.isArray(pkgs) && pkgs.length > 0;
+          })
+          .map((s) => s.provider_id),
       ).size;
 
       const h5 = {
         providersWithPackages,
         totalProviders,
-        pct: totalProviders > 0 ? Math.round((providersWithPackages / totalProviders) * 100) : null,
+        pct:
+          totalProviders > 0
+            ? Math.round((providersWithPackages / totalProviders) * 100)
+            : null,
       };
 
       // ========== H7: Quality Ratings ==========
       const totalRatings = allRatings.length;
       const highRatings = allRatings.filter(
-        (r) => (r.quality_score + r.communication_score + r.timing_score) / 3 >= 4
+        (r) =>
+          (r.quality_score + r.communication_score + r.timing_score) / 3 >= 4,
       ).length;
-      const ratingPct = totalRatings > 0 ? Math.round((highRatings / totalRatings) * 100) : null;
+      const ratingPct =
+        totalRatings > 0
+          ? Math.round((highRatings / totalRatings) * 100)
+          : null;
 
-      const completedOrDisputed = allProjects.filter((p) => p.status === "completed" || p.status === "disputed").length;
-      const complaintsPct = completedOrDisputed > 0
-        ? Math.round((allDisputes.length / completedOrDisputed) * 100)
-        : null;
+      const completedOrDisputed = allProjects.filter(
+        (p) => p.status === "completed" || p.status === "disputed",
+      ).length;
+      const complaintsPct =
+        completedOrDisputed > 0
+          ? Math.round((allDisputes.length / completedOrDisputed) * 100)
+          : null;
 
       const h7 = {
         ratingPct,
@@ -293,14 +412,23 @@ export function useHypothesisMetrics() {
       };
 
       // ========== H8: Disputes Resolution ==========
-      const completedProjects = allProjects.filter((p) => p.status === "completed").length;
-      const disputedProjects = allProjects.filter((p) => p.status === "disputed").length;
+      const completedProjects = allProjects.filter(
+        (p) => p.status === "completed",
+      ).length;
+      const disputedProjects = allProjects.filter(
+        (p) => p.status === "disputed",
+      ).length;
       const totalDone = completedProjects + disputedProjects;
-      const noDisputePct = totalDone > 0 ? Math.round((completedProjects / totalDone) * 100) : null;
+      const noDisputePct =
+        totalDone > 0
+          ? Math.round((completedProjects / totalDone) * 100)
+          : null;
 
       // Resolution times from dispute_status_log
       const resolvedDisputes: number[] = [];
-      const disputeCreatedMap = new Map(allDisputes.map((d) => [d.id, d.created_at]));
+      const disputeCreatedMap = new Map(
+        allDisputes.map((d) => [d.id, d.created_at]),
+      );
 
       allDisputeLogs.forEach((log: any) => {
         if (log.new_status === "resolved" || log.new_status === "closed") {
@@ -311,30 +439,59 @@ export function useHypothesisMetrics() {
         }
       });
 
-      const avgResolutionDays = resolvedDisputes.length > 0
-        ? Math.round(resolvedDisputes.reduce((s, v) => s + v, 0) / resolvedDisputes.length * 10) / 10
-        : null;
-      const pctResolvedIn7 = resolvedDisputes.length > 0
-        ? Math.round((resolvedDisputes.filter((d) => d <= 7).length / resolvedDisputes.length) * 100)
-        : null;
+      const avgResolutionDays =
+        resolvedDisputes.length > 0
+          ? Math.round(
+              (resolvedDisputes.reduce((s, v) => s + v, 0) /
+                resolvedDisputes.length) *
+                10,
+            ) / 10
+          : null;
+      const pctResolvedIn7 =
+        resolvedDisputes.length > 0
+          ? Math.round(
+              (resolvedDisputes.filter((d) => d <= 7).length /
+                resolvedDisputes.length) *
+                100,
+            )
+          : null;
 
-      const h8 = { noDisputePct, avgResolutionDays, pctResolvedIn7, totalDone, totalDisputes: allDisputes.length };
+      const h8 = {
+        noDisputePct,
+        avgResolutionDays,
+        pctResolvedIn7,
+        totalDone,
+        totalDisputes: allDisputes.length,
+      };
 
       // ========== H9: On-time Delivery & Repeat ==========
-      const avgTimingScore = totalRatings > 0
-        ? Math.round((allRatings.reduce((s, r) => s + r.timing_score, 0) / totalRatings) * 10) / 10
-        : null;
+      const avgTimingScore =
+        totalRatings > 0
+          ? Math.round(
+              (allRatings.reduce((s, r) => s + r.timing_score, 0) /
+                totalRatings) *
+                10,
+            ) / 10
+          : null;
 
       // Repeat purchase: associations with 2+ completed projects
       const assocProjectCount = new Map<string, number>();
-      allProjects.filter((p) => p.status === "completed").forEach((p) => {
-        assocProjectCount.set(p.association_id, (assocProjectCount.get(p.association_id) ?? 0) + 1);
-      });
+      allProjects
+        .filter((p) => p.status === "completed")
+        .forEach((p) => {
+          assocProjectCount.set(
+            p.association_id,
+            (assocProjectCount.get(p.association_id) ?? 0) + 1,
+          );
+        });
       const totalAssocWithCompleted = assocProjectCount.size;
-      const repeatAssociations = [...assocProjectCount.values()].filter((c) => c >= 2).length;
-      const repeatPurchasePct = totalAssocWithCompleted > 0
-        ? Math.round((repeatAssociations / totalAssocWithCompleted) * 100)
-        : null;
+      const repeatAssociations = [...assocProjectCount.values()].filter(
+        (c) => c >= 2,
+      ).length;
+      const repeatPurchasePct =
+        totalAssocWithCompleted > 0
+          ? Math.round((repeatAssociations / totalAssocWithCompleted) * 100)
+          : null;
 
       const h9 = {
         avgTimingScore,
@@ -347,27 +504,42 @@ export function useHypothesisMetrics() {
       // ========== H10: Response incentives (same data as H2) ==========
       const h10 = {
         avgHoursToFirstBid: h2.avgHoursToFirstBid,
-        closureCorrelation: closureWithFast !== null && closureWithSlow !== null
-          ? closureWithFast > closureWithSlow ? "إيجابي ↑" : closureWithFast === closureWithSlow ? "متساوي" : "سلبي ↓"
-          : "بيانات غير كافية",
+        closureCorrelation:
+          closureWithFast !== null && closureWithSlow !== null
+            ? closureWithFast > closureWithSlow
+              ? "إيجابي ↑"
+              : closureWithFast === closureWithSlow
+                ? "متساوي"
+                : "سلبي ↓"
+            : "بيانات غير كافية",
       };
 
       // ========== H11: Repeat requests per association ==========
       const assocAllProjectCount = new Map<string, number>();
       allProjects.forEach((p) => {
         if (associationIds.has(p.association_id)) {
-          assocAllProjectCount.set(p.association_id, (assocAllProjectCount.get(p.association_id) ?? 0) + 1);
+          assocAllProjectCount.set(
+            p.association_id,
+            (assocAllProjectCount.get(p.association_id) ?? 0) + 1,
+          );
         }
       });
       const activeAssociations = assocAllProjectCount.size;
-      const repeatAssoc11 = [...assocAllProjectCount.values()].filter((c) => c >= 2).length;
-      const avgRequestsPer90Days = activeAssociations > 0
-        ? Math.round(
-            (allProjects.filter((p) => p.created_at >= ninetyDaysAgo && associationIds.has(p.association_id)).length /
-              activeAssociations) *
-              10
-          ) / 10
-        : null;
+      const repeatAssoc11 = [...assocAllProjectCount.values()].filter(
+        (c) => c >= 2,
+      ).length;
+      const avgRequestsPer90Days =
+        activeAssociations > 0
+          ? Math.round(
+              (allProjects.filter(
+                (p) =>
+                  p.created_at >= ninetyDaysAgo &&
+                  associationIds.has(p.association_id),
+              ).length /
+                activeAssociations) *
+                10,
+            ) / 10
+          : null;
 
       const h11 = {
         avgRequestsPer90Days,
@@ -380,7 +552,10 @@ export function useHypothesisMetrics() {
       const assocProfiles = allProfiles.filter((p) => associationIds.has(p.id));
       const assocFirstProject = new Map<string, string>();
       allProjects.forEach((p) => {
-        if (!assocFirstProject.has(p.association_id) || p.created_at < assocFirstProject.get(p.association_id)!) {
+        if (
+          !assocFirstProject.has(p.association_id) ||
+          p.created_at < assocFirstProject.get(p.association_id)!
+        ) {
           assocFirstProject.set(p.association_id, p.created_at);
         }
       });
@@ -394,12 +569,18 @@ export function useHypothesisMetrics() {
       });
 
       const convertedAssociations = conversionDays.length;
-      const conversionPct = assocProfiles.length > 0
-        ? Math.round((convertedAssociations / assocProfiles.length) * 100)
-        : null;
-      const avgDaysToFirstProject = conversionDays.length > 0
-        ? Math.round(conversionDays.reduce((s, v) => s + v, 0) / conversionDays.length * 10) / 10
-        : null;
+      const conversionPct =
+        assocProfiles.length > 0
+          ? Math.round((convertedAssociations / assocProfiles.length) * 100)
+          : null;
+      const avgDaysToFirstProject =
+        conversionDays.length > 0
+          ? Math.round(
+              (conversionDays.reduce((s, v) => s + v, 0) /
+                conversionDays.length) *
+                10,
+            ) / 10
+          : null;
 
       const h12 = {
         conversionPct,
@@ -409,14 +590,28 @@ export function useHypothesisMetrics() {
       };
 
       // ========== H14: Service Type ==========
-      const fixedServices = allServices.filter((s) => s.service_type === "fixed_price");
-      const packageServices = allServices.filter((s) => (s.service_type as string) === "packages" || s.service_type === "hourly");
-      const fixedAvg = fixedServices.length > 0
-        ? Math.round(fixedServices.reduce((s, sv) => s + Number(sv.price), 0) / fixedServices.length)
-        : null;
-      const packageAvg = packageServices.length > 0
-        ? Math.round(packageServices.reduce((s, sv) => s + Number(sv.price), 0) / packageServices.length)
-        : null;
+      const fixedServices = allServices.filter(
+        (s) => s.service_type === "fixed_price",
+      );
+      const packageServices = allServices.filter(
+        (s) =>
+          (s.service_type as string) === "packages" ||
+          s.service_type === "hourly",
+      );
+      const fixedAvg =
+        fixedServices.length > 0
+          ? Math.round(
+              fixedServices.reduce((s, sv) => s + Number(sv.price), 0) /
+                fixedServices.length,
+            )
+          : null;
+      const packageAvg =
+        packageServices.length > 0
+          ? Math.round(
+              packageServices.reduce((s, sv) => s + Number(sv.price), 0) /
+                packageServices.length,
+            )
+          : null;
 
       const h14 = {
         fixedCount: fixedServices.length,
@@ -427,8 +622,13 @@ export function useHypothesisMetrics() {
 
       // ========== H15: Bid Rejection ==========
       const totalBidsCount = allBids.length;
-      const rejectedBids = allBids.filter((b) => b.status === "rejected").length;
-      const rejectionPct = totalBidsCount > 0 ? Math.round((rejectedBids / totalBidsCount) * 100) : null;
+      const rejectedBids = allBids.filter(
+        (b) => b.status === "rejected",
+      ).length;
+      const rejectionPct =
+        totalBidsCount > 0
+          ? Math.round((rejectedBids / totalBidsCount) * 100)
+          : null;
 
       // Avg decision time: project created → first bid accepted
       const acceptedBids = allBids.filter((b) => b.status === "accepted");
@@ -439,18 +639,29 @@ export function useHypothesisMetrics() {
           decisionHours.push(diffHours(proj.created_at, b.created_at));
         }
       });
-      const avgDecisionHours = decisionHours.length > 0
-        ? Math.round(decisionHours.reduce((s, v) => s + v, 0) / decisionHours.length)
-        : null;
+      const avgDecisionHours =
+        decisionHours.length > 0
+          ? Math.round(
+              decisionHours.reduce((s, v) => s + v, 0) / decisionHours.length,
+            )
+          : null;
 
-      const h15 = { rejectionPct, avgDecisionHours, totalBids: totalBidsCount, rejectedBids };
+      const h15 = {
+        rejectionPct,
+        avgDecisionHours,
+        totalBids: totalBidsCount,
+        rejectedBids,
+      };
 
       // ========== H17: Repeat + Support ==========
       const assocCompletedIn120 = new Map<string, string[]>();
-      allProjects.filter((p) => p.status === "completed").forEach((p) => {
-        if (!assocCompletedIn120.has(p.association_id)) assocCompletedIn120.set(p.association_id, []);
-        assocCompletedIn120.get(p.association_id)!.push(p.created_at);
-      });
+      allProjects
+        .filter((p) => p.status === "completed")
+        .forEach((p) => {
+          if (!assocCompletedIn120.has(p.association_id))
+            assocCompletedIn120.set(p.association_id, []);
+          assocCompletedIn120.get(p.association_id)!.push(p.created_at);
+        });
 
       let repeatIn120 = 0;
       assocCompletedIn120.forEach((dates) => {
@@ -465,14 +676,16 @@ export function useHypothesisMetrics() {
         }
       });
 
-      const repeatPurchasePct120 = assocCompletedIn120.size > 0
-        ? Math.round((repeatIn120 / assocCompletedIn120.size) * 100)
-        : null;
+      const repeatPurchasePct120 =
+        assocCompletedIn120.size > 0
+          ? Math.round((repeatIn120 / assocCompletedIn120.size) * 100)
+          : null;
 
       const totalProjectsCount = allProjects.length;
-      const avgTicketsPerProject = totalProjectsCount > 0 && ticketCount !== null
-        ? Math.round((ticketCount / totalProjectsCount) * 100) / 100
-        : null;
+      const avgTicketsPerProject =
+        totalProjectsCount > 0 && ticketCount !== null
+          ? Math.round((ticketCount / totalProjectsCount) * 100) / 100
+          : null;
 
       const h17 = {
         repeatPurchasePct120,
@@ -482,11 +695,14 @@ export function useHypothesisMetrics() {
       };
 
       // ========== H18: Self-Payment ==========
-      const activeEscrows = allEscrows.filter((e) => e.status === "held" || e.status === "released");
+      const activeEscrows = allEscrows.filter(
+        (e) => e.status === "held" || e.status === "released",
+      );
       const selfPayEscrows = activeEscrows.filter((e) => !e.grant_request_id);
-      const selfPayPct = activeEscrows.length > 0
-        ? Math.round((selfPayEscrows.length / activeEscrows.length) * 100)
-        : null;
+      const selfPayPct =
+        activeEscrows.length > 0
+          ? Math.round((selfPayEscrows.length / activeEscrows.length) * 100)
+          : null;
 
       // Monthly trend
       const escrowMonthly = new Map<string, { total: number; self: number }>();
@@ -503,7 +719,8 @@ export function useHypothesisMetrics() {
         .slice(-6)
         .map(([month, data]) => ({
           month,
-          selfPct: data.total > 0 ? Math.round((data.self / data.total) * 100) : 0,
+          selfPct:
+            data.total > 0 ? Math.round((data.self / data.total) * 100) : 0,
         }));
 
       const h18 = {
@@ -521,24 +738,53 @@ export function useHypothesisMetrics() {
       };
 
       // ========== H24: Escrow Impact ==========
-      const projectsWithEscrow = new Set(allEscrows.map((e) => e.project_id).filter(Boolean));
-      const projWithEscrow = allProjects.filter((p) => projectsWithEscrow.has(p.id));
-      const projWithoutEscrow = allProjects.filter((p) => !projectsWithEscrow.has(p.id) && p.status !== "draft");
+      const projectsWithEscrow = new Set(
+        allEscrows.map((e) => e.project_id).filter(Boolean),
+      );
+      const projWithEscrow = allProjects.filter((p) =>
+        projectsWithEscrow.has(p.id),
+      );
+      const projWithoutEscrow = allProjects.filter(
+        (p) => !projectsWithEscrow.has(p.id) && p.status !== "draft",
+      );
 
-      const closureWithEscrow = projWithEscrow.length > 0
-        ? Math.round((projWithEscrow.filter((p) => p.status === "completed").length / projWithEscrow.length) * 100)
-        : null;
-      const closureWithout = projWithoutEscrow.length > 0
-        ? Math.round((projWithoutEscrow.filter((p) => p.status === "completed").length / projWithoutEscrow.length) * 100)
-        : null;
+      const closureWithEscrow =
+        projWithEscrow.length > 0
+          ? Math.round(
+              (projWithEscrow.filter((p) => p.status === "completed").length /
+                projWithEscrow.length) *
+                100,
+            )
+          : null;
+      const closureWithout =
+        projWithoutEscrow.length > 0
+          ? Math.round(
+              (projWithoutEscrow.filter((p) => p.status === "completed")
+                .length /
+                projWithoutEscrow.length) *
+                100,
+            )
+          : null;
 
       const disputeProjectIds = new Set(allDisputes.map((d) => d.project_id));
-      const disputesWithEscrowPct = projWithEscrow.length > 0
-        ? Math.round((projWithEscrow.filter((p) => disputeProjectIds.has(p.id)).length / projWithEscrow.length) * 100)
-        : null;
-      const disputesWithoutPct = projWithoutEscrow.length > 0
-        ? Math.round((projWithoutEscrow.filter((p) => disputeProjectIds.has(p.id)).length / projWithoutEscrow.length) * 100)
-        : null;
+      const disputesWithEscrowPct =
+        projWithEscrow.length > 0
+          ? Math.round(
+              (projWithEscrow.filter((p) => disputeProjectIds.has(p.id))
+                .length /
+                projWithEscrow.length) *
+                100,
+            )
+          : null;
+      const disputesWithoutPct =
+        projWithoutEscrow.length > 0
+          ? Math.round(
+              (projWithoutEscrow.filter((p) => disputeProjectIds.has(p.id))
+                .length /
+                projWithoutEscrow.length) *
+                100,
+            )
+          : null;
 
       const h24 = {
         closureWithEscrow,
@@ -551,8 +797,15 @@ export function useHypothesisMetrics() {
 
       // ========== H25: Profile Completeness ==========
       const completenessFields = [
-        "full_name", "bio", "phone", "skills", "region_id", "city_id",
-        "avatar_url", "organization_name", "license_number",
+        "full_name",
+        "bio",
+        "phone",
+        "skills",
+        "region_id",
+        "city_id",
+        "avatar_url",
+        "organization_name",
+        "license_number",
       ];
       const completenessScores = allProfiles.map((p: any) => {
         const filled = completenessFields.filter((f) => {
@@ -564,14 +817,41 @@ export function useHypothesisMetrics() {
         return filled / completenessFields.length;
       });
 
-      const avgCompleteness = completenessScores.length > 0
-        ? Math.round((completenessScores.reduce((s, v) => s + v, 0) / completenessScores.length) * 100)
-        : null;
+      const avgCompleteness =
+        completenessScores.length > 0
+          ? Math.round(
+              (completenessScores.reduce((s, v) => s + v, 0) /
+                completenessScores.length) *
+                100,
+            )
+          : null;
       const fullyComplete = completenessScores.filter((s) => s >= 0.9).length;
 
-      const h25 = { avgCompleteness, totalProfiles: allProfiles.length, fullyComplete };
+      const h25 = {
+        avgCompleteness,
+        totalProfiles: allProfiles.length,
+        fullyComplete,
+      };
 
-      return { h1, h2, h3, h5, h7, h8, h9, h10, h11, h12, h14, h15, h17, h18, h23, h24, h25 };
+      return {
+        h1,
+        h2,
+        h3,
+        h5,
+        h7,
+        h8,
+        h9,
+        h10,
+        h11,
+        h12,
+        h14,
+        h15,
+        h17,
+        h18,
+        h23,
+        h24,
+        h25,
+      };
     },
     staleTime: 60_000,
   });

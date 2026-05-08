@@ -21,10 +21,20 @@ export function useSupportTickets() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-tickets-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets", filter: `user_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["support-tickets"] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "support_tickets",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["support-tickets"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -53,11 +63,16 @@ export function useCreateTicket() {
         .insert({ ...input, user_id: user!.id })
         .select()
         .single();
-      if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"));
+      if (error)
+        throw new Error(
+          getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"),
+        );
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["support-tickets", user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["support-tickets", user?.id],
+      });
     },
   });
 }

@@ -1,6 +1,11 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, Minus, GitCompareArrows } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
+  GitCompareArrows,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { subDays, differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -20,13 +25,30 @@ interface MetricComparison {
   isCurrency?: boolean;
 }
 
-function ChangeIndicator({ current, previous }: { current: number; previous: number }) {
-  if (previous === 0 && current === 0) return <Minus className="h-4 w-4 text-muted-foreground" />;
-  const pct = previous === 0 ? 100 : Math.round(((current - previous) / previous) * 100);
+function ChangeIndicator({
+  current,
+  previous,
+}: {
+  current: number;
+  previous: number;
+}) {
+  if (previous === 0 && current === 0)
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
+  const pct =
+    previous === 0 ? 100 : Math.round(((current - previous) / previous) * 100);
   const isUp = pct >= 0;
   return (
-    <span className={cn("flex items-center gap-0.5 text-sm font-semibold", isUp ? "text-success" : "text-destructive")}>
-      {isUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+    <span
+      className={cn(
+        "flex items-center gap-0.5 text-sm font-semibold",
+        isUp ? "text-success" : "text-destructive",
+      )}
+    >
+      {isUp ? (
+        <ArrowUpRight className="h-4 w-4" />
+      ) : (
+        <ArrowDownRight className="h-4 w-4" />
+      )}
       {Math.abs(pct)}%
     </span>
   );
@@ -37,7 +59,10 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
   const prevFrom = subDays(dateFrom, days);
   const prevTo = subDays(dateTo, days);
 
-  const currentRange = { from: dateFrom.toISOString(), to: dateTo.toISOString() };
+  const currentRange = {
+    from: dateFrom.toISOString(),
+    to: dateTo.toISOString(),
+  };
   const prevRange = { from: prevFrom.toISOString(), to: prevTo.toISOString() };
 
   const { data, isLoading } = useQuery({
@@ -49,39 +74,75 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
         // Get project IDs for region filtering on related tables
         let projectIds: string[] | null = null;
         if (regionFilter) {
-          const { data: pData } = await supabase.from("projects").select("id").eq("region_id", regionFilter);
-          projectIds = (pData ?? []).map(p => p.id);
+          const { data: pData } = await supabase
+            .from("projects")
+            .select("id")
+            .eq("region_id", regionFilter);
+          projectIds = (pData ?? []).map((p) => p.id);
         }
 
-        let projectsQ = supabase.from("projects").select("id", { count: "exact", head: true })
-          .gte("created_at", from).lte("created_at", to);
+        let projectsQ = supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", from)
+          .lte("created_at", to);
         if (regionFilter) projectsQ = projectsQ.eq("region_id", regionFilter);
 
-        let usersQ = supabase.from("profiles").select("id", { count: "exact", head: true })
-          .gte("created_at", from).lte("created_at", to);
+        let usersQ = supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", from)
+          .lte("created_at", to);
 
-        let donationsQ = supabase.from("donor_contributions").select("amount")
-          .gte("created_at", from).lte("created_at", to);
-        if (regionFilter && projectIds?.length) donationsQ = donationsQ.in("project_id", projectIds);
+        let donationsQ = supabase
+          .from("donor_contributions")
+          .select("amount")
+          .gte("created_at", from)
+          .lte("created_at", to);
+        if (regionFilter && projectIds?.length)
+          donationsQ = donationsQ.in("project_id", projectIds);
 
-        let escrowQ = supabase.from("escrow_transactions").select("amount")
-          .gte("created_at", from).lte("created_at", to);
-        if (regionFilter && projectIds?.length) escrowQ = escrowQ.in("project_id", projectIds);
+        let escrowQ = supabase
+          .from("escrow_transactions")
+          .select("amount")
+          .gte("created_at", from)
+          .lte("created_at", to);
+        if (regionFilter && projectIds?.length)
+          escrowQ = escrowQ.in("project_id", projectIds);
 
-        let disputesQ = supabase.from("disputes").select("id", { count: "exact", head: true })
-          .gte("created_at", from).lte("created_at", to);
-        if (regionFilter && projectIds?.length) disputesQ = disputesQ.in("project_id", projectIds);
+        let disputesQ = supabase
+          .from("disputes")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", from)
+          .lte("created_at", to);
+        if (regionFilter && projectIds?.length)
+          disputesQ = disputesQ.in("project_id", projectIds);
 
-        const [projects, users, donations, escrow, disputes] = await Promise.all([
-          projectsQ, usersQ, donationsQ, escrowQ, disputesQ,
-        ]);
+        const [projects, users, donations, escrow, disputes] =
+          await Promise.all([
+            projectsQ,
+            usersQ,
+            donationsQ,
+            escrowQ,
+            disputesQ,
+          ]);
 
         return {
           projects: projects.count ?? 0,
           users: users.count ?? 0,
-          donations: (regionFilter && !projectIds?.length) ? 0 : (donations.data ?? []).reduce((s, d) => s + Number(d.amount), 0),
-          escrow: (regionFilter && !projectIds?.length) ? 0 : (escrow.data ?? []).reduce((s, e) => s + Number(e.amount), 0),
-          disputes: (regionFilter && !projectIds?.length) ? 0 : (disputes.count ?? 0),
+          donations:
+            regionFilter && !projectIds?.length
+              ? 0
+              : (donations.data ?? []).reduce(
+                  (s, d) => s + Number(d.amount),
+                  0,
+                ),
+          escrow:
+            regionFilter && !projectIds?.length
+              ? 0
+              : (escrow.data ?? []).reduce((s, e) => s + Number(e.amount), 0),
+          disputes:
+            regionFilter && !projectIds?.length ? 0 : (disputes.count ?? 0),
         };
       };
 
@@ -97,18 +158,48 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader><CardTitle className="text-lg">مقارنة الفترات</CardTitle></CardHeader>
-        <CardContent><div className="grid grid-cols-2 md:grid-cols-5 gap-4">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-20" />)}</div></CardContent>
+        <CardHeader>
+          <CardTitle className="text-lg">مقارنة الفترات</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-20" />
+            ))}
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
   const metrics: MetricComparison[] = [
-    { label: "المستخدمون الجدد", current: data?.current.users ?? 0, previous: data?.previous.users ?? 0 },
-    { label: "الطلبات", current: data?.current.projects ?? 0, previous: data?.previous.projects ?? 0 },
-    { label: "المنح", current: data?.current.donations ?? 0, previous: data?.previous.donations ?? 0, isCurrency: true },
-    { label: "معاملات الضمان", current: data?.current.escrow ?? 0, previous: data?.previous.escrow ?? 0, isCurrency: true },
-    { label: "الشكاوى", current: data?.current.disputes ?? 0, previous: data?.previous.disputes ?? 0 },
+    {
+      label: "المستخدمون الجدد",
+      current: data?.current.users ?? 0,
+      previous: data?.previous.users ?? 0,
+    },
+    {
+      label: "الطلبات",
+      current: data?.current.projects ?? 0,
+      previous: data?.previous.projects ?? 0,
+    },
+    {
+      label: "المنح",
+      current: data?.current.donations ?? 0,
+      previous: data?.previous.donations ?? 0,
+      isCurrency: true,
+    },
+    {
+      label: "معاملات الضمان",
+      current: data?.current.escrow ?? 0,
+      previous: data?.previous.escrow ?? 0,
+      isCurrency: true,
+    },
+    {
+      label: "الشكاوى",
+      current: data?.current.disputes ?? 0,
+      previous: data?.previous.disputes ?? 0,
+    },
   ];
 
   return (
@@ -118,7 +209,9 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
           <GitCompareArrows className="h-5 w-5 text-primary" />
           مقارنة الفترات
         </CardTitle>
-        <p className="text-xs text-muted-foreground">مقارنة الفترة المحددة مع الفترة السابقة المماثلة ({days} يوم)</p>
+        <p className="text-xs text-muted-foreground">
+          مقارنة الفترة المحددة مع الفترة السابقة المماثلة ({days} يوم)
+        </p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -127,12 +220,17 @@ export function PeriodComparison({ dateFrom, dateTo, regionId }: Props) {
               <p className="text-xs text-muted-foreground">{m.label}</p>
               <div className="flex items-center justify-between">
                 <p className="text-lg font-bold">
-                  {m.isCurrency ? `${m.current.toLocaleString()} ر.س` : m.current}
+                  {m.isCurrency
+                    ? `${m.current.toLocaleString()} ر.س`
+                    : m.current}
                 </p>
                 <ChangeIndicator current={m.current} previous={m.previous} />
               </div>
               <p className="text-[10px] text-muted-foreground">
-                السابقة: {m.isCurrency ? `${m.previous.toLocaleString()} ر.س` : m.previous}
+                السابقة:{" "}
+                {m.isCurrency
+                  ? `${m.previous.toLocaleString()} ر.س`
+                  : m.previous}
               </p>
             </div>
           ))}

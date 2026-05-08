@@ -1,11 +1,24 @@
 import { useState, useMemo } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useDonorContributions, useCreateContribution, useDonorConsumedBreakdown } from "@/hooks/useDonorContributions";
+import {
+  useDonorContributions,
+  useCreateContribution,
+  useDonorConsumedBreakdown,
+} from "@/hooks/useDonorContributions";
 import { useDonorBalances } from "@/hooks/useDonorStats";
 import { useAuth } from "@/hooks/useAuth";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
-import { DonationForm, DonationFormData } from "@/components/donor/DonationForm";
+import {
+  DonationForm,
+  DonationFormData,
+} from "@/components/donor/DonationForm";
 import { DonationPaymentStep } from "@/components/donor/DonationPaymentStep";
 import { DonorBalanceCards } from "@/components/donor/DonorBalanceCards";
 import { DonationTimeline } from "@/components/donor/DonationTimeline";
@@ -13,19 +26,38 @@ import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { StepProgress } from "@/components/ui/step-progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { HandCoins, FolderKanban, Layers, Building2, AlertTriangle } from "lucide-react";
+import {
+  HandCoins,
+  FolderKanban,
+  Layers,
+  Building2,
+  AlertTriangle,
+} from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MoyasarPaymentForm } from "@/components/payment/MoyasarPaymentForm";
 import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+const statusConfig: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "outline" | "destructive";
+  }
+> = {
   available: { label: "متاح", variant: "default" },
   reserved: { label: "محجوز", variant: "secondary" },
   consumed: { label: "مستهلك", variant: "outline" },
@@ -35,7 +67,11 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   rejected: { label: "مرفوض", variant: "destructive" },
 };
 
-const donationSteps = [{ label: "بيانات المنحة" }, { label: "الدفع" }, { label: "التأكيد" }];
+const donationSteps = [
+  { label: "بيانات المنحة" },
+  { label: "الدفع" },
+  { label: "التأكيد" },
+];
 
 function ConsumedBreakdown() {
   const { data: consumed, isLoading } = useDonorConsumedBreakdown();
@@ -59,10 +95,18 @@ function ConsumedBreakdown() {
 
   // Group by association
   const grouped = consumed.reduce(
-    (acc: Record<string, { name: string; total: number; items: typeof consumed }>, c: any) => {
+    (
+      acc: Record<
+        string,
+        { name: string; total: number; items: typeof consumed }
+      >,
+      c: any,
+    ) => {
       const assocId = c.association_id || "unknown";
-      const assocName = c.profiles?.organization_name || c.profiles?.full_name || "غير محدد";
-      if (!acc[assocId]) acc[assocId] = { name: assocName, total: 0, items: [] };
+      const assocName =
+        c.profiles?.organization_name || c.profiles?.full_name || "غير محدد";
+      if (!acc[assocId])
+        acc[assocId] = { name: assocName, total: 0, items: [] };
       acc[assocId].total += Number(c.amount);
       acc[assocId].items.push(c);
       return acc;
@@ -99,7 +143,8 @@ function ConsumedBreakdown() {
               <TableBody>
                 {group.items.map((item: any) => {
                   const hasProject = !!item.project_id && item.projects?.title;
-                  const hasService = !!item.service_id && item.micro_services?.title;
+                  const hasService =
+                    !!item.service_id && item.micro_services?.title;
                   const targetLabel = hasProject
                     ? item.projects.title
                     : hasService
@@ -110,17 +155,33 @@ function ConsumedBreakdown() {
                     : hasService
                       ? item.micro_services.service_number
                       : null;
-                  const Icon = hasProject ? FolderKanban : hasService ? Layers : HandCoins;
-                  const typeLabel = hasProject ? "طلب مشروع" : hasService ? "خدمة" : "دعم عام";
+                  const Icon = hasProject
+                    ? FolderKanban
+                    : hasService
+                      ? Layers
+                      : HandCoins;
+                  const typeLabel = hasProject
+                    ? "طلب مشروع"
+                    : hasService
+                      ? "خدمة"
+                      : "دعم عام";
 
                   return (
                     <TableRow key={item.id}>
                       <TableCell className="text-xs">
-                        {format(new Date(item.created_at), "yyyy/MM/dd", { locale: ar })}
+                        {format(new Date(item.created_at), "yyyy/MM/dd", {
+                          locale: ar,
+                        })}
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={hasProject ? "default" : hasService ? "secondary" : "outline"}
+                          variant={
+                            hasProject
+                              ? "default"
+                              : hasService
+                                ? "secondary"
+                                : "outline"
+                          }
                           className="text-[10px]"
                         >
                           {typeLabel}
@@ -131,18 +192,26 @@ function ConsumedBreakdown() {
                           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div>
                             <span className="font-medium">{targetLabel}</span>
-                            {targetRef && <span className="text-muted-foreground mr-1 text-[10px]">({targetRef})</span>}
+                            {targetRef && (
+                              <span className="text-muted-foreground mr-1 text-[10px]">
+                                ({targetRef})
+                              </span>
+                            )}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs">
                         {item.provider_name ? (
-                          <span className="text-foreground">{item.provider_name}</span>
+                          <span className="text-foreground">
+                            {item.provider_name}
+                          </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell className="text-xs font-medium">
+                        {Number(item.amount).toLocaleString()} ر.س
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -166,7 +235,9 @@ export default function Donations() {
 
   // Read URL params for auto-fill from grant requests
   const urlAssociationId = searchParams.get("association_id") || undefined;
-  const urlAmount = searchParams.get("amount") ? Number(searchParams.get("amount")) : undefined;
+  const urlAmount = searchParams.get("amount")
+    ? Number(searchParams.get("amount"))
+    : undefined;
   const urlProjectId = searchParams.get("project_id") || undefined;
   const urlGrantRequestId = searchParams.get("grant_request_id") || undefined;
 
@@ -198,7 +269,9 @@ export default function Donations() {
     try {
       // 1. Upload receipt
       const filePath = `${user.id}/${Date.now()}_${receiptFile.name}`;
-      const { error: uploadErr } = await supabase.storage.from("transfer-receipts").upload(filePath, receiptFile);
+      const { error: uploadErr } = await supabase.storage
+        .from("transfer-receipts")
+        .upload(filePath, receiptFile);
       if (uploadErr) throw uploadErr;
 
       if (formData.target_type === "association") {
@@ -236,7 +309,8 @@ export default function Donations() {
           .eq("id", projectId)
           .single();
 
-        const payeeId = project?.assigned_provider_id || formData.association_id;
+        const payeeId =
+          project?.assigned_provider_id || formData.association_id;
 
         const { data: escrow, error: escrowErr } = await supabase
           .from("escrow_transactions")
@@ -268,7 +342,13 @@ export default function Donations() {
         });
       }
 
-      navigate("/payment-success", { state: { total: donationPricing.total, count: 1, method: "bank_transfer" } });
+      navigate("/payment-success", {
+        state: {
+          total: donationPricing.total,
+          count: 1,
+          method: "bank_transfer",
+        },
+      });
     } catch (err) {
       toast.error("حدث خطأ أثناء معالجة الدفع. حاول مرة أخرى.");
     } finally {
@@ -281,7 +361,8 @@ export default function Donations() {
     setProcessing(true);
     const donationPricing = calculatePricing(formData.amount, commissionRate);
     try {
-      const { data, error } = await supabase.functions.invoke("moyasar-get-config");
+      const { data, error } =
+        await supabase.functions.invoke("moyasar-get-config");
       if (error || !data?.publishable_key) {
         toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
         setProcessing(false);
@@ -298,8 +379,13 @@ export default function Donations() {
         total: donationPricing.total,
         subtotal: formData.amount,
       };
-      sessionStorage.setItem("moyasar_payment_context", JSON.stringify(paymentContext));
-      const ctxParam = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))));
+      sessionStorage.setItem(
+        "moyasar_payment_context",
+        JSON.stringify(paymentContext),
+      );
+      const ctxParam = encodeURIComponent(
+        btoa(unescape(encodeURIComponent(JSON.stringify(paymentContext)))),
+      );
       const callbackUrl = `${window.location.origin}/payment-callback?ctx=${ctxParam}`;
 
       setMoyasarKey(data.publishable_key);
@@ -321,7 +407,9 @@ export default function Donations() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">المنح</h1>
-            <p className="text-sm text-muted-foreground">قدم منحة وتابع سجل منحك وأرصدتك</p>
+            <p className="text-sm text-muted-foreground">
+              قدم منحة وتابع سجل منحك وأرصدتك
+            </p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -340,7 +428,15 @@ export default function Donations() {
             <CardTitle className="text-lg">منحة جديدة</CardTitle>
             <StepProgress
               steps={donationSteps}
-              currentStep={step === "form" ? 0 : step === "moyasar" ? 1 : step === "payment" ? 1 : 2}
+              currentStep={
+                step === "form"
+                  ? 0
+                  : step === "moyasar"
+                    ? 1
+                    : step === "payment"
+                      ? 1
+                      : 2
+              }
               className="mt-2"
             />
           </CardHeader>
@@ -348,7 +444,9 @@ export default function Donations() {
             {!isVerified ? (
               <div className="text-center py-8 space-y-2">
                 <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
-                <p className="text-muted-foreground">يجب توثيق حسابك أولاً لتقديم منحة</p>
+                <p className="text-muted-foreground">
+                  يجب توثيق حسابك أولاً لتقديم منحة
+                </p>
               </div>
             ) : step === "form" ? (
               <DonationForm
@@ -402,7 +500,11 @@ export default function Donations() {
                 ))}
               </div>
             ) : !contributions?.length ? (
-              <EmptyState icon={HandCoins} title="لا توجد منح سابقة" description="قدّم منحتك الأولى من النموذج أعلاه" />
+              <EmptyState
+                icon={HandCoins}
+                title="لا توجد منح سابقة"
+                description="قدّم منحتك الأولى من النموذج أعلاه"
+              />
             ) : (
               <DonationsLog contributions={contributions} />
             )}
@@ -459,7 +561,8 @@ function DonationsLog({ contributions }: { contributions: any[] }) {
             </TableHeader>
             <TableBody>
               {filtered.map((c: any) => {
-                const st = statusConfig[c.donation_status] ?? statusConfig.available;
+                const st =
+                  statusConfig[c.donation_status] ?? statusConfig.available;
                 const target =
                   c.projects?.title ||
                   (c.profiles as any)?.organization_name ||
@@ -467,14 +570,20 @@ function DonationsLog({ contributions }: { contributions: any[] }) {
                   "منحة عامة";
                 return (
                   <TableRow key={c.id}>
-                    <TableCell>{format(new Date(c.created_at), "yyyy/MM/dd", { locale: ar })}</TableCell>
+                    <TableCell>
+                      {format(new Date(c.created_at), "yyyy/MM/dd", {
+                        locale: ar,
+                      })}
+                    </TableCell>
                     <TableCell>{target}</TableCell>
                     <TableCell>
                       <Badge variant={st.variant} className="text-[10px]">
                         {st.label}
                       </Badge>
                     </TableCell>
-                    <TableCell>{Number(c.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>
+                      {Number(c.amount).toLocaleString()} ر.س
+                    </TableCell>
                   </TableRow>
                 );
               })}

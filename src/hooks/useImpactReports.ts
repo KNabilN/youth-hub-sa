@@ -14,7 +14,12 @@ export interface ImpactReport {
   file_path: string;
   file_name: string;
   created_at: string;
-  association?: { full_name: string; organization_name: string | null; avatar_url: string | null; company_logo_url: string | null };
+  association?: {
+    full_name: string;
+    organization_name: string | null;
+    avatar_url: string | null;
+    company_logo_url: string | null;
+  };
   project?: { title: string } | null;
 }
 
@@ -26,15 +31,20 @@ export function useImpactReports() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-impact-reports-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "impact_reports" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "impact_reports" },
         () => {
           qc.invalidateQueries({ queryKey: ["impact-reports"] });
           qc.invalidateQueries({ queryKey: ["impact-reports-count"] });
           qc.invalidateQueries({ queryKey: ["donor-new-impact-reports"] });
           qc.invalidateQueries({ queryKey: ["journey-donor"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -52,24 +62,35 @@ export function useImpactReports() {
 
       // Fetch association profiles and project titles
       const assocIds = [...new Set(reports.map((r) => r.association_id))];
-      const projectIds = [...new Set(reports.filter((r) => r.project_id).map((r) => r.project_id))];
+      const projectIds = [
+        ...new Set(
+          reports.filter((r) => r.project_id).map((r) => r.project_id),
+        ),
+      ];
 
       const [assocRes, projRes] = await Promise.all([
         assocIds.length
-          ? supabase.from("profiles").select("id, full_name, organization_name, avatar_url, company_logo_url").in("id", assocIds)
+          ? supabase
+              .from("profiles")
+              .select(
+                "id, full_name, organization_name, avatar_url, company_logo_url",
+              )
+              .in("id", assocIds)
           : { data: [] },
         projectIds.length
           ? supabase.from("projects").select("id, title").in("id", projectIds)
           : { data: [] },
       ]);
 
-      const assocMap = new Map((assocRes.data ?? []).map((a: any) => [a.id, a]));
+      const assocMap = new Map(
+        (assocRes.data ?? []).map((a: any) => [a.id, a]),
+      );
       const projMap = new Map((projRes.data ?? []).map((p: any) => [p.id, p]));
 
       return reports.map((r) => ({
         ...r,
         association: assocMap.get(r.association_id),
-        project: r.project_id ? projMap.get(r.project_id) ?? null : null,
+        project: r.project_id ? (projMap.get(r.project_id) ?? null) : null,
       })) as ImpactReport[];
     },
   });

@@ -13,7 +13,14 @@ interface StarRatingProps {
 
 const sizeMap = { sm: "h-4 w-4", md: "h-5 w-5", lg: "h-7 w-7" };
 
-export function StarRating({ value, onChange, max = 5, size = "md", readonly = false, showValue = false }: StarRatingProps) {
+export function StarRating({
+  value,
+  onChange,
+  max = 5,
+  size = "md",
+  readonly = false,
+  showValue = false,
+}: StarRatingProps) {
   const [hover, setHover] = useState(0);
   const display = hover || value;
 
@@ -30,7 +37,7 @@ export function StarRating({ value, onChange, max = 5, size = "md", readonly = f
             className={cn(
               "transition-transform",
               !readonly && "hover:scale-125 cursor-pointer",
-              readonly && "cursor-default"
+              readonly && "cursor-default",
             )}
             onClick={() => onChange?.(star)}
             onMouseEnter={() => !readonly && setHover(star)}
@@ -40,13 +47,19 @@ export function StarRating({ value, onChange, max = 5, size = "md", readonly = f
               className={cn(
                 sizeMap[size],
                 "transition-colors",
-                filled ? "text-warning fill-warning" : "text-muted-foreground/30"
+                filled
+                  ? "text-warning fill-warning"
+                  : "text-muted-foreground/30",
               )}
             />
           </button>
         );
       })}
-      {showValue && <span className="text-sm font-semibold ms-1">{value}/{max}</span>}
+      {showValue && (
+        <span className="text-sm font-semibold ms-1">
+          {value}/{max}
+        </span>
+      )}
     </div>
   );
 }

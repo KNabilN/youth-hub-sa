@@ -3,7 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { StepProgress } from "@/components/ui/step-progress";
-import { ArrowLeft, Receipt, Clock, CheckCircle2, FileText, ScrollText, PlayCircle, Heart, MessageSquare, ShoppingBag, Handshake, PackageCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Receipt,
+  Clock,
+  CheckCircle2,
+  FileText,
+  ScrollText,
+  PlayCircle,
+  Heart,
+  MessageSquare,
+  ShoppingBag,
+  Handshake,
+  PackageCheck,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -18,7 +31,11 @@ const bankTransferJourney = [
   { icon: CheckCircle2, label: "تم إرسال الإيصال", status: "done" as const },
   { icon: Clock, label: "بانتظار موافقة الإدارة", status: "current" as const },
   { icon: FileText, label: "إصدار الفاتورة", status: "upcoming" as const },
-  { icon: ScrollText, label: "إنشاء العقد وتوقيع المزود", status: "upcoming" as const },
+  {
+    icon: ScrollText,
+    label: "إنشاء العقد وتوقيع المزود",
+    status: "upcoming" as const,
+  },
   { icon: PlayCircle, label: "بدء المشروع", status: "upcoming" as const },
 ];
 
@@ -40,7 +57,9 @@ interface SuccessState {
 function JourneyTimeline({ steps }: { steps: typeof bankTransferJourney }) {
   return (
     <div className="w-full bg-muted/30 rounded-xl p-4 space-y-0">
-      <p className="text-xs font-semibold text-muted-foreground mb-3">المراحل القادمة</p>
+      <p className="text-xs font-semibold text-muted-foreground mb-3">
+        المراحل القادمة
+      </p>
       {steps.map((step, idx) => {
         const Icon = step.icon;
         const isDone = step.status === "done";
@@ -53,8 +72,8 @@ function JourneyTimeline({ steps }: { steps: typeof bankTransferJourney }) {
                   isDone
                     ? "bg-primary text-primary-foreground"
                     : isCurrent
-                    ? "bg-orange-500/15 text-orange-600 ring-2 ring-orange-500/30"
-                    : "bg-muted text-muted-foreground/50"
+                      ? "bg-orange-500/15 text-orange-600 ring-2 ring-orange-500/30"
+                      : "bg-muted text-muted-foreground/50"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -72,8 +91,8 @@ function JourneyTimeline({ steps }: { steps: typeof bankTransferJourney }) {
                 isDone
                   ? "text-foreground font-medium"
                   : isCurrent
-                  ? "text-orange-600 font-medium"
-                  : "text-muted-foreground/60"
+                    ? "text-orange-600 font-medium"
+                    : "text-muted-foreground/60"
               }`}
             >
               {step.label}
@@ -110,7 +129,8 @@ export default function PaymentSuccess() {
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold">تم إرسال إيصال التحويل</h2>
                   <p className="text-sm text-muted-foreground">
-                    سيتم مراجعة إيصال التحويل من قبل الإدارة وسيتم إشعارك بالنتيجة
+                    سيتم مراجعة إيصال التحويل من قبل الإدارة وسيتم إشعارك
+                    بالنتيجة
                   </p>
                 </div>
                 <JourneyTimeline steps={bankTransferJourney} />
@@ -126,10 +146,13 @@ export default function PaymentSuccess() {
             ) : state?.method === "grant_balance" ? (
               <>
                 <SuccessAnimation
-                  title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع من رصيد المنح!"}
-                  description={isDonor
-                    ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
-                    : "تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي."
+                  title={
+                    isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع من رصيد المنح!"
+                  }
+                  description={
+                    isDonor
+                      ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
+                      : "تم خصم المبلغ من رصيد المنح وحجزه في نظام الضمان المالي."
                   }
                 />
                 {!isDonor && <JourneyTimeline steps={purchaseJourney} />}
@@ -138,9 +161,10 @@ export default function PaymentSuccess() {
               <>
                 <SuccessAnimation
                   title={isDonor ? "تم تأكيد دعمك بنجاح!" : "تم الدفع بنجاح!"}
-                  description={isDonor
-                    ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
-                    : "تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي."
+                  description={
+                    isDonor
+                      ? "شكراً لمساهمتك الكريمة. تم تأكيد تبرعك وسيتم إشعارك بتقارير الأثر."
+                      : "تم تأكيد طلبك وحجز المبلغ في نظام الضمان المالي."
                   }
                 />
                 {!isDonor && <JourneyTimeline steps={purchaseJourney} />}
@@ -150,7 +174,9 @@ export default function PaymentSuccess() {
             {/* Service summary */}
             {serviceTitles.length > 0 && (
               <div className="bg-muted/50 rounded-lg p-4 w-full space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground mb-2">الخدمات المشتراة</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">
+                  الخدمات المشتراة
+                </p>
                 {serviceTitles.map((title, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -169,7 +195,9 @@ export default function PaymentSuccess() {
                 {state.method === "discount_code" ? (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">طريقة الدفع</span>
-                    <span className="font-medium text-primary">مغطى بكود الخصم</span>
+                    <span className="font-medium text-primary">
+                      مغطى بكود الخصم
+                    </span>
                   </div>
                 ) : (
                   <div className="flex justify-between text-sm">
@@ -184,7 +212,9 @@ export default function PaymentSuccess() {
                 {isBankTransfer && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">الحالة</span>
-                    <span className="text-orange-500 font-medium">قيد المراجعة</span>
+                    <span className="text-orange-500 font-medium">
+                      قيد المراجعة
+                    </span>
                   </div>
                 )}
               </div>
@@ -197,7 +227,10 @@ export default function PaymentSuccess() {
                     <Heart className="h-4 w-4 me-1" />
                     متابعة المنح
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/dashboard")}
+                  >
                     <ArrowLeft className="h-4 w-4 me-1" />
                     العودة للوحة التحكم
                   </Button>
@@ -208,16 +241,25 @@ export default function PaymentSuccess() {
                     <ScrollText className="h-4 w-4 me-1" />
                     مراجعة العقود وتوقيعها
                   </Button>
-                  <Button variant="secondary" onClick={() => navigate("/messages")}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigate("/messages")}
+                  >
                     <MessageSquare className="h-4 w-4 me-1" />
                     التواصل مع مزود الخدمة
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/dashboard")}
+                  >
                     <ArrowLeft className="h-4 w-4 me-1" />
                     العودة للوحة التحكم
                   </Button>
                   {!isBankTransfer && (
-                    <Button variant="ghost" onClick={() => navigate("/invoices")}>
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate("/invoices")}
+                    >
                       <Receipt className="h-4 w-4 me-1" />
                       عرض الفواتير
                     </Button>

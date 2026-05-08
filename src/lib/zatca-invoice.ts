@@ -38,7 +38,10 @@ export interface InvoiceData {
   linkedEntityName?: string;
 }
 
-export async function generateInvoicePDF(invoice: InvoiceData, template?: InvoiceTemplateConfig) {
+export async function generateInvoicePDF(
+  invoice: InvoiceData,
+  template?: InvoiceTemplateConfig,
+) {
   const t = template ?? DEFAULT_TEMPLATE;
   const logoBase64 = await getLogoBase64(t.logo_url || undefined);
   const refNumber = generateRefNumber();

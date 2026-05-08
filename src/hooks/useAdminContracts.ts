@@ -17,7 +17,7 @@ export interface AdminContract {
 
 export function getSignatureStatus(
   associationSigned: string | null,
-  providerSigned: string | null
+  providerSigned: string | null,
 ): SignatureStatus {
   if (associationSigned && providerSigned) return "completed";
   if (associationSigned || providerSigned) return "partial";
@@ -30,18 +30,23 @@ export function useAdminContracts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contracts")
-        .select(`
-          id, created_at, association_signed_at, provider_signed_at, terms, project_id,
-          project:projects(title, request_number),
-          association:profiles!contracts_association_id_fkey(full_name, organization_name),
-          provider:profiles!contracts_provider_id_fkey(full_name, organization_name)
-        `)
+        .select(
+          `
+ id, created_at, association_signed_at, provider_signed_at, terms, project_id,
+ project:projects(title, request_number),
+ association:profiles!contracts_association_id_fkey(full_name, organization_name),
+ provider:profiles!contracts_provider_id_fkey(full_name, organization_name)
+ `,
+        )
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((c: any) => ({
         ...c,
-        signatureStatus: getSignatureStatus(c.association_signed_at, c.provider_signed_at),
+        signatureStatus: getSignatureStatus(
+          c.association_signed_at,
+          c.provider_signed_at,
+        ),
       })) as AdminContract[];
     },
   });

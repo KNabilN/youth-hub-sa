@@ -15,14 +15,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Gavel, ExternalLink, Plus, RotateCcw, Paperclip, X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Gavel,
+  ExternalLink,
+  Plus,
+  RotateCcw,
+  Paperclip,
+  X,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { disputeStatusLabels, disputeStatusColors } from "@/lib/dispute-statuses";
+import {
+  disputeStatusLabels,
+  disputeStatusColors,
+} from "@/lib/dispute-statuses";
 
 function canReopen(dispute: any): boolean {
   if (!["resolved", "closed"].includes(dispute.status)) return false;
@@ -38,7 +60,9 @@ export default function MyDisputes() {
   const { data: assignedProjects } = useMyAssignedProjects("in_progress");
   const { data: associationProjects } = useProjects("all");
   const disputeProjects = isAssociation
-    ? (associationProjects ?? []).filter((p: any) => ["in_progress", "completed", "disputed"].includes(p.status))
+    ? (associationProjects ?? []).filter((p: any) =>
+        ["in_progress", "completed", "disputed"].includes(p.status),
+      )
     : assignedProjects;
   const createDispute = useCreateDispute();
   const reopenDispute = useReopenDispute();
@@ -74,14 +98,15 @@ export default function MyDisputes() {
           setDescription("");
           setFiles([]);
         },
-        onError: () => toast({ title: "حدث خطأ أثناء رفع الشكوى", variant: "destructive" }),
-      }
+        onError: () =>
+          toast({ title: "حدث خطأ أثناء رفع الشكوى", variant: "destructive" }),
+      },
     );
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selected]);
+    setFiles((prev) => [...prev, ...selected]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -95,8 +120,12 @@ export default function MyDisputes() {
           setReopenDialogId(null);
           setReopenReason("");
         },
-        onError: (err: any) => toast({ title: translateError(err.message || "حدث خطأ"), variant: "destructive" }),
-      }
+        onError: (err: any) =>
+          toast({
+            title: translateError(err.message || "حدث خطأ"),
+            variant: "destructive",
+          }),
+      },
     );
   };
 
@@ -110,7 +139,9 @@ export default function MyDisputes() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">الشكاوى</h1>
-              <p className="text-sm text-muted-foreground">إدارة ومتابعة الشكاوى الخاصة بطلباتك</p>
+              <p className="text-sm text-muted-foreground">
+                إدارة ومتابعة الشكاوى الخاصة بطلباتك
+              </p>
             </div>
           </div>
 
@@ -128,11 +159,18 @@ export default function MyDisputes() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>الطلب</Label>
-                  <Select value={selectedProject} onValueChange={setSelectedProject}>
-                    <SelectTrigger><SelectValue placeholder="اختر الطلب" /></SelectTrigger>
+                  <Select
+                    value={selectedProject}
+                    onValueChange={setSelectedProject}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الطلب" />
+                    </SelectTrigger>
                     <SelectContent>
                       {disputeProjects?.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.title}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -141,7 +179,7 @@ export default function MyDisputes() {
                   <Label>وصف الشكوى</Label>
                   <Textarea
                     value={description}
-                    onChange={e => setDescription(e.target.value)}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="اشرح سبب الشكوى بالتفصيل..."
                     rows={4}
                   />
@@ -156,16 +194,34 @@ export default function MyDisputes() {
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <Paperclip className="h-4 w-4 me-1" />
                     إضافة ملف
                   </Button>
                   {files.length > 0 && (
                     <div className="space-y-1.5 mt-2">
                       {files.map((f, i) => (
-                        <div key={i} className="flex items-center justify-between text-xs bg-muted rounded-md px-3 py-1.5">
-                          <span className="truncate max-w-[200px]">{f.name}</span>
-                          <button type="button" onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-destructive">
+                        <div
+                          key={i}
+                          className="flex items-center justify-between text-xs bg-muted rounded-md px-3 py-1.5"
+                        >
+                          <span className="truncate max-w-[200px]">
+                            {f.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFiles((prev) =>
+                                prev.filter((_, idx) => idx !== i),
+                              )
+                            }
+                            className="text-muted-foreground hover:text-destructive"
+                          >
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -175,7 +231,11 @@ export default function MyDisputes() {
                 </div>
                 <Button
                   onClick={handleCreateDispute}
-                  disabled={!selectedProject || !description.trim() || createDispute.isPending}
+                  disabled={
+                    !selectedProject ||
+                    !description.trim() ||
+                    createDispute.isPending
+                  }
                   className="w-full"
                 >
                   {createDispute.isPending ? "جاري الإرسال..." : "رفع الشكوى"}
@@ -188,9 +248,17 @@ export default function MyDisputes() {
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
         {isLoading ? (
-          <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}</div>
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-32 w-full" />
+            ))}
+          </div>
         ) : !disputes?.length ? (
-          <EmptyState icon={Gavel} title="لا توجد شكاوى" description="لا يوجد لديك أي شكاوى حالياً" />
+          <EmptyState
+            icon={Gavel}
+            title="لا توجد شكاوى"
+            description="لا يوجد لديك أي شكاوى حالياً"
+          />
         ) : (
           <div className="space-y-4">
             {disputes.map((d: any) => (
@@ -202,12 +270,20 @@ export default function MyDisputes() {
                         شكوى على: {d.projects?.title ?? "طلب محذوف"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
-                        {d.dispute_number && <span className="text-sm font-semibold font-mono">{d.dispute_number}</span>}
-                        <p className="text-xs text-muted-foreground">بواسطة: {d.profiles?.full_name ?? "—"}</p>
+                        {d.dispute_number && (
+                          <span className="text-sm font-semibold font-mono">
+                            {d.dispute_number}
+                          </span>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          بواسطة: {d.profiles?.full_name ?? "—"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={disputeStatusColors[d.status] ?? ""}>{disputeStatusLabels[d.status] ?? d.status}</Badge>
+                      <Badge className={disputeStatusColors[d.status] ?? ""}>
+                        {disputeStatusLabels[d.status] ?? d.status}
+                      </Badge>
                       {d.projects && (
                         <Button asChild size="sm" variant="ghost">
                           <Link to={`/projects/${d.project_id}`}>
@@ -224,7 +300,9 @@ export default function MyDisputes() {
                   <DisputeFinancialImpact projectId={d.project_id} />
 
                   {d.resolution_notes && (
-                    <p className="text-xs text-muted-foreground border-t pt-2">ملاحظات الحل: {d.resolution_notes}</p>
+                    <p className="text-xs text-muted-foreground border-t pt-2">
+                      ملاحظات الحل: {d.resolution_notes}
+                    </p>
                   )}
 
                   {/* Reopen button */}
@@ -246,7 +324,10 @@ export default function MyDisputes() {
                   )}
 
                   <DisputeTimeline disputeId={d.id} />
-                  <DisputeResponseThread disputeId={d.id} disputeStatus={d.status} />
+                  <DisputeResponseThread
+                    disputeId={d.id}
+                    disputeStatus={d.status}
+                  />
                 </CardContent>
               </Card>
             ))}
@@ -255,20 +336,26 @@ export default function MyDisputes() {
       </div>
 
       {/* Reopen Dialog */}
-      <Dialog open={!!reopenDialogId} onOpenChange={(open) => { if (!open) setReopenDialogId(null); }}>
+      <Dialog
+        open={!!reopenDialogId}
+        onOpenChange={(open) => {
+          if (!open) setReopenDialogId(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>إعادة فتح الشكوى</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              سيتم إعادة فتح الشكوى وتجميد المبالغ المالية المرتبطة بالطلب مرة أخرى.
+              سيتم إعادة فتح الشكوى وتجميد المبالغ المالية المرتبطة بالطلب مرة
+              أخرى.
             </p>
             <div className="space-y-2">
               <Label>سبب إعادة الفتح</Label>
               <Textarea
                 value={reopenReason}
-                onChange={e => setReopenReason(e.target.value)}
+                onChange={(e) => setReopenReason(e.target.value)}
                 placeholder="اشرح سبب إعادة فتح الشكوى..."
                 rows={3}
               />
@@ -279,7 +366,9 @@ export default function MyDisputes() {
               variant="destructive"
               className="w-full"
             >
-              {reopenDispute.isPending ? "جاري الإرسال..." : "تأكيد إعادة الفتح"}
+              {reopenDispute.isPending
+                ? "جاري الإرسال..."
+                : "تأكيد إعادة الفتح"}
             </Button>
           </div>
         </DialogContent>

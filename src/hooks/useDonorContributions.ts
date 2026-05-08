@@ -17,7 +17,9 @@ export function useDonorContributions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("*, projects(title, status), micro_services(title), profiles:association_id(full_name, organization_name)")
+        .select(
+          "*, projects(title, status), micro_services(title), profiles:association_id(full_name, organization_name)",
+        )
         .eq("donor_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -34,12 +36,14 @@ export function useDonorConsumedBreakdown() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select(`
-          id, amount, created_at, donation_status, project_id, service_id, association_id,
-          projects(title, status, assigned_provider_id, request_number),
-          micro_services(title, service_number, provider_id),
-          profiles:association_id(full_name, organization_name)
-        `)
+        .select(
+          `
+ id, amount, created_at, donation_status, project_id, service_id, association_id,
+ projects(title, status, assigned_provider_id, request_number),
+ micro_services(title, service_number, provider_id),
+ profiles:association_id(full_name, organization_name)
+ `,
+        )
         .eq("donor_id", user!.id)
         .eq("donation_status", "consumed")
         .order("created_at", { ascending: false });
@@ -50,7 +54,8 @@ export function useDonorConsumedBreakdown() {
       for (const c of data ?? []) {
         const proj = c.projects as any;
         const svc = c.micro_services as any;
-        if (proj?.assigned_provider_id) providerIds.add(proj.assigned_provider_id);
+        if (proj?.assigned_provider_id)
+          providerIds.add(proj.assigned_provider_id);
         if (svc?.provider_id) providerIds.add(svc.provider_id);
       }
 
@@ -92,7 +97,9 @@ export function useCreateContribution() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["donor-contributions", user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["donor-contributions", user?.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["donor-stats", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["donor-balances", user?.id] });
     },

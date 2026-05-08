@@ -1,29 +1,55 @@
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Clock, ShieldCheck, DollarSign, HeadphonesIcon,
-  Building2, Users, Heart,
-  Briefcase, Monitor, Calculator, Scale, GraduationCap, Megaphone,
-  CheckCircle2, Rocket, Brain, Handshake, TrendingUp,
-  UserPlus, Search, FileCheck, Star,
+  Clock,
+  ShieldCheck,
+  DollarSign,
+  HeadphonesIcon,
+  Building2,
+  Users,
+  Heart,
+  Briefcase,
+  Monitor,
+  Calculator,
+  Scale,
+  GraduationCap,
+  Megaphone,
+  CheckCircle2,
+  Rocket,
+  Brain,
+  Handshake,
+  TrendingUp,
+  UserPlus,
+  Search,
+  FileCheck,
+  Star,
 } from "lucide-react";
 
 const whyIcons = [Clock, ShieldCheck, DollarSign, HeadphonesIcon];
 const targetIcons = [Building2, Users, Heart];
-const serviceIcons = [Briefcase, Monitor, Calculator, Scale, GraduationCap, Megaphone];
+const serviceIcons = [
+  Briefcase,
+  Monitor,
+  Calculator,
+  Scale,
+  GraduationCap,
+  Megaphone,
+];
 const stepIcons = [UserPlus, Search, FileCheck, Star];
 const ambitionIcons = [Rocket, Brain, Handshake, TrendingUp];
 
 export default function About() {
   const { data } = useSiteContent("about");
-  const a = data || {} as any;
+  const a = data || ({} as any);
 
   return (
     <>
       {/* Hero */}
       <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="container mx-auto max-w-4xl text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold">{a.hero_title || "ما هي منصة الخدمات المشتركة؟"}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold">
+            {a.hero_title || "ما هي منصة الخدمات المشتركة؟"}
+          </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
             {a.hero_description || ""}
           </p>
@@ -34,7 +60,9 @@ export default function About() {
       {a.why_items?.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.why_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.why_title}
+            </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {a.why_items.map((item: any, i: number) => {
                 const Icon = whyIcons[i % whyIcons.length];
@@ -45,7 +73,9 @@ export default function About() {
                         <Icon className="h-7 w-7 text-primary" />
                       </div>
                       <h3 className="font-bold">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.desc}
+                      </p>
                     </CardContent>
                   </Card>
                 );
@@ -59,7 +89,9 @@ export default function About() {
       {a.targets?.length > 0 && (
         <section className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.target_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.target_title}
+            </h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {a.targets.map((item: any, i: number) => {
                 const Icon = targetIcons[i % targetIcons.length];
@@ -70,7 +102,9 @@ export default function About() {
                         <Icon className="h-7 w-7 text-accent-foreground" />
                       </div>
                       <h3 className="font-bold">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.desc}
+                      </p>
                     </CardContent>
                   </Card>
                 );
@@ -84,7 +118,9 @@ export default function About() {
       {a.services?.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.services_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.services_title}
+            </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {a.services.map((item: any, i: number) => {
                 const Icon = serviceIcons[i % serviceIcons.length];
@@ -96,7 +132,9 @@ export default function About() {
                       </div>
                       <div>
                         <h3 className="font-bold mb-1">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground">{item.desc}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.desc}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -111,10 +149,15 @@ export default function About() {
       {a.benefits?.length > 0 && (
         <section className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto max-w-3xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.benefits_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.benefits_title}
+            </h2>
             <div className="space-y-3">
               {a.benefits.map((b: string, i: number) => (
-                <div key={i} className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover">
+                <div
+                  key={i}
+                  className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover"
+                >
                   <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-sm leading-relaxed">{b}</span>
                 </div>
@@ -128,7 +171,9 @@ export default function About() {
       {a.steps?.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.steps_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.steps_title}
+            </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {a.steps.map((item: any, i: number) => {
                 const Icon = stepIcons[i % stepIcons.length];
@@ -154,10 +199,15 @@ export default function About() {
       {a.quality_items?.length > 0 && (
         <section className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto max-w-3xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.quality_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.quality_title}
+            </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {a.quality_items.map((item: string, i: number) => (
-                <div key={i} className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover">
+                <div
+                  key={i}
+                  className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border card-hover"
+                >
                   <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-sm leading-relaxed">{item}</span>
                 </div>
@@ -171,7 +221,9 @@ export default function About() {
       {a.ambitions?.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl font-bold text-center mb-10">{a.ambitions_title}</h2>
+            <h2 className="text-3xl font-bold text-center mb-10">
+              {a.ambitions_title}
+            </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {a.ambitions.map((item: any, i: number) => {
                 const Icon = ambitionIcons[i % ambitionIcons.length];
@@ -182,7 +234,9 @@ export default function About() {
                         <Icon className="h-7 w-7 text-accent-foreground" />
                       </div>
                       <h3 className="font-bold">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.desc}
+                      </p>
                     </CardContent>
                   </Card>
                 );

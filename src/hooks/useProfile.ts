@@ -12,7 +12,7 @@ export function useProfile() {
         .from("profiles")
         .select("*")
         .eq("id", user!.id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -75,7 +75,9 @@ export function useUpdateProfile() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (updates: Record<string, unknown>): Promise<{ hasPendingReview: boolean }> => {
+    mutationFn: async (
+      updates: Record<string, unknown>,
+    ): Promise<{ hasPendingReview: boolean }> => {
       const userId = user!.id;
 
       // Load current profile to compute old values
@@ -104,7 +106,10 @@ export function useUpdateProfile() {
       }
 
       if (Object.keys(instant).length > 0) {
-        const { error } = await supabase.from("profiles").update(instant as any).eq("id", userId);
+        const { error } = await supabase
+          .from("profiles")
+          .update(instant as any)
+          .eq("id", userId);
         if (error) throw error;
       }
 
@@ -122,7 +127,10 @@ export function useUpdateProfile() {
           .maybeSingle();
 
         if (existing) {
-          const mergedChanges = { ...(existing.requested_changes as any), ...sensitive };
+          const mergedChanges = {
+            ...(existing.requested_changes as any),
+            ...sensitive,
+          };
           const mergedOld = { ...(existing.old_values as any), ...oldValues };
           const { error } = await supabase
             .from("edit_requests")
@@ -166,15 +174,19 @@ export function useUpdateBankDetails() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (updates: { bank_name: string; bank_account_number: string; bank_iban: string; bank_account_holder: string }) => {
+    mutationFn: async (updates: {
+      bank_name: string;
+      bank_account_number: string;
+      bank_iban: string;
+      bank_account_holder: string;
+    }) => {
       const userId = user!.id;
       // Upsert: insert if not exists, update if exists
       const { error } = await supabase
         .from("bank_details")
-        .upsert(
-          { user_id: userId, ...updates } as any,
-          { onConflict: "user_id" }
-        );
+        .upsert({ user_id: userId, ...updates } as any, {
+          onConflict: "user_id",
+        });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -189,7 +201,8 @@ export function useUploadAvatar() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (file: File) => {
-      if (file.size > 2 * 1024 * 1024) throw new Error("الحد الأقصى لحجم الصورة 2 ميجابايت");
+      if (file.size > 2 * 1024 * 1024)
+        throw new Error("الحد الأقصى لحجم الصورة 2 ميجابايت");
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/avatar.${ext}`;
@@ -197,9 +210,14 @@ export function useUploadAvatar() {
         .from("avatars")
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(path);
       const avatar_url = `${urlData.publicUrl}?t=${Date.now()}`;
-      const { error } = await supabase.from("profiles").update({ avatar_url }).eq("id", userId);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ avatar_url })
+        .eq("id", userId);
       if (error) throw error;
       return avatar_url;
     },

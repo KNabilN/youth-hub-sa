@@ -3,9 +3,15 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatThread } from "@/components/messages/ChatThread";
 import { useConversations } from "@/hooks/useMessages";
-import { useInquiryConversations, type InquiryConversation } from "@/hooks/useServiceInquiry";
+import {
+  useInquiryConversations,
+  type InquiryConversation,
+} from "@/hooks/useServiceInquiry";
 import { ServiceInquiryChat } from "@/components/services/ServiceInquiryChat";
-import { useUserAdminConversation, useUserAdminUnread } from "@/hooks/useAdminMessages";
+import {
+  useUserAdminConversation,
+  useUserAdminUnread,
+} from "@/hooks/useAdminMessages";
 import { AdminUserChatThread } from "@/components/admin/AdminUserChatThread";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageSquare, ArrowRight, ShoppingBag, Shield } from "lucide-react";
@@ -29,15 +35,19 @@ export default function Messages() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("projects");
   const [selected, setSelected] = useState<SelectedItem>();
   const { data: conversations } = useConversations();
-  const { data: inquiryConversations, isLoading: inquiriesLoading } = useInquiryConversations();
-  const { data: adminConv, isLoading: adminLoading } = useUserAdminConversation();
+  const { data: inquiryConversations, isLoading: inquiriesLoading } =
+    useInquiryConversations();
+  const { data: adminConv, isLoading: adminLoading } =
+    useUserAdminConversation();
   const { data: adminUnread } = useUserAdminUnread();
 
-  const selectedConv = selected?.type === "project"
-    ? conversations?.find((c) => c.project_id === selected.id)
-    : null;
+  const selectedConv =
+    selected?.type === "project"
+      ? conversations?.find((c) => c.project_id === selected.id)
+      : null;
 
-  const totalInquiryUnread = inquiryConversations?.reduce((sum, c) => sum + c.unread_count, 0) ?? 0;
+  const totalInquiryUnread =
+    inquiryConversations?.reduce((sum, c) => sum + c.unread_count, 0) ?? 0;
 
   return (
     <DashboardLayout>
@@ -48,33 +58,58 @@ export default function Messages() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">الرسائل</h1>
-            <p className="text-sm text-muted-foreground">تواصل مع أطراف الطلبات</p>
+            <p className="text-sm text-muted-foreground">
+              تواصل مع أطراف الطلبات
+            </p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        <div className="border rounded-2xl overflow-hidden bg-card shadow-sm" style={{ height: "min(calc(100vh - 220px), 720px)" }}>
+        <div
+          className="border rounded-2xl overflow-hidden bg-card shadow-sm"
+          style={{ height: "min(calc(100vh - 220px), 720px)" }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-[min(320px,40vw)_1fr] h-full">
             {/* Conversation List */}
-            <div className={cn(
-              "border-s overflow-y-auto",
-              selected && "hidden md:block"
-            )}>
+            <div
+              className={cn(
+                "border-s overflow-y-auto",
+                selected && "hidden md:block",
+              )}
+            >
               <div className="p-3 border-b space-y-2">
-                <h2 className="text-sm font-bold text-muted-foreground">المحادثات</h2>
-                <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as ActiveTab); setSelected(undefined); }}>
+                <h2 className="text-sm font-bold text-muted-foreground">
+                  المحادثات
+                </h2>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(v) => {
+                    setActiveTab(v as ActiveTab);
+                    setSelected(undefined);
+                  }}
+                >
                   <TabsList className="w-full grid grid-cols-3">
                     <TabsTrigger value="projects">الطلبات</TabsTrigger>
                     <TabsTrigger value="inquiries" className="gap-1.5">
                       استفسارات
                       {totalInquiryUnread > 0 && (
-                        <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">{totalInquiryUnread}</Badge>
+                        <Badge
+                          variant="destructive"
+                          className="h-5 min-w-5 px-1 text-[10px]"
+                        >
+                          {totalInquiryUnread}
+                        </Badge>
                       )}
                     </TabsTrigger>
                     <TabsTrigger value="admin" className="gap-1.5">
                       الإدارة
                       {(adminUnread ?? 0) > 0 && (
-                        <Badge variant="destructive" className="h-5 min-w-5 px-1 text-[10px]">{adminUnread}</Badge>
+                        <Badge
+                          variant="destructive"
+                          className="h-5 min-w-5 px-1 text-[10px]"
+                        >
+                          {adminUnread}
+                        </Badge>
                       )}
                     </TabsTrigger>
                   </TabsList>
@@ -83,34 +118,54 @@ export default function Messages() {
 
               {activeTab === "projects" ? (
                 <ConversationList
-                  selectedProjectId={selected?.type === "project" ? selected.id : undefined}
+                  selectedProjectId={
+                    selected?.type === "project" ? selected.id : undefined
+                  }
                   onSelect={(id) => {
-                    const conv = conversations?.find(c => c.project_id === id);
-                    setSelected({ type: "project", id, title: conv?.project_title ?? "" });
+                    const conv = conversations?.find(
+                      (c) => c.project_id === id,
+                    );
+                    setSelected({
+                      type: "project",
+                      id,
+                      title: conv?.project_title ?? "",
+                    });
                   }}
                 />
               ) : activeTab === "inquiries" ? (
                 <InquiryConversationList
                   conversations={inquiryConversations ?? []}
                   isLoading={inquiriesLoading}
-                  selectedInquiryId={selected?.type === "inquiry" ? selected.id : undefined}
-                  onSelect={(inq) => setSelected({ type: "inquiry", id: inq.inquiry_id, title: inq.service_title })}
+                  selectedInquiryId={
+                    selected?.type === "inquiry" ? selected.id : undefined
+                  }
+                  onSelect={(inq) =>
+                    setSelected({
+                      type: "inquiry",
+                      id: inq.inquiry_id,
+                      title: inq.service_title,
+                    })
+                  }
                 />
               ) : (
                 <AdminConversationListItem
                   isLoading={adminLoading}
                   conversation={adminConv}
                   selected={selected?.type === "admin"}
-                  onSelect={() => user && setSelected({ type: "admin", id: user.id, title: "الإدارة" })}
+                  onSelect={() =>
+                    user &&
+                    setSelected({
+                      type: "admin",
+                      id: user.id,
+                      title: "الإدارة",
+                    })
+                  }
                 />
               )}
             </div>
 
             {/* Chat Area */}
-            <div className={cn(
-              "flex flex-col",
-              !selected && "hidden md:flex"
-            )}>
+            <div className={cn("flex flex-col", !selected && "hidden md:flex")}>
               {selected ? (
                 <div className="flex flex-col h-full">
                   {/* Mobile back button */}
@@ -136,9 +191,13 @@ export default function Messages() {
                         <div className="p-4 border-b bg-card">
                           <div className="flex items-center gap-2">
                             <ShoppingBag className="h-4 w-4 text-primary" />
-                            <h2 className="font-bold text-lg">{selected.title}</h2>
+                            <h2 className="font-bold text-lg">
+                              {selected.title}
+                            </h2>
                           </div>
-                          <p className="text-xs text-muted-foreground">استفسار عن خدمة</p>
+                          <p className="text-xs text-muted-foreground">
+                            استفسار عن خدمة
+                          </p>
                         </div>
                         <div className="flex-1 min-h-0">
                           <ServiceInquiryChat inquiryId={selected.id} />
@@ -152,13 +211,20 @@ export default function Messages() {
                               <Shield className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <h2 className="font-bold text-lg leading-tight">الإدارة</h2>
-                              <p className="text-xs text-muted-foreground">محادثة مباشرة مع فريق الإدارة</p>
+                              <h2 className="font-bold text-lg leading-tight">
+                                الإدارة
+                              </h2>
+                              <p className="text-xs text-muted-foreground">
+                                محادثة مباشرة مع فريق الإدارة
+                              </p>
                             </div>
                           </div>
                         </div>
                         <div className="flex-1 min-h-0">
-                          <AdminUserChatThread userId={selected.id} otherPartyName="الإدارة" />
+                          <AdminUserChatThread
+                            userId={selected.id}
+                            otherPartyName="الإدارة"
+                          />
                         </div>
                       </div>
                     ) : null}
@@ -170,8 +236,12 @@ export default function Messages() {
                     <div className="w-20 h-20 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
                       <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
                     </div>
-                    <p className="text-lg font-medium text-muted-foreground">اختر محادثة</p>
-                    <p className="text-sm text-muted-foreground mt-1">اختر مشروعاً أو استفساراً من القائمة</p>
+                    <p className="text-lg font-medium text-muted-foreground">
+                      اختر محادثة
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      اختر مشروعاً أو استفساراً من القائمة
+                    </p>
                   </div>
                 </div>
               )}
@@ -191,7 +261,15 @@ function AdminConversationListItem({
   onSelect,
 }: {
   isLoading: boolean;
-  conversation: { hasConversation: boolean; last_message: string; last_message_at: string | null; unread_count: number } | null | undefined;
+  conversation:
+    | {
+        hasConversation: boolean;
+        last_message: string;
+        last_message_at: string | null;
+        unread_count: number;
+      }
+    | null
+    | undefined;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -215,8 +293,12 @@ function AdminConversationListItem({
         <div className="w-14 h-14 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
           <Shield className="h-6 w-6 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">لا توجد رسائل من الإدارة</p>
-        <p className="text-xs text-muted-foreground mt-1">ستظهر هنا عند تواصل الإدارة معك</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          لا توجد رسائل من الإدارة
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          ستظهر هنا عند تواصل الإدارة معك
+        </p>
       </div>
     );
   }
@@ -227,7 +309,9 @@ function AdminConversationListItem({
         onClick={onSelect}
         className={cn(
           "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
-          selected ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/50"
+          selected
+            ? "bg-primary/10 border border-primary/20"
+            : "hover:bg-muted/50",
         )}
       >
         <div className="relative shrink-0">
@@ -247,14 +331,19 @@ function AdminConversationListItem({
             <p className="text-sm font-semibold truncate">الإدارة</p>
             {conversation.last_message_at && (
               <span className="text-[10px] text-muted-foreground shrink-0">
-                {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false, locale: ar })}
+                {formatDistanceToNow(new Date(conversation.last_message_at), {
+                  addSuffix: false,
+                  locale: ar,
+                })}
               </span>
             )}
           </div>
           <p
             className={cn(
               "text-xs truncate mt-0.5",
-              conversation.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"
+              conversation.unread_count > 0
+                ? "text-foreground font-medium"
+                : "text-muted-foreground",
             )}
           >
             {conversation.last_message || "—"}
@@ -299,8 +388,12 @@ function InquiryConversationList({
         <div className="w-14 h-14 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
           <ShoppingBag className="h-6 w-6 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">لا توجد استفسارات</p>
-        <p className="text-xs text-muted-foreground mt-1">ستظهر هنا عند الاستفسار عن خدمة</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          لا توجد استفسارات
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          ستظهر هنا عند الاستفسار عن خدمة
+        </p>
       </div>
     );
   }
@@ -315,13 +408,15 @@ function InquiryConversationList({
             "w-full flex items-center gap-3 p-3 rounded-xl text-start transition-all duration-200",
             selectedInquiryId === conv.inquiry_id
               ? "bg-primary/10 border border-primary/20"
-              : "hover:bg-muted/50"
+              : "hover:bg-muted/50",
           )}
         >
           <div className="relative shrink-0">
             <Avatar className="h-11 w-11">
               <AvatarImage src={conv.other_party_avatar || undefined} />
-              <AvatarFallback className="text-sm">{conv.other_party_name[0]}</AvatarFallback>
+              <AvatarFallback className="text-sm">
+                {conv.other_party_name[0]}
+              </AvatarFallback>
             </Avatar>
             {conv.unread_count > 0 && (
               <div className="absolute -top-1 [inset-inline-end:-0.25rem] h-5 min-w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
@@ -331,10 +426,15 @@ function InquiryConversationList({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold truncate">{conv.other_party_name}</p>
+              <p className="text-sm font-semibold truncate">
+                {conv.other_party_name}
+              </p>
               {conv.last_message_at && conv.last_message && (
                 <span className="text-[10px] text-muted-foreground shrink-0">
-                  {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: false, locale: ar })}
+                  {formatDistanceToNow(new Date(conv.last_message_at), {
+                    addSuffix: false,
+                    locale: ar,
+                  })}
                 </span>
               )}
             </div>
@@ -343,10 +443,14 @@ function InquiryConversationList({
               {conv.service_title}
             </p>
             {conv.last_message && (
-              <p className={cn(
-                "text-xs truncate mt-0.5",
-                conv.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"
-              )}>
+              <p
+                className={cn(
+                  "text-xs truncate mt-0.5",
+                  conv.unread_count > 0
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground",
+                )}
+              >
                 {conv.last_message}
               </p>
             )}

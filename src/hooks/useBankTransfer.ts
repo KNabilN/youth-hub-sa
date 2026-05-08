@@ -17,7 +17,12 @@ export function useCreateBankTransfer() {
       amount: number;
       baseAmount?: number;
       userId: string;
-      items: Array<{ serviceId: string; providerId: string; price: number; title?: string }>;
+      items: Array<{
+        serviceId: string;
+        providerId: string;
+        price: number;
+        title?: string;
+      }>;
       beneficiaryId?: string;
     }) => {
       // amount = total charged (including fees), baseAmount = service price subtotal
@@ -180,7 +185,9 @@ export function useAdminBankTransfers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bank_transfers")
-        .select("*, profiles:user_id(full_name), escrow_transactions:escrow_id(payer_id, payee_id, project_id, amount, service_id, projects:project_id(title), micro_services:service_id(title))")
+        .select(
+          "*, profiles:user_id(full_name), escrow_transactions:escrow_id(payer_id, payee_id, project_id, amount, service_id, projects:project_id(title), micro_services:service_id(title))",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -198,7 +205,13 @@ function generateInvoiceNumber(): string {
 export function useApproveBankTransfer() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ transferId, escrowId }: { transferId: string; escrowId: string }) => {
+    mutationFn: async ({
+      transferId,
+      escrowId,
+    }: {
+      transferId: string;
+      escrowId: string;
+    }) => {
       // 1. Update bank_transfer status — optimistic lock: only if still pending
       const { data: btUpdated, error: btErr } = await supabase
         .from("bank_transfers")
@@ -225,7 +238,9 @@ export function useApproveBankTransfer() {
       // 3. Fetch escrow details (including grant_request_id)
       const { data: escrow } = await supabase
         .from("escrow_transactions")
-        .select("payer_id, payee_id, beneficiary_id, project_id, amount, service_id, grant_request_id")
+        .select(
+          "payer_id, payee_id, beneficiary_id, project_id, amount, service_id, grant_request_id",
+        )
         .eq("id", escrowId)
         .single();
       if (!escrow) return;
@@ -261,7 +276,10 @@ export function useApproveBankTransfer() {
       if ((escrow as any).grant_request_id) {
         await supabase
           .from("grant_requests" as any)
-          .update({ status: "funded", updated_at: new Date().toISOString() } as any)
+          .update({
+            status: "funded",
+            updated_at: new Date().toISOString(),
+          } as any)
           .eq("id", (escrow as any).grant_request_id);
       }
 
@@ -282,7 +300,7 @@ export function useApproveBankTransfer() {
         await sendNotification(
           issuedTo,
           `تم استلام منحة بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س وتم إصدار الفاتورة`,
-          "donation_approved"
+          "donation_approved",
         );
       } else {
         // === Scenario 2: Donation to specific project request ===
@@ -300,7 +318,7 @@ export function useApproveBankTransfer() {
         await sendNotification(
           escrow.payer_id,
           `شكراً لمنحتك الكريمة بمبلغ ${Number(escrow.amount).toLocaleString()} ر.س — تم إصدار فاتورة الاستلام`,
-          "donation_thankyou"
+          "donation_thankyou",
         );
 
         // Get project details for contract

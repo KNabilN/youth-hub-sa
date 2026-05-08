@@ -11,7 +11,11 @@ export function PortfolioGrid({ providerId }: PortfolioGridProps) {
   const { data: items } = usePortfolio(providerId);
 
   if (!items?.length) {
-    return <p className="text-center py-6 text-muted-foreground">لا توجد أعمال سابقة</p>;
+    return (
+      <p className="text-center py-6 text-muted-foreground">
+        لا توجد أعمال سابقة
+      </p>
+    );
   }
 
   return (
@@ -32,7 +36,9 @@ export function PortfolioGrid({ providerId }: PortfolioGridProps) {
                 <div className="p-3 space-y-0.5">
                   <p className="font-medium text-sm truncate">{item.title}</p>
                   {item.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {item.description}
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -42,7 +48,11 @@ export function PortfolioGrid({ providerId }: PortfolioGridProps) {
             <img src={item.image_url} alt={item.title} className="w-full" />
             <div className="p-4 space-y-1">
               <h3 className="font-semibold">{item.title}</h3>
-              {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+              {item.description && (
+                <p className="text-sm text-muted-foreground">
+                  {item.description}
+                </p>
+              )}
             </div>
           </DialogContent>
         </Dialog>

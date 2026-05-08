@@ -17,20 +17,26 @@ type TicketStatus = Database["public"]["Enums"]["ticket_status"];
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
 
 const statusLabels: Record<TicketStatus, string> = {
-  open: "مفتوحة", in_progress: "قيد المعالجة", resolved: "تم الحل", closed: "مغلقة",
+  open: "مفتوحة",
+  in_progress: "قيد المعالجة",
+  resolved: "تم الحل",
+  closed: "مغلقة",
 };
 const statusColors: Record<TicketStatus, string> = {
-  open: "bg-blue-500/10 text-blue-700 border-blue-200",
-  in_progress: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
-  resolved: "bg-green-500/10 text-green-700 border-green-200",
+  open: "bg-info/10 text-info border-info/30",
+  in_progress: "bg-warning/10 text-warning border-warning/30",
+  resolved: "bg-success/10 text-success border-success/30",
   closed: "bg-muted text-muted-foreground",
 };
 const priorityLabels: Record<TicketPriority, string> = {
-  low: "منخفضة", medium: "متوسطة", high: "عالية", urgent: "عاجلة",
+  low: "منخفضة",
+  medium: "متوسطة",
+  high: "عالية",
+  urgent: "عاجلة",
 };
 const priorityColors: Record<TicketPriority, string> = {
   low: "bg-muted text-muted-foreground",
-  medium: "bg-blue-500/10 text-blue-700",
+  medium: "bg-info/10 text-info",
   high: "bg-orange-500/10 text-orange-700",
   urgent: "bg-destructive/10 text-destructive",
 };
@@ -46,11 +52,19 @@ export default function TicketDetail() {
       .channel(`rt-ticket-detail-${id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${id}` },
-        () => queryClient.invalidateQueries({ queryKey: ["ticket-detail", id] })
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "support_tickets",
+          filter: `id=eq.${id}`,
+        },
+        () =>
+          queryClient.invalidateQueries({ queryKey: ["ticket-detail", id] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id, queryClient]);
 
   const { data: ticket, isLoading } = useQuery({
@@ -62,7 +76,7 @@ export default function TicketDetail() {
         .select("*")
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -83,7 +97,9 @@ export default function TicketDetail() {
     return (
       <DashboardLayout>
         <div className="text-center py-20 space-y-4">
-          <p className="text-lg text-muted-foreground">هذه التذكرة غير موجودة أو تم حذفها</p>
+          <p className="text-lg text-muted-foreground">
+            هذه التذكرة غير موجودة أو تم حذفها
+          </p>
           <Button variant="outline" onClick={() => navigate("/tickets")}>
             <ArrowRight className="h-4 w-4 ms-2" /> العودة
           </Button>
@@ -103,12 +119,18 @@ export default function TicketDetail() {
             </div>
             <div>
               {ticket.ticket_number && (
-                <span className="text-xs font-mono text-muted-foreground">{ticket.ticket_number}</span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {ticket.ticket_number}
+                </span>
               )}
               <h1 className="text-xl font-bold">{ticket.subject}</h1>
             </div>
           </div>
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
             العودة
             <ArrowRight className="h-4 w-4" />
           </Button>
@@ -116,10 +138,16 @@ export default function TicketDetail() {
 
         {/* Status & Priority */}
         <div className="flex gap-2">
-          <Badge variant="outline" className={statusColors[ticket.status as TicketStatus]}>
+          <Badge
+            variant="outline"
+            className={statusColors[ticket.status as TicketStatus]}
+          >
             {statusLabels[ticket.status as TicketStatus]}
           </Badge>
-          <Badge variant="outline" className={priorityColors[ticket.priority as TicketPriority]}>
+          <Badge
+            variant="outline"
+            className={priorityColors[ticket.priority as TicketPriority]}
+          >
             {priorityLabels[ticket.priority as TicketPriority]}
           </Badge>
           <span className="text-xs text-muted-foreground self-center">

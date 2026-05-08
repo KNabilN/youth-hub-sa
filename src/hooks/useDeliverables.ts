@@ -24,10 +24,20 @@ export function useDeliverables(projectId: string | undefined) {
     if (!projectId) return;
     const channel = supabase
       .channel(`rt-deliverables-${projectId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "project_deliverables", filter: `project_id=eq.${projectId}` },
-        () => qc.invalidateQueries({ queryKey: ["deliverables", projectId] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "project_deliverables",
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["deliverables", projectId] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [projectId, qc]);
 
   return useQuery({
@@ -58,7 +68,13 @@ export function useSubmitDeliverable() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ projectId, notes }: { projectId: string; notes: string }) => {
+    mutationFn: async ({
+      projectId,
+      notes,
+    }: {
+      projectId: string;
+      notes: string;
+    }) => {
       if (!user) throw new Error("يجب تسجيل الدخول");
       const { error } = await (supabase as any)
         .from("project_deliverables")
@@ -71,7 +87,9 @@ export function useSubmitDeliverable() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["deliverables", variables.projectId],
+      });
       toast.success("تم إرسال التسليم بنجاح", {
         description: "وصل العمل للجمعية وهي الآن بانتظار المراجعة",
       });
@@ -103,10 +121,23 @@ export function useProviderDeliverableAlerts() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-provider-deliverables-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "project_deliverables", filter: `provider_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["provider-deliverable-alerts", user.id] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "project_deliverables",
+          filter: `provider_id=eq.${user.id}`,
+        },
+        () =>
+          qc.invalidateQueries({
+            queryKey: ["provider-deliverable-alerts", user.id],
+          }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -116,7 +147,9 @@ export function useProviderDeliverableAlerts() {
       // Fetch active projects assigned to this provider with a fully-signed contract
       const { data: projects, error: pErr } = await supabase
         .from("projects")
-        .select("id, title, status, contracts!inner(association_signed_at, provider_signed_at, deleted_at)")
+        .select(
+          "id, title, status, contracts!inner(association_signed_at, provider_signed_at, deleted_at)",
+        )
         .eq("assigned_provider_id", user!.id)
         .in("status", ["in_progress"])
         .is("deleted_at", null);
@@ -124,7 +157,9 @@ export function useProviderDeliverableAlerts() {
 
       const eligible = (projects ?? []).filter((p: any) => {
         const c = Array.isArray(p.contracts) ? p.contracts[0] : p.contracts;
-        return c && !c.deleted_at && c.association_signed_at && c.provider_signed_at;
+        return (
+          c && !c.deleted_at && c.association_signed_at && c.provider_signed_at
+        );
       });
       if (!eligible.length) return [];
 
@@ -137,19 +172,36 @@ export function useProviderDeliverableAlerts() {
       if (dErr) throw dErr;
 
       const latestByProject = new Map<string, any>();
-      for (const d of (dels ?? [])) {
-        if (!latestByProject.has(d.project_id)) latestByProject.set(d.project_id, d);
+      for (const d of dels ?? []) {
+        if (!latestByProject.has(d.project_id))
+          latestByProject.set(d.project_id, d);
       }
 
       const alerts: ProviderDeliverableAlert[] = [];
       for (const p of eligible) {
         const latest = latestByProject.get(p.id);
         if (!latest) {
-          alerts.push({ project_id: p.id, project_title: p.title, state: "awaiting_submission", latest_status: null });
+          alerts.push({
+            project_id: p.id,
+            project_title: p.title,
+            state: "awaiting_submission",
+            latest_status: null,
+          });
         } else if (latest.status === "revision_requested") {
-          alerts.push({ project_id: p.id, project_title: p.title, state: "revision_requested", latest_status: latest.status, revision_note: latest.revision_note });
+          alerts.push({
+            project_id: p.id,
+            project_title: p.title,
+            state: "revision_requested",
+            latest_status: latest.status,
+            revision_note: latest.revision_note,
+          });
         } else if (latest.status === "pending_review") {
-          alerts.push({ project_id: p.id, project_title: p.title, state: "pending_review", latest_status: latest.status });
+          alerts.push({
+            project_id: p.id,
+            project_title: p.title,
+            state: "pending_review",
+            latest_status: latest.status,
+          });
         }
         // accepted → no alert
       }
@@ -178,15 +230,22 @@ export function useReviewDeliverable() {
         .update({
           status: action,
           reviewed_at: new Date().toISOString(),
-          revision_note: action === "revision_requested" ? revisionNote || "" : "",
+          revision_note:
+            action === "revision_requested" ? revisionNote || "" : "",
           updated_at: new Date().toISOString(),
         } as any)
         .eq("id", deliverableId);
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["deliverables", variables.projectId] });
-      toast.success(variables.action === "accepted" ? "تم قبول التسليمات" : "تم طلب التعديلات");
+      queryClient.invalidateQueries({
+        queryKey: ["deliverables", variables.projectId],
+      });
+      toast.success(
+        variables.action === "accepted"
+          ? "تم قبول التسليمات"
+          : "تم طلب التعديلات",
+      );
     },
     onError: () => {
       toast.error("حدث خطأ");

@@ -2,11 +2,24 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PenLine } from "lucide-react";
 import { useSignContract, useUpdateContractTerms } from "@/hooks/useContracts";
 import { useContractDocument } from "@/hooks/useContractDocument";
-import { ContractDocument, PrintContractButton } from "@/components/contracts/ContractDocument";
+import {
+  ContractDocument,
+  PrintContractButton,
+} from "@/components/contracts/ContractDocument";
 import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -17,7 +30,11 @@ interface ContractReviewPanelProps {
   isProvider: boolean;
 }
 
-export function ContractReviewPanel({ contract, isAssociation, isProvider }: ContractReviewPanelProps) {
+export function ContractReviewPanel({
+  contract,
+  isAssociation,
+  isProvider,
+}: ContractReviewPanelProps) {
   const signContract = useSignContract();
   const updateTerms = useUpdateContractTerms();
   const { data, isLoading } = useContractDocument(contract.id);
@@ -28,7 +45,7 @@ export function ContractReviewPanel({ contract, isAssociation, isProvider }: Con
   const canProviderSign = isProvider && !contract.provider_signed_at;
   const canEditScope = isAssociation && !contract.association_signed_at;
 
-  const currentScope = editingScope ? scope : data?.scope ?? "";
+  const currentScope = editingScope ? scope : (data?.scope ?? "");
 
   const handleStartEdit = () => {
     setScope(data?.scope ?? "");
@@ -43,15 +60,25 @@ export function ContractReviewPanel({ contract, isAssociation, isProvider }: Con
           toast({ title: "تم حفظ نطاق العمل بنجاح" });
           setEditingScope(false);
         },
-        onError: () => toast({ title: "حدث خطأ في حفظ التعديلات", variant: "destructive" }),
-      }
+        onError: () =>
+          toast({ title: "حدث خطأ في حفظ التعديلات", variant: "destructive" }),
+      },
     );
   };
 
   const handleSign = () => {
     signContract.mutate(contract.id, {
-      onSuccess: () => toast({ title: "تم توقيع العقد بنجاح ✅", description: "سيتم إشعار الطرف الآخر" }),
-      onError: (err: any) => toast({ title: "حدث خطأ", description: err?.message, variant: "destructive" }),
+      onSuccess: () =>
+        toast({
+          title: "تم توقيع العقد بنجاح ✅",
+          description: "سيتم إشعار الطرف الآخر",
+        }),
+      onError: (err: any) =>
+        toast({
+          title: "حدث خطأ",
+          description: err?.message,
+          variant: "destructive",
+        }),
     });
   };
 
@@ -64,7 +91,9 @@ export function ContractReviewPanel({ contract, isAssociation, isProvider }: Con
       {/* Action bar (hidden on print) */}
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
         <div className="text-sm text-muted-foreground">
-          {(canAssociationSign || canProviderSign) ? "مطلوب توقيعك على هذا العقد" : "يمكنك مراجعة العقد وطباعته أو حفظه كـ PDF"}
+          {canAssociationSign || canProviderSign
+            ? "مطلوب توقيعك على هذا العقد"
+            : "يمكنك مراجعة العقد وطباعته أو حفظه كـ PDF"}
         </div>
         <div className="flex gap-2">
           {canEditScope && !editingScope && (
@@ -81,26 +110,49 @@ export function ContractReviewPanel({ contract, isAssociation, isProvider }: Con
         <Card className="border-primary/40 print:hidden">
           <CardContent className="p-4 space-y-2">
             <p className="text-sm font-semibold">تعديل نطاق العمل</p>
-            <Textarea value={scope} onChange={(e) => setScope(e.target.value)} rows={6} className="text-sm" placeholder="وصف نطاق العمل المطلوب..." />
+            <Textarea
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
+              rows={6}
+              className="text-sm"
+              placeholder="وصف نطاق العمل المطلوب..."
+            />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSaveScope} disabled={updateTerms.isPending}>
+              <Button
+                size="sm"
+                onClick={handleSaveScope}
+                disabled={updateTerms.isPending}
+              >
                 {updateTerms.isPending ? "جاري الحفظ..." : "حفظ التعديلات"}
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setEditingScope(false)}>إلغاء</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEditingScope(false)}
+              >
+                إلغاء
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Contract document */}
-      <ContractDocument data={data} scopeOverride={editingScope ? scope : undefined} />
+      <ContractDocument
+        data={data}
+        scopeOverride={editingScope ? scope : undefined}
+      />
 
       {/* Sign action */}
       {(canAssociationSign || canProviderSign) && !editingScope && (
         <div className="print:hidden">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="w-full" size="lg" disabled={signContract.isPending}>
+              <Button
+                className="w-full"
+                size="lg"
+                disabled={signContract.isPending}
+              >
                 <PenLine className="h-4 w-4 me-2" /> توقيع العقد إلكترونياً
               </Button>
             </AlertDialogTrigger>
@@ -108,12 +160,17 @@ export function ContractReviewPanel({ contract, isAssociation, isProvider }: Con
               <AlertDialogHeader>
                 <AlertDialogTitle>تأكيد التوقيع</AlertDialogTitle>
                 <AlertDialogDescription>
-                  بالتوقيع على هذا العقد، أنت توافق على جميع المواد والبنود المذكورة بما فيها نطاق العمل والمقابل المالي والمدة. هل أنت متأكد؟
+                  بالتوقيع على هذا العقد، أنت توافق على جميع المواد والبنود
+                  المذكورة بما فيها نطاق العمل والمقابل المالي والمدة. هل أنت
+                  متأكد؟
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>تراجع</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSign} disabled={signContract.isPending}>
+                <AlertDialogAction
+                  onClick={handleSign}
+                  disabled={signContract.isPending}
+                >
                   {signContract.isPending ? "جاري التوقيع..." : "تأكيد التوقيع"}
                 </AlertDialogAction>
               </AlertDialogFooter>

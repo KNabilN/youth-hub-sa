@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useTicketReplies, useCreateTicketReply } from "@/hooks/useTicketReplies";
+import {
+  useTicketReplies,
+  useCreateTicketReply,
+} from "@/hooks/useTicketReplies";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +14,11 @@ import { MessageCircle, Send, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { FileUploader } from "@/components/attachments/FileUploader";
 import { AttachmentList } from "@/components/attachments/AttachmentList";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { CharCounter } from "@/components/ui/char-counter";
 
 interface TicketReplyThreadProps {
@@ -19,7 +26,10 @@ interface TicketReplyThreadProps {
   ticketStatus: string;
 }
 
-export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadProps) {
+export function TicketReplyThread({
+  ticketId,
+  ticketStatus,
+}: TicketReplyThreadProps) {
   const { data: replies, isLoading } = useTicketReplies(ticketId);
   const createReply = useCreateTicketReply();
   const { user } = useAuth();
@@ -37,7 +47,7 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
           toast.success("تم إرسال الرد");
         },
         onError: () => toast.error("حدث خطأ"),
-      }
+      },
     );
   };
 
@@ -51,9 +61,13 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center py-4">جارٍ التحميل...</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            جارٍ التحميل...
+          </p>
         ) : replies?.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">لا توجد ردود بعد</p>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            لا توجد ردود بعد
+          </p>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {replies?.map((r: any) => (
@@ -78,7 +92,9 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
                   </p>
                   <p className="whitespace-pre-wrap">{r.message}</p>
                   <p className="text-[10px] opacity-60 mt-1">
-                    {format(new Date(r.created_at), "yyyy/MM/dd HH:mm", { locale: ar })}
+                    {format(new Date(r.created_at), "yyyy/MM/dd HH:mm", {
+                      locale: ar,
+                    })}
                   </p>
                 </div>
               </div>
@@ -96,7 +112,9 @@ export function TicketReplyThread({ ticketId, ticketStatus }: TicketReplyThreadP
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-3">
             <AttachmentList entityType="ticket" entityId={ticketId} />
-            {canRespond && <FileUploader entityType="ticket" entityId={ticketId} />}
+            {canRespond && (
+              <FileUploader entityType="ticket" entityId={ticketId} />
+            )}
           </CollapsibleContent>
         </Collapsible>
 

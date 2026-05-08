@@ -31,7 +31,7 @@ export function BidCommentThread({ bidId, bidStatus }: BidCommentThreadProps) {
     if (!content.trim()) return;
     addComment.mutate(
       { bidId, content: content.trim() },
-      { onSuccess: () => setContent("") }
+      { onSuccess: () => setContent("") },
     );
   };
 
@@ -113,7 +113,9 @@ export function BidCommentThread({ bidId, bidStatus }: BidCommentThreadProps) {
             <div className="text-center space-y-1">
               <p className="text-sm font-medium">لا توجد رسائل بعد</p>
               <p className="text-xs text-muted-foreground/60">
-                {canComment ? "ابدأ المحادثة مع الطرف الآخر" : "انتهت فترة المحادثة"}
+                {canComment
+                  ? "ابدأ المحادثة مع الطرف الآخر"
+                  : "انتهت فترة المحادثة"}
               </p>
             </div>
           </div>

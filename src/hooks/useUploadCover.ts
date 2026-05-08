@@ -7,7 +7,8 @@ export function useUploadCover() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (file: File) => {
-      if (file.size > 5 * 1024 * 1024) throw new Error("الحد الأقصى لحجم الصورة 5 ميجابايت");
+      if (file.size > 5 * 1024 * 1024)
+        throw new Error("الحد الأقصى لحجم الصورة 5 ميجابايت");
       const userId = user!.id;
       const ext = file.name.split(".").pop();
       const path = `${userId}/cover.${ext}`;
@@ -15,7 +16,9 @@ export function useUploadCover() {
         .from("cover-images")
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("cover-images").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("cover-images")
+        .getPublicUrl(path);
       const cover_image_url = `${urlData.publicUrl}?t=${Date.now()}`;
       const { error } = await supabase
         .from("profiles")

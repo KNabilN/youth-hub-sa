@@ -5,22 +5,47 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HandCoins, Inbox, Target, Users, AlertTriangle, ExternalLink } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  HandCoins,
+  Inbox,
+  Target,
+  Users,
+  AlertTriangle,
+  ExternalLink,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
-const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusMap: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   pending: { label: "بانتظار المراجعة", variant: "secondary" },
   approved: { label: "تمت الموافقة", variant: "default" },
   rejected: { label: "مرفوض", variant: "destructive" },
   funded: { label: "تم التمويل", variant: "default" },
 };
 
-const urgencyMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const urgencyMap: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   normal: { label: "عادي", variant: "outline" },
   medium: { label: "متوسط", variant: "secondary" },
   urgent: { label: "عاجل", variant: "destructive" },
@@ -31,8 +56,8 @@ export default function MyGrantRequests() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filtered = requests?.filter(r =>
-    statusFilter === "all" || r.status === statusFilter
+  const filtered = requests?.filter(
+    (r) => statusFilter === "all" || r.status === statusFilter,
   );
 
   const handleDonate = (req: any) => {
@@ -53,7 +78,9 @@ export default function MyGrantRequests() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">طلبات واردة</h1>
-            <p className="text-sm text-muted-foreground">طلبات المنح الموجهة لك من الجمعيات</p>
+            <p className="text-sm text-muted-foreground">
+              طلبات المنح الموجهة لك من الجمعيات
+            </p>
           </div>
         </div>
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
@@ -71,26 +98,51 @@ export default function MyGrantRequests() {
           </SelectContent>
         </Select>
 
-        {isLoading ? <ContentSkeleton /> : !filtered?.length ? (
-          <EmptyState icon={Inbox} title="لا توجد طلبات واردة" description="لم يتم توجيه أي طلبات منح لك حالياً" />
+        {isLoading ? (
+          <ContentSkeleton />
+        ) : !filtered?.length ? (
+          <EmptyState
+            icon={Inbox}
+            title="لا توجد طلبات واردة"
+            description="لم يتم توجيه أي طلبات منح لك حالياً"
+          />
         ) : (
           <div className="grid gap-4">
-            {filtered.map(req => {
+            {filtered.map((req) => {
               const st = statusMap[req.status] || statusMap.pending;
               const urg = urgencyMap[req.urgency] || urgencyMap.normal;
               return (
-                <Card key={req.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={req.id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-5">
                     <div className="flex items-start gap-4">
-                      <Avatar className="h-12 w-12 shrink-0 cursor-pointer" onClick={() => navigate(`/profile/${req.association_id}`)}>
-                        <AvatarImage src={req.association?.avatar_url || undefined} />
-                        <AvatarFallback>{req.association?.full_name?.[0] || "؟"}</AvatarFallback>
+                      <Avatar
+                        className="h-12 w-12 shrink-0 cursor-pointer"
+                        onClick={() =>
+                          navigate(`/profile/${req.association_id}`)
+                        }
+                      >
+                        <AvatarImage
+                          src={req.association?.avatar_url || undefined}
+                        />
+                        <AvatarFallback>
+                          {req.association?.full_name?.[0] || "؟"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold">{req.association?.organization_name || req.association?.full_name}</p>
+                          <p className="font-semibold">
+                            {req.association?.organization_name ||
+                              req.association?.full_name}
+                          </p>
                           <Badge variant={st.variant}>{st.label}</Badge>
-                          {req.project?.title && <Badge variant="outline">مشروع: {req.project.title}</Badge>}
+                          {req.project?.title && (
+                            <Badge variant="outline">
+                              مشروع: {req.project.title}
+                            </Badge>
+                          )}
                           {req.urgency && req.urgency !== "normal" && (
                             <Badge variant={urg.variant}>
                               <AlertTriangle className="h-3 w-3 me-1" />
@@ -98,39 +150,71 @@ export default function MyGrantRequests() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-lg font-bold text-primary">{Number(req.amount).toLocaleString()} ر.س</p>
-                        
+                        <p className="text-lg font-bold text-primary">
+                          {Number(req.amount).toLocaleString()} ر.س
+                        </p>
+
                         {req.purpose && (
                           <div className="flex items-start gap-2 text-sm">
                             <Target className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                            <span><span className="font-medium">الهدف:</span> {req.purpose}</span>
+                            <span>
+                              <span className="font-medium">الهدف:</span>{" "}
+                              {req.purpose}
+                            </span>
                           </div>
                         )}
                         {req.target_group && (
                           <div className="flex items-start gap-2 text-sm">
                             <Users className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                            <span><span className="font-medium">الفئة المستهدفة:</span> {req.target_group}</span>
+                            <span>
+                              <span className="font-medium">
+                                الفئة المستهدفة:
+                              </span>{" "}
+                              {req.target_group}
+                            </span>
                           </div>
                         )}
                         {req.beneficiaries_count && (
                           <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span>عدد المستفيدين المتوقع: <span className="font-semibold text-foreground">{req.beneficiaries_count.toLocaleString()}</span></span>
+                            <span>
+                              عدد المستفيدين المتوقع:{" "}
+                              <span className="font-semibold text-foreground">
+                                {req.beneficiaries_count.toLocaleString()}
+                              </span>
+                            </span>
                           </div>
                         )}
-                        {req.description && <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>}
-                        
+                        {req.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {req.description}
+                          </p>
+                        )}
+
                         <div className="flex items-center gap-3 pt-1">
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(req.created_at), "d MMM yyyy", { locale: ar })}
+                            {format(new Date(req.created_at), "d MMM yyyy", {
+                              locale: ar,
+                            })}
                           </p>
-                          <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate(`/profile/${req.association_id}`)}>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() =>
+                              navigate(`/profile/${req.association_id}`)
+                            }
+                          >
                             <ExternalLink className="h-3 w-3 me-1" />
                             عرض بروفايل الجمعية
                           </Button>
                         </div>
                       </div>
-                      {(req.status === "pending" || req.status === "approved") && (
-                        <Button onClick={() => handleDonate(req)} className="shrink-0">
+                      {(req.status === "pending" ||
+                        req.status === "approved") && (
+                        <Button
+                          onClick={() => handleDonate(req)}
+                          className="shrink-0"
+                        >
                           <HandCoins className="h-4 w-4 me-2" /> تبرع
                         </Button>
                       )}

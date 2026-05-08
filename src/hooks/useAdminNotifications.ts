@@ -2,18 +2,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
-export function useAdminNotifications(statusFilter?: string, typeFilter?: string, page = 0, pageSize = 50) {
+export function useAdminNotifications(
+  statusFilter?: string,
+  typeFilter?: string,
+  page = 0,
+  pageSize = 50,
+) {
   const qc = useQueryClient();
 
   useEffect(() => {
     const channel = supabase
       .channel("rt-admin-notifications")
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, () => {
-        qc.invalidateQueries({ queryKey: ["admin-notifications"] });
-        qc.invalidateQueries({ queryKey: ["admin-notification-stats"] });
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["admin-notifications"] });
+          qc.invalidateQueries({ queryKey: ["admin-notification-stats"] });
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [qc]);
 
   return useQuery({
@@ -48,9 +59,13 @@ export function useAdminNotificationStats() {
         .select("delivery_status");
       if (error) throw error;
       const total = data.length;
-      const delivered = data.filter(n => n.delivery_status === "delivered").length;
-      const failed = data.filter(n => n.delivery_status === "failed").length;
-      const pending = data.filter(n => n.delivery_status === "pending").length;
+      const delivered = data.filter(
+        (n) => n.delivery_status === "delivered",
+      ).length;
+      const failed = data.filter((n) => n.delivery_status === "failed").length;
+      const pending = data.filter(
+        (n) => n.delivery_status === "pending",
+      ).length;
       return { total, delivered, failed, pending };
     },
   });
@@ -59,7 +74,11 @@ export function useAdminNotificationStats() {
 export function useResendNotification() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (notification: { user_id: string; message: string; type: string }) => {
+    mutationFn: async (notification: {
+      user_id: string;
+      message: string;
+      type: string;
+    }) => {
       const { error } = await supabase.rpc("send_notification_secure" as any, {
         _recipient_id: notification.user_id,
         _message: notification.message,

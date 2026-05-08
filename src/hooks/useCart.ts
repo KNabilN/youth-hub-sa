@@ -28,13 +28,15 @@ export function useCartItems() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cart_items")
-        .select("*, micro_services(id, title, price, description, image_url, service_type, provider_id, profiles:provider_id(full_name))")
+        .select(
+          "*, micro_services(id, title, price, description, image_url, service_type, provider_id, profiles:provider_id(full_name))",
+        )
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       // Filter out items where the service is not accessible (e.g. suspended/deleted)
       return ((data ?? []) as unknown as any[]).filter(
-        (item) => item.micro_services !== null
+        (item) => item.micro_services !== null,
       ) as CartItemWithService[];
     },
   });
@@ -53,7 +55,10 @@ export function useAddToCart() {
       if (!user) throw new Error("Not authenticated");
       const { error } = await supabase
         .from("cart_items")
-        .upsert({ user_id: user.id, service_id: serviceId, quantity: 1 }, { onConflict: "user_id,service_id" });
+        .upsert(
+          { user_id: user.id, service_id: serviceId, quantity: 1 },
+          { onConflict: "user_id,service_id" },
+        );
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
@@ -64,7 +69,10 @@ export function useRemoveFromCart() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (cartItemId: string) => {
-      const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .eq("id", cartItemId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
@@ -74,7 +82,13 @@ export function useRemoveFromCart() {
 export function useUpdateCartQuantity() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) => {
+    mutationFn: async ({
+      cartItemId,
+      quantity,
+    }: {
+      cartItemId: string;
+      quantity: number;
+    }) => {
       const { error } = await supabase
         .from("cart_items")
         .update({ quantity })
@@ -91,7 +105,10 @@ export function useClearCart() {
   return useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase.from("cart_items").delete().eq("user_id", user.id);
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .eq("user_id", user.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),

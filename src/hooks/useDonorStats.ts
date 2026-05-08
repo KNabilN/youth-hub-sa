@@ -11,16 +11,21 @@ export function useDonorStats() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-donor-stats-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "donor_contributions" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "donor_contributions" },
         () => {
           qc.invalidateQueries({ queryKey: ["donor-stats"] });
           qc.invalidateQueries({ queryKey: ["donor-balances"] });
           qc.invalidateQueries({ queryKey: ["donor-contributions"] });
           qc.invalidateQueries({ queryKey: ["donor-consumed-breakdown"] });
           qc.invalidateQueries({ queryKey: ["journey-donor"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -28,19 +33,30 @@ export function useDonorStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("donor_contributions")
-        .select("amount, donation_status, project_id, association_id, projects(association_id)")
+        .select(
+          "amount, donation_status, project_id, association_id, projects(association_id)",
+        )
         .eq("donor_id", user!.id);
       if (error) throw error;
 
       const totalDonations = data.reduce((sum, d) => sum + Number(d.amount), 0);
       const availableBalance = data
-        .filter(d => (d as any).donation_status === "available")
+        .filter((d) => (d as any).donation_status === "available")
         .reduce((sum, d) => sum + Number(d.amount), 0);
-      const projectIds = new Set(data.filter(d => d.project_id).map(d => d.project_id));
+      const projectIds = new Set(
+        data.filter((d) => d.project_id).map((d) => d.project_id),
+      );
       const associationIds = new Set(
         data
-          .filter(d => (d as any).association_id || (d.projects && (d.projects as any).association_id))
-          .map(d => (d as any).association_id || (d.projects as any).association_id)
+          .filter(
+            (d) =>
+              (d as any).association_id ||
+              (d.projects && (d.projects as any).association_id),
+          )
+          .map(
+            (d) =>
+              (d as any).association_id || (d.projects as any).association_id,
+          ),
       );
 
       return {
@@ -67,7 +83,7 @@ export function useDonorFundConsumption() {
 
       let activeFunds = 0;
       let completedFunds = 0;
-      (data ?? []).forEach(d => {
+      (data ?? []).forEach((d) => {
         const status = (d.projects as any)?.status;
         if (status === "completed") {
           completedFunds += Number(d.amount);
@@ -93,8 +109,14 @@ export function useDonorBalances() {
         .eq("donor_id", user!.id);
       if (error) throw error;
 
-      const balances = { available: 0, reserved: 0, consumed: 0, suspended: 0, expired: 0 };
-      (data ?? []).forEach(d => {
+      const balances = {
+        available: 0,
+        reserved: 0,
+        consumed: 0,
+        suspended: 0,
+        expired: 0,
+      };
+      (data ?? []).forEach((d) => {
         const status = (d as any).donation_status || "available";
         const amount = Number(d.amount);
         if (status in balances) {

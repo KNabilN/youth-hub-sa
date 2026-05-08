@@ -1,5 +1,13 @@
 import { Link } from "react-router-dom";
-import { FolderKanban, Calendar, Building2, Tag, Banknote, ArrowLeft, Eye } from "lucide-react";
+import {
+  FolderKanban,
+  Calendar,
+  Building2,
+  Tag,
+  Banknote,
+  ArrowLeft,
+  Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +33,15 @@ interface LandingRequestsTableProps {
   role?: string | null;
 }
 
-export default function LandingRequestsTable({ projects, loading, title, subtitle, buttonText, isLoggedIn, role }: LandingRequestsTableProps) {
+export default function LandingRequestsTable({
+  projects,
+  loading,
+  title,
+  subtitle,
+  buttonText,
+  isLoggedIn,
+  role,
+}: LandingRequestsTableProps) {
   const isDisabled = role === "youth_association" || role === "super_admin";
   const isDonor = role === "donor";
 
@@ -65,7 +81,10 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {projects.map((p) => {
-              const assocName = p.association?.organization_name || p.association?.full_name || "—";
+              const assocName =
+                p.association?.organization_name ||
+                p.association?.full_name ||
+                "—";
               return (
                 <div
                   key={p.id}
@@ -96,12 +115,17 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                   {p.required_skills && p.required_skills.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {p.required_skills.slice(0, 4).map((skill) => (
-                        <span key={skill} className="text-xs bg-muted text-muted-foreground rounded-md px-2 py-0.5 border border-border">
+                        <span
+                          key={skill}
+                          className="text-xs bg-muted text-muted-foreground rounded-md px-2 py-0.5 border border-border"
+                        >
                           {skill}
                         </span>
                       ))}
                       {p.required_skills.length > 4 && (
-                        <span className="text-xs text-muted-foreground px-1">+{p.required_skills.length - 4}</span>
+                        <span className="text-xs text-muted-foreground px-1">
+                          +{p.required_skills.length - 4}
+                        </span>
                       )}
                     </div>
                   )}
@@ -110,26 +134,42 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
                       <Building2 className="w-3.5 h-3.5" />
                       {assocName}
                     </span>
-                    <span className="flex items-center gap-1.5 mr-auto" dir="ltr">
+                    <span
+                      className="flex items-center gap-1.5 mr-auto"
+                      dir="ltr"
+                    >
                       <Calendar className="w-3.5 h-3.5" />
                       {new Date(p.created_at).toLocaleDateString("ar-SA")}
                     </span>
                   </div>
                   {/* Action buttons */}
                   <div className="flex gap-2 pt-2 mt-auto">
-                    <Button asChild variant="outline" size="sm" className="gap-1.5 rounded-lg text-sm">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 rounded-lg text-sm"
+                    >
                       <Link to={`/projects/public/${p.id}`}>
                         <Eye className="w-3.5 h-3.5" />
                         التفاصيل
                       </Link>
                     </Button>
                     {isDisabled ? (
-                      <Button disabled size="sm" className="flex-1 gap-1.5 rounded-lg text-sm opacity-50">
+                      <Button
+                        disabled
+                        size="sm"
+                        className="flex-1 gap-1.5 rounded-lg text-sm opacity-50"
+                      >
                         {getActionLabel()}
                         <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
                       </Button>
                     ) : (
-                      <Button asChild size="sm" className="flex-1 gap-1.5 rounded-lg text-sm">
+                      <Button
+                        asChild
+                        size="sm"
+                        className="flex-1 gap-1.5 rounded-lg text-sm"
+                      >
                         <Link to={getActionLink(p.id)}>
                           {getActionLabel()}
                           <ArrowLeft className="w-3.5 h-3.5 rtl:-scale-x-100" />
@@ -142,7 +182,6 @@ export default function LandingRequestsTable({ projects, loading, title, subtitl
             })}
           </div>
         )}
-
       </div>
     </section>
   );

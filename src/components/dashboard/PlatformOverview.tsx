@@ -22,15 +22,37 @@ export function PlatformOverview() {
   });
 
   const items = [
-    { label: "مقدمي الخدمة", value: stats?.providers ?? 0, icon: Users, color: "text-primary" },
-    { label: "الجمعيات", value: stats?.associations ?? 0, icon: Building2, color: "text-info" },
-    { label: "المشاريع المكتملة", value: stats?.completed_projects ?? 0, icon: FolderKanban, color: "text-success" },
-    { label: "الخدمات المعتمدة", value: stats?.approved_services ?? 0, icon: Layers, color: "text-warning" },
+    {
+      label: "مقدمي الخدمة",
+      value: stats?.providers ?? 0,
+      icon: Users,
+      color: "text-primary",
+    },
+    {
+      label: "الجمعيات",
+      value: stats?.associations ?? 0,
+      icon: Building2,
+      color: "text-info",
+    },
+    {
+      label: "المشاريع المكتملة",
+      value: stats?.completed_projects ?? 0,
+      icon: FolderKanban,
+      color: "text-success",
+    },
+    {
+      label: "الخدمات المعتمدة",
+      value: stats?.approved_services ?? 0,
+      icon: Layers,
+      color: "text-warning",
+    },
   ];
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-muted-foreground">مؤشرات المنصة</h2>
+      <h2 className="text-sm font-semibold text-muted-foreground">
+        مؤشرات المنصة
+      </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {items.map((item) => (
           <Card key={item.label} className="bg-muted/40 border-dashed">
@@ -40,9 +62,13 @@ export function PlatformOverview() {
                 {isLoading ? (
                   <Skeleton className="h-5 w-10 mb-1" />
                 ) : (
-                  <p className="text-base sm:text-lg font-bold leading-tight">{item.value.toLocaleString()}</p>
+                  <p className="text-base sm:text-lg font-bold leading-tight">
+                    {item.value.toLocaleString()}
+                  </p>
                 )}
-                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{item.label}</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                  {item.label}
+                </p>
               </div>
             </CardContent>
           </Card>

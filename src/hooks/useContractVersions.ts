@@ -22,7 +22,15 @@ export function useCreateContractVersion() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ contractId, terms, changeNote }: { contractId: string; terms: string; changeNote: string }) => {
+    mutationFn: async ({
+      contractId,
+      terms,
+      changeNote,
+    }: {
+      contractId: string;
+      terms: string;
+      changeNote: string;
+    }) => {
       // Get next version number
       const { data: existing } = await supabase
         .from("contract_versions")

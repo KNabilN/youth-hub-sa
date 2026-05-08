@@ -2,7 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ImageIcon, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,7 +18,11 @@ interface CategoryImageUploadProps {
   currentImageUrl: string | null;
 }
 
-export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl }: CategoryImageUploadProps) {
+export function CategoryImageUpload({
+  categoryId,
+  categoryName,
+  currentImageUrl,
+}: CategoryImageUploadProps) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -33,14 +43,22 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
         .from("category-images")
         .upload(path, file, { contentType: file.type, cacheControl: "3600" });
       if (uploadErr) throw uploadErr;
-      const { data: urlData } = supabase.storage.from("category-images").getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from("category-images")
+        .getPublicUrl(path);
       const image_url = urlData.publicUrl;
-      const { error } = await supabase.from("categories").update({ image_url } as any).eq("id", categoryId);
+      const { error } = await supabase
+        .from("categories")
+        .update({ image_url } as any)
+        .eq("id", categoryId);
       if (error) throw error;
       return image_url;
     },
     onSuccess: () => {
-      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
+      if (preview) {
+        URL.revokeObjectURL(preview);
+        setPreview(null);
+      }
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
       qc.invalidateQueries({ queryKey: ["categories"] });
       qc.invalidateQueries({ queryKey: ["admin-services"] });
@@ -57,14 +75,20 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       setOpen(false);
     },
     onError: (e: any) => {
-      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
+      if (preview) {
+        URL.revokeObjectURL(preview);
+        setPreview(null);
+      }
       toast.error(e.message);
     },
   });
 
   const removeMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("categories").update({ image_url: null } as any).eq("id", categoryId);
+      const { error } = await supabase
+        .from("categories")
+        .update({ image_url: null } as any)
+        .eq("id", categoryId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -105,7 +129,11 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
       <DialogTrigger asChild>
         <Button size="icon" variant="ghost" title="صورة التصنيف">
           {currentImageUrl ? (
-            <img src={currentImageUrl} alt="" className="h-6 w-6 rounded object-cover" />
+            <img
+              src={currentImageUrl}
+              alt=""
+              className="h-6 w-6 rounded object-cover"
+            />
           ) : (
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
           )}
@@ -118,7 +146,11 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
         <div className="space-y-4">
           {displayUrl && (
             <div className="relative rounded-lg overflow-hidden border">
-              <img src={displayUrl} alt={categoryName} className="w-full aspect-video object-cover" />
+              <img
+                src={displayUrl}
+                alt={categoryName}
+                className="w-full aspect-video object-cover"
+              />
               {uploadMut.isPending && (
                 <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -126,16 +158,40 @@ export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl 
               )}
             </div>
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          <p className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 400×250 بكسل • الحد الأقصى: 5 MB</p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFile}
+          />
+          <p className="text-xs text-muted-foreground">
+            الأبعاد المُوصى بها: 400×250 بكسل • الحد الأقصى: 5 MB
+          </p>
           <div className="flex gap-2">
-            <Button onClick={() => fileRef.current?.click()} disabled={isPending} className="flex-1">
-              {uploadMut.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Upload className="h-4 w-4 me-1" />}
+            <Button
+              onClick={() => fileRef.current?.click()}
+              disabled={isPending}
+              className="flex-1"
+            >
+              {uploadMut.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin me-1" />
+              ) : (
+                <Upload className="h-4 w-4 me-1" />
+              )}
               {currentImageUrl ? "تغيير الصورة" : "رفع صورة"}
             </Button>
             {currentImageUrl && (
-              <Button variant="destructive" onClick={() => removeMut.mutate()} disabled={isPending}>
-                {removeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              <Button
+                variant="destructive"
+                onClick={() => removeMut.mutate()}
+                disabled={isPending}
+              >
+                {removeMut.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
               </Button>
             )}
           </div>

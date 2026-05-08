@@ -5,28 +5,49 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 
-export function useAdminProjects(from = 0, to = 19, search?: string, statusFilter?: string, categoryFilter?: string) {
+export function useAdminProjects(
+  from = 0,
+  to = 19,
+  search?: string,
+  statusFilter?: string,
+  categoryFilter?: string,
+) {
   const qc = useQueryClient();
 
   useEffect(() => {
     const channel = supabase
       .channel("rt-admin-projects")
-      .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, () =>
-        qc.invalidateQueries({ queryKey: ["admin-projects"] })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "projects" },
+        () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [qc]);
 
   return useQuery({
-    queryKey: ["admin-projects", from, to, search, statusFilter, categoryFilter],
+    queryKey: [
+      "admin-projects",
+      from,
+      to,
+      search,
+      statusFilter,
+      categoryFilter,
+    ],
     queryFn: async () => {
       let query = supabase
         .from("projects")
-        .select("*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name, organization_name)")
+        .select(
+          "*, categories(name), regions(name), cities(name), profiles!projects_association_id_fkey(full_name, organization_name)",
+        )
         .is("deleted_at", null);
       if (search) {
-        query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%`);
+        query = query.or(
+          `title.ilike.%${search}%,request_number.ilike.%${search}%`,
+        );
       }
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter as ProjectStatus);
@@ -43,7 +64,11 @@ export function useAdminProjects(from = 0, to = 19, search?: string, statusFilte
   });
 }
 
-export function useAdminProjectsCount(search?: string, statusFilter?: string, categoryFilter?: string) {
+export function useAdminProjectsCount(
+  search?: string,
+  statusFilter?: string,
+  categoryFilter?: string,
+) {
   return useQuery({
     queryKey: ["admin-projects-count", search, statusFilter, categoryFilter],
     queryFn: async () => {
@@ -52,7 +77,9 @@ export function useAdminProjectsCount(search?: string, statusFilter?: string, ca
         .select("*", { count: "exact", head: true })
         .is("deleted_at", null);
       if (search) {
-        query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%`);
+        query = query.or(
+          `title.ilike.%${search}%,request_number.ilike.%${search}%`,
+        );
       }
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter as ProjectStatus);
@@ -70,11 +97,23 @@ export function useAdminProjectsCount(search?: string, statusFilter?: string, ca
 export function useUpdateProjectStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, rejection_reason }: { id: string; status: ProjectStatus; rejection_reason?: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      rejection_reason,
+    }: {
+      id: string;
+      status: ProjectStatus;
+      rejection_reason?: string;
+    }) => {
       const updates: any = { status };
-      if (rejection_reason !== undefined) updates.rejection_reason = rejection_reason;
-      if (status !== 'rejected') updates.rejection_reason = null;
-      const { error } = await supabase.from("projects").update(updates).eq("id", id);
+      if (rejection_reason !== undefined)
+        updates.rejection_reason = rejection_reason;
+      if (status !== "rejected") updates.rejection_reason = null;
+      const { error } = await supabase
+        .from("projects")
+        .update(updates)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),
@@ -84,13 +123,24 @@ export function useUpdateProjectStatus() {
 export function useAdminUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
-      const { error } = await supabase.from("projects").update(updates).eq("id", id);
+    mutationFn: async ({
+      id,
+      ...updates
+    }: {
+      id: string;
+      [key: string]: any;
+    }) => {
+      const { error } = await supabase
+        .from("projects")
+        .update(updates)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["admin-projects"] });
-      qc.invalidateQueries({ queryKey: ["admin-project-detail", variables.id] });
+      qc.invalidateQueries({
+        queryKey: ["admin-project-detail", variables.id],
+      });
     },
   });
 }
@@ -98,8 +148,17 @@ export function useAdminUpdateProject() {
 export function useToggleProjectNameVisibility() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ projectId, visible }: { projectId: string; visible: boolean }) => {
-      const { error } = await supabase.from("projects").update({ is_name_visible: visible }).eq("id", projectId);
+    mutationFn: async ({
+      projectId,
+      visible,
+    }: {
+      projectId: string;
+      visible: boolean;
+    }) => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ is_name_visible: visible })
+        .eq("id", projectId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-projects"] }),

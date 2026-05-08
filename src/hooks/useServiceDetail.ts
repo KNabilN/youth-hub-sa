@@ -15,10 +15,12 @@ export function useServiceDetail(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("micro_services")
-        .select("*, categories(*), regions(*), cities(*), profiles!micro_services_provider_id_fkey(id, full_name, avatar_url, bio, skills, is_verified, profile_views)")
+        .select(
+          "*, categories(*), regions(*), cities(*), profiles!micro_services_provider_id_fkey(id, full_name, avatar_url, bio, skills, is_verified, profile_views)",
+        )
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -33,7 +35,9 @@ export function useServiceDetail(id: string | undefined) {
       // Get ratings for contracts where the provider was involved
       const { data, error } = await supabase
         .from("ratings")
-        .select("*, contracts!inner(provider_id, project_id, projects:project_id(title)), profiles:rater_id(full_name, avatar_url)")
+        .select(
+          "*, contracts!inner(provider_id, project_id, projects:project_id(title)), profiles:rater_id(full_name, avatar_url)",
+        )
         .eq("contracts.provider_id", providerId)
         .order("created_at", { ascending: false })
         .limit(10);

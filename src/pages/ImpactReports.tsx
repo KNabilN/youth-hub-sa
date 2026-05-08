@@ -8,8 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, FileText, HandCoins, Users, Download, Calendar, Building2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BarChart3,
+  FileText,
+  HandCoins,
+  Users,
+  Download,
+  Calendar,
+  Building2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -26,16 +40,40 @@ function SummaryCards({
   isLoading: boolean;
 }) {
   const items = [
-    { title: "إجمالي المنح", value: `${totalDonations.toLocaleString()} ر.س`, icon: HandCoins, color: "primary" },
-    { title: "الجمعيات المدعومة", value: associationsSupported, icon: Users, color: "info" },
-    { title: "تقارير الأثر", value: reportsCount, icon: FileText, color: "success" },
+    {
+      title: "إجمالي المنح",
+      value: `${totalDonations.toLocaleString()} ر.س`,
+      icon: HandCoins,
+      color: "primary",
+    },
+    {
+      title: "الجمعيات المدعومة",
+      value: associationsSupported,
+      icon: Users,
+      color: "info",
+    },
+    {
+      title: "تقارير الأثر",
+      value: reportsCount,
+      icon: FileText,
+      color: "success",
+    },
   ];
 
-  const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-    primary: { bg: "bg-primary/10", text: "text-primary", border: "border-s-primary" },
-    info: { bg: "bg-info/10", text: "text-info", border: "border-s-info" },
-    success: { bg: "bg-success/10", text: "text-success", border: "border-s-success" },
-  };
+  const colorMap: Record<string, { bg: string; text: string; border: string }> =
+    {
+      primary: {
+        bg: "bg-primary/10",
+        text: "text-primary",
+        border: "border-s-primary",
+      },
+      info: { bg: "bg-info/10", text: "text-info", border: "border-s-info" },
+      success: {
+        bg: "bg-success/10",
+        text: "text-success",
+        border: "border-s-success",
+      },
+    };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -46,7 +84,9 @@ function SummaryCards({
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </p>
                   <p className="text-2xl font-bold tracking-tight">
                     {isLoading ? "..." : stat.value}
                   </p>
@@ -64,7 +104,9 @@ function SummaryCards({
 }
 
 function handleDownload(filePath: string, fileName: string) {
-  const { data } = supabase.storage.from("impact-reports").getPublicUrl(filePath);
+  const { data } = supabase.storage
+    .from("impact-reports")
+    .getPublicUrl(filePath);
   // For private buckets, use createSignedUrl
   supabase.storage
     .from("impact-reports")
@@ -87,9 +129,12 @@ export default function ImpactReports() {
   const associations = useMemo(() => {
     if (!reports?.length) return [];
     const map = new Map<string, string>();
-    reports.forEach(r => {
+    reports.forEach((r) => {
       if (r.association) {
-        map.set(r.association_id, r.association.organization_name || r.association.full_name || "جمعية");
+        map.set(
+          r.association_id,
+          r.association.organization_name || r.association.full_name || "جمعية",
+        );
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
@@ -98,7 +143,7 @@ export default function ImpactReports() {
   const filteredReports = useMemo(() => {
     if (!reports) return [];
     if (assocFilter === "all") return reports;
-    return reports.filter(r => r.association_id === assocFilter);
+    return reports.filter((r) => r.association_id === assocFilter);
   }, [reports, assocFilter]);
 
   return (
@@ -137,8 +182,10 @@ export default function ImpactReports() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">جميع الجمعيات</SelectItem>
-                  {associations.map(a => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  {associations.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -210,15 +257,22 @@ export default function ImpactReports() {
                         {/* Meta row */}
                         <div className="flex items-center flex-wrap gap-2">
                           {report.project && (
-                            <Badge variant="secondary" className="text-xs font-normal">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs font-normal"
+                            >
                               {report.project.title}
                             </Badge>
                           )}
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
-                            {format(new Date(report.created_at), "d MMMM yyyy", {
-                              locale: ar,
-                            })}
+                            {format(
+                              new Date(report.created_at),
+                              "d MMMM yyyy",
+                              {
+                                locale: ar,
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
@@ -228,7 +282,9 @@ export default function ImpactReports() {
                         size="icon"
                         variant="outline"
                         className="shrink-0 mt-1"
-                        onClick={() => handleDownload(report.file_path, report.file_name)}
+                        onClick={() =>
+                          handleDownload(report.file_path, report.file_name)
+                        }
                         title="عرض / تحميل التقرير"
                       >
                         <Download className="h-4 w-4" />

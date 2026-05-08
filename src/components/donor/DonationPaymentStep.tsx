@@ -5,7 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Building2, Upload, Copy, Check, ArrowRight, Loader2, ShieldCheck, CreditCard } from "lucide-react";
+import {
+  Building2,
+  Upload,
+  Copy,
+  Check,
+  ArrowRight,
+  Loader2,
+  ShieldCheck,
+  CreditCard,
+} from "lucide-react";
 import { toast } from "sonner";
 import { calculatePricing, useCommissionRate } from "@/lib/pricing";
 import { PricingBreakdownDisplay } from "@/components/payment/PricingBreakdownDisplay";
@@ -27,10 +36,21 @@ interface DonationPaymentStepProps {
   isProcessing: boolean;
 }
 
-export function DonationPaymentStep({ amount, targetType, associationName, projectTitle, onConfirm, onOnlinePayment, onBack, isProcessing }: DonationPaymentStepProps) {
+export function DonationPaymentStep({
+  amount,
+  targetType,
+  associationName,
+  projectTitle,
+  onConfirm,
+  onOnlinePayment,
+  onBack,
+  isProcessing,
+}: DonationPaymentStepProps) {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"electronic" | "bank_transfer">("electronic");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "electronic" | "bank_transfer"
+  >("electronic");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: commissionRate = 0.05 } = useCommissionRate();
   const pricing = calculatePricing(amount, commissionRate);
@@ -65,14 +85,20 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">نوع المنحة</p>
               <Badge variant="outline" className="text-[10px]">
-                {targetType === "association" ? "تحويل موجه لجمعية" : "تحويل لطلب محدد"}
+                {targetType === "association"
+                  ? "تحويل موجه لجمعية"
+                  : "تحويل لطلب محدد"}
               </Badge>
             </div>
             {associationName && (
-              <p className="text-sm">الجمعية: <span className="font-medium">{associationName}</span></p>
+              <p className="text-sm">
+                الجمعية: <span className="font-medium">{associationName}</span>
+              </p>
             )}
             {projectTitle && (
-              <p className="text-sm">الطلب: <span className="font-medium">{projectTitle}</span></p>
+              <p className="text-sm">
+                الطلب: <span className="font-medium">{projectTitle}</span>
+              </p>
             )}
           </div>
           <PricingBreakdownDisplay pricing={pricing} />
@@ -87,27 +113,43 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
         <CardContent>
           <RadioGroup
             value={paymentMethod}
-            onValueChange={(v) => setPaymentMethod(v as "electronic" | "bank_transfer")}
+            onValueChange={(v) =>
+              setPaymentMethod(v as "electronic" | "bank_transfer")
+            }
             className="space-y-3"
           >
-            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}>
+            <div
+              className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "electronic" ? "border-primary bg-primary/5" : "border-border"}`}
+            >
               <RadioGroupItem value="electronic" id="donation-electronic" />
-              <Label htmlFor="donation-electronic" className="flex items-center gap-2 cursor-pointer flex-1">
+              <Label
+                htmlFor="donation-electronic"
+                className="flex items-center gap-2 cursor-pointer flex-1"
+              >
                 <CreditCard className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium">دفع إلكتروني</p>
-                  <p className="text-xs text-muted-foreground">ادفع فوراً عبر بطاقة مدى أو فيزا أو ماستركارد</p>
+                  <p className="text-xs text-muted-foreground">
+                    ادفع فوراً عبر بطاقة مدى أو فيزا أو ماستركارد
+                  </p>
                 </div>
               </Label>
             </div>
 
-            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-border"}`}>
+            <div
+              className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${paymentMethod === "bank_transfer" ? "border-primary bg-primary/5" : "border-border"}`}
+            >
               <RadioGroupItem value="bank_transfer" id="donation-bank" />
-              <Label htmlFor="donation-bank" className="flex items-center gap-2 cursor-pointer flex-1">
+              <Label
+                htmlFor="donation-bank"
+                className="flex items-center gap-2 cursor-pointer flex-1"
+              >
                 <Building2 className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium">تحويل بنكي</p>
-                  <p className="text-xs text-muted-foreground">حوّل المبلغ وارفع إيصال التحويل للمراجعة</p>
+                  <p className="text-xs text-muted-foreground">
+                    حوّل المبلغ وارفع إيصال التحويل للمراجعة
+                  </p>
                 </div>
               </Label>
             </div>
@@ -132,23 +174,44 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
               </div>
               <Separator />
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">اسم الحساب</span>
-                <span className="font-medium text-sm">{BANK_INFO.accountName}</span>
+                <span className="text-sm text-muted-foreground">
+                  اسم الحساب
+                </span>
+                <span className="font-medium text-sm">
+                  {BANK_INFO.accountName}
+                </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center gap-2">
-                <span className="text-sm text-muted-foreground">رقم الحساب</span>
+                <span className="text-sm text-muted-foreground">
+                  رقم الحساب
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-medium text-sm">{BANK_INFO.accountNumber}</span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyAccount}>
-                    {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span className="font-mono font-medium text-sm">
+                    {BANK_INFO.accountNumber}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={handleCopyAccount}
+                  >
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-success" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                 </div>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">المبلغ المطلوب</span>
-                <span className="font-bold text-primary">{pricing.total.toLocaleString()} ر.س</span>
+                <span className="text-sm text-muted-foreground">
+                  المبلغ المطلوب
+                </span>
+                <span className="font-bold text-primary">
+                  {pricing.total.toLocaleString()} ر.س
+                </span>
               </div>
             </div>
 
@@ -175,19 +238,36 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
                 <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                   <Upload className="h-5 w-5 text-primary" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{receiptFile.name}</p>
-                    <p className="text-xs text-muted-foreground">{(receiptFile.size / 1024).toFixed(0)} كيلوبايت</p>
+                    <p className="text-sm font-medium truncate">
+                      {receiptFile.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {(receiptFile.size / 1024).toFixed(0)} كيلوبايت
+                    </p>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => { setReceiptFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setReceiptFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                  >
                     تغيير
                   </Button>
                 </div>
               ) : (
-                <Button variant="outline" className="w-full h-20 border-dashed" onClick={() => fileInputRef.current?.click()}>
+                <Button
+                  variant="outline"
+                  className="w-full h-20 border-dashed"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <div className="flex flex-col items-center gap-1">
                     <Upload className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm">اضغط لرفع صورة الإيصال</span>
-                    <span className="text-[10px] text-muted-foreground">PNG, JPG, PDF (حد أقصى 5MB)</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      PNG, JPG, PDF (حد أقصى 5MB)
+                    </span>
                   </div>
                 </Button>
               )}
@@ -211,13 +291,28 @@ export function DonationPaymentStep({ amount, targetType, associationName, proje
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button variant="outline" onClick={onBack} disabled={isProcessing} className="flex-1">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          disabled={isProcessing}
+          className="flex-1"
+        >
           <ArrowRight className="h-4 w-4 me-2" />
           رجوع
         </Button>
-        <Button onClick={handleSubmit} disabled={isProcessing} className="flex-1">
-          {isProcessing ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
-          {isProcessing ? "جاري المعالجة..." : paymentMethod === "electronic" ? "الدفع الآن" : "تأكيد الدفع"}
+        <Button
+          onClick={handleSubmit}
+          disabled={isProcessing}
+          className="flex-1"
+        >
+          {isProcessing ? (
+            <Loader2 className="h-4 w-4 animate-spin me-2" />
+          ) : null}
+          {isProcessing
+            ? "جاري المعالجة..."
+            : paymentMethod === "electronic"
+              ? "الدفع الآن"
+              : "تأكيد الدفع"}
         </Button>
       </div>
     </div>

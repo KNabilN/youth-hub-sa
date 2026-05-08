@@ -20,7 +20,11 @@ export default function LandingHeader() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const hd = header || { site_name: "الخدمات المشتركة", login_text: "تسجيل الدخول", register_text: "إنشاء حساب" };
+  const hd = header || {
+    site_name: "الخدمات المشتركة",
+    login_text: "تسجيل الدخول",
+    register_text: "إنشاء حساب",
+  };
 
   const openAuth = (mode: "login" | "register") => {
     setAuthMode(mode);
@@ -41,7 +45,11 @@ export default function LandingHeader() {
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logoImg} alt="منصة الخدمات المشتركة" className="h-14 w-auto object-contain" />
+              <img
+                src={logoImg}
+                alt="منصة الخدمات المشتركة"
+                className="h-14 w-auto object-contain"
+              />
             </Link>
           </div>
 
@@ -57,7 +65,7 @@ export default function LandingHeader() {
                     "px-3 py-2 text-sm transition-colors rounded-md hover:bg-muted/50",
                     isActive
                       ? "text-primary font-semibold bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {link.label}
@@ -79,11 +87,18 @@ export default function LandingHeader() {
             </Button>
             {user ? (
               <>
-                <Button className="shadow-md gap-2" onClick={() => navigate("/dashboard")}>
+                <Button
+                  className="shadow-md gap-2"
+                  onClick={() => navigate("/dashboard")}
+                >
                   <LayoutDashboard className="h-4 w-4" />
                   لوحة التحكم
                 </Button>
-                <Button variant="outline" className="shadow-md gap-2" onClick={() => signOut()}>
+                <Button
+                  variant="outline"
+                  className="shadow-md gap-2"
+                  onClick={() => signOut()}
+                >
                   <LogOut className="h-4 w-4" />
                   تسجيل الخروج
                 </Button>
@@ -93,7 +108,10 @@ export default function LandingHeader() {
                 <Button variant="ghost" onClick={() => openAuth("login")}>
                   {hd.login_text}
                 </Button>
-                <Button className="shadow-md" onClick={() => openAuth("register")}>
+                <Button
+                  className="shadow-md"
+                  onClick={() => openAuth("register")}
+                >
                   {hd.register_text}
                 </Button>
               </>
@@ -111,8 +129,16 @@ export default function LandingHeader() {
                 )}
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -133,21 +159,45 @@ export default function LandingHeader() {
             <div className="flex gap-2 pt-2">
               {user ? (
                 <>
-                  <Button size="sm" className="flex-1 gap-2" onClick={() => { setMobileMenuOpen(false); navigate("/dashboard"); }}>
+                  <Button
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate("/dashboard");
+                    }}
+                  >
                     <LayoutDashboard className="h-4 w-4" />
                     لوحة التحكم
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-2" onClick={() => { setMobileMenuOpen(false); signOut(); }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut();
+                    }}
+                  >
                     <LogOut className="h-4 w-4" />
                     خروج
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => openAuth("login")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => openAuth("login")}
+                  >
                     {hd.login_text}
                   </Button>
-                  <Button size="sm" className="flex-1" onClick={() => openAuth("register")}>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => openAuth("register")}
+                  >
                     {hd.register_text}
                   </Button>
                 </>
@@ -157,7 +207,11 @@ export default function LandingHeader() {
         )}
       </header>
 
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode={authMode} />
+      <AuthModal
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        defaultMode={authMode}
+      />
     </>
   );
 }

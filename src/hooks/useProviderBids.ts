@@ -11,10 +11,20 @@ export function useProviderBids(statusFilter?: string) {
     if (!user) return;
     const channel = supabase
       .channel(`rt-provider-bids-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `provider_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["provider-bids"] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bids",
+          filter: `provider_id=eq.${user.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["provider-bids"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -41,7 +51,12 @@ export function useSubmitBid() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (values: { project_id: string; price: number; timeline_days: number; cover_letter: string }) => {
+    mutationFn: async (values: {
+      project_id: string;
+      price: number;
+      timeline_days: number;
+      cover_letter: string;
+    }) => {
       const { data, error } = await supabase
         .from("bids")
         .insert({ ...values, provider_id: user!.id })
@@ -61,7 +76,10 @@ export function useWithdrawBid() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (bidId: string) => {
-      const { error } = await supabase.from("bids").update({ status: "withdrawn" }).eq("id", bidId);
+      const { error } = await supabase
+        .from("bids")
+        .update({ status: "withdrawn" })
+        .eq("id", bidId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["provider-bids"] }),

@@ -14,7 +14,9 @@ export default function AdminSettings() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">إعدادات المنصة</h1>
-            <p className="text-sm text-muted-foreground">إدارة العمولات والتصنيفات والمناطق</p>
+            <p className="text-sm text-muted-foreground">
+              إدارة العمولات والتصنيفات والمناطق
+            </p>
           </div>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">

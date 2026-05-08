@@ -19,7 +19,11 @@ export interface GrantRequest {
   created_at: string;
   updated_at: string;
   // joined
-  association?: { full_name: string; organization_name: string | null; avatar_url: string | null };
+  association?: {
+    full_name: string;
+    organization_name: string | null;
+    avatar_url: string | null;
+  };
   donor?: { full_name: string } | null;
   project?: { title: string } | null;
 }
@@ -33,13 +37,18 @@ export function useMyGrants() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-my-grants-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "grant_requests" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grant_requests" },
         () => {
           qc.invalidateQueries({ queryKey: ["my-grants"] });
           qc.invalidateQueries({ queryKey: ["assoc-pending-grants"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -48,7 +57,9 @@ export function useMyGrants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("grant_requests" as any)
-        .select("*, association:association_id(full_name, organization_name, avatar_url), donor:donor_id(full_name), project:project_id(title)")
+        .select(
+          "*, association:association_id(full_name, organization_name, avatar_url), donor:donor_id(full_name), project:project_id(title)",
+        )
         .eq("association_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -66,14 +77,19 @@ export function useGrantRequestsForDonor() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-grant-requests-donor-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "grant_requests" },
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grant_requests" },
         () => {
           qc.invalidateQueries({ queryKey: ["grant-requests-donor"] });
           qc.invalidateQueries({ queryKey: ["my-grant-requests"] });
           qc.invalidateQueries({ queryKey: ["donor-pending-grant-requests"] });
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -82,7 +98,9 @@ export function useGrantRequestsForDonor() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("grant_requests" as any)
-        .select("*, association:association_id(full_name, organization_name, avatar_url), project:project_id(title)")
+        .select(
+          "*, association:association_id(full_name, organization_name, avatar_url), project:project_id(title)",
+        )
         .in("status", ["pending", "approved"])
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -100,7 +118,9 @@ export function useMyGrantRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("grant_requests" as any)
-        .select("*, association:association_id(full_name, organization_name, avatar_url), project:project_id(title)")
+        .select(
+          "*, association:association_id(full_name, organization_name, avatar_url), project:project_id(title)",
+        )
         .eq("donor_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -132,10 +152,10 @@ export function useCreateGrantRequest() {
           project_id: values.project_id || null,
           amount: values.amount,
           description: values.description,
-          purpose: values.purpose || '',
-          target_group: values.target_group || '',
+          purpose: values.purpose || "",
+          target_group: values.target_group || "",
           beneficiaries_count: values.beneficiaries_count || null,
-          urgency: values.urgency || 'normal',
+          urgency: values.urgency || "normal",
         } as any)
         .select()
         .single();
@@ -155,7 +175,9 @@ export function useVerifiedDonors() {
   return useQuery({
     queryKey: ["verified-donors"],
     queryFn: async () => {
-      const { data: ids, error: rpcErr } = await supabase.rpc("get_verified_donor_ids" as any);
+      const { data: ids, error: rpcErr } = await supabase.rpc(
+        "get_verified_donor_ids" as any,
+      );
       if (rpcErr) throw rpcErr;
       if (!ids?.length) return [];
       const { data, error } = await supabase

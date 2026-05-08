@@ -8,7 +8,12 @@ interface ImageLightboxProps {
   alt?: string;
 }
 
-export function ImageLightbox({ open, onOpenChange, src, alt = "صورة" }: ImageLightboxProps) {
+export function ImageLightbox({
+  open,
+  onOpenChange,
+  src,
+  alt = "صورة",
+}: ImageLightboxProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-sm border-none shadow-2xl">

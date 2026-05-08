@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
-export function useAssociationTimeLogs(approvalFilter?: string, projectFilter?: string) {
+export function useAssociationTimeLogs(
+  approvalFilter?: string,
+  projectFilter?: string,
+) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -11,17 +14,28 @@ export function useAssociationTimeLogs(approvalFilter?: string, projectFilter?: 
     if (!user) return;
     const channel = supabase
       .channel(`rt-timelogs-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "time_logs" },
-        () => qc.invalidateQueries({ queryKey: ["time-logs"] }))
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "time_logs" },
+        () => qc.invalidateQueries({ queryKey: ["time-logs"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
     queryKey: ["time-logs", user?.id, approvalFilter, projectFilter],
     enabled: !!user,
     queryFn: async () => {
-      const projectIds = (await supabase.from("projects").select("id").eq("association_id", user!.id)).data?.map(p => p.id) ?? [];
+      const projectIds =
+        (
+          await supabase
+            .from("projects")
+            .select("id")
+            .eq("association_id", user!.id)
+        ).data?.map((p) => p.id) ?? [];
       if (!projectIds.length) return [];
       let query = supabase
         .from("time_logs")
@@ -69,8 +83,12 @@ export function useProjectTimeLogs(projectId?: string) {
         .eq("project_id", projectId!);
       if (error) throw error;
       const totalLogged = data.reduce((s, l) => s + Number(l.hours), 0);
-      const approvedHours = data.filter(l => l.approval === "approved").reduce((s, l) => s + Number(l.hours), 0);
-      const pendingHours = data.filter(l => l.approval === "pending").reduce((s, l) => s + Number(l.hours), 0);
+      const approvedHours = data
+        .filter((l) => l.approval === "approved")
+        .reduce((s, l) => s + Number(l.hours), 0);
+      const pendingHours = data
+        .filter((l) => l.approval === "pending")
+        .reduce((s, l) => s + Number(l.hours), 0);
       return { totalLogged, approvedHours, pendingHours, count: data.length };
     },
   });
@@ -79,12 +97,24 @@ export function useProjectTimeLogs(projectId?: string) {
 export function useUpdateTimeLogApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval, rejectionReason }: { id: string; approval: "approved" | "rejected"; providerId: string; rejectionReason?: string }) => {
+    mutationFn: async ({
+      id,
+      approval,
+      rejectionReason,
+    }: {
+      id: string;
+      approval: "approved" | "rejected";
+      providerId: string;
+      rejectionReason?: string;
+    }) => {
       const update: any = { approval };
       if (approval === "rejected" && rejectionReason) {
         update.rejection_reason = rejectionReason;
       }
-      const { error } = await supabase.from("time_logs").update(update).eq("id", id);
+      const { error } = await supabase
+        .from("time_logs")
+        .update(update)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["time-logs"] }),

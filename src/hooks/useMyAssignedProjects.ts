@@ -11,10 +11,20 @@ export function useMyAssignedProjects(statusFilter?: string) {
     if (!user) return;
     const channel = supabase
       .channel(`rt-assigned-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "projects", filter: `assigned_provider_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["my-assigned-projects"] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "projects",
+          filter: `assigned_provider_id=eq.${user.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["my-assigned-projects"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({

@@ -12,7 +12,11 @@ export interface InquiryMessage {
   attachment_name: string | null;
   is_read: boolean;
   created_at: string;
-  sender?: { full_name: string; avatar_url: string | null; organization_name?: string | null };
+  sender?: {
+    full_name: string;
+    avatar_url: string | null;
+    organization_name?: string | null;
+  };
 }
 
 export interface ServiceInquiry {
@@ -51,7 +55,13 @@ export function useCreateInquiry() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ serviceId, providerId }: { serviceId: string; providerId: string }) => {
+    mutationFn: async ({
+      serviceId,
+      providerId,
+    }: {
+      serviceId: string;
+      providerId: string;
+    }) => {
       const { data, error } = await supabase
         .from("service_inquiries")
         .insert({
@@ -82,14 +92,21 @@ export function useInquiryMessages(inquiryId: string | undefined) {
       .channel(`inquiry-msgs-${inquiryId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "service_inquiry_messages", filter: `inquiry_id=eq.${inquiryId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "service_inquiry_messages",
+          filter: `inquiry_id=eq.${inquiryId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["inquiry-messages", inquiryId] });
           qc.invalidateQueries({ queryKey: ["service-inquiry-conversations"] });
-        }
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, inquiryId, qc]);
 
   return useQuery({
@@ -98,7 +115,9 @@ export function useInquiryMessages(inquiryId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_inquiry_messages")
-        .select("*, sender:profiles!service_inquiry_messages_sender_id_fkey(full_name, avatar_url, organization_name)")
+        .select(
+          "*, sender:profiles!service_inquiry_messages_sender_id_fkey(full_name, avatar_url, organization_name)",
+        )
         .eq("inquiry_id", inquiryId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -114,9 +133,15 @@ export function useSendInquiryMessage() {
 
   return useMutation({
     mutationFn: async ({
-      inquiryId, content, attachmentUrl, attachmentName,
+      inquiryId,
+      content,
+      attachmentUrl,
+      attachmentName,
     }: {
-      inquiryId: string; content: string; attachmentUrl?: string; attachmentName?: string;
+      inquiryId: string;
+      content: string;
+      attachmentUrl?: string;
+      attachmentName?: string;
     }) => {
       const { error } = await supabase.from("service_inquiry_messages").insert({
         inquiry_id: inquiryId,
@@ -176,10 +201,20 @@ export function useInquiryConversations() {
     if (!user) return;
     const channel = supabase
       .channel(`rt-inquiry-convs-${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "service_inquiry_messages" },
-        () => qc.invalidateQueries({ queryKey: ["service-inquiry-conversations"] }))
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "service_inquiry_messages",
+        },
+        () =>
+          qc.invalidateQueries({ queryKey: ["service-inquiry-conversations"] }),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return useQuery({
@@ -194,32 +229,52 @@ export function useInquiryConversations() {
       if (iErr) throw iErr;
       if (!inquiries?.length) return [];
 
-      const inquiryIds = inquiries.map(i => i.id);
-      const serviceIds = [...new Set(inquiries.map(i => i.service_id))];
-      const otherPartyIds = [...new Set(inquiries.map(i =>
-        i.sender_id === user!.id ? i.provider_id : i.sender_id
-      ))];
+      const inquiryIds = inquiries.map((i) => i.id);
+      const serviceIds = [...new Set(inquiries.map((i) => i.service_id))];
+      const otherPartyIds = [
+        ...new Set(
+          inquiries.map((i) =>
+            i.sender_id === user!.id ? i.provider_id : i.sender_id,
+          ),
+        ),
+      ];
 
       // Batch fetch services, profiles, messages
       const [servicesRes, profilesRes, messagesRes] = await Promise.all([
-        supabase.from("micro_services").select("id, title").in("id", serviceIds),
-        supabase.from("profiles").select("id, full_name, avatar_url, organization_name").in("id", otherPartyIds),
-        supabase.from("service_inquiry_messages")
+        supabase
+          .from("micro_services")
+          .select("id, title")
+          .in("id", serviceIds),
+        supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, organization_name")
+          .in("id", otherPartyIds),
+        supabase
+          .from("service_inquiry_messages")
           .select("inquiry_id, content, created_at, sender_id, is_read")
           .in("inquiry_id", inquiryIds)
           .order("created_at", { ascending: false }),
       ]);
 
-      const serviceMap = new Map((servicesRes.data ?? []).map(s => [s.id, s]));
-      const profileMap = new Map((profilesRes.data ?? []).map(p => [p.id, p]));
+      const serviceMap = new Map(
+        (servicesRes.data ?? []).map((s) => [s.id, s]),
+      );
+      const profileMap = new Map(
+        (profilesRes.data ?? []).map((p) => [p.id, p]),
+      );
 
       const conversations: InquiryConversation[] = [];
       for (const inq of inquiries) {
-        const msgs = (messagesRes.data ?? []).filter(m => m.inquiry_id === inq.id);
+        const msgs = (messagesRes.data ?? []).filter(
+          (m) => m.inquiry_id === inq.id,
+        );
         const lastMsg = msgs[0];
-        const unreadCount = msgs.filter(m => m.sender_id !== user!.id && !m.is_read).length;
+        const unreadCount = msgs.filter(
+          (m) => m.sender_id !== user!.id && !m.is_read,
+        ).length;
 
-        const otherPartyId = inq.sender_id === user!.id ? inq.provider_id : inq.sender_id;
+        const otherPartyId =
+          inq.sender_id === user!.id ? inq.provider_id : inq.sender_id;
         const otherProfile = profileMap.get(otherPartyId);
         const service = serviceMap.get(inq.service_id);
 
@@ -227,7 +282,10 @@ export function useInquiryConversations() {
           inquiry_id: inq.id,
           service_id: inq.service_id,
           service_title: service?.title ?? "خدمة",
-          other_party_name: otherProfile?.organization_name || otherProfile?.full_name || "مستخدم",
+          other_party_name:
+            otherProfile?.organization_name ||
+            otherProfile?.full_name ||
+            "مستخدم",
           other_party_avatar: otherProfile?.avatar_url ?? null,
           last_message: lastMsg?.content ?? "",
           last_message_at: lastMsg?.created_at ?? inq.updated_at,
@@ -236,7 +294,9 @@ export function useInquiryConversations() {
       }
 
       return conversations.sort(
-        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        (a, b) =>
+          new Date(b.last_message_at).getTime() -
+          new Date(a.last_message_at).getTime(),
       );
     },
   });

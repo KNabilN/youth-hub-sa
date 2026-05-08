@@ -5,7 +5,13 @@ import { ContractCard } from "@/components/contracts/ContractCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +26,11 @@ export default function Contracts() {
 
   const handleSign = (id: string) => {
     signContract.mutate(id, {
-      onSuccess: () => toast({ title: "تم توقيع العقد بنجاح", description: "سيتم بدء المشروع تلقائياً بعد توقيع جميع الأطراف" }),
+      onSuccess: () =>
+        toast({
+          title: "تم توقيع العقد بنجاح",
+          description: "سيتم بدء المشروع تلقائياً بعد توقيع جميع الأطراف",
+        }),
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -41,7 +51,9 @@ export default function Contracts() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">العقود</h1>
-            <p className="text-sm text-muted-foreground">إدارة وتوقيع العقود الخاصة بمشاريعك</p>
+            <p className="text-sm text-muted-foreground">
+              إدارة وتوقيع العقود الخاصة بمشاريعك
+            </p>
           </div>
         </div>
 
@@ -51,9 +63,13 @@ export default function Contracts() {
         {/* Filter Card */}
         <Card className="border-dashed">
           <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
-            <span className="text-sm font-medium text-muted-foreground">تصفية حسب الحالة</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              تصفية حسب الحالة
+            </span>
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">جميع العقود</SelectItem>
                 <SelectItem value="unsigned">غير موقّعة</SelectItem>
@@ -65,25 +81,35 @@ export default function Contracts() {
         </Card>
 
         {isLoading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
         ) : !contracts?.length ? (
-          <EmptyState icon={ScrollText} title="لا توجد عقود بعد" description="ستظهر عقودك هنا بمجرد قبول العروض وإنشاء العقود" />
+          <EmptyState
+            icon={ScrollText}
+            title="لا توجد عقود بعد"
+            description="ستظهر عقودك هنا بمجرد قبول العروض وإنشاء العقود"
+          />
         ) : (
           <div className="space-y-3">
             {/* Show contracts needing signature first */}
-            {[...contracts].sort((a: any, b: any) => {
-              const aNeeds = canSign(a) ? 0 : 1;
-              const bNeeds = canSign(b) ? 0 : 1;
-              return aNeeds - bNeeds;
-            }).map((contract: any) => (
-              <ContractCard
-                key={contract.id}
-                contract={contract}
-                canSign={canSign(contract)}
-                onSign={handleSign}
-                isSignPending={signContract.isPending}
-              />
-            ))}
+            {[...contracts]
+              .sort((a: any, b: any) => {
+                const aNeeds = canSign(a) ? 0 : 1;
+                const bNeeds = canSign(b) ? 0 : 1;
+                return aNeeds - bNeeds;
+              })
+              .map((contract: any) => (
+                <ContractCard
+                  key={contract.id}
+                  contract={contract}
+                  canSign={canSign(contract)}
+                  onSign={handleSign}
+                  isSignPending={signContract.isPending}
+                />
+              ))}
           </div>
         )}
       </div>

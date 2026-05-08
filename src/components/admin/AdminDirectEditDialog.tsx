@@ -1,16 +1,31 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCategories } from "@/hooks/useCategories";
 import { useRegions } from "@/hooks/useRegions";
 import { useCities } from "@/hooks/useCities";
-import { useAdminUploadAvatar, useAdminUploadCover } from "@/hooks/useAdminUpload";
+import {
+  useAdminUploadAvatar,
+  useAdminUploadCover,
+} from "@/hooks/useAdminUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, Plus, User, ImageIcon, Loader2 } from "lucide-react";
@@ -18,7 +33,16 @@ import { Upload, X, Plus, User, ImageIcon, Loader2 } from "lucide-react";
 export interface DirectEditFieldConfig {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "select" | "avatar" | "cover" | "skills" | "qualifications" | "image";
+  type?:
+    | "text"
+    | "textarea"
+    | "number"
+    | "select"
+    | "avatar"
+    | "cover"
+    | "skills"
+    | "qualifications"
+    | "image";
   selectSource?: "categories" | "regions" | "cities";
   /** For type "image": storage bucket name */
   imageBucket?: string;
@@ -64,14 +88,18 @@ export function AdminDirectEditDialog({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const imageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const [imageUploading, setImageUploading] = useState<Record<string, boolean>>({});
+  const [imageUploading, setImageUploading] = useState<Record<string, boolean>>(
+    {},
+  );
 
   useEffect(() => {
     if (open) {
       const init: Record<string, any> = {};
       fields.forEach((f) => {
         if (f.type === "skills") {
-          init[f.key] = Array.isArray(currentValues[f.key]) ? [...currentValues[f.key]] : [];
+          init[f.key] = Array.isArray(currentValues[f.key])
+            ? [...currentValues[f.key]]
+            : [];
         } else if (f.type === "qualifications") {
           const raw = currentValues[f.key];
           init[f.key] = Array.isArray(raw) ? [...raw] : [];
@@ -97,7 +125,10 @@ export function AdminDirectEditDialog({
       // Sanitize: convert empty strings to null for UUID/numeric fields
       const nullableFields = ["region_id", "city_id", "category_id"];
       for (const key of nullableFields) {
-        if (key in updates && (updates[key] === "" || updates[key] === undefined)) {
+        if (
+          key in updates &&
+          (updates[key] === "" || updates[key] === undefined)
+        ) {
           updates[key] = null;
         }
       }
@@ -133,7 +164,10 @@ export function AdminDirectEditDialog({
       toast.error("فشل رفع صورة الغلاف");
     }
   };
-  const handleImageUpload = async (field: DirectEditFieldConfig, file: File) => {
+  const handleImageUpload = async (
+    field: DirectEditFieldConfig,
+    file: File,
+  ) => {
     const maxMB = field.imageMaxMB ?? 5;
     if (file.size > maxMB * 1024 * 1024) {
       toast.error(`الحد الأقصى لحجم الصورة ${maxMB} ميجابايت`);
@@ -144,9 +178,13 @@ export function AdminDirectEditDialog({
     const path = `admin/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     setImageUploading((prev) => ({ ...prev, [field.key]: true }));
     try {
-      const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path);
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       setValues((v) => ({ ...v, [field.key]: publicUrl }));
       toast.success("تم رفع الصورة بنجاح");
@@ -167,15 +205,25 @@ export function AdminDirectEditDialog({
   };
 
   const removeSkill = (skill: string) => {
-    setValues((v) => ({ ...v, skills: (v.skills ?? []).filter((s: string) => s !== skill) }));
+    setValues((v) => ({
+      ...v,
+      skills: (v.skills ?? []).filter((s: string) => s !== skill),
+    }));
   };
 
   const addQualification = () => {
     const trimmed = newQual.trim();
     if (!trimmed) return;
     const current = values.qualifications ?? [];
-    if (!current.some((q: any) => (typeof q === "string" ? q : q.title) === trimmed)) {
-      setValues((v) => ({ ...v, qualifications: [...current, { title: trimmed }] }));
+    if (
+      !current.some(
+        (q: any) => (typeof q === "string" ? q : q.title) === trimmed,
+      )
+    ) {
+      setValues((v) => ({
+        ...v,
+        qualifications: [...current, { title: trimmed }],
+      }));
     }
     setNewQual("");
   };
@@ -183,7 +231,9 @@ export function AdminDirectEditDialog({
   const removeQualification = (index: number) => {
     setValues((v) => ({
       ...v,
-      qualifications: (v.qualifications ?? []).filter((_: any, i: number) => i !== index),
+      qualifications: (v.qualifications ?? []).filter(
+        (_: any, i: number) => i !== index,
+      ),
     }));
   };
 
@@ -203,7 +253,9 @@ export function AdminDirectEditDialog({
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 ring-2 ring-border">
                     <AvatarImage src={currentValues.avatar_url} />
-                    <AvatarFallback><User className="h-6 w-6" /></AvatarFallback>
+                    <AvatarFallback>
+                      <User className="h-6 w-6" />
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <div>
@@ -216,9 +268,13 @@ export function AdminDirectEditDialog({
                         className="gap-1.5"
                       >
                         <Upload className="h-3.5 w-3.5" />
-                        {avatarUpload.isPending ? "جاري الرفع..." : "رفع صورة جديدة"}
+                        {avatarUpload.isPending
+                          ? "جاري الرفع..."
+                          : "رفع صورة جديدة"}
                       </Button>
-                      <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 200×200 بكسل • الحد الأقصى: 2 MB</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        الأبعاد المُوصى بها: 200×200 بكسل • الحد الأقصى: 2 MB
+                      </p>
                     </div>
                     <input
                       ref={avatarInputRef}
@@ -258,9 +314,13 @@ export function AdminDirectEditDialog({
                     className="gap-1.5"
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    {coverUpload.isPending ? "جاري الرفع..." : "رفع صورة غلاف جديدة"}
+                    {coverUpload.isPending
+                      ? "جاري الرفع..."
+                      : "رفع صورة غلاف جديدة"}
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-1">الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    الأبعاد المُوصى بها: 1200×400 بكسل • الحد الأقصى: 5 MB
+                  </p>
                   <input
                     ref={coverInputRef}
                     type="file"
@@ -302,13 +362,19 @@ export function AdminDirectEditDialog({
                     ) : (
                       <Upload className="h-3.5 w-3.5" />
                     )}
-                    {imageUploading[field.key] ? "جاري الرفع..." : "رفع صورة جديدة"}
+                    {imageUploading[field.key]
+                      ? "جاري الرفع..."
+                      : "رفع صورة جديدة"}
                   </Button>
                   {field.imageDimensions && (
-                    <p className="text-xs text-muted-foreground">{field.imageDimensions}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {field.imageDimensions}
+                    </p>
                   )}
                   <input
-                    ref={(el) => { imageInputRefs.current[field.key] = el; }}
+                    ref={(el) => {
+                      imageInputRefs.current[field.key] = el;
+                    }}
                     type="file"
                     className="hidden"
                     accept="image/*"
@@ -326,7 +392,11 @@ export function AdminDirectEditDialog({
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-1.5">
                     {(values.skills ?? []).map((skill: string) => (
-                      <Badge key={skill} variant="secondary" className="gap-1 pl-1">
+                      <Badge
+                        key={skill}
+                        variant="secondary"
+                        className="gap-1 pl-1"
+                      >
                         {skill}
                         <button
                           type="button"
@@ -350,7 +420,12 @@ export function AdminDirectEditDialog({
                         }
                       }}
                     />
-                    <Button type="button" variant="outline" size="icon" onClick={addSkill}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={addSkill}
+                    >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -363,7 +438,9 @@ export function AdminDirectEditDialog({
                   <div className="flex flex-wrap gap-1.5">
                     {(values.qualifications ?? []).map((q: any, i: number) => (
                       <Badge key={i} variant="secondary" className="gap-1 pl-1">
-                        {typeof q === "string" ? q : q.title ?? q.name ?? JSON.stringify(q)}
+                        {typeof q === "string"
+                          ? q
+                          : (q.title ?? q.name ?? JSON.stringify(q))}
                         <button
                           type="button"
                           onClick={() => removeQualification(i)}
@@ -386,7 +463,12 @@ export function AdminDirectEditDialog({
                         }
                       }}
                     />
-                    <Button type="button" variant="outline" size="icon" onClick={addQualification}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={addQualification}
+                    >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -397,7 +479,9 @@ export function AdminDirectEditDialog({
               {field.type === "textarea" && (
                 <Textarea
                   value={values[field.key] ?? ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                  onChange={(e) =>
+                    setValues((v) => ({ ...v, [field.key]: e.target.value }))
+                  }
                   rows={3}
                 />
               )}
@@ -430,14 +514,19 @@ export function AdminDirectEditDialog({
               )}
 
               {/* Text / Number */}
-              {(!field.type || field.type === "text" || field.type === "number") && (
+              {(!field.type ||
+                field.type === "text" ||
+                field.type === "number") && (
                 <Input
                   type={field.type === "number" ? "number" : "text"}
                   value={values[field.key] ?? ""}
                   onChange={(e) =>
                     setValues((v) => ({
                       ...v,
-                      [field.key]: field.type === "number" ? Number(e.target.value) : e.target.value,
+                      [field.key]:
+                        field.type === "number"
+                          ? Number(e.target.value)
+                          : e.target.value,
                     }))
                   }
                 />

@@ -7,7 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Building2, UserCheck, HandCoins, Phone, X, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Building2,
+  UserCheck,
+  HandCoins,
+  Phone,
+  X,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
 import { translateError } from "@/lib/auth-errors";
 import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/logo.png";
@@ -23,11 +33,7 @@ import {
   DialogOverlay,
 } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
@@ -35,26 +41,66 @@ type AppRole = "youth_association" | "service_provider" | "donor";
 
 const loginSchema = z.object({
   email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
+  password: z
+    .string()
+    .min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل")
+    .max(128),
 });
 
 const step1Schema = z.object({
-  fullName: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
-  phone: z.string().trim().length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة").regex(/^[0-9]+$/, "رقم جوال غير صالح"),
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "الاسم يجب أن يكون حرفين على الأقل")
+    .max(100),
+  phone: z
+    .string()
+    .trim()
+    .length(9, "رقم الجوال يجب أن يكون 9 أرقام بدون رمز الدولة")
+    .regex(/^[0-9]+$/, "رقم جوال غير صالح"),
 });
 
-const associationLicenseSchema = z.string().trim().min(3, "رقم الترخيص مطلوب").max(50, "رقم الترخيص طويل جداً");
+const associationLicenseSchema = z
+  .string()
+  .trim()
+  .min(3, "رقم الترخيص مطلوب")
+  .max(50, "رقم الترخيص طويل جداً");
 
 const step2Schema = z.object({
   email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل").max(128),
-  pdplConsent: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }) }),
+  password: z
+    .string()
+    .min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل")
+    .max(128),
+  pdplConsent: z.literal(true, {
+    errorMap: () => ({ message: "يجب الموافقة على سياسة الخصوصية" }),
+  }),
 });
 
-const roleOptions: { key: AppRole; label: string; icon: typeof Building2; desc: string }[] = [
-  { key: "youth_association", label: "جمعية شبابية", icon: Building2, desc: "إنشاء طلبات وتعيين مقدمي خدمات" },
-  { key: "service_provider", label: "مقدم خدمة", icon: UserCheck, desc: "تقديم خدمات وعروض للطلبات" },
-  { key: "donor", label: "مانح", icon: HandCoins, desc: "تمويل المشاريع والخدمات" },
+const roleOptions: {
+  key: AppRole;
+  label: string;
+  icon: typeof Building2;
+  desc: string;
+}[] = [
+  {
+    key: "youth_association",
+    label: "جمعية شبابية",
+    icon: Building2,
+    desc: "إنشاء طلبات وتعيين مقدمي خدمات",
+  },
+  {
+    key: "service_provider",
+    label: "مقدم خدمة",
+    icon: UserCheck,
+    desc: "تقديم خدمات وعروض للطلبات",
+  },
+  {
+    key: "donor",
+    label: "مانح",
+    icon: HandCoins,
+    desc: "تمويل المشاريع والخدمات",
+  },
 ];
 
 const registerSteps = [
@@ -68,7 +114,11 @@ interface AuthModalProps {
   defaultMode?: "login" | "register";
 }
 
-export default function AuthModal({ open, onOpenChange, defaultMode = "login" }: AuthModalProps) {
+export default function AuthModal({
+  open,
+  onOpenChange,
+  defaultMode = "login",
+}: AuthModalProps) {
   const isMobile = useIsMobile();
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
   const [email, setEmail] = useState("");
@@ -124,9 +174,12 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       }
       setLicenseChecking(true);
       try {
-        const { data, error } = await supabase.rpc("check_license_number_exists", {
-          p_license: licenseNumber.trim(),
-        });
+        const { data, error } = await supabase.rpc(
+          "check_license_number_exists",
+          {
+            p_license: licenseNumber.trim(),
+          },
+        );
         if (error) throw error;
         if (data === true) {
           setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
@@ -194,7 +247,10 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
       );
       if (error) {
         const msg = String(error.message || "");
-        if (msg.includes("23505") || msg.toLowerCase().includes("license_number")) {
+        if (
+          msg.includes("23505") ||
+          msg.toLowerCase().includes("license_number")
+        ) {
           setRegStep(0);
           setErrors({ licenseNumber: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى" });
           toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
@@ -211,11 +267,16 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
 
   const handleResend = async () => {
     setResending(true);
-    const { error } = await supabase.auth.resend({ type: "signup", email: email.trim() });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+    });
     if (error) {
       toast.error(translateError(error.message));
     } else {
-      toast.success("تم إعادة إرسال رسالة التوثيق. يرجى التحقق من بريدك الإلكتروني.");
+      toast.success(
+        "تم إعادة إرسال رسالة التوثيق. يرجى التحقق من بريدك الإلكتروني.",
+      );
       setShowResend(false);
     }
     setResending(false);
@@ -223,7 +284,10 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
 
   const handleResendRegistration = async () => {
     setResending(true);
-    const { error } = await supabase.auth.resend({ type: "signup", email: registeredEmail });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: registeredEmail,
+    });
     if (error) {
       toast.error(translateError(error.message));
     } else {
@@ -234,19 +298,37 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
 
   const registrationCompleteContent = (
     <div className="space-y-6 p-6 text-center">
-      <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-16 w-auto object-contain" />
+      <img
+        src={logoImg}
+        alt="منصة الخدمات المشتركة"
+        className="mx-auto h-16 w-auto object-contain"
+      />
       <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-10 w-10 text-primary"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <rect width="20" height="16" x="2" y="4" rx="2" />
           <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
         </svg>
       </div>
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-foreground">تم إنشاء حسابك بنجاح! 🎉</h2>
+        <h2 className="text-xl font-bold text-foreground">
+          تم إنشاء حسابك بنجاح! 🎉
+        </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
           يرجى التحقق من بريدك الإلكتروني
         </p>
-        <p className="text-sm font-medium text-foreground bg-muted rounded-lg py-2 px-3 inline-block" dir="ltr">
+        <p
+          className="text-sm font-medium text-foreground bg-muted rounded-lg py-2 px-3 inline-block"
+          dir="ltr"
+        >
           {registeredEmail}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
@@ -282,23 +364,37 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
     <div className="space-y-5 p-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <img src={logoImg} alt="منصة الخدمات المشتركة" className="mx-auto h-20 w-auto object-contain" />
-        <h2 className="text-xl font-bold">{isLogin ? "مرحباً بعودتك" : "إنشاء حساب جديد"}</h2>
+        <img
+          src={logoImg}
+          alt="منصة الخدمات المشتركة"
+          className="mx-auto h-20 w-auto object-contain"
+        />
+        <h2 className="text-xl font-bold">
+          {isLogin ? "مرحباً بعودتك" : "إنشاء حساب جديد"}
+        </h2>
         <p className="text-muted-foreground text-sm">
-          {isLogin ? "أدخل بيانات الدخول الخاصة بك" : "أنشئ حسابك للبدء في استخدام المنصة"}
+          {isLogin
+            ? "أدخل بيانات الدخول الخاصة بك"
+            : "أنشئ حسابك للبدء في استخدام المنصة"}
         </p>
       </div>
 
       {/* Step Progress for Registration */}
       {!isLogin && (
-        <StepProgress steps={registerSteps} currentStep={regStep} className="mb-2" />
+        <StepProgress
+          steps={registerSteps}
+          currentStep={regStep}
+          className="mb-2"
+        />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {isLogin ? (
           <>
             <div className="space-y-2">
-              <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-email">
+                البريد الإلكتروني <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="modal-email"
                 type="email"
@@ -307,13 +403,20 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                 placeholder="example@domain.com"
                 required
                 dir="ltr"
-                className={cn("text-start h-11", errors.email && "border-destructive")}
+                className={cn(
+                  "text-start h-11",
+                  errors.email && "border-destructive",
+                )}
               />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="modal-login-password">كلمة المرور <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-login-password">
+                كلمة المرور <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id="modal-login-password"
@@ -323,7 +426,10 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   placeholder="••••••••"
                   required
                   dir="ltr"
-                  className={cn("text-start h-11 flex-1", errors.password && "border-destructive")}
+                  className={cn(
+                    "text-start h-11 flex-1",
+                    errors.password && "border-destructive",
+                  )}
                   minLength={6}
                 />
                 <Button
@@ -334,25 +440,35 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   className="h-11 w-11 shrink-0"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              )}
             </div>
 
-            <Button type="submit" className="w-full h-11 text-base shadow-md" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full h-11 text-base shadow-md"
+              disabled={loading}
+            >
               {loading ? "جارٍ المعالجة..." : "تسجيل الدخول"}
             </Button>
 
             {showResend && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 space-y-2">
-                <p className="text-sm text-amber-800 dark:text-amber-200 text-center">
+              <div className="rounded-lg border border-warning/30 bg-warning/10 dark:border-warning/30 p-3 space-y-2">
+                <p className="text-sm text-warning text-center">
                   لم يتم تأكيد بريدك الإلكتروني بعد
                 </p>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  className="w-full h-10 border-warning/30 text-warning hover:bg-warning/10 dark:border-warning/30 dark:hover:bg-warning/50"
                   onClick={handleResend}
                   disabled={resending}
                 >
@@ -364,7 +480,9 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         ) : regStep === 0 ? (
           <>
             <div className="space-y-2">
-              <Label htmlFor="modal-fullName">الاسم الكامل <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-fullName">
+                الاسم الكامل <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="modal-fullName"
                 value={fullName}
@@ -373,11 +491,15 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                 required
                 className="h-11"
               />
-              {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+              {errors.fullName && (
+                <p className="text-xs text-destructive">{errors.fullName}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label>نوع الحساب <span className="text-destructive">*</span></Label>
+              <Label>
+                نوع الحساب <span className="text-destructive">*</span>
+              </Label>
               <div className="grid grid-cols-1 gap-2">
                 {roleOptions.map((r) => (
                   <button
@@ -388,13 +510,17 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                       "flex items-center gap-3 p-3 rounded-xl border-2 text-start transition-all",
                       role === r.key
                         ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        : "border-border hover:border-primary/30 hover:bg-muted/50",
                     )}
                   >
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                      role === r.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    )}>
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                        role === r.key
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
                       <r.icon className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
@@ -407,7 +533,9 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="modal-phone">رقم الجوال <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-phone">
+                رقم الجوال <span className="text-destructive">*</span>
+              </Label>
               <div className="relative flex gap-2">
                 <div className="flex items-center gap-1.5 h-11 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground shrink-0 select-none">
                   <span>🇸🇦</span>
@@ -417,38 +545,62 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   id="modal-phone"
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/[^0-9]/g, ""))
+                  }
                   placeholder="5xxxxxxxx"
                   required
                   dir="ltr"
                   maxLength={9}
-                  className={cn("text-start h-11", errors.phone && "border-destructive")}
+                  className={cn(
+                    "text-start h-11",
+                    errors.phone && "border-destructive",
+                  )}
                 />
               </div>
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="text-xs text-destructive">{errors.phone}</p>
+              )}
             </div>
 
             {role === "youth_association" && (
               <div className="space-y-2">
-                <Label htmlFor="modal-license">رقم الترخيص <span className="text-destructive">*</span></Label>
+                <Label htmlFor="modal-license">
+                  رقم الترخيص <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="modal-license"
                   value={licenseNumber}
                   onChange={(e) => {
                     setLicenseNumber(e.target.value);
-                    if (errors.licenseNumber) setErrors((p) => ({ ...p, licenseNumber: "" }));
+                    if (errors.licenseNumber)
+                      setErrors((p) => ({ ...p, licenseNumber: "" }));
                   }}
                   placeholder="أدخل رقم ترخيص الجمعية"
                   required
                   dir="ltr"
-                  className={cn("text-start h-11", errors.licenseNumber && "border-destructive")}
+                  className={cn(
+                    "text-start h-11",
+                    errors.licenseNumber && "border-destructive",
+                  )}
                 />
-                {errors.licenseNumber && <p className="text-xs text-destructive">{errors.licenseNumber}</p>}
-                <p className="text-xs text-muted-foreground">رقم الترخيص يجب أن يكون فريداً ولا يُسمح بتكراره</p>
+                {errors.licenseNumber && (
+                  <p className="text-xs text-destructive">
+                    {errors.licenseNumber}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  رقم الترخيص يجب أن يكون فريداً ولا يُسمح بتكراره
+                </p>
               </div>
             )}
 
-            <Button type="button" className="w-full h-11 text-base shadow-md gap-2" onClick={handleNextStep} disabled={licenseChecking}>
+            <Button
+              type="button"
+              className="w-full h-11 text-base shadow-md gap-2"
+              onClick={handleNextStep}
+              disabled={licenseChecking}
+            >
               {licenseChecking ? "جارٍ التحقق..." : "التالي"}
               <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             </Button>
@@ -456,7 +608,9 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         ) : (
           <>
             <div className="space-y-2">
-              <Label htmlFor="modal-email">البريد الإلكتروني <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-email">
+                البريد الإلكتروني <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="modal-email"
                 type="email"
@@ -465,13 +619,20 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                 placeholder="example@domain.com"
                 required
                 dir="ltr"
-                className={cn("text-start h-11", errors.email && "border-destructive")}
+                className={cn(
+                  "text-start h-11",
+                  errors.email && "border-destructive",
+                )}
               />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="modal-reg-password">كلمة المرور <span className="text-destructive">*</span></Label>
+              <Label htmlFor="modal-reg-password">
+                كلمة المرور <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id="modal-reg-password"
@@ -481,7 +642,10 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   placeholder="••••••••"
                   required
                   dir="ltr"
-                  className={cn("text-start h-11 flex-1", errors.password && "border-destructive")}
+                  className={cn(
+                    "text-start h-11 flex-1",
+                    errors.password && "border-destructive",
+                  )}
                   minLength={6}
                 />
                 <Button
@@ -492,10 +656,16 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                   className="h-11 w-11 shrink-0"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              )}
             </div>
             <PasswordStrength password={password} />
 
@@ -504,26 +674,46 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
                 <Checkbox
                   id="modal-pdpl"
                   checked={pdplConsent}
-                  onCheckedChange={(checked) => setPdplConsent(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setPdplConsent(checked === true)
+                  }
                   className="mt-0.5"
                 />
-                <Label htmlFor="modal-pdpl" className="text-xs leading-relaxed cursor-pointer">
+                <Label
+                  htmlFor="modal-pdpl"
+                  className="text-xs leading-relaxed cursor-pointer"
+                >
                   أوافق على{" "}
-                  <Link to="/privacy" target="_blank" className="text-primary underline">
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    className="text-primary underline"
+                  >
                     سياسة الخصوصية وحماية البيانات الشخصية
                   </Link>{" "}
                   وفقاً لنظام PDPL السعودي
                 </Label>
               </div>
-              {errors.pdplConsent && <p className="text-xs text-destructive">{errors.pdplConsent}</p>}
+              {errors.pdplConsent && (
+                <p className="text-xs text-destructive">{errors.pdplConsent}</p>
+              )}
             </div>
 
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="h-11 gap-2" onClick={() => setRegStep(0)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-2"
+                onClick={() => setRegStep(0)}
+              >
                 <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
                 رجوع
               </Button>
-              <Button type="submit" className="flex-1 h-11 text-base shadow-md" disabled={loading}>
+              <Button
+                type="submit"
+                className="flex-1 h-11 text-base shadow-md"
+                disabled={loading}
+              >
                 {loading ? "جارٍ المعالجة..." : "إنشاء الحساب"}
               </Button>
             </div>
@@ -533,7 +723,11 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
 
       {isLogin && (
         <div className="text-center">
-          <Link to="/forgot-password" className="text-sm text-primary hover:underline" onClick={() => onOpenChange(false)}>
+          <Link
+            to="/forgot-password"
+            className="text-sm text-primary hover:underline"
+            onClick={() => onOpenChange(false)}
+          >
             نسيت كلمة المرور؟
           </Link>
         </div>
@@ -545,7 +739,13 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
         </span>{" "}
         <button
           type="button"
-          onClick={() => { setIsLogin(!isLogin); setErrors({}); setRegStep(0); setShowPassword(false); setShowResend(false); }}
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setErrors({});
+            setRegStep(0);
+            setShowPassword(false);
+            setShowResend(false);
+          }}
           className="text-primary font-semibold hover:underline"
         >
           {isLogin ? "إنشاء حساب" : "تسجيل الدخول"}
@@ -572,10 +772,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = "login" }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="bg-black/40 backdrop-blur-md" />
-        <DialogPrimitive.Content
-          className="fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] border border-border/50 bg-background shadow-2xl rounded-lg max-h-[90vh] overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-        >
+        <DialogOverlay className="bg-foreground/40 backdrop-blur-md" />
+        <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] border border-border/50 bg-background shadow-2xl rounded-lg max-h-[90vh] overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <VisuallyHidden>
             <DialogTitle>{isLogin ? "تسجيل الدخول" : "إنشاء حساب"}</DialogTitle>
           </VisuallyHidden>

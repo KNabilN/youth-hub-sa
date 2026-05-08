@@ -34,7 +34,13 @@ export function useAllSiteContent() {
 export function useUpdateSiteContent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ sectionKey, content }: { sectionKey: string; content: Record<string, any> }) => {
+    mutationFn: async ({
+      sectionKey,
+      content,
+    }: {
+      sectionKey: string;
+      content: Record<string, any>;
+    }) => {
       const { error } = await supabase
         .from("site_content")
         .update({ content, updated_at: new Date().toISOString() } as any)

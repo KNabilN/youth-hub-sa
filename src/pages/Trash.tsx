@@ -1,19 +1,52 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useTrashItems, useRestoreItem, usePermanentDelete, useEmptyTrash, type TrashTableName } from "@/hooks/useTrash";
+import {
+  useTrashItems,
+  useRestoreItem,
+  usePermanentDelete,
+  useEmptyTrash,
+  type TrashTableName,
+} from "@/hooks/useTrash";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Trash2, RotateCcw, Clock, Layers, FolderKanban, MessageSquare, Images, Gavel, Users, FileText, Handshake, Tag, Star } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Trash2,
+  RotateCcw,
+  Clock,
+  Layers,
+  FolderKanban,
+  MessageSquare,
+  Images,
+  Gavel,
+  Users,
+  FileText,
+  Handshake,
+  Tag,
+  Star,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
-const tabConfig: { value: TrashTableName | "all"; label: string; icon: React.ElementType }[] = [
+const tabConfig: {
+  value: TrashTableName | "all";
+  label: string;
+  icon: React.ElementType;
+}[] = [
   { value: "all", label: "الكل", icon: Trash2 },
   { value: "profiles", label: "مستخدمين", icon: Users },
   { value: "micro_services", label: "خدمات", icon: Layers },
@@ -35,29 +68,42 @@ export default function Trash() {
   const { toast } = useToast();
 
   const [tab, setTab] = useState<string>("all");
-  const [deletingItem, setDeletingItem] = useState<{ table: TrashTableName; id: string } | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{
+    table: TrashTableName;
+    id: string;
+  } | null>(null);
   const [emptyConfirm, setEmptyConfirm] = useState(false);
 
-  const filtered = tab === "all" ? items : items?.filter(i => i.table === tab);
+  const filtered =
+    tab === "all" ? items : items?.filter((i) => i.table === tab);
 
   const handleRestore = (table: TrashTableName, id: string) => {
-    restore.mutate({ table, id }, {
-      onSuccess: () => toast({ title: "تم استرجاع العنصر بنجاح" }),
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
-    });
+    restore.mutate(
+      { table, id },
+      {
+        onSuccess: () => toast({ title: "تم استرجاع العنصر بنجاح" }),
+        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      },
+    );
   };
 
   const handlePermanentDelete = () => {
     if (!deletingItem) return;
     permanentDelete.mutate(deletingItem, {
-      onSuccess: () => { toast({ title: "تم الحذف نهائياً" }); setDeletingItem(null); },
+      onSuccess: () => {
+        toast({ title: "تم الحذف نهائياً" });
+        setDeletingItem(null);
+      },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
 
   const handleEmptyTrash = () => {
     emptyTrash.mutate(undefined, {
-      onSuccess: () => { toast({ title: "تم تفريغ سلة المحذوفات" }); setEmptyConfirm(false); },
+      onSuccess: () => {
+        toast({ title: "تم تفريغ سلة المحذوفات" });
+        setEmptyConfirm(false);
+      },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -72,12 +118,19 @@ export default function Trash() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">سلة المحذوفات</h1>
-              <p className="text-sm text-muted-foreground">العناصر المحذوفة تبقى 30 يوماً قبل الحذف النهائي</p>
+              <p className="text-sm text-muted-foreground">
+                العناصر المحذوفة تبقى 30 يوماً قبل الحذف النهائي
+              </p>
             </div>
           </div>
           {(items?.length ?? 0) > 0 && (
-            <Button variant="destructive" size="sm" onClick={() => setEmptyConfirm(true)}>
-              <Trash2 className="h-4 w-4 me-2" />تفريغ السلة
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setEmptyConfirm(true)}
+            >
+              <Trash2 className="h-4 w-4 me-2" />
+              تفريغ السلة
             </Button>
           )}
         </div>
@@ -85,15 +138,25 @@ export default function Trash() {
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex-wrap h-auto gap-1 flex-row-reverse justify-start">
-            {tabConfig.map(t => (
-              <TabsTrigger key={t.value} value={t.value} className="gap-1.5 text-xs">
+            {tabConfig.map((t) => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="gap-1.5 text-xs"
+              >
                 <t.icon className="h-3.5 w-3.5" />
                 {t.label}
-                {t.value === "all"
-                  ? items?.length ? <Badge variant="secondary" className="text-[10px] px-1.5">{items.length}</Badge> : null
-                  : items?.filter(i => i.table === t.value).length
-                    ? <Badge variant="secondary" className="text-[10px] px-1.5">{items.filter(i => i.table === t.value).length}</Badge>
-                    : null}
+                {t.value === "all" ? (
+                  items?.length ? (
+                    <Badge variant="secondary" className="text-[10px] px-1.5">
+                      {items.length}
+                    </Badge>
+                  ) : null
+                ) : items?.filter((i) => i.table === t.value).length ? (
+                  <Badge variant="secondary" className="text-[10px] px-1.5">
+                    {items.filter((i) => i.table === t.value).length}
+                  </Badge>
+                ) : null}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -101,35 +164,71 @@ export default function Trash() {
           <TabsContent value={tab} className="mt-4">
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 rounded-xl" />
+                ))}
               </div>
             ) : !filtered?.length ? (
-              <EmptyState icon={Trash2} title="السلة فارغة" description="لا توجد عناصر محذوفة" />
+              <EmptyState
+                icon={Trash2}
+                title="السلة فارغة"
+                description="لا توجد عناصر محذوفة"
+              />
             ) : (
               <div className="space-y-3">
-                {filtered.map(item => (
-                  <Card key={`${item.table}-${item.id}`} className="hover:shadow-sm transition-shadow">
+                {filtered.map((item) => (
+                  <Card
+                    key={`${item.table}-${item.id}`}
+                    className="hover:shadow-sm transition-shadow"
+                  >
                     <CardContent className="flex items-center justify-between py-4 px-5 flex-row-reverse">
                       <div className="flex-1 min-w-0 text-right">
                         <div className="flex items-center gap-2 mb-1 justify-end">
-                          <p className="font-medium text-sm truncate">{item.title}</p>
-                          <Badge variant="outline" className="text-[10px]">{item.tableLabel}</Badge>
+                          <p className="font-medium text-sm truncate">
+                            {item.title}
+                          </p>
+                          <Badge variant="outline" className="text-[10px]">
+                            {item.tableLabel}
+                          </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground justify-end">
-                          <span className={item.daysRemaining <= 5 ? "text-destructive font-medium" : ""}>
+                          <span
+                            className={
+                              item.daysRemaining <= 5
+                                ? "text-destructive font-medium"
+                                : ""
+                            }
+                          >
                             متبقي {item.daysRemaining} يوم
                           </span>
                           <span className="flex items-center gap-1">
-                            حُذف {formatDistanceToNow(new Date(item.deleted_at), { addSuffix: true, locale: ar })}
+                            حُذف{" "}
+                            {formatDistanceToNow(new Date(item.deleted_at), {
+                              addSuffix: true,
+                              locale: ar,
+                            })}
                             <Clock className="h-3 w-3" />
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Button size="sm" variant="outline" onClick={() => handleRestore(item.table, item.id)} disabled={restore.isPending}>
-                          <RotateCcw className="h-3.5 w-3.5 me-1" />استرجاع
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRestore(item.table, item.id)}
+                          disabled={restore.isPending}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 me-1" />
+                          استرجاع
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => setDeletingItem({ table: item.table, id: item.id })} disabled={permanentDelete.isPending}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() =>
+                            setDeletingItem({ table: item.table, id: item.id })
+                          }
+                          disabled={permanentDelete.isPending}
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -143,15 +242,22 @@ export default function Trash() {
       </div>
 
       {/* Permanent delete confirmation */}
-      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
+      <AlertDialog
+        open={!!deletingItem}
+        onOpenChange={(open) => !open && setDeletingItem(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف نهائي</AlertDialogTitle>
-            <AlertDialogDescription>سيتم حذف هذا العنصر نهائياً ولا يمكن استرجاعه. هل تريد المتابعة؟</AlertDialogDescription>
+            <AlertDialogDescription>
+              سيتم حذف هذا العنصر نهائياً ولا يمكن استرجاعه. هل تريد المتابعة؟
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handlePermanentDelete}>حذف نهائياً</AlertDialogAction>
+            <AlertDialogAction onClick={handlePermanentDelete}>
+              حذف نهائياً
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -161,11 +267,18 @@ export default function Trash() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تفريغ سلة المحذوفات</AlertDialogTitle>
-            <AlertDialogDescription>سيتم حذف جميع العناصر نهائياً. لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+            <AlertDialogDescription>
+              سيتم حذف جميع العناصر نهائياً. لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleEmptyTrash} className="bg-destructive hover:bg-destructive/90">تفريغ السلة</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleEmptyTrash}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              تفريغ السلة
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
