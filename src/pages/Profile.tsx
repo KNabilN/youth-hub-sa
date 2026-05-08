@@ -57,6 +57,7 @@ export default function Profile() {
   const { role, user } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { data: bankDetails } = useBankDetails();
+  const { data: pendingEdit } = usePendingProfileEditRequest();
   const updateProfile = useUpdateProfile();
   const updateBankDetails = useUpdateBankDetails();
   const uploadAvatar = useUploadAvatar();
