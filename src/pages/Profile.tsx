@@ -164,8 +164,12 @@ export default function Profile() {
         city_id: cityId || null,
       },
       {
-        onSuccess: () => {
-          toast({ title: "تم تحديث الملف الشخصي", description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
+        onSuccess: (res) => {
+          if (res?.hasPendingReview) {
+            toast({ title: "تم إرسال التعديلات للمراجعة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها. يبقى حسابك موثقاً كما هو." });
+          } else {
+            toast({ title: "تم تحديث الملف الشخصي" });
+          }
         },
         onError: (err: any) => {
           const msg = String(err?.message || "");
