@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { getDisplayName } from "@/lib/utils";
 
 const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
@@ -89,8 +90,9 @@ const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isA
 
 const HeaderUserInfo = memo(function HeaderUserInfo() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { data: profile } = useProfile();
+  const displayName = getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : (user?.email ?? "");
 
   return (
     <button
@@ -99,15 +101,15 @@ const HeaderUserInfo = memo(function HeaderUserInfo() {
       aria-label="الملف الشخصي"
     >
       <div className="text-end hidden sm:block">
-        <p className="text-sm font-medium leading-none">{profile?.organization_name || profile?.full_name || user?.email}</p>
-        {profile?.full_name && (
+        <p className="text-sm font-medium leading-none">{displayName}</p>
+        {displayName !== user?.email && (
           <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
         )}
       </div>
       <Avatar className="h-9 w-9 border-2 border-border">
-        <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "صورة المستخدم"} />
+        <AvatarImage src={profile?.avatar_url || undefined} alt={displayName || "صورة المستخدم"} />
         <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-          {(profile?.full_name?.[0] || user?.email?.[0] || "؟").toUpperCase()}
+          {(displayName?.[0] || user?.email?.[0] || "؟").toUpperCase()}
         </AvatarFallback>
       </Avatar>
     </button>

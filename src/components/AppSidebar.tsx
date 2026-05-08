@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import logoImg from "@/assets/logo.png";
 import logoWhiteImg from "@/assets/logo-white.png";
+import { getDisplayName } from "@/lib/utils";
 
 const menuByRole = {
   youth_association: [
@@ -297,13 +298,13 @@ export function AppSidebar() {
             <Avatar className="h-14 w-14 border-[3px] border-sidebar-ring shadow-lg">
               <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="text-lg bg-sidebar-accent text-sidebar-accent-foreground font-bold">
-                {(profile?.full_name?.[0] || "؟")}
+                {(getDisplayName(profile, role)?.[0] || "؟")}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 [inset-inline-end:-0.25rem] h-4 w-4 rounded-full bg-emerald-500 border-2 border-sidebar-background" />
           </div>
           <div className="space-y-0.5">
-            <p className="text-sm font-bold text-sidebar-foreground">{profile?.full_name || "مستخدم"}</p>
+            <p className="text-sm font-bold text-sidebar-foreground">{getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : "مستخدم"}</p>
             <p className="text-[11px] text-sidebar-foreground/50 truncate max-w-[180px]">{user?.email}</p>
           </div>
         </div>
