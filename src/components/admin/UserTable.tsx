@@ -167,19 +167,6 @@ export function UserTable({ pagination }: UserTableProps) {
     setEditUser(u);
   };
 
-  if (isLoading) return (
-    <div className="space-y-4">
-      <div className="flex gap-3">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-10 w-40" />
-        <Skeleton className="h-10 w-40" />
-      </div>
-      <div className="border rounded-lg p-4 space-y-3">
-        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3 items-end">
