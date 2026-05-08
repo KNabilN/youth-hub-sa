@@ -62,7 +62,7 @@ export default function TicketDetail() {
         .select("*")
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

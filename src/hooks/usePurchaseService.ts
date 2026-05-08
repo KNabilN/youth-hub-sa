@@ -26,7 +26,7 @@ export function usePurchaseService() {
         .from("user_roles")
         .select("role")
         .eq("user_id", buyerId)
-        .single();
+        .maybeSingle();
       const isAssociation = buyerRole?.role === "youth_association";
 
       let projectId: string | null = null;

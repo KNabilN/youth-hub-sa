@@ -10,7 +10,7 @@ export function useAdminUserById(userId: string | null) {
         .from("profiles")
         .select("*")
         .eq("id", userId!)
-        .single();
+        .maybeSingle();
       if (profileError) throw profileError;
 
       const { data: roles, error: rolesError } = await supabase

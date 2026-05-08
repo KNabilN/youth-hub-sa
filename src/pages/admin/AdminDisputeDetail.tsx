@@ -44,7 +44,7 @@ export default function AdminDisputeDetail() {
         .select("*, projects(title), profiles!disputes_raised_by_fkey(full_name)")
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

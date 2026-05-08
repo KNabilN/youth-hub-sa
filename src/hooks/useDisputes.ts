@@ -46,7 +46,7 @@ export function useReopenDispute() {
         .from("disputes")
         .select("id, status, updated_at, project_id, raised_by")
         .eq("id", disputeId)
-        .single();
+        .maybeSingle();
       if (fetchErr || !dispute) throw new Error("الشكوى غير موجودة");
 
       if (!["resolved", "closed"].includes(dispute.status)) {

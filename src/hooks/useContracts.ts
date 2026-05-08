@@ -94,7 +94,7 @@ export function useSignContract() {
         .from("contracts")
         .select("*")
         .eq("id", contractId)
-        .single();
+        .maybeSingle();
 
       if (!contract) return;
 
@@ -151,7 +151,7 @@ export function useProviderContract(bidId: string | undefined) {
         .from("bids")
         .select("project_id, provider_id")
         .eq("id", bidId!)
-        .single();
+        .maybeSingle();
       if (!bid) return null;
 
       const { data } = await supabase

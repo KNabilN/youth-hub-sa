@@ -48,7 +48,7 @@ export function useAvailableProject(id: string | undefined) {
         .select("*, categories(*), regions(*), cities(*), profiles!projects_association_id_fkey(full_name, avatar_url, organization_name)")
         .eq("id", id!)
         .is("deleted_at", null)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

@@ -97,7 +97,7 @@ export default function AdminProjectDetail() {
         .from("projects")
         .select("*, categories(name), regions(name), profiles!projects_association_id_fkey(id, full_name, avatar_url, organization_name), assigned_provider:profiles!projects_assigned_provider_id_fkey(id, full_name, avatar_url)")
         .eq("id", id!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

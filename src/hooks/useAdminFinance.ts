@@ -65,7 +65,7 @@ export function useCommissionConfig() {
         .from("commission_config")
         .select("*")
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
       if (error && error.code !== "PGRST116") throw error;
       return data;
     },
