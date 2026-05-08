@@ -63,7 +63,7 @@ export default function MyServices() {
   const handleEdit = (values: ServiceFormValues) => {
     if (!editingId || updateService.isPending) return;
     updateService.mutate({ id: editingId, ...values } as Parameters<typeof updateService.mutate>[0], {
-      onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
+      onSuccess: () => { toast({ title: "تم تحديث الخدمة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
