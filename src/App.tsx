@@ -207,6 +207,7 @@ const App = () => (
                 <Route path="/admin/cms" element={<AdminRoute><SuspenseWrap><AdminCMS /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><SuspenseWrap><AdminNotifications /></SuspenseWrap></AdminRoute>} />
                 <Route path="/admin/messages" element={<AdminRoute><SuspenseWrap><AdminMessages /></SuspenseWrap></AdminRoute>} />
+                <Route path="/admin/edit-requests" element={<AdminRoute><SuspenseWrap><AdminEditRequests /></SuspenseWrap></AdminRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
