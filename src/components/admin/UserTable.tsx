@@ -76,6 +76,11 @@ export function UserTable({ pagination }: UserTableProps) {
   const updateProfile = useAdminUpdateProfile();
   const softDelete = useSoftDelete();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
