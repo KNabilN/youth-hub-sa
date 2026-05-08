@@ -169,6 +169,7 @@ function AssociationDashboard() {
       color: "warning",
     },
   ];
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
   return <StatsGrid items={items} isLoading={isLoading} />;
 }
 
