@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useProfile, useUpdateProfile, useUploadAvatar, useBankDetails, useUpdateBankDetails } from "@/hooks/useProfile";
+import { useProfile, useUpdateProfile, useUploadAvatar, useBankDetails, useUpdateBankDetails, usePendingProfileEditRequest, SENSITIVE_PROFILE_FIELDS } from "@/hooks/useProfile";
 import { useUploadCover } from "@/hooks/useUploadCover";
 import { useUploadCompanyLogo } from "@/hooks/useUploadCompanyLogo";
 import { useAuth } from "@/hooks/useAuth";
