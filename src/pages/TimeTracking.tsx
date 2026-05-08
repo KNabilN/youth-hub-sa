@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useProviderTimeLogs,
@@ -14,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { useToast } from "@/hooks/use-toast";
 import {
   ClipboardList,
   Clock,
@@ -58,7 +58,6 @@ export default function TimeTracking() {
   const { data: timeLogs, isLoading } = useProviderTimeLogs();
   const { data: projects } = useAssignedProjects();
   const createTimeLog = useCreateTimeLog();
-  const { toast } = useToast();
 
   const [timerDefaults, setTimerDefaults] = useState<
     Partial<TimeEntryFormValues>
@@ -86,10 +85,10 @@ export default function TimeTracking() {
       },
       {
         onSuccess: () => {
-          toast({ title: "تم تسجيل الساعات بنجاح" });
+          toast.success("تم تسجيل الساعات بنجاح");
           setTimerDefaults({});
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useProjects,
@@ -56,8 +57,8 @@ export default function Projects() {
     updateStatus.mutate(
       { id, status },
       {
-        onSuccess: () => toast({ title: labels[status] || "تم تحديث الحالة" }),
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onSuccess: () => toast.success(labels[status] || "تم تحديث الحالة"),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

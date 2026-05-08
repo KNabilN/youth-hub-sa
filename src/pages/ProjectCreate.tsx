@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   ProjectForm,
@@ -37,10 +38,7 @@ export default function ProjectCreate() {
           resolve(data.id);
         },
         onError: (error) => {
-          toast({
-            title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"),
-            variant: "destructive",
-          });
+          toast.error(getFriendlyDatabaseError(error);
           reject(new Error("Draft creation failed"));
         },
       });
@@ -61,32 +59,20 @@ export default function ProjectCreate() {
         .update({ ...clean, status: "pending_approval" as any })
         .eq("id", draftId);
       if (error) {
-        toast({
-          title: getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"),
-          variant: "destructive",
-        });
+        toast.error(getFriendlyDatabaseError(error);
         return;
       }
-      toast({
-        title: "تم إنشاء الطلب بنجاح",
-        description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده",
-      });
+      toast.success("تم إنشاء الطلب بنجاح", { description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
       navigate(`/projects/${draftId}`);
     } else {
       // No draft created (skipped attachments step somehow)
       createProject.mutate({ ...values, status: "pending_approval" } as any, {
         onSuccess: (data) => {
-          toast({
-            title: "تم إنشاء الطلب بنجاح",
-            description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده",
-          });
+          toast.success("تم إنشاء الطلب بنجاح", { description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
           navigate(`/projects/${data.id}`);
         },
         onError: (error) =>
-          toast({
-            title: getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء الطلب"),
-            variant: "destructive",
-          }),
+          toast.error(getFriendlyDatabaseError(error),
       });
     }
   };
@@ -105,29 +91,21 @@ export default function ProjectCreate() {
         .eq("id", draftId)
         .then(({ error }) => {
           if (error)
-            toast({
-              title: getFriendlyDatabaseError(
-                error,
-                "حدث خطأ أثناء حفظ المسودة",
-              ),
-              variant: "destructive",
-            });
+            toast.error(getFriendlyDatabaseError(
+                error);
           else {
-            toast({ title: "تم حفظ الطلب كمسودة" });
+            toast.success("تم حفظ الطلب كمسودة");
             navigate(`/projects/${draftId}`);
           }
         });
     } else {
       createProject.mutate({ ...values, status: "draft" } as any, {
         onSuccess: (data) => {
-          toast({ title: "تم حفظ الطلب كمسودة" });
+          toast.success("تم حفظ الطلب كمسودة");
           navigate(`/projects/${data.id}`);
         },
         onError: (error) =>
-          toast({
-            title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"),
-            variant: "destructive",
-          }),
+          toast.error(getFriendlyDatabaseError(error),
       });
     }
   };

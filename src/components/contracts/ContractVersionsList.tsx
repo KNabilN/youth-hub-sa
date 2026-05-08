@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   useContractVersions,
   useCreateContractVersion,
@@ -42,11 +43,11 @@ export function ContractVersionsList({
       { contractId, terms, changeNote: note },
       {
         onSuccess: () => {
-          toast({ title: "تم حفظ الإصدار الجديد" });
+          toast.success("تم حفظ الإصدار الجديد");
           setOpen(false);
           setNote("");
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };

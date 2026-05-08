@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useMyGrants,
@@ -126,16 +127,12 @@ export default function MyGrants() {
       },
       {
         onSuccess: () => {
-          toast({ title: "تم إنشاء طلب المنحة بنجاح" });
+          toast.success("تم إنشاء طلب المنحة بنجاح");
           setOpen(false);
           resetForm();
         },
         onError: (err: any) =>
-          toast({
-            title: "حدث خطأ",
-            description: err?.message || "تعذّر إنشاء طلب المنحة",
-            variant: "destructive",
-          }),
+          toast.error("حدث خطأ", { description: err?.message || "تعذّر إنشاء طلب المنحة" }),
       },
     );
   };

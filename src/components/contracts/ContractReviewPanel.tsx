@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,11 +58,11 @@ export function ContractReviewPanel({
       { contractId: contract.id, scope },
       {
         onSuccess: () => {
-          toast({ title: "تم حفظ نطاق العمل بنجاح" });
+          toast.success("تم حفظ نطاق العمل بنجاح");
           setEditingScope(false);
         },
         onError: () =>
-          toast({ title: "حدث خطأ في حفظ التعديلات", variant: "destructive" }),
+          toast.error("حدث خطأ في حفظ التعديلات"),
       },
     );
   };
@@ -69,16 +70,9 @@ export function ContractReviewPanel({
   const handleSign = () => {
     signContract.mutate(contract.id, {
       onSuccess: () =>
-        toast({
-          title: "تم توقيع العقد بنجاح ✅",
-          description: "سيتم إشعار الطرف الآخر",
-        }),
+        toast.success("تم توقيع العقد بنجاح ✅", { description: "سيتم إشعار الطرف الآخر" }),
       onError: (err: any) =>
-        toast({
-          title: "حدث خطأ",
-          description: err?.message,
-          variant: "destructive",
-        }),
+        toast.error("حدث خطأ", { description: err?.message }),
     });
   };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useTrashItems,
@@ -36,7 +37,6 @@ import {
   Tag,
   Star,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
@@ -65,7 +65,6 @@ export default function Trash() {
   const restore = useRestoreItem();
   const permanentDelete = usePermanentDelete();
   const emptyTrash = useEmptyTrash();
-  const { toast } = useToast();
 
   const [tab, setTab] = useState<string>("all");
   const [deletingItem, setDeletingItem] = useState<{
@@ -81,8 +80,8 @@ export default function Trash() {
     restore.mutate(
       { table, id },
       {
-        onSuccess: () => toast({ title: "تم استرجاع العنصر بنجاح" }),
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onSuccess: () => toast.success("تم استرجاع العنصر بنجاح"),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -91,20 +90,20 @@ export default function Trash() {
     if (!deletingItem) return;
     permanentDelete.mutate(deletingItem, {
       onSuccess: () => {
-        toast({ title: "تم الحذف نهائياً" });
+        toast.success("تم الحذف نهائياً");
         setDeletingItem(null);
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 
   const handleEmptyTrash = () => {
     emptyTrash.mutate(undefined, {
       onSuccess: () => {
-        toast({ title: "تم تفريغ سلة المحذوفات" });
+        toast.success("تم تفريغ سلة المحذوفات");
         setEmptyConfirm(false);
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 

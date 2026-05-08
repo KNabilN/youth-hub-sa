@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { AdminNotificationSheet } from "@/components/admin/AdminNotificationSheet";
 import {
@@ -80,7 +81,7 @@ export default function AdminNotifications() {
   const handleResend = (n: any) => {
     resend.mutate(
       { user_id: n.user_id, message: n.message, type: n.type },
-      { onSuccess: () => toast({ title: "تم إعادة إرسال الإشعار" }) },
+      { onSuccess: () => toast.success("تم إعادة إرسال الإشعار") },
     );
   };
 

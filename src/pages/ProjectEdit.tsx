@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProject, useUpdateProject } from "@/hooks/useProjects";
 import {
@@ -78,12 +79,9 @@ export default function ProjectEdit() {
       .eq("id", project.id)
       .then(({ error }) => {
         if (error)
-          toast({
-            title: getFriendlyDatabaseError(error, "حدث خطأ أثناء حفظ المسودة"),
-            variant: "destructive",
-          });
+          toast.error(getFriendlyDatabaseError(error);
         else {
-          toast({ title: "تم حفظ المسودة" });
+          toast.success("تم حفظ المسودة");
           navigate(`/projects/${project.id}`);
         }
       });
@@ -96,21 +94,15 @@ export default function ProjectEdit() {
     }
     updateProject.mutate(payload, {
       onSuccess: () => {
-        toast({
-          title: willResetStatus
+        toast.success(willResetStatus
             ? "تم تحديث الطلب وإعادته للمراجعة"
-            : "تم تحديث الطلب",
-          description: willResetStatus
+            : "تم تحديث الطلب", { description: willResetStatus
             ? "سيتم مراجعته من قبل فريق المنصة قبل اعتماده"
-            : undefined,
-        });
+            : undefined });
         navigate(`/projects/${project.id}`);
       },
       onError: (error) =>
-        toast({
-          title: getFriendlyDatabaseError(error, "حدث خطأ"),
-          variant: "destructive",
-        }),
+        toast.error(getFriendlyDatabaseError(error),
     });
   };
 

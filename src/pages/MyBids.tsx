@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProviderBids, useWithdrawBid } from "@/hooks/useProviderBids";
 import { useSignContract } from "@/hooks/useContracts";
@@ -17,7 +18,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -75,7 +75,6 @@ export default function MyBids() {
   const { data: allBids, isLoading } = useProviderBids(filter);
   const withdrawBid = useWithdrawBid();
   const signContract = useSignContract();
-  const { toast } = useToast();
   const pagination = usePagination("my-bids");
   const { saveAndNavigate } = useListHighlight("my-bids");
 
@@ -121,15 +120,15 @@ export default function MyBids() {
 
   const handleWithdraw = (id: string) => {
     withdrawBid.mutate(id, {
-      onSuccess: () => toast({ title: "تم سحب العرض" }),
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onSuccess: () => toast.success("تم سحب العرض"),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 
   const handleSign = (contractId: string) => {
     signContract.mutate(contractId, {
-      onSuccess: () => toast({ title: "تم توقيع العقد بنجاح" }),
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onSuccess: () => toast.success("تم توقيع العقد بنجاح"),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 

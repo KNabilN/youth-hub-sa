@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useMyServices,
@@ -36,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { Plus, Layers, AlertTriangle, Filter, ArrowUpDown } from "lucide-react";
 import { usePublishGuard } from "@/hooks/useVerificationGuard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -54,7 +54,6 @@ export default function MyServices() {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const updateStatus = useUpdateServiceStatus();
-  const { toast } = useToast();
   const { canPublish, guardPublish, blockReason } = usePublishGuard();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -70,13 +69,10 @@ export default function MyServices() {
     if (createService.isPending) return;
     createService.mutate(values as Parameters<typeof createService.mutate>[0], {
       onSuccess: () => {
-        toast({
-          title: "تم إنشاء الخدمة بنجاح",
-          description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها",
-        });
+        toast.success("تم إنشاء الخدمة بنجاح", { description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" });
         setFormOpen(false);
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 
@@ -90,10 +86,10 @@ export default function MyServices() {
       } as Parameters<typeof createService.mutate>[0],
       {
         onSuccess: () => {
-          toast({ title: "تم حفظ الخدمة كمسودة" });
+          toast.success("تم حفظ الخدمة كمسودة");
           setFormOpen(false);
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -106,13 +102,10 @@ export default function MyServices() {
       >[0],
       {
         onSuccess: () => {
-          toast({
-            title: "تم تحديث الخدمة",
-            description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها",
-          });
+          toast.success("تم تحديث الخدمة", { description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" });
           setEditingId(null);
         },
-        onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+        onError: () => toast.error("حدث خطأ"),
       },
     );
   };
@@ -121,10 +114,10 @@ export default function MyServices() {
     if (!deletingId) return;
     deleteService.mutate(deletingId, {
       onSuccess: () => {
-        toast({ title: "تم حذف الخدمة" });
+        toast.success("تم حذف الخدمة");
         setDeletingId(null);
       },
-      onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+      onError: () => toast.error("حدث خطأ"),
     });
   };
 
@@ -247,9 +240,9 @@ export default function MyServices() {
                       { id, approval: "suspended" },
                       {
                         onSuccess: () =>
-                          toast({ title: "تم إيقاف الخدمة مؤقتاً" }),
+                          toast.success("تم إيقاف الخدمة مؤقتاً"),
                         onError: () =>
-                          toast({ title: "حدث خطأ", variant: "destructive" }),
+                          toast.error("حدث خطأ"),
                       },
                     )
                   }
@@ -258,13 +251,9 @@ export default function MyServices() {
                       { id, approval: "pending" },
                       {
                         onSuccess: () =>
-                          toast({
-                            title: "تم إعادة تقديم الخدمة للمراجعة",
-                            description:
-                              "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها",
-                          }),
+                          toast.success("تم إعادة تقديم الخدمة للمراجعة", { description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" }),
                         onError: () =>
-                          toast({ title: "حدث خطأ", variant: "destructive" }),
+                          toast.error("حدث خطأ"),
                       },
                     )
                   }

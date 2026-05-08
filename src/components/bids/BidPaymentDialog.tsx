@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -135,10 +136,7 @@ export function BidPaymentDialog({
         const { data, error } =
           await supabase.functions.invoke("moyasar-get-config");
         if (error || !data?.publishable_key) {
-          toast({
-            title: "حدث خطأ أثناء تحميل بوابة الدفع",
-            variant: "destructive",
-          });
+          toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
           return;
         }
         const paymentContext = {
@@ -166,7 +164,7 @@ export function BidPaymentDialog({
         setStep(1);
       }
     } catch {
-      toast({ title: "حدث خطأ أثناء قبول العرض", variant: "destructive" });
+      toast.error("حدث خطأ أثناء قبول العرض");
     } finally {
       setLoadingPayment(false);
     }
@@ -199,13 +197,10 @@ export function BidPaymentDialog({
           },
         ],
       });
-      toast({
-        title: "تم قبول العرض ورفع إيصال التحويل",
-        description: "سيتم مراجعته من الإدارة وبعد الموافقة يبدأ العمل",
-      });
+      toast.success("تم قبول العرض ورفع إيصال التحويل", { description: "سيتم مراجعته من الإدارة وبعد الموافقة يبدأ العمل" });
       onOpenChange(false);
     } catch {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast.error("حدث خطأ");
     } finally {
       setLoadingPayment(false);
     }
@@ -249,10 +244,10 @@ export function BidPaymentDialog({
         })
         .eq("id", projectId);
 
-      toast({ title: "تم قبول العرض والدفع من رصيد المنح بنجاح" });
+      toast.success("تم قبول العرض والدفع من رصيد المنح بنجاح");
       onOpenChange(false);
     } catch {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast.error("حدث خطأ");
     } finally {
       setLoadingPayment(false);
     }
@@ -290,10 +285,7 @@ export function BidPaymentDialog({
         const { data, error } =
           await supabase.functions.invoke("moyasar-get-config");
         if (error || !data?.publishable_key) {
-          toast({
-            title: "حدث خطأ أثناء تحميل بوابة الدفع",
-            variant: "destructive",
-          });
+          toast.error("حدث خطأ أثناء تحميل بوابة الدفع");
           return;
         }
         const paymentContext = {
@@ -323,10 +315,7 @@ export function BidPaymentDialog({
         setStep(1);
       } else if (mixedRemainingMethod === "bank_transfer") {
         if (!receiptFile) {
-          toast({
-            title: "يرجى رفع إيصال التحويل البنكي",
-            variant: "destructive",
-          });
+          toast.error("يرجى رفع إيصال التحويل البنكي");
           setLoadingPayment(false);
           return;
         }
@@ -344,14 +333,11 @@ export function BidPaymentDialog({
             },
           ],
         });
-        toast({
-          title: "تم الدفع الجزئي من المنح ورفع إيصال التحويل للمتبقي",
-          description: "سيتم مراجعة الإيصال من الإدارة",
-        });
+        toast.success("تم الدفع الجزئي من المنح ورفع إيصال التحويل للمتبقي", { description: "سيتم مراجعة الإيصال من الإدارة" });
         onOpenChange(false);
       }
     } catch {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast.error("حدث خطأ");
     } finally {
       setLoadingPayment(false);
     }
@@ -456,10 +442,7 @@ export function BidPaymentDialog({
             const f = e.target.files?.[0];
             if (f) {
               if (f.size > 5 * 1024 * 1024) {
-                toast({
-                  title: "الحد الأقصى 5 ميجابايت",
-                  variant: "destructive",
-                });
+                toast.error("الحد الأقصى 5 ميجابايت");
                 return;
               }
               setReceiptFile(f);

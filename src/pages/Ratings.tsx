@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,9 +79,9 @@ export default function Ratings() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-ratings"] });
       qc.invalidateQueries({ queryKey: ["pending-ratings"] });
-      toast({ title: "تم إرسال التقييم بنجاح ✨" });
+      toast.success("تم إرسال التقييم بنجاح ✨");
     },
-    onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
+    onError: () => toast.error("حدث خطأ"),
   });
 
   const [activeContract, setActiveContract] = useState<string | null>(null);
@@ -96,7 +97,7 @@ export default function Ratings() {
       timing === 0 ||
       communication === 0
     ) {
-      toast({ title: "يرجى تقييم جميع المعايير", variant: "destructive" });
+      toast.error("يرجى تقييم جميع المعايير");
       return;
     }
     submitRating.mutate({

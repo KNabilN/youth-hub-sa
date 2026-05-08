@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import {
   useProfile,
@@ -23,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
 import {
   User,
   Shield,
@@ -120,7 +120,6 @@ export default function Profile() {
   const uploadAvatar = useUploadAvatar();
   const uploadCover = useUploadCover();
   const uploadCompanyLogo = useUploadCompanyLogo();
-  const { toast } = useToast();
   const { isComplete, missingFields, completionPercentage, requiredFields } =
     useProfileCompleteness();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,11 +188,7 @@ export default function Profile() {
       bankIban.length > 0
     ) {
       if (!bankIban.startsWith("SA") || bankIban.length !== 24) {
-        toast({
-          title: "رقم IBAN غير صحيح",
-          description: "يجب أن يبدأ بـ SA ويتكون من 24 حرف",
-          variant: "destructive",
-        });
+        toast.error("رقم IBAN غير صحيح", { description: "يجب أن يبدأ بـ SA ويتكون من 24 حرف" });
         return;
       }
     }
@@ -210,10 +205,7 @@ export default function Profile() {
         );
         if (error) throw error;
         if (data === true) {
-          toast({
-            title: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى",
-            variant: "destructive",
-          });
+          toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
           return;
         }
       } catch {
@@ -243,13 +235,9 @@ export default function Profile() {
       {
         onSuccess: (res) => {
           if (res?.hasPendingReview) {
-            toast({
-              title: "تم إرسال التعديلات للمراجعة",
-              description:
-                "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها. يبقى حسابك موثقاً كما هو.",
-            });
+            toast.success("تم إرسال التعديلات للمراجعة", { description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها. يبقى حسابك موثقاً كما هو." });
           } else {
-            toast({ title: "تم تحديث الملف الشخصي" });
+            toast.success("تم تحديث الملف الشخصي");
           }
         },
         onError: (err: any) => {
@@ -258,12 +246,9 @@ export default function Profile() {
             msg.includes("23505") ||
             msg.toLowerCase().includes("license_number")
           ) {
-            toast({
-              title: "رقم الترخيص مسجَّل مسبقاً لجمعية أخرى",
-              variant: "destructive",
-            });
+            toast.error("رقم الترخيص مسجَّل مسبقاً لجمعية أخرى");
           } else {
-            toast({ title: "حدث خطأ", variant: "destructive" });
+            toast.error("حدث خطأ");
           }
         },
       },
@@ -280,10 +265,7 @@ export default function Profile() {
         },
         {
           onError: () =>
-            toast({
-              title: "حدث خطأ في حفظ البيانات البنكية",
-              variant: "destructive",
-            }),
+            toast.error("حدث خطأ في حفظ البيانات البنكية"),
         },
       );
     }
@@ -293,9 +275,9 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
     uploadAvatar.mutate(file, {
-      onSuccess: () => toast({ title: "تم تحديث الصورة الشخصية" }),
+      onSuccess: () => toast.success("تم تحديث الصورة الشخصية"),
       onError: () =>
-        toast({ title: "خطأ في رفع الصورة", variant: "destructive" }),
+        toast.error("خطأ في رفع الصورة"),
     });
   };
 
@@ -303,22 +285,22 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
     uploadCover.mutate(file, {
-      onSuccess: () => toast({ title: "تم تحديث صورة الغلاف" }),
+      onSuccess: () => toast.success("تم تحديث صورة الغلاف"),
       onError: () =>
-        toast({ title: "خطأ في رفع الصورة", variant: "destructive" }),
+        toast.error("خطأ في رفع الصورة"),
     });
   };
 
   const handleLogoUpload = useCallback(
     (file: File) => {
       if (!file.type.startsWith("image/")) {
-        toast({ title: "يرجى اختيار صورة", variant: "destructive" });
+        toast.error("يرجى اختيار صورة");
         return;
       }
       uploadCompanyLogo.mutate(file, {
-        onSuccess: () => toast({ title: "تم تحديث شعار الجهة المانحة" }),
+        onSuccess: () => toast.success("تم تحديث شعار الجهة المانحة"),
         onError: () =>
-          toast({ title: "خطأ في رفع الشعار", variant: "destructive" }),
+          toast.error("خطأ في رفع الشعار"),
       });
     },
     [uploadCompanyLogo, toast],
