@@ -4,68 +4,68 @@ import { supabase } from "@/integrations/supabase/client";
 const VAT_RATE = 0.15;
 
 export interface PricingBreakdown {
-  subtotal: number;
-  commissionRate: number;
-  commission: number;
-  vat: number;
-  total: number;
+ subtotal: number;
+ commissionRate: number;
+ commission: number;
+ vat: number;
+ total: number;
 }
 
 export interface PricingWithDiscount extends PricingBreakdown {
-  originalSubtotal: number;
-  discountedSubtotal: number;
-  discount: number;
+ originalSubtotal: number;
+ discountedSubtotal: number;
+ discount: number;
 }
 
 export function calculatePricing(baseAmount: number, commissionRate: number): PricingBreakdown {
-  const commission = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
-  const total = Math.round((baseAmount + commission + vat) * 100) / 100;
-  return {
-    subtotal: baseAmount,
-    commissionRate,
-    commission,
-    vat,
-    total,
-  };
+ const commission = Math.round(baseAmount * commissionRate * 100) / 100;
+ const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
+ const total = Math.round((baseAmount + commission + vat) * 100) / 100;
+ return {
+ subtotal: baseAmount,
+ commissionRate,
+ commission,
+ vat,
+ total,
+ };
 }
 
 export function calculatePricingWithDiscount(
-  baseAmount: number,
-  commissionRate: number,
-  discountAmount: number
+ baseAmount: number,
+ commissionRate: number,
+ discountAmount: number
 ): PricingWithDiscount {
-  // Commission & VAT calculated on ORIGINAL base amount
-  const commission = Math.round(baseAmount * commissionRate * 100) / 100;
-  const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
-  const totalBeforeDiscount = Math.round((baseAmount + commission + vat) * 100) / 100;
-  const discount = Math.min(discountAmount, totalBeforeDiscount);
-  const total = Math.round((totalBeforeDiscount - discount) * 100) / 100;
-  return {
-    originalSubtotal: baseAmount,
-    discountedSubtotal: baseAmount, // base stays the same, discount is from grand total
-    discount,
-    subtotal: baseAmount,
-    commissionRate,
-    commission,
-    vat,
-    total,
-  };
+ // Commission & VAT calculated on ORIGINAL base amount
+ const commission = Math.round(baseAmount * commissionRate * 100) / 100;
+ const vat = Math.round(baseAmount * VAT_RATE * 100) / 100;
+ const totalBeforeDiscount = Math.round((baseAmount + commission + vat) * 100) / 100;
+ const discount = Math.min(discountAmount, totalBeforeDiscount);
+ const total = Math.round((totalBeforeDiscount - discount) * 100) / 100;
+ return {
+ originalSubtotal: baseAmount,
+ discountedSubtotal: baseAmount, // base stays the same, discount is from grand total
+ discount,
+ subtotal: baseAmount,
+ commissionRate,
+ commission,
+ vat,
+ total,
+ };
 }
 
 export function useCommissionRate() {
-  return useQuery({
-    queryKey: ["commission-rate"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("commission_config")
-        .select("rate")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return (data?.rate as number) ?? 0.05;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+ return useQuery({
+ queryKey: ["commission-rate"],
+ queryFn: async () => {
+ const { data } = await supabase
+ .from("commission_config")
+ .select("rate")
+ .eq("is_active", true)
+ .order("created_at", { ascending: false })
+ .limit(1)
+ .maybeSingle();
+ return (data?.rate as number) ?? 0.05;
+ },
+ staleTime: 5 * 60 * 1000,
+ });
 }

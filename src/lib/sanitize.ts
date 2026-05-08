@@ -4,25 +4,25 @@
  * to prevent database constraint errors.
  */
 export function sanitizeFormValues<T extends Record<string, unknown>>(
-  values: T,
-  uuidFields: string[] = [],
-  numericFields: string[] = []
+ values: T,
+ uuidFields: string[] = [],
+ numericFields: string[] = []
 ): T {
-  const result = { ...values };
-  for (const key of uuidFields) {
-    if (key in result && (result[key] === "" || result[key] === undefined)) {
-      (result as any)[key] = null;
-    }
-  }
-  for (const key of numericFields) {
-    if (key in result) {
-      const val = result[key];
-      if (val === "" || val === undefined || (typeof val === "number" && isNaN(val))) {
-        (result as any)[key] = null;
-      }
-    }
-  }
-  return result;
+ const result = { ...values };
+ for (const key of uuidFields) {
+ if (key in result && (result[key] === "" || result[key] === undefined)) {
+ (result as any)[key] = null;
+ }
+ }
+ for (const key of numericFields) {
+ if (key in result) {
+ const val = result[key];
+ if (val === "" || val === undefined || (typeof val === "number" && isNaN(val))) {
+ (result as any)[key] = null;
+ }
+ }
+ }
+ return result;
 }
 
 /** Common UUID fields for projects */

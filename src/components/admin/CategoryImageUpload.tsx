@@ -7,140 +7,140 @@ import { ImageIcon, Upload, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface CategoryImageUploadProps {
-  categoryId: string;
-  categoryName: string;
-  currentImageUrl: string | null;
+ categoryId: string;
+ categoryName: string;
+ currentImageUrl: string | null;
 }
 
 export function CategoryImageUpload({ categoryId, categoryName, currentImageUrl }: CategoryImageUploadProps) {
-  const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const qc = useQueryClient();
+ const [open, setOpen] = useState(false);
+ const [preview, setPreview] = useState<string | null>(null);
+ const fileRef = useRef<HTMLInputElement>(null);
+ const qc = useQueryClient();
 
-  useEffect(() => {
-    if (!open && preview) {
-      URL.revokeObjectURL(preview);
-      setPreview(null);
-    }
-  }, [open]);
+ useEffect(() => {
+ if (!open && preview) {
+ URL.revokeObjectURL(preview);
+ setPreview(null);
+ }
+ }, [open]);
 
-  const uploadMut = useMutation({
-    mutationFn: async (file: File) => {
-      const ext = file.name.split(".").pop();
-      const path = `${categoryId}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from("category-images")
-        .upload(path, file, { contentType: file.type, cacheControl: "3600" });
-      if (uploadErr) throw uploadErr;
-      const { data: urlData } = supabase.storage.from("category-images").getPublicUrl(path);
-      const image_url = urlData.publicUrl;
-      const { error } = await supabase.from("categories").update({ image_url } as any).eq("id", categoryId);
-      if (error) throw error;
-      return image_url;
-    },
-    onSuccess: () => {
-      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
-      qc.invalidateQueries({ queryKey: ["admin-categories"] });
-      qc.invalidateQueries({ queryKey: ["categories"] });
-      qc.invalidateQueries({ queryKey: ["admin-services"] });
-      qc.invalidateQueries({ queryKey: ["admin-projects"] });
-      qc.invalidateQueries({ queryKey: ["marketplace"] });
-      qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["landing-stats"] });
-      qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
-      qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
-      qc.invalidateQueries({ queryKey: ["service-detail"] });
-      qc.invalidateQueries({ queryKey: ["my-services"] });
-      qc.invalidateQueries({ queryKey: ["available-projects"] });
-      toast.success("تم رفع صورة التصنيف");
-      setOpen(false);
-    },
-    onError: (e: any) => {
-      if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
-      toast.error(e.message);
-    },
-  });
+ const uploadMut = useMutation({
+ mutationFn: async (file: File) => {
+ const ext = file.name.split(".").pop();
+ const path = `${categoryId}/${Date.now()}.${ext}`;
+ const { error: uploadErr } = await supabase.storage
+ .from("category-images")
+ .upload(path, file, { contentType: file.type, cacheControl: "3600" });
+ if (uploadErr) throw uploadErr;
+ const { data: urlData } = supabase.storage.from("category-images").getPublicUrl(path);
+ const image_url = urlData.publicUrl;
+ const { error } = await supabase.from("categories").update({ image_url } as any).eq("id", categoryId);
+ if (error) throw error;
+ return image_url;
+ },
+ onSuccess: () => {
+ if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
+ qc.invalidateQueries({ queryKey: ["admin-categories"] });
+ qc.invalidateQueries({ queryKey: ["categories"] });
+ qc.invalidateQueries({ queryKey: ["admin-services"] });
+ qc.invalidateQueries({ queryKey: ["admin-projects"] });
+ qc.invalidateQueries({ queryKey: ["marketplace"] });
+ qc.invalidateQueries({ queryKey: ["projects"] });
+ qc.invalidateQueries({ queryKey: ["landing-stats"] });
+ qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
+ qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
+ qc.invalidateQueries({ queryKey: ["service-detail"] });
+ qc.invalidateQueries({ queryKey: ["my-services"] });
+ qc.invalidateQueries({ queryKey: ["available-projects"] });
+ toast.success("تم رفع صورة التصنيف");
+ setOpen(false);
+ },
+ onError: (e: any) => {
+ if (preview) { URL.revokeObjectURL(preview); setPreview(null); }
+ toast.error(e.message);
+ },
+ });
 
-  const removeMut = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("categories").update({ image_url: null } as any).eq("id", categoryId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-categories"] });
-      qc.invalidateQueries({ queryKey: ["categories"] });
-      qc.invalidateQueries({ queryKey: ["admin-services"] });
-      qc.invalidateQueries({ queryKey: ["admin-projects"] });
-      qc.invalidateQueries({ queryKey: ["marketplace"] });
-      qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["landing-stats"] });
-      qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
-      qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
-      qc.invalidateQueries({ queryKey: ["service-detail"] });
-      qc.invalidateQueries({ queryKey: ["my-services"] });
-      qc.invalidateQueries({ queryKey: ["available-projects"] });
-      toast.success("تم حذف صورة التصنيف");
-      setOpen(false);
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+ const removeMut = useMutation({
+ mutationFn: async () => {
+ const { error } = await supabase.from("categories").update({ image_url: null } as any).eq("id", categoryId);
+ if (error) throw error;
+ },
+ onSuccess: () => {
+ qc.invalidateQueries({ queryKey: ["admin-categories"] });
+ qc.invalidateQueries({ queryKey: ["categories"] });
+ qc.invalidateQueries({ queryKey: ["admin-services"] });
+ qc.invalidateQueries({ queryKey: ["admin-projects"] });
+ qc.invalidateQueries({ queryKey: ["marketplace"] });
+ qc.invalidateQueries({ queryKey: ["projects"] });
+ qc.invalidateQueries({ queryKey: ["landing-stats"] });
+ qc.invalidateQueries({ queryKey: ["landing-featured-services"] });
+ qc.invalidateQueries({ queryKey: ["landing-featured-projects"] });
+ qc.invalidateQueries({ queryKey: ["service-detail"] });
+ qc.invalidateQueries({ queryKey: ["my-services"] });
+ qc.invalidateQueries({ queryKey: ["available-projects"] });
+ toast.success("تم حذف صورة التصنيف");
+ setOpen(false);
+ },
+ onError: (e: any) => toast.error(e.message),
+ });
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("الحد الأقصى 5 ميجابايت");
-      return;
-    }
-    setPreview(URL.createObjectURL(file));
-    uploadMut.mutate(file);
-  };
+ const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const file = e.target.files?.[0];
+ if (!file) return;
+ if (file.size > 5 * 1024 * 1024) {
+ toast.error("الحد الأقصى 5 ميجابايت");
+ return;
+ }
+ setPreview(URL.createObjectURL(file));
+ uploadMut.mutate(file);
+ };
 
-  const isPending = uploadMut.isPending || removeMut.isPending;
-  const displayUrl = preview || currentImageUrl;
+ const isPending = uploadMut.isPending || removeMut.isPending;
+ const displayUrl = preview || currentImageUrl;
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" title="صورة التصنيف">
-          {currentImageUrl ? (
-            <img src={currentImageUrl} alt="" className="h-6 w-6 rounded object-cover" />
-          ) : (
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>صورة التصنيف: {categoryName}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          {displayUrl && (
-            <div className="relative rounded-lg overflow-hidden border">
-              <img src={displayUrl} alt={categoryName} className="w-full aspect-video object-cover" />
-              {uploadMut.isPending && (
-                <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
-              )}
-            </div>
-          )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          <p className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 400×250 بكسل • الحد الأقصى: 5 MB</p>
-          <div className="flex gap-2">
-            <Button onClick={() => fileRef.current?.click()} disabled={isPending} className="flex-1">
-              {uploadMut.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Upload className="h-4 w-4 me-1" />}
-              {currentImageUrl ? "تغيير الصورة" : "رفع صورة"}
-            </Button>
-            {currentImageUrl && (
-              <Button variant="destructive" onClick={() => removeMut.mutate()} disabled={isPending}>
-                {removeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+ return (
+ <Dialog open={open} onOpenChange={setOpen}>
+ <DialogTrigger asChild>
+ <Button size="icon" variant="ghost" title="صورة التصنيف">
+ {currentImageUrl ? (
+ <img src={currentImageUrl} alt="" className="h-6 w-6 rounded object-cover" />
+ ) : (
+ <ImageIcon className="h-4 w-4 text-muted-foreground" />
+ )}
+ </Button>
+ </DialogTrigger>
+ <DialogContent className="max-w-sm">
+ <DialogHeader>
+ <DialogTitle>صورة التصنيف: {categoryName}</DialogTitle>
+ </DialogHeader>
+ <div className="space-y-4">
+ {displayUrl && (
+ <div className="relative rounded-lg overflow-hidden border">
+ <img src={displayUrl} alt={categoryName} className="w-full aspect-video object-cover" />
+ {uploadMut.isPending && (
+ <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+ <Loader2 className="h-6 w-6 animate-spin text-primary" />
+ </div>
+ )}
+ </div>
+ )}
+ <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+ <p className="text-xs text-muted-foreground">الأبعاد المُوصى بها: 400×250 بكسل • الحد الأقصى: 5 MB</p>
+ <div className="flex gap-2">
+ <Button onClick={() => fileRef.current?.click()} disabled={isPending} className="flex-1">
+ {uploadMut.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : <Upload className="h-4 w-4 me-1" />}
+ {currentImageUrl ? "تغيير الصورة" : "رفع صورة"}
+ </Button>
+ {currentImageUrl && (
+ <Button variant="destructive" onClick={() => removeMut.mutate()} disabled={isPending}>
+ {removeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+ </Button>
+ )}
+ </div>
+ </div>
+ </DialogContent>
+ </Dialog>
+ );
 }

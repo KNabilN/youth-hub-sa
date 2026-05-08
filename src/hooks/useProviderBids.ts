@@ -4,66 +4,66 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
 export function useProviderBids(statusFilter?: string) {
-  const { user } = useAuth();
-  const qc = useQueryClient();
+ const { user } = useAuth();
+ const qc = useQueryClient();
 
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel(`rt-provider-bids-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `provider_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["provider-bids"] }))
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, qc]);
+ useEffect(() => {
+ if (!user) return;
+ const channel = supabase
+ .channel(`rt-provider-bids-${user.id}`)
+ .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `provider_id=eq.${user.id}` },
+ () => qc.invalidateQueries({ queryKey: ["provider-bids"] }))
+ .subscribe();
+ return () => { supabase.removeChannel(channel); };
+ }, [user, qc]);
 
-  return useQuery({
-    queryKey: ["provider-bids", user?.id, statusFilter],
-    enabled: !!user,
-    queryFn: async () => {
-      let query = supabase
-        .from("bids")
-        .select("*, projects(title, budget)")
-        .eq("provider_id", user!.id)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
-      if (statusFilter && statusFilter !== "all") {
-        query = query.eq("status", statusFilter as any);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
+ return useQuery({
+ queryKey: ["provider-bids", user?.id, statusFilter],
+ enabled: !!user,
+ queryFn: async () => {
+ let query = supabase
+ .from("bids")
+ .select("*, projects(title, budget)")
+ .eq("provider_id", user!.id)
+ .is("deleted_at", null)
+ .order("created_at", { ascending: false });
+ if (statusFilter && statusFilter !== "all") {
+ query = query.eq("status", statusFilter as any);
+ }
+ const { data, error } = await query;
+ if (error) throw error;
+ return data;
+ },
+ });
 }
 
 export function useSubmitBid() {
-  const qc = useQueryClient();
-  const { user } = useAuth();
-  return useMutation({
-    mutationFn: async (values: { project_id: string; price: number; timeline_days: number; cover_letter: string }) => {
-      const { data, error } = await supabase
-        .from("bids")
-        .insert({ ...values, provider_id: user!.id })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["provider-bids"] });
-      qc.invalidateQueries({ queryKey: ["bids"] });
-    },
-  });
+ const qc = useQueryClient();
+ const { user } = useAuth();
+ return useMutation({
+ mutationFn: async (values: { project_id: string; price: number; timeline_days: number; cover_letter: string }) => {
+ const { data, error } = await supabase
+ .from("bids")
+ .insert({ ...values, provider_id: user!.id })
+ .select()
+ .single();
+ if (error) throw error;
+ return data;
+ },
+ onSuccess: () => {
+ qc.invalidateQueries({ queryKey: ["provider-bids"] });
+ qc.invalidateQueries({ queryKey: ["bids"] });
+ },
+ });
 }
 
 export function useWithdrawBid() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (bidId: string) => {
-      const { error } = await supabase.from("bids").update({ status: "withdrawn" }).eq("id", bidId);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["provider-bids"] }),
-  });
+ const qc = useQueryClient();
+ return useMutation({
+ mutationFn: async (bidId: string) => {
+ const { error } = await supabase.from("bids").update({ status: "withdrawn" }).eq("id", bidId);
+ if (error) throw error;
+ },
+ onSuccess: () => qc.invalidateQueries({ queryKey: ["provider-bids"] }),
+ });
 }

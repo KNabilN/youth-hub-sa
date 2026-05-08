@@ -8,56 +8,56 @@ import { getFriendlyDatabaseError } from "@/lib/db-errors";
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
 
 interface CreateTicketInput {
-  subject: string;
-  description: string;
-  priority: TicketPriority;
+ subject: string;
+ description: string;
+ priority: TicketPriority;
 }
 
 export function useSupportTickets() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
+ const { user } = useAuth();
+ const qc = useQueryClient();
 
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel(`rt-tickets-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets", filter: `user_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["support-tickets"] }))
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, qc]);
+ useEffect(() => {
+ if (!user) return;
+ const channel = supabase
+ .channel(`rt-tickets-${user.id}`)
+ .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets", filter: `user_id=eq.${user.id}` },
+ () => qc.invalidateQueries({ queryKey: ["support-tickets"] }))
+ .subscribe();
+ return () => { supabase.removeChannel(channel); };
+ }, [user, qc]);
 
-  return useQuery({
-    queryKey: ["support-tickets", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("support_tickets")
-        .select("*")
-        .eq("user_id", user!.id)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+ return useQuery({
+ queryKey: ["support-tickets", user?.id],
+ queryFn: async () => {
+ const { data, error } = await supabase
+ .from("support_tickets")
+ .select("*")
+ .eq("user_id", user!.id)
+ .is("deleted_at", null)
+ .order("created_at", { ascending: false });
+ if (error) throw error;
+ return data;
+ },
+ enabled: !!user,
+ });
 }
 
 export function useCreateTicket() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: CreateTicketInput) => {
-      const { data, error } = await supabase
-        .from("support_tickets")
-        .insert({ ...input, user_id: user!.id })
-        .select()
-        .single();
-      if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"));
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["support-tickets", user?.id] });
-    },
-  });
+ const { user } = useAuth();
+ const queryClient = useQueryClient();
+ return useMutation({
+ mutationFn: async (input: CreateTicketInput) => {
+ const { data, error } = await supabase
+ .from("support_tickets")
+ .insert({ ...input, user_id: user!.id })
+ .select()
+ .single();
+ if (error) throw new Error(getFriendlyDatabaseError(error, "حدث خطأ أثناء إنشاء التذكرة"));
+ return data;
+ },
+ onSuccess: () => {
+ queryClient.invalidateQueries({ queryKey: ["support-tickets", user?.id] });
+ },
+ });
 }

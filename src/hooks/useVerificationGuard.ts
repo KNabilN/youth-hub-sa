@@ -5,93 +5,93 @@ import { toast } from "sonner";
 import { useCallback } from "react";
 
 export function useVerificationGuard() {
-  const { data: profile, isLoading } = useProfile();
-  const isVerified = profile?.is_verified ?? false;
+ const { data: profile, isLoading } = useProfile();
+ const isVerified = profile?.is_verified ?? false;
 
-  const guardAction = useCallback(
-    (callback: () => void) => {
-      if (!isVerified) {
-        toast.error("يجب توثيق حسابك أولاً للقيام بهذا الإجراء");
-        return;
-      }
-      callback();
-    },
-    [isVerified],
-  );
+ const guardAction = useCallback(
+ (callback: () => void) => {
+ if (!isVerified) {
+ toast.error("يجب توثيق حسابك أولاً للقيام بهذا الإجراء");
+ return;
+ }
+ callback();
+ },
+ [isVerified],
+ );
 
-  return { isVerified, guardAction, isLoading };
+ return { isVerified, guardAction, isLoading };
 }
 
 export function usePublishGuard() {
-  const { role } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useProfile();
-  const { isComplete, missingFields, isLoading: completenessLoading } = useProfileCompleteness();
-  const isVerified = profile?.is_verified ?? false;
-  const isLoading = profileLoading || completenessLoading;
-  const canPublish = isVerified && isComplete;
+ const { role } = useAuth();
+ const { data: profile, isLoading: profileLoading } = useProfile();
+ const { isComplete, missingFields, isLoading: completenessLoading } = useProfileCompleteness();
+ const isVerified = profile?.is_verified ?? false;
+ const isLoading = profileLoading || completenessLoading;
+ const canPublish = isVerified && isComplete;
 
-  const blockReason: "verification" | "profile" | "portfolio" | null = !isVerified
-    ? "verification"
-    : !isComplete
-      ? (role === "service_provider" && missingFields.includes("نموذج عمل واحد على الأقل") && missingFields.length === 1
-          ? "portfolio"
-          : "profile")
-      : null;
+ const blockReason: "verification" | "profile" | "portfolio" | null = !isVerified
+ ? "verification"
+ : !isComplete
+ ? (role === "service_provider" && missingFields.includes("نموذج عمل واحد على الأقل") && missingFields.length === 1
+ ? "portfolio"
+ : "profile")
+ : null;
 
-  const guardPublish = useCallback(
-    (callback: () => void) => {
-      if (!isVerified) {
-        toast.error("يجب توثيق حسابك أولاً قبل النشر");
-        return;
-      }
-      if (!isComplete) {
-        const isPortfolioOnly =
-          role === "service_provider" &&
-          missingFields.includes("نموذج عمل واحد على الأقل") &&
-          missingFields.length === 1;
-        if (isPortfolioOnly) {
-          toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل نشر الخدمات");
-        } else {
-          toast.error("يجب إكمال الملف الشخصي أولاً قبل النشر");
-        }
-        return;
-      }
-      callback();
-    },
-    [isVerified, isComplete, missingFields, role],
-  );
+ const guardPublish = useCallback(
+ (callback: () => void) => {
+ if (!isVerified) {
+ toast.error("يجب توثيق حسابك أولاً قبل النشر");
+ return;
+ }
+ if (!isComplete) {
+ const isPortfolioOnly =
+ role === "service_provider" &&
+ missingFields.includes("نموذج عمل واحد على الأقل") &&
+ missingFields.length === 1;
+ if (isPortfolioOnly) {
+ toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل نشر الخدمات");
+ } else {
+ toast.error("يجب إكمال الملف الشخصي أولاً قبل النشر");
+ }
+ return;
+ }
+ callback();
+ },
+ [isVerified, isComplete, missingFields, role],
+ );
 
-  return { canPublish, guardPublish, isVerified, isComplete, missingFields, blockReason, isLoading };
+ return { canPublish, guardPublish, isVerified, isComplete, missingFields, blockReason, isLoading };
 }
 
 export function useBidGuard() {
-  const { data: profile, isLoading: profileLoading } = useProfile();
-  const { missingFields, isLoading: completenessLoading } = useProfileCompleteness();
-  const isVerified = profile?.is_verified ?? false;
-  const hasPortfolio = !missingFields.includes("نموذج عمل واحد على الأقل");
-  const isLoading = profileLoading || completenessLoading;
-  const canBid = isVerified && hasPortfolio;
+ const { data: profile, isLoading: profileLoading } = useProfile();
+ const { missingFields, isLoading: completenessLoading } = useProfileCompleteness();
+ const isVerified = profile?.is_verified ?? false;
+ const hasPortfolio = !missingFields.includes("نموذج عمل واحد على الأقل");
+ const isLoading = profileLoading || completenessLoading;
+ const canBid = isVerified && hasPortfolio;
 
-  const blockReason: "verification" | "portfolio" | null = !isVerified
-    ? "verification"
-    : !hasPortfolio
-      ? "portfolio"
-      : null;
+ const blockReason: "verification" | "portfolio" | null = !isVerified
+ ? "verification"
+ : !hasPortfolio
+ ? "portfolio"
+ : null;
 
-  const guardBid = useCallback(
-    (callback: () => void) => {
-      if (!isVerified) {
-        toast.error("يجب توثيق حسابك أولاً لتقديم عروض");
-        return;
-      }
-      if (!hasPortfolio) {
-        toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض");
-        return;
-      }
-      callback();
-    },
-    [isVerified, hasPortfolio],
-  );
+ const guardBid = useCallback(
+ (callback: () => void) => {
+ if (!isVerified) {
+ toast.error("يجب توثيق حسابك أولاً لتقديم عروض");
+ return;
+ }
+ if (!hasPortfolio) {
+ toast.error("يجب إضافة نموذج عمل واحد على الأقل في معرض الأعمال قبل تقديم العروض");
+ return;
+ }
+ callback();
+ },
+ [isVerified, hasPortfolio],
+ );
 
-  return { canBid, guardBid, isVerified, hasPortfolio, blockReason, isLoading };
+ return { canBid, guardBid, isVerified, hasPortfolio, blockReason, isLoading };
 }

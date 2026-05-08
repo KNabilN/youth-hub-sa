@@ -15,169 +15,169 @@ import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { getDisplayName } from "@/lib/utils";
 
 const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isAdmin: boolean }) {
-  const navigate = useNavigate();
-  const { data: notifications } = useNotifications(0, 9);
-  const { data: unreadCount } = useUnreadCount();
-  const markAsRead = useMarkAsRead();
-  const markAllAsRead = useMarkAllAsRead();
+ const navigate = useNavigate();
+ const { data: notifications } = useNotifications(0, 9);
+ const { data: unreadCount } = useUnreadCount();
+ const markAsRead = useMarkAsRead();
+ const markAllAsRead = useMarkAllAsRead();
 
-  if (isAdmin) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative"
-        onClick={() => navigate("/admin/notifications")}
-        aria-label="الإشعارات"
-      >
-        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-        <NotificationBadge />
-      </Button>
-    );
-  }
+ if (isAdmin) {
+ return (
+ <Button
+ variant="ghost"
+ size="icon"
+ className="relative"
+ onClick={() => navigate("/admin/notifications")}
+ aria-label="الإشعارات"
+ >
+ <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+ <NotificationBadge />
+ </Button>
+ );
+ }
 
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="الإشعارات">
-          <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-          <NotificationBadge />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
-        <div className="flex items-center justify-between p-3 border-b">
-          <h3 className="text-sm font-semibold">الإشعارات</h3>
-          {(unreadCount ?? 0) > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7 gap-1"
-              onClick={() => markAllAsRead.mutate()}
-            >
-              <CheckCheck className="h-3.5 w-3.5" />
-              قراءة الكل
-            </Button>
-          )}
-        </div>
-        <ScrollArea className="max-h-80">
-          {!notifications?.length ? (
-            <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
-          ) : (
-            <div className="divide-y">
-              {notifications.map((n) => (
-                <button
-                  key={n.id}
-                  className={`w-full text-start p-3 text-sm hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
-                  onClick={() => {
-                    if (!n.is_read) markAsRead.mutate(n.id);
-                  }}
-                >
-                  <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
-                    {n.message}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </button>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
-  );
+ return (
+ <Popover>
+ <PopoverTrigger asChild>
+ <Button variant="ghost" size="icon" className="relative" aria-label="الإشعارات">
+ <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+ <NotificationBadge />
+ </Button>
+ </PopoverTrigger>
+ <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
+ <div className="flex items-center justify-between p-3 border-b">
+ <h3 className="text-sm font-semibold">الإشعارات</h3>
+ {(unreadCount ?? 0) > 0 && (
+ <Button
+ variant="ghost"
+ size="sm"
+ className="text-xs h-7 gap-1"
+ onClick={() => markAllAsRead.mutate()}
+ >
+ <CheckCheck className="h-3.5 w-3.5" />
+ قراءة الكل
+ </Button>
+ )}
+ </div>
+ <ScrollArea className="max-h-80">
+ {!notifications?.length ? (
+ <p className="text-sm text-muted-foreground text-center py-8">لا توجد إشعارات</p>
+ ) : (
+ <div className="divide-y">
+ {notifications.map((n) => (
+ <button
+ key={n.id}
+ className={`w-full text-start p-3 text-sm hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
+ onClick={() => {
+ if (!n.is_read) markAsRead.mutate(n.id);
+ }}
+ >
+ <p className={`leading-relaxed ${!n.is_read ? "font-medium" : "text-muted-foreground"}`}>
+ {n.message}
+ </p>
+ <p className="text-xs text-muted-foreground mt-1">
+ {new Date(n.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+ </p>
+ </button>
+ ))}
+ </div>
+ )}
+ </ScrollArea>
+ </PopoverContent>
+ </Popover>
+ );
 });
 
 const HeaderUserInfo = memo(function HeaderUserInfo() {
-  const navigate = useNavigate();
-  const { user, role } = useAuth();
-  const { data: profile } = useProfile();
-  const displayName = getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : (user?.email ?? "");
+ const navigate = useNavigate();
+ const { user, role } = useAuth();
+ const { data: profile } = useProfile();
+ const displayName = getDisplayName(profile, role) !== "—" ? getDisplayName(profile, role) : (user?.email ?? "");
 
-  return (
-    <button
-      className="flex items-center gap-3 hover:opacity-80 transition-opacity rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      onClick={() => navigate("/profile")}
-      aria-label="الملف الشخصي"
-    >
-      <div className="text-end hidden sm:block">
-        <p className="text-sm font-medium leading-none">{displayName}</p>
-        {displayName !== user?.email && (
-          <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
-        )}
-      </div>
-      <Avatar className="h-9 w-9 border-2 border-border">
-        <AvatarImage src={profile?.avatar_url || undefined} alt={displayName || "صورة المستخدم"} />
-        <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-          {(displayName?.[0] || user?.email?.[0] || "؟").toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-    </button>
-  );
+ return (
+ <button
+ className="flex items-center gap-3 hover:opacity-80 transition-opacity rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+ onClick={() => navigate("/profile")}
+ aria-label="الملف الشخصي"
+ >
+ <div className="text-end hidden sm:block">
+ <p className="text-sm font-medium leading-none">{displayName}</p>
+ {displayName !== user?.email && (
+ <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
+ )}
+ </div>
+ <Avatar className="h-9 w-9 border-2 border-border">
+ <AvatarImage src={profile?.avatar_url || undefined} alt={displayName || "صورة المستخدم"} />
+ <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+ {(displayName?.[0] || user?.email?.[0] || "؟").toUpperCase()}
+ </AvatarFallback>
+ </Avatar>
+ </button>
+ );
 });
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { role } = useAuth();
-  const { data: profile } = useProfile();
-  const isAdmin = role === "super_admin";
+ const { role } = useAuth();
+ const { data: profile } = useProfile();
+ const isAdmin = role === "super_admin";
 
-  // Suspended account check (moved from ProtectedRoute to avoid duplicate useProfile calls)
-  if (profile?.is_suspended) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-3 max-w-md p-8">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-2xl">🚫</span>
-          </div>
-          <h2 className="text-xl font-bold text-foreground">تم تعليق حسابك</h2>
-          <p className="text-muted-foreground">تم تعليق حسابك من قبل إدارة المنصة. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.</p>
-        </div>
-      </div>
-    );
-  }
+ // Suspended account check (moved from ProtectedRoute to avoid duplicate useProfile calls)
+ if (profile?.is_suspended) {
+ return (
+ <div className="min-h-screen flex items-center justify-center bg-background">
+ <div className="text-center space-y-3 max-w-md p-8">
+ <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+ <span className="text-2xl">🚫</span>
+ </div>
+ <h2 className="text-xl font-bold text-foreground">تم تعليق حسابك</h2>
+ <p className="text-muted-foreground">تم تعليق حسابك من قبل إدارة المنصة. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.</p>
+ </div>
+ </div>
+ );
+ }
 
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <a href="#main-content" className="skip-link">
-          تخطي إلى المحتوى الرئيسي
-        </a>
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-border flex items-center px-4 md:px-6 gap-3 bg-card/80 backdrop-blur-sm sticky top-0 z-30" role="banner">
-            <SidebarTrigger>
-              <Menu className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only">فتح القائمة الجانبية</span>
-            </SidebarTrigger>
-            
-            <div className="flex-1" />
+ return (
+ <SidebarProvider>
+ <div className="min-h-screen flex w-full">
+ <a href="#main-content" className="skip-link">
+ تخطي إلى المحتوى الرئيسي
+ </a>
+ <AppSidebar />
+ <div className="flex-1 flex flex-col min-w-0">
+ <header className="h-16 border-b border-border flex items-center px-4 md:px-6 gap-3 bg-card/80 backdrop-blur-sm sticky top-0 z-30" role="banner">
+ <SidebarTrigger>
+ <Menu className="h-5 w-5" aria-hidden="true" />
+ <span className="sr-only">فتح القائمة الجانبية</span>
+ </SidebarTrigger>
+ 
+ <div className="flex-1" />
 
-            <HeaderNotifications isAdmin={isAdmin} />
-            <HeaderUserInfo />
-          </header>
-          {!isAdmin && profile && !profile.is_verified && (
-            <div className="bg-info/10 dark:bg-blue-950/30 border-b border-info/30 dark:border-info/30 px-4 md:px-6 py-3">
-              <div className="flex items-center gap-3 max-w-4xl mx-auto">
-                <div className="w-9 h-9 rounded-full bg-info/10 dark:bg-info/50 flex items-center justify-center shrink-0">
-                  <Clock className="h-5 w-5 text-info dark:text-info" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-info dark:text-blue-200">
-                    حسابك بانتظار التوثيق من قبل إدارة المنصة
-                  </p>
-                  <p className="text-xs text-info dark:text-info mt-0.5">
-                    سيتم إشعارك فور اعتماد حسابك
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          <ProfileCompletionBanner />
-          <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
-            {children}
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
-  );
+ <HeaderNotifications isAdmin={isAdmin} />
+ <HeaderUserInfo />
+ </header>
+ {!isAdmin && profile && !profile.is_verified && (
+ <div className="bg-info/10 border-b border-info/30 dark:border-info/30 px-4 md:px-6 py-3">
+ <div className="flex items-center gap-3 max-w-4xl mx-auto">
+ <div className="w-9 h-9 rounded-full bg-info/10 dark:bg-info/50 flex items-center justify-center shrink-0">
+ <Clock className="h-5 w-5 text-info dark:text-info" />
+ </div>
+ <div className="min-w-0">
+ <p className="text-sm font-medium text-info ">
+ حسابك بانتظار التوثيق من قبل إدارة المنصة
+ </p>
+ <p className="text-xs text-info dark:text-info mt-0.5">
+ سيتم إشعارك فور اعتماد حسابك
+ </p>
+ </div>
+ </div>
+ </div>
+ )}
+ <ProfileCompletionBanner />
+ <main id="main-content" className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in" role="main" tabIndex={-1}>
+ {children}
+ </main>
+ </div>
+ </div>
+ </SidebarProvider>
+ );
 }
