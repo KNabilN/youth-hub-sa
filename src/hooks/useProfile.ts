@@ -55,6 +55,10 @@ export function useUpdateProfile() {
       qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
       qc.invalidateQueries({ queryKey: ["public-profile"] });
     },
+  });
+}
+
+export function useUpdateBankDetails() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
