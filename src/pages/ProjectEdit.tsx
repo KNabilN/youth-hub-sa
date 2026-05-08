@@ -56,7 +56,7 @@ export default function ProjectEdit() {
     }
     updateProject.mutate(payload, {
       onSuccess: () => {
-        toast({ title: willResetStatus ? "تم تحديث الطلب وإعادته للمراجعة" : "تم تحديث الطلب" });
+        toast({ title: willResetStatus ? "تم تحديث الطلب وإعادته للمراجعة" : "تم تحديث الطلب", description: willResetStatus ? "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" : undefined });
         navigate(`/projects/${project.id}`);
       },
       onError: (error) => toast({ title: getFriendlyDatabaseError(error, "حدث خطأ"), variant: "destructive" }),

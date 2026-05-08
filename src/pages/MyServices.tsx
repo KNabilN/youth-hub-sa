@@ -39,7 +39,7 @@ export default function MyServices() {
     if (createService.isPending) return;
     createService.mutate(values as Parameters<typeof createService.mutate>[0], {
       onSuccess: () => {
-        toast({ title: "تم إنشاء الخدمة بنجاح" });
+        toast({ title: "تم إنشاء الخدمة بنجاح", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" });
         setFormOpen(false);
       },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
@@ -63,7 +63,7 @@ export default function MyServices() {
   const handleEdit = (values: ServiceFormValues) => {
     if (!editingId || updateService.isPending) return;
     updateService.mutate({ id: editingId, ...values } as Parameters<typeof updateService.mutate>[0], {
-      onSuccess: () => { toast({ title: "تم تحديث الخدمة" }); setEditingId(null); },
+      onSuccess: () => { toast({ title: "تم تحديث الخدمة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" }); setEditingId(null); },
       onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
     });
   };
@@ -158,7 +158,7 @@ export default function MyServices() {
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
                 onReactivate={(id) => updateStatus.mutate({ id, approval: "pending" }, {
-                  onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة" }),
+                  onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" }),
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
               />
