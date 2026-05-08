@@ -36,24 +36,128 @@ export function useBankDetails() {
   });
 }
 
+// Fields that require admin approval before being applied to the profile
+export const SENSITIVE_PROFILE_FIELDS = [
+  "full_name",
+  "organization_name",
+  "license_number",
+  "contact_officer_name",
+  "contact_officer_email",
+  "contact_officer_phone",
+  "contact_officer_title",
+  "region_id",
+  "city_id",
+  "bio",
+] as const;
+
+export function usePendingProfileEditRequest() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["pending-edit-request", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("edit_requests")
+        .select("*")
+        .eq("target_user_id", user!.id)
+        .eq("target_table", "profiles")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useUpdateProfile() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (updates: Record<string, unknown>) => {
+    mutationFn: async (updates: Record<string, unknown>): Promise<{ hasPendingReview: boolean }> => {
       const userId = user!.id;
-      const { error } = await supabase
+
+      // Load current profile to compute old values
+      const { data: current, error: curErr } = await supabase
         .from("profiles")
-        .update(updates as any)
-        .eq("id", userId);
-      if (error) throw error;
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (curErr) throw curErr;
+
+      const sensitive: Record<string, unknown> = {};
+      const instant: Record<string, unknown> = {};
+      const oldValues: Record<string, unknown> = {};
+
+      for (const [k, v] of Object.entries(updates)) {
+        if ((SENSITIVE_PROFILE_FIELDS as readonly string[]).includes(k)) {
+          const oldVal = (current as any)?.[k] ?? null;
+          // Only treat as a change if value actually differs
+          if ((oldVal ?? "") !== (v ?? "")) {
+            sensitive[k] = v;
+            oldValues[k] = oldVal;
+          }
+        } else {
+          instant[k] = v;
+        }
+      }
+
+      if (Object.keys(instant).length > 0) {
+        const { error } = await supabase.from("profiles").update(instant as any).eq("id", userId);
+        if (error) throw error;
+      }
+
+      let hasPendingReview = false;
+      if (Object.keys(sensitive).length > 0) {
+        // Merge with any existing pending request
+        const { data: existing } = await supabase
+          .from("edit_requests")
+          .select("*")
+          .eq("target_user_id", userId)
+          .eq("target_table", "profiles")
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existing) {
+          const mergedChanges = { ...(existing.requested_changes as any), ...sensitive };
+          const mergedOld = { ...(existing.old_values as any), ...oldValues };
+          const { error } = await supabase
+            .from("edit_requests")
+            .update({
+              requested_changes: mergedChanges,
+              old_values: mergedOld,
+              updated_at: new Date().toISOString(),
+            } as any)
+            .eq("id", existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("edit_requests").insert({
+            target_table: "profiles",
+            target_id: userId,
+            target_user_id: userId,
+            requested_by: userId,
+            requested_changes: sensitive,
+            old_values: oldValues,
+            status: "pending",
+          } as any);
+          if (error) throw error;
+        }
+        hasPendingReview = true;
+      }
+
+      return { hasPendingReview };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["pending-edit-request"] });
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       qc.invalidateQueries({ queryKey: ["admin-users-count"] });
       qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
       qc.invalidateQueries({ queryKey: ["public-profile"] });
+      qc.invalidateQueries({ queryKey: ["admin-edit-requests"] });
     },
   });
 }

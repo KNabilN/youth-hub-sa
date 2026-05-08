@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useProfile, useUpdateProfile, useUploadAvatar, useBankDetails, useUpdateBankDetails } from "@/hooks/useProfile";
+import { useProfile, useUpdateProfile, useUploadAvatar, useBankDetails, useUpdateBankDetails, usePendingProfileEditRequest, SENSITIVE_PROFILE_FIELDS } from "@/hooks/useProfile";
 import { useUploadCover } from "@/hooks/useUploadCover";
 import { useUploadCompanyLogo } from "@/hooks/useUploadCompanyLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +57,7 @@ export default function Profile() {
   const { role, user } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { data: bankDetails } = useBankDetails();
+  const { data: pendingEdit } = usePendingProfileEditRequest();
   const updateProfile = useUpdateProfile();
   const updateBankDetails = useUpdateBankDetails();
   const uploadAvatar = useUploadAvatar();
@@ -164,8 +165,12 @@ export default function Profile() {
         city_id: cityId || null,
       },
       {
-        onSuccess: () => {
-          toast({ title: "تم تحديث الملف الشخصي", description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
+        onSuccess: (res) => {
+          if (res?.hasPendingReview) {
+            toast({ title: "تم إرسال التعديلات للمراجعة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها. يبقى حسابك موثقاً كما هو." });
+          } else {
+            toast({ title: "تم تحديث الملف الشخصي" });
+          }
         },
         onError: (err: any) => {
           const msg = String(err?.message || "");
@@ -269,6 +274,22 @@ export default function Profile() {
           <Skeleton className="h-64 w-full rounded-2xl" />
         ) : (
           <>
+            {/* Pending edit review banner */}
+            {pendingEdit && (
+              <Card className="border-warning/40 bg-warning/10">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-sm">
+                    <p className="font-semibold">لديك تعديلات قيد مراجعة الإدارة</p>
+                    <p className="text-muted-foreground">
+                      الحقول المطلوب تعديلها: {Object.keys((pendingEdit as any).requested_changes || {}).join("، ") || "—"}.
+                      ستظل القيم الحالية ظاهرة في المنصة حتى اعتماد التعديلات.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Profile Completion Progress */}
             {!isComplete && (
               <Card className="border-warning/30 bg-warning/5">
