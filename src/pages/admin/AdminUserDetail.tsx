@@ -320,6 +320,16 @@ export default function AdminUserDetail() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 pb-12 space-y-6">
+        {pendingEdit && (
+          <Alert className="border-warning/40 bg-warning/10">
+            <AlertDescription className="flex items-center justify-between gap-3">
+              <span>هذا المستخدم لديه طلب تعديل على ملفه الشخصي بانتظار المراجعة.</span>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/admin/edit-requests">مراجعة الطلب</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Hero Section */}
         <div className="rounded-2xl bg-gradient-to-l from-primary/5 via-primary/[0.02] to-background border p-8">
           <div className="flex flex-col items-center text-center gap-4">
