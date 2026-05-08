@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { RouteBreadcrumbs } from "@/components/RouteBreadcrumbs";
 import { getDisplayName } from "@/lib/utils";
 
 const HeaderNotifications = memo(function HeaderNotifications({
@@ -212,6 +213,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           )}
           <ProfileCompletionBanner />
+          <RouteBreadcrumbs />
           <main
             id="main-content"
             className="flex-1 p-4 md:p-6 overflow-auto bg-pattern animate-fade-in"
