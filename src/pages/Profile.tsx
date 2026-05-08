@@ -165,7 +165,7 @@ export default function Profile() {
       },
       {
         onSuccess: () => {
-          toast({ title: "تم تحديث الملف الشخصي" });
+          toast({ title: "تم تحديث الملف الشخصي", description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
         },
         onError: (err: any) => {
           const msg = String(err?.message || "");
