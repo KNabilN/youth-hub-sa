@@ -46,15 +46,10 @@ function useEditRequests(status: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("edit_requests")
-        .select("*, profile:profiles!edit_requests_target_user_id_fkey(id, full_name, organization_name, user_number)")
+        .select("*")
         .eq("status", status)
         .order("created_at", { ascending: false });
-      if (error) {
-        // fallback without join (no FK declared)
-        const res = await supabase.from("edit_requests").select("*").eq("status", status).order("created_at", { ascending: false });
-        if (res.error) throw res.error;
-        return res.data;
-      }
+      if (error) throw error;
       return data;
     },
   });
