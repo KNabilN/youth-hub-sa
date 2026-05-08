@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useListHighlight } from "@/hooks/useListHighlight";
@@ -76,6 +76,11 @@ export function UserTable({ pagination }: UserTableProps) {
   const updateProfile = useAdminUpdateProfile();
   const softDelete = useSoftDelete();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [roleFilter, setRoleFilter] = useState("all");
   const [verifiedFilter, setVerifiedFilter] = useState("all");
@@ -109,15 +114,15 @@ export function UserTable({ pagination }: UserTableProps) {
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
 
-  const filters = {
+  const filters = useMemo(() => ({
     roleFilter,
     regionId: regionFilter,
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
-    search: search || undefined,
-  };
+    search: debouncedSearch || undefined,
+  }), [roleFilter, regionFilter, cityFilter, dateFrom, dateTo, verifiedFilter, debouncedSearch]);
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
 
@@ -161,19 +166,6 @@ export function UserTable({ pagination }: UserTableProps) {
   const openEdit = (u: any) => {
     setEditUser(u);
   };
-
-  if (isLoading) return (
-    <div className="space-y-4">
-      <div className="flex gap-3">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-10 w-40" />
-        <Skeleton className="h-10 w-40" />
-      </div>
-      <div className="border rounded-lg p-4 space-y-3">
-        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-4">
@@ -386,7 +378,14 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {(users ?? []).length === 0 && (
+            {isLoading && (users ?? []).length === 0 && (
+              [1,2,3,4,5].map((i) => (
+                <TableRow key={`sk-${i}`}>
+                  <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                </TableRow>
+              ))
+            )}
+            {!isLoading && (users ?? []).length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>

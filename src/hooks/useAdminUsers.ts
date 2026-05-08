@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminUsersFilters {
@@ -101,6 +101,7 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
         user_roles: roleMap.has(p.id) ? [{ role: roleMap.get(p.id)! }] : [],
       }));
     },
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -159,6 +160,7 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       if (error) throw error;
       return count ?? 0;
     },
+    placeholderData: keepPreviousData,
   });
 }
 
