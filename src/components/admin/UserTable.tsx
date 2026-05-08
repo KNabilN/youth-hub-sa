@@ -378,7 +378,14 @@ export function UserTable({ pagination }: UserTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {(users ?? []).length === 0 && (
+            {isLoading && (users ?? []).length === 0 && (
+              [1,2,3,4,5].map((i) => (
+                <TableRow key={`sk-${i}`}>
+                  <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                </TableRow>
+              ))
+            )}
+            {!isLoading && (users ?? []).length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا يوجد مستخدمين</TableCell></TableRow>
             )}
           </TableBody>
