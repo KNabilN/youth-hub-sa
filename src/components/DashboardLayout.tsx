@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { getDisplayName } from "@/lib/utils";
 
 const HeaderNotifications = memo(function HeaderNotifications({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
