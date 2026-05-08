@@ -281,9 +281,22 @@ export function UserTable({ pagination }: UserTableProps) {
                   {u.user_number || "—"}
                 </TableCell>
                 <TableCell>
-                  <Button variant="link" className="p-0 h-auto font-medium" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`, pagination?.page ?? 0)}>
-                    {getDisplayName(u)}
+                  <Button variant="link" className="p-0 h-auto font-medium block text-start" onClick={() => saveAndNavigate(u.id, `/admin/users/${u.id}`, pagination?.page ?? 0)}>
+                    {getDisplayName(u, u.user_roles?.[0]?.role)}
                   </Button>
+                  {(() => {
+                    const role = u.user_roles?.[0]?.role;
+                    const primary = getDisplayName(u, role);
+                    const alt = role === "youth_association" ? u.full_name : u.organization_name;
+                    if (alt && alt !== primary) {
+                      return (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[180px]" title={alt}>
+                          {role === "youth_association" ? "المسؤول" : "المنظمة"}: {alt}
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Select

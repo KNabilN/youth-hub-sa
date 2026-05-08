@@ -48,7 +48,13 @@ export function useUpdateProfile() {
         .eq("id", userId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-users-count"] });
+      qc.invalidateQueries({ queryKey: ["admin-user-by-id"] });
+      qc.invalidateQueries({ queryKey: ["public-profile"] });
+    },
   });
 }
 
