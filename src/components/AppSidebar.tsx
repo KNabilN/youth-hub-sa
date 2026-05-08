@@ -73,6 +73,7 @@ const menuByRole = {
   super_admin: [
     { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
     { title: "إدارة المستخدمين", url: "/admin/users", icon: UserCog },
+    { title: "طلبات تعديل الملف", url: "/admin/edit-requests", icon: ClipboardList },
     { title: "طلبات الجمعيات", url: "/admin/projects", icon: FolderKanban },
     { title: "الخدمات", url: "/admin/services", icon: Store },
     { title: "العقود", url: "/admin/contracts", icon: ScrollText },
