@@ -78,7 +78,7 @@ export default function ProjectEdit() {
       .eq("id", project.id)
       .then(({ error }) => {
         if (error)
-          toast.error(getFriendlyDatabaseError(error);
+          toast.error(getFriendlyDatabaseError(error));
         else {
           toast.success("تم حفظ المسودة");
           navigate(`/projects/${project.id}`);
@@ -101,7 +101,7 @@ export default function ProjectEdit() {
         navigate(`/projects/${project.id}`);
       },
       onError: (error) =>
-        toast.error(getFriendlyDatabaseError(error),
+        toast.error(getFriendlyDatabaseError(error)),
     });
   };
 

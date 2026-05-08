@@ -37,7 +37,7 @@ export default function ProjectCreate() {
           resolve(data.id);
         },
         onError: (error) => {
-          toast.error(getFriendlyDatabaseError(error);
+          toast.error(getFriendlyDatabaseError(error));
           reject(new Error("Draft creation failed"));
         },
       });
@@ -58,7 +58,7 @@ export default function ProjectCreate() {
         .update({ ...clean, status: "pending_approval" as any })
         .eq("id", draftId);
       if (error) {
-        toast.error(getFriendlyDatabaseError(error);
+        toast.error(getFriendlyDatabaseError(error));
         return;
       }
       toast.success("تم إنشاء الطلب بنجاح", { description: "سيتم مراجعته من قبل فريق المنصة قبل اعتماده" });
@@ -71,7 +71,7 @@ export default function ProjectCreate() {
           navigate(`/projects/${data.id}`);
         },
         onError: (error) =>
-          toast.error(getFriendlyDatabaseError(error),
+          toast.error(getFriendlyDatabaseError(error)),
       });
     }
   };
@@ -90,8 +90,7 @@ export default function ProjectCreate() {
         .eq("id", draftId)
         .then(({ error }) => {
           if (error)
-            toast.error(getFriendlyDatabaseError(
-                error);
+            toast.error(getFriendlyDatabaseError(error));
           else {
             toast.success("تم حفظ الطلب كمسودة");
             navigate(`/projects/${draftId}`);
@@ -104,7 +103,7 @@ export default function ProjectCreate() {
           navigate(`/projects/${data.id}`);
         },
         onError: (error) =>
-          toast.error(getFriendlyDatabaseError(error),
+          toast.error(getFriendlyDatabaseError(error)),
       });
     }
   };
