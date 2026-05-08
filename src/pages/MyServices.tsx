@@ -158,7 +158,7 @@ export default function MyServices() {
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
                 onReactivate={(id) => updateStatus.mutate({ id, approval: "pending" }, {
-                  onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة" }),
+                  onSuccess: () => toast({ title: "تم إعادة تقديم الخدمة للمراجعة", description: "سيتم مراجعتها من قبل فريق المنصة قبل اعتمادها" }),
                   onError: () => toast({ title: "حدث خطأ", variant: "destructive" }),
                 })}
               />
