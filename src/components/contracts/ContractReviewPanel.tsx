@@ -21,7 +21,6 @@ import {
   ContractDocument,
   PrintContractButton,
 } from "@/components/contracts/ContractDocument";
-import { toast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ContractReviewPanelProps {

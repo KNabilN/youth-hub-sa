@@ -4,7 +4,6 @@ import { useBids, useRejectBid } from "@/hooks/useBids";
 import { BidCard } from "./BidCard";
 import { BidPaymentDialog } from "./BidPaymentDialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 
 interface BidListProps {
   projectId: string;

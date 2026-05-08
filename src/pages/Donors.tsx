@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { HandCoins, Users, Search } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { ContentSkeleton } from "@/components/ContentSkeleton";
 

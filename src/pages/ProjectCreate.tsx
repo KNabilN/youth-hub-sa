@@ -7,7 +7,6 @@ import {
 } from "@/components/projects/ProjectForm";
 import { useCreateProject } from "@/hooks/useProjects";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sanitizeFormValues,

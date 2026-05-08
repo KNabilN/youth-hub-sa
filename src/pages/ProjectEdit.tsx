@@ -7,7 +7,6 @@ import {
   type ProjectFormValues,
 } from "@/components/projects/ProjectForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

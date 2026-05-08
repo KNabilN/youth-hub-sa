@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 import { Clock, CheckCircle } from "lucide-react";
 
 export default function TimeLogs() {

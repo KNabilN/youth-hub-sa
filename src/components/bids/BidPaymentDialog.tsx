@@ -19,7 +19,6 @@ import { useCreateBankTransfer } from "@/hooks/useBankTransfer";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectGrantBalance } from "@/hooks/useAssociationGrants";
 import { usePayFromGrants } from "@/hooks/usePayFromGrants";
-import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CreditCard,
