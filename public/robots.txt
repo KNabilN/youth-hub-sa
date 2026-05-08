@@ -1,8 +1,19 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /checkout
+Disallow: /payment-success
+Disallow: /payment-callback
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +23,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
+
+Sitemap: https://sharedservices.solutions/sitemap.xml
