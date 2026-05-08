@@ -114,15 +114,15 @@ export function UserTable({ pagination }: UserTableProps) {
   const { data: regions } = useRegions();
   const { data: cities } = useCities(regionFilter !== "all" ? regionFilter : null);
 
-  const filters = {
+  const filters = useMemo(() => ({
     roleFilter,
     regionId: regionFilter,
     cityId: cityFilter,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     verifiedFilter,
-    search: search || undefined,
-  };
+    search: debouncedSearch || undefined,
+  }), [roleFilter, regionFilter, cityFilter, dateFrom, dateTo, verifiedFilter, debouncedSearch]);
   const { data: users, isLoading } = useAdminUsers(from, to, filters);
   const { data: totalCount } = useAdminUsersCount(filters);
 
