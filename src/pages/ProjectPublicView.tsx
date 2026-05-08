@@ -47,6 +47,8 @@ export default function ProjectPublicView() {
     enabled: !!id,
   });
 
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-3xl py-16 px-4 space-y-6">

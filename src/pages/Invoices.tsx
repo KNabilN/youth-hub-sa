@@ -204,7 +204,7 @@ export default function Invoices() {
 
         <div className="h-1 rounded-full bg-gradient-to-l from-primary/60 via-primary/20 to-transparent" />
 
-        {isLoading ? (
+        {isError ? (<ErrorState onRetry={() => refetch()} />) : isLoading ? (
           <Skeleton className="h-64 w-full" />
         ) : !filtered?.length ? (
           <EmptyState

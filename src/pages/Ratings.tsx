@@ -122,6 +122,8 @@ export default function Ratings() {
     setComment("");
   };
 
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+
   if (isLoading)
     return (
       <DashboardLayout>

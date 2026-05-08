@@ -180,7 +180,7 @@ export default function MyBids() {
           </CardContent>
         </Card>
 
-        {isLoading ? (
+        {isError ? (<ErrorState onRetry={() => refetch()} />) : isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-28 rounded-xl" />

@@ -83,6 +83,8 @@ export default function TicketDetail() {
     },
   });
 
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+
   if (isLoading) {
     return (
       <DashboardLayout>

@@ -341,6 +341,8 @@ export default function ProjectDetails() {
   const isProvider =
     role === "service_provider" && user?.id === project?.assigned_provider_id;
 
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+
   if (isLoading)
     return (
       <DashboardLayout>
