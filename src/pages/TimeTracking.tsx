@@ -101,12 +101,11 @@ export default function TimeTracking() {
         hours,
         log_date: new Date().toISOString().split("T")[0],
       });
-      toast({
-        title: `تم تسجيل ${hours} ساعة من المؤقت`,
+      toast.success(`تم تسجيل ${hours} ساعة من المؤقت`, {
         description: "أكمل بيانات النموذج وأرسل",
       });
     },
-    [toast],
+    [],
   );
 
   const miniStats = [
