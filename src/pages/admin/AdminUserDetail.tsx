@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { getDisplayName } from "@/lib/utils";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAdminUserById } from "@/hooks/useAdminUserById";
