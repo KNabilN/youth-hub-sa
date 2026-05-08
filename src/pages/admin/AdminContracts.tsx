@@ -131,7 +131,8 @@ export default function AdminContracts() {
         ) : (
           <>
             <div className="border rounded-lg">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>رقم الطلب</TableHead>
@@ -188,7 +189,8 @@ export default function AdminContracts() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             <PaginationControls
               page={pagination.page}

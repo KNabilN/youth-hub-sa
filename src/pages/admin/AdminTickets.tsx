@@ -151,7 +151,8 @@ export default function AdminTickets() {
         ) : (
           <>
             <div className="border rounded-lg">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                      <TableHead>رقم التذكرة</TableHead>
@@ -195,7 +196,8 @@ export default function AdminTickets() {
                   ))}
                   {paged.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">لا توجد تذاكر</TableCell></TableRow>}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             <PaginationControls
               page={pagination.page}

@@ -102,7 +102,8 @@ export default function AdminDiscountCodes() {
         ) : (
           <Card>
             <CardContent className="p-0">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>الكود</TableHead>
@@ -154,7 +155,8 @@ export default function AdminDiscountCodes() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         )}

@@ -114,7 +114,8 @@ export default function AssociationImpactReports() {
           <Card>
             <CardHeader><CardTitle>التقارير المرفوعة</CardTitle></CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>العنوان</TableHead>
@@ -139,7 +140,8 @@ export default function AssociationImpactReports() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         )}

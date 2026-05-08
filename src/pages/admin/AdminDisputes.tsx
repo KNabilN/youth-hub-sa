@@ -128,7 +128,8 @@ export default function AdminDisputes() {
         ) : (
           <>
             <div className="border rounded-lg">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                      <TableHead>الرقم</TableHead>
@@ -191,7 +192,8 @@ export default function AdminDisputes() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             <PaginationControls
               page={pagination.page}

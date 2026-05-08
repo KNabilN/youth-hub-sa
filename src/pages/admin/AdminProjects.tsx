@@ -158,7 +158,8 @@ export default function AdminProjects() {
         ) : (
           <>
             <div className="border rounded-lg">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>رقم الطلب</TableHead>
@@ -237,7 +238,8 @@ export default function AdminProjects() {
                   })}
                   {(projects ?? []).length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد طلبات</TableCell></TableRow>}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             <PaginationControls
               page={pagination.page}

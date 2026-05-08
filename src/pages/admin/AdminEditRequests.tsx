@@ -143,7 +143,8 @@ export default function AdminEditRequests() {
                 ) : (rows || []).length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">لا توجد طلبات</p>
                 ) : (
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>الجهة</TableHead>
@@ -190,7 +191,8 @@ export default function AdminEditRequests() {
                         );
                       })}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -209,7 +211,8 @@ export default function AdminEditRequests() {
               <div className="text-sm text-muted-foreground">
                 الجهة: {profiles?.[selected.target_user_id]?.organization_name || profiles?.[selected.target_user_id]?.full_name || "—"}
               </div>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-1/4">الحقل</TableHead>
@@ -226,7 +229,8 @@ export default function AdminEditRequests() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
               {selected.admin_note && (
                 <p className="text-sm text-muted-foreground">ملاحظة سابقة: {selected.admin_note}</p>
               )}

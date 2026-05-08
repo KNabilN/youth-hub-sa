@@ -200,7 +200,8 @@ export default function AdminServices() {
         ) : (
           <>
             <div className="border rounded-lg">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                      <TableHead>الرقم</TableHead>
@@ -291,7 +292,8 @@ export default function AdminServices() {
                   ))}
                   {paged.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">لا توجد خدمات</TableCell></TableRow>}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             <PaginationControls
               page={pagination.page}
