@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import logoImg from "@/assets/logo.png";
 import logoWhiteImg from "@/assets/logo-white.png";
+import { getDisplayName } from "@/lib/utils";
 
 const menuByRole = {
   youth_association: [
