@@ -101,6 +101,7 @@ export function useAdminUsers(from = 0, to = 19, filters?: AdminUsersFilters) {
         user_roles: roleMap.has(p.id) ? [{ role: roleMap.get(p.id)! }] : [],
       }));
     },
+    placeholderData: keepPreviousData,
   });
 }
 
