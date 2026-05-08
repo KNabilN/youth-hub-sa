@@ -899,11 +899,15 @@ export type Database = {
       }
       edit_requests: {
         Row: {
+          admin_note: string | null
           created_at: string
           id: string
           message: string | null
+          old_values: Json
           requested_by: string
           requested_changes: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string
           target_id: string
           target_table: string
@@ -911,11 +915,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_note?: string | null
           created_at?: string
           id?: string
           message?: string | null
+          old_values?: Json
           requested_by: string
           requested_changes?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string
           target_id: string
           target_table: string
@@ -923,11 +931,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_note?: string | null
           created_at?: string
           id?: string
           message?: string | null
+          old_values?: Json
           requested_by?: string
           requested_changes?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string
           target_id?: string
           target_table?: string
@@ -2267,6 +2279,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_edit_request: { Args: { p_request_id: string }; Returns: undefined }
       cascade_permanent_delete: {
         Args: { p_id: string; p_table: string }
         Returns: undefined
@@ -2337,6 +2350,10 @@ export type Database = {
       increment_service_views: { Args: { s_id: string }; Returns: undefined }
       is_not_suspended: { Args: { _user_id: string }; Returns: boolean }
       purge_soft_deleted_records: { Args: never; Returns: undefined }
+      reject_edit_request: {
+        Args: { p_note: string; p_request_id: string }
+        Returns: undefined
+      }
       send_notification_secure: {
         Args: {
           _entity_id?: string
