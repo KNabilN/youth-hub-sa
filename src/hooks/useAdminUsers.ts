@@ -160,6 +160,7 @@ export function useAdminUsersCount(filters?: AdminUsersFilters) {
       if (error) throw error;
       return count ?? 0;
     },
+    placeholderData: keepPreviousData,
   });
 }
 
