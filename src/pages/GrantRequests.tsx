@@ -94,7 +94,7 @@ export default function GrantRequests() {
               placeholder="ابحث بالجمعية أو الوصف..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pr-10"
+              className="pe-10"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>

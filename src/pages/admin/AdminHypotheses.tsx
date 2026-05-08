@@ -225,7 +225,7 @@ function AdminHypotheses() {
             disabled={downloading || !hypotheses?.length}
             onClick={handleDownloadReport}
           >
-            <Download className="h-4 w-4 ml-1.5" />
+            <Download className="h-4 w-4 ms-1.5" />
             {downloading ? "جارٍ التحميل..." : "تحميل التقرير"}
           </Button>
         </div>

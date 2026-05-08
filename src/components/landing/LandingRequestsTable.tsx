@@ -135,7 +135,7 @@ export default function LandingRequestsTable({
                       {assocName}
                     </span>
                     <span
-                      className="flex items-center gap-1.5 mr-auto"
+                      className="flex items-center gap-1.5 me-auto"
                       dir="ltr"
                     >
                       <Calendar className="w-3.5 h-3.5" />

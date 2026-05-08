@@ -583,7 +583,7 @@ function FeaturedServicesPicker() {
           placeholder="ابحث باسم الخدمة أو مقدم الخدمة..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pr-9 h-9 text-sm"
+          className="pe-9 h-9 text-sm"
           dir="rtl"
         />
       </div>
@@ -686,7 +686,7 @@ function FeaturedProjectsPicker() {
           placeholder="ابحث باسم الطلب أو الجمعية..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pr-9 h-9 text-sm"
+          className="pe-9 h-9 text-sm"
           dir="rtl"
         />
       </div>

@@ -233,7 +233,7 @@ export default function AdminEditRequests() {
                                   variant="outline"
                                   onClick={() => setSelected(r)}
                                 >
-                                  <Eye className="h-4 w-4 ml-1" /> عرض
+                                  <Eye className="h-4 w-4 ms-1" /> عرض
                                 </Button>
                               </TableCell>
                             </TableRow>
@@ -303,13 +303,13 @@ export default function AdminEditRequests() {
                   variant="destructive"
                   onClick={() => setRejectOpen(true)}
                 >
-                  <X className="h-4 w-4 ml-1" /> رفض
+                  <X className="h-4 w-4 ms-1" /> رفض
                 </Button>
                 <Button
                   onClick={() => approve.mutate(selected.id)}
                   disabled={approve.isPending}
                 >
-                  <Check className="h-4 w-4 ml-1" /> اعتماد
+                  <Check className="h-4 w-4 ms-1" /> اعتماد
                 </Button>
               </>
             )}

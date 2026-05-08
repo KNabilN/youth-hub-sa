@@ -97,7 +97,7 @@ export default function Donors() {
             placeholder="ابحث عن مانح..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pr-10"
+            className="pe-10"
           />
         </div>
 

@@ -362,9 +362,9 @@ export function ProjectForm({
                             }`}
                             onClick={() => toggleSkill(skill.name)}
                           >
-                            {!isSelected && <Plus className="h-3 w-3 ml-0.5" />}
+                            {!isSelected && <Plus className="h-3 w-3 ms-0.5" />}
                             {skill.name}
-                            {isSelected && <X className="h-3 w-3 mr-0.5" />}
+                            {isSelected && <X className="h-3 w-3 me-0.5" />}
                           </Badge>
                         );
                       })}
@@ -568,7 +568,7 @@ export function ProjectForm({
               السابق
             </Button>
           )}
-          <div className="flex gap-2 mr-auto">
+          <div className="flex gap-2 me-auto">
             {onSaveDraft && step < 3 && (
               <Button
                 type="button"

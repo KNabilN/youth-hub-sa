@@ -69,7 +69,7 @@ export function AssociationCard({
               موثقة
             </Badge>
           )}
-          <span className="text-xs text-muted-foreground flex items-center gap-1 mr-auto group-hover:text-primary transition-colors">
+          <span className="text-xs text-muted-foreground flex items-center gap-1 me-auto group-hover:text-primary transition-colors">
             عرض الملف{" "}
             <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
           </span>
