@@ -10,6 +10,7 @@ import {
   Eye,
   ShoppingCart,
   AlertTriangle,
+  MapPin,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
