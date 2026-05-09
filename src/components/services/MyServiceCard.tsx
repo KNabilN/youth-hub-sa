@@ -10,6 +10,7 @@ import {
   Eye,
   ShoppingCart,
   AlertTriangle,
+  MapPin,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -70,6 +71,7 @@ interface MyServiceCardProps {
     sales_count?: number | null;
     categories?: { name: string } | null;
     regions?: { name: string } | null;
+    cities?: { name: string } | null;
     rejection_reason?: string | null;
   };
   onEdit: (id: string) => void;
@@ -175,22 +177,28 @@ export function MyServiceCard({
             </AlertDescription>
           </Alert>
         )}
+        {(service.regions?.name || service.cities?.name) && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+            <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="truncate">
+              {service.regions?.name ?? ""}
+              {service.cities?.name
+                ? ` — ${service.cities.name}`
+                : service.regions?.name
+                  ? " (جميع المدن)"
+                  : ""}
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between text-sm">
           <span className="inline-flex items-center bg-primary/10 text-primary font-semibold px-2.5 py-1 rounded-md text-xs">
             {service.price} ر.س
           </span>
-          <div className="flex gap-2 text-xs text-muted-foreground">
-            {service.categories?.name && (
-              <Badge variant="outline" className="text-xs font-normal">
-                {service.categories.name}
-              </Badge>
-            )}
-            {service.regions?.name && (
-              <Badge variant="outline" className="text-xs font-normal">
-                {service.regions.name}
-              </Badge>
-            )}
-          </div>
+          {service.categories?.name && (
+            <Badge variant="outline" className="text-xs font-normal">
+              {service.categories.name}
+            </Badge>
+          )}
         </div>
         {/* Performance stats */}
         <div className="flex items-center gap-3 mt-3 pt-3 border-t text-xs text-muted-foreground">

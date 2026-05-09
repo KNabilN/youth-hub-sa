@@ -7,7 +7,7 @@ import { useAddToCart, useCartItems } from "@/hooks/useCart";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Eye, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Eye, ArrowLeft, MapPin } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"micro_services"> & {
@@ -93,27 +93,28 @@ export function ServiceCard({ service }: { service: Service }) {
           <p className="text-sm text-muted-foreground line-clamp-2">
             {service.description}
           </p>
+          {(service.regions?.name || service.cities?.name) && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span className="truncate">
+                {service.regions?.name ?? ""}
+                {service.cities?.name
+                  ? ` — ${service.cities.name}`
+                  : service.regions?.name
+                    ? " (جميع المدن)"
+                    : ""}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-sm">
             <div className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm">
               {service.price.toLocaleString()} ر.س
             </div>
-            <div className="flex gap-1.5">
-              {service.categories?.name && (
-                <Badge variant="secondary" className="text-xs">
-                  {service.categories.name}
-                </Badge>
-              )}
-              {service.regions?.name && (
-                <Badge variant="secondary" className="text-xs">
-                  {service.regions.name}
-                </Badge>
-              )}
-              {service.cities?.name && (
-                <Badge variant="outline" className="text-xs">
-                  {service.cities.name}
-                </Badge>
-              )}
-            </div>
+            {service.categories?.name && (
+              <Badge variant="secondary" className="text-xs">
+                {service.categories.name}
+              </Badge>
+            )}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1" asChild>
