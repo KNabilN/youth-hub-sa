@@ -142,12 +142,6 @@ export default function ServiceDetail() {
               {(service.categories as any).name}
             </Badge>
           )}
-          {service.regions && (
-            <Badge variant="outline">{(service.regions as any).name}</Badge>
-          )}
-          {(service as any).cities && (
-            <Badge variant="outline">{(service as any).cities.name}</Badge>
-          )}
           {avgRating && (
             <span className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-yellow-400 text-warning" />
@@ -163,6 +157,22 @@ export default function ServiceDetail() {
             {service.sales_count ?? 0} مبيعات
           </span>
         </div>
+
+        {/* Service location — prominent so the buyer knows the coverage area */}
+        {(service.regions || (service as any).cities) && (
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 mt-2 w-fit">
+            <MapPin className="h-4 w-4 text-primary" />
+            <span className="text-sm">
+              <span className="text-muted-foreground">موقع تقديم الخدمة: </span>
+              <span className="font-semibold text-foreground">
+                {(service.regions as any)?.name ?? "—"}
+                {(service as any).cities?.name
+                  ? ` — ${(service as any).cities.name}`
+                  : " (جميع المدن)"}
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Main layout */}
