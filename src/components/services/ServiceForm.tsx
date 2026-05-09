@@ -47,7 +47,7 @@ const serviceSchema = z.object({
     .max(10000),
   category_id: z.string().min(1, "اختر التصنيف"),
   region_id: z.string().min(1, "اختر المنطقة"),
-  city_id: z.string().optional().nullable(),
+  city_id: z.string().min(1, "اختر المدينة"),
   price: z.coerce.number().positive("يجب أن يكون رقماً موجباً"),
 });
 
@@ -89,7 +89,7 @@ export function ServiceForm({
       long_description: "",
       category_id: "",
       region_id: "",
-      city_id: null,
+      city_id: "",
       price: 0,
       ...defaultValues,
     },
@@ -105,7 +105,7 @@ export function ServiceForm({
       cities &&
       !cities.find((c: any) => c.id === currentCity)
     ) {
-      form.setValue("city_id", null);
+      form.setValue("city_id", "");
     }
   }, [selectedRegionId, cities]);
 
@@ -274,7 +274,7 @@ export function ServiceForm({
             name="city_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>المدينة</FormLabel>
+                <FormLabel required>المدينة</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value ?? undefined}
