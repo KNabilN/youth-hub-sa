@@ -15,6 +15,7 @@ import {
   Paperclip,
   Home,
   ChevronLeft,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAddToCart, useCartItems } from "@/hooks/useCart";
