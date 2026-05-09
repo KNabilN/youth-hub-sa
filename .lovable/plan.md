@@ -1,65 +1,45 @@
-## الموجة 1 — إصلاحات DB حرجة
+## الهدف
 
-### 1.1 استبدال `.single()` بـ `.maybeSingle()`
-أفحص جميع المواضع (≈30) وأستبدلها حيث لا يكون الصفّ مضموناً (profile, bank_details, cart, public profile لمستخدم محذوف، إلخ). أحافظ على `.single()` فقط حين يكون الصفّ مضموناً منطقياً (مثل ربط بعقد قائم من نفس الـ mutation).
+ضمان أن الجمعية ترى **بوضوح** المنطقة والمدينة التي تُقدَّم فيها الخدمة قبل الشراء، في صفحة تفاصيل الخدمة وعلى البطاقات.
 
-### 1.2 ضبط افتراضيات React Query
-- إضافة `staleTime: 30_000` و `gcTime: 5*60_000` افتراضياً على `QueryClient` في `src/main.tsx`/`App.tsx`.
-- منع `refetchOnWindowFocus` المفرط على القوائم الثقيلة.
+## الوضع الحالي
 
-### 1.3 توحيد invalidation للطفرات الشائعة
-مراجعة الـ mutations التالية وإضافة المفاتيح المرتبطة الناقصة:
-- `useUpdateProfile` ← يضيف `["bank-details"]`, `["public-profile", id]`.
-- mutations العقود ← يبطل `["contracts"]`, `["my-projects"]`.
-- mutations cart ← يبطل عدّاد الـ header.
-- mutations الإشعارات ← يبطل `["unread-count"]`.
+- `ServiceDetail.tsx` يعرض المدينة كـ Badge صغير ضمن صف الميتا (سطر 147-149) — قد لا يلاحظها المستخدم.
+- `ServiceCard.tsx` يعرضها كـ Badge صغير بجانب القسم/المنطقة.
+- في `ServiceForm.tsx`: `region_id` مطلوب، لكن `city_id` **اختياري** → بعض الخدمات قد لا يكون لها مدينة فيظهر فراغ.
 
-### 1.4 `overflow-x-auto` للجداول الإدارية
-إضافة wrapper في 8 صفحات: `AdminTickets, AdminServices, AdminProjects, AdminContracts, AdminDisputes, AdminDiscountCodes, AdminEditRequests, AssociationImpactReports`.
+## خطة التنفيذ
 
----
+### 1. إبراز موقع التقديم في صفحة الخدمة (`src/pages/ServiceDetail.tsx`)
 
-## الموجة 2 — توحيد التوكنات (UI consistency)
+إضافة كرت/قسم مستقل واضح بعنوان **"موقع تقديم الخدمة"** بأيقونة `MapPin`، يعرض:
 
-### 2.1 استبدال الألوان المباشرة بالتوكنات الدلالية
-ألوان مكتشفة في 28 ملفاً. الخريطة المعتمدة:
+- المنطقة + المدينة بصيغة: `الرياض — حي العليا` مثلًا
+- إذا كانت المدينة غير محددة: عرض `المنطقة (جميع المدن)` بدل إخفاء المعلومة
+- وضعه أعلى الصفحة قرب السعر/البائع لا في صف الـ badges الصغير
 
-| المباشر | البديل الدلالي |
-|---|---|
-| `text-white` (على خلفيات ملوّنة) | `text-primary-foreground` / `text-destructive-foreground` |
-| `bg-white` | `bg-card` أو `bg-background` |
-| `text-gray-{500-700}` | `text-muted-foreground` |
-| `text-gray-{800-900}` | `text-foreground` |
-| `bg-gray-{50-100}` | `bg-muted` |
-| `text-red-{500-600}` / `bg-red-{50-100}` | `text-destructive` / `bg-destructive/10` |
-| `text-green-{500-700}` / `bg-green-{50-100}` | `text-success` / `bg-success/10` |
-| `text-yellow-/amber-` | `text-warning` / `bg-warning/10` |
-| `text-blue-{500-700}` / `bg-blue-` | `text-info` (أو `text-primary`) / `bg-info/10` |
+### 2. تحسين عرض المدينة في بطاقات الخدمة
 
-### 2.2 ملفات التركيز
-سأطبّق التغييرات بصورة مدروسة على:
-- **صفحات إدارية**: `AdminTickets, AdminTicketDetail, AdminProjects, AdminProjectDetail, AdminReports, AdminDisputeDetail, AdminFinance`
-- **مكوّنات أساسية**: `DashboardLayout, ContractTimeline, ContractCard, TicketCard, ServiceApprovalCard, FinanceSummary, WithdrawalEscrowDetails, DeliverablePanel`
-- **صفحات مستخدم**: `Profile, ServiceDetail, ProjectDetails, TimeTracking, Earnings, ReceivedGrants, TicketDetail, Index`
-- **landing/payment**: `LandingFooter, LandingServicesGrid, MoyasarPaymentForm, ServiceForm`
+- `ServiceCard.tsx` و `MyServiceCard.tsx`: استبدال الـ badges الثلاثة المكدّسة بسطر موقع موحّد بأيقونة `MapPin` صغيرة، ليكون التعرف على المدينة فوريًا.
 
-### 2.3 ضمانات
-- لا تغيير في السلوك أو البنية — فقط classes.
-- التحقق من الـ contrast بصرياً (الخلفية مقابل foreground).
-- لا أمسّ مكتبة `src/components/ui/**` (shadcn).
+### 3. جعل المدينة إلزامية للخدمات الجديدة (`ServiceForm.tsx`)
 
----
+- تحويل `city_id` إلى `min(1, "اختر المدينة")`.
+- لا نُلزم الخدمات القديمة بشكل رجعي (تبقى كما هي حتى يُعدّلها صاحبها).
 
-## ما لن يدخل في هذه الموجتين
-- توحيد toast vs sonner (الموجة 3).
-- حالات فارغة موحّدة (الموجة 3).
-- responsive breakpoints (الموجة 4).
-- RTL (`ms-`/`me-`) (الموجة 4).
-- تحسينات تدفقات (الموجة 5).
+### 4. فلترة Marketplace حسب المدينة (تحسين اختياري ضمن نفس الموجة)
 
----
+- `ServiceFilters` يدعم بالفعل المنطقة؛ إضافة فلتر **مدينة** ينشط عند اختيار منطقة، ليتمكن المشتري من استبعاد الخدمات خارج مدينته.
 
-## التحقّق بعد التنفيذ
-- لا أخطاء TS من البناء التلقائي.
-- جولة سريعة على الصفحات الأكثر تأثراً للتأكد من عدم وجود تعارض ألوان.
-- أوافيك بقائمة الملفات المعدّلة وعدد الاستبدالات.
+## الملفات المتأثرة
+
+- `src/pages/ServiceDetail.tsx` (قسم موقع جديد)
+- `src/components/marketplace/ServiceCard.tsx` (سطر موقع موحّد)
+- `src/components/services/MyServiceCard.tsx` (نفس التحسين للاتساق)
+- `src/components/services/ServiceForm.tsx` (المدينة إلزامية)
+- `src/components/marketplace/ServiceFilters.tsx` + `src/pages/Marketplace.tsx` (فلتر المدينة — اختياري)
+
+## نقاط للتأكيد
+
+1. هل تريد جعل المدينة **إلزامية** في نموذج الخدمة (الخطوة 3)؟ نعم اجعلها الزامية
+2.  هل ننفّذ فلتر المدينة في Marketplace الآن (الخطوة 4) أم نؤجله؟ نفذها في هذه المرحلة 
